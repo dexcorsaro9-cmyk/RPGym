@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   RPGym — Interfaccia utente
+   RPGym — Interfaccia utente (v2.0)
    ═══════════════════════════════════════════════════════════════ */
 
 let STATE = RPG.load();
@@ -15,12 +15,49 @@ const el = (tag, cls, html) => {
 };
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-const DEFAULT_AVATARS = ['🧑‍🌾', '👸', '🧙', '🦹', '🧝', '🥷', '🧚', '🤺'];
-// Avatar a figura intera generati con l'IA: basta salvarli in assets/avatars/
-// con questi nomi e appariranno tra le scelte alla creazione dell'eroe.
+/* ── Avatar dei protagonisti (creati con l'IA) ── */
 const FILE_AVATARS = ['assets/avatars/eroe1.png', 'assets/avatars/eroe2.png'];
 
+/* ── Le storie dei protagonisti ── */
+const STORIES = {
+  eroe1: {
+    title: 'Il Figlio del Falegname',
+    text: `Sei nato a Oakhaven, tra il profumo di segatura della bottega di tuo padre,
+il falegname più abile del borgo. Da lui hai imparato a leggere le venature del
+legno come altri leggono i libri, e a intagliare piccoli animali che regalavi ai
+bambini del mercato. Il bastone che stringi in viaggio è l'ultima cosa che avete
+costruito insieme: sulla cima, un uccellino intagliato — il richiamo che usavate
+per ritrovarvi nel bosco quando raccoglievate il legno.
+La notte dell'attacco eri fuori le mura, a controllare le trappole per le lepri.
+Hai visto il cielo diventare rosso e un'ombra alata coprire la luna. Quando sei
+tornato, di casa tua restava solo il camino in piedi, e del villaggio un silenzio
+che ancora ti sveglia di notte. Tra la cenere hai trovato il mantello rattoppato
+di tuo padre e nessuna traccia della tua famiglia: nessun corpo, nessun addio.
+È per questo che cammini, pedali e corri: ogni chilometro è una domanda, e da
+qualche parte, oltre i biomi che ti separano dalla Vetta Oscura, c'è la risposta.
+Il Cavaliere del Drago ti ha tolto tutto — ma ti ha lasciato le gambe per raggiungerlo.`,
+  },
+  eroe2: {
+    title: 'La Figlia dell\'Erborista',
+    text: `Sei cresciuta nell'ultima casa di Oakhaven, quella con il tetto coperto di
+fiori, dove tua madre — l'erborista del borgo — curava chiunque bussasse, uomo o
+bestia che fosse. Conosci il nome segreto di ogni pianta della Foresta Sussurrante
+e sai distinguere un fungo amico da uno che "si offende", come diceva sempre lei.
+Nella tua bisaccia di cuoio porti i suoi semi più rari: li pianti dove ti fermi,
+perché il mondo rifiorisca dietro i tuoi passi.
+La notte dell'attacco eri sulla collina a raccogliere erba lunare, che si coglie
+solo col buio. Il boato ti gettò a terra; quando alzasti lo sguardo, un drago
+antico oscurava le stelle e Oakhaven bruciava come una torcia. Di tua madre hai
+ritrovato solo il mortaio di pietra, ancora caldo, e un biglietto infilato nella
+tua sacca chissà quando: "Se tutto brucia, cammina. Le radici profonde non temono il fuoco."
+Così fai. Ogni chilometro è un seme piantato, ogni missione un fiore strappato
+all'Orda. E quando arriverai alla Vetta Oscura, il Cavaliere del Drago scoprirà
+che niente è più pericoloso di chi sa far rinascere le cose.`,
+  },
+};
+
 function persist() { RPG.save(STATE); }
+function vibrate(pattern) { try { navigator.vibrate && navigator.vibrate(pattern); } catch {} }
 
 /* ══════════════ Schermate ══════════════ */
 
@@ -41,10 +78,34 @@ function renderProfiles() {
     const info = el('div', 'profile-info',
       `<b>${esc(h.name)}</b><br><span class="muted">Liv. ${h.level} · ${RPG.heroTitle(h.level)} · ${h.totalKm.toFixed(1)} km</span>`);
     card.appendChild(info);
+    const del = el('button', 'btn-delete', '🗑️');
+    del.addEventListener('click', e => {
+      e.stopPropagation();
+      confirmDeleteHero(h);
+    });
+    card.appendChild(del);
     card.addEventListener('click', () => { STATE.current = h.id; persist(); enterGame(); });
     list.appendChild(card);
   });
   show('screen-profiles');
+}
+
+function confirmDeleteHero(h) {
+  modal(`
+    <h3 class="panel-title">🗑️ Cancellare ${esc(h.name)}?</h3>
+    <p>Liv. ${h.level} · ${h.totalKm.toFixed(1)} km percorsi · ${h.cards.length} carte</p>
+    <p class="muted small">Tutti i progressi di questo eroe andranno perduti per sempre. Il Custode del Tempo non potrà riportarli indietro.</p>
+    <div class="row gap">
+      <button class="btn wide" onclick="closeModal()">Annulla</button>
+      <button class="btn wide btn-danger" id="btn-confirm-delete">Cancella</button>
+    </div>
+  `);
+  $('#btn-confirm-delete').addEventListener('click', () => {
+    RPG.deleteHero(STATE, h.id);
+    persist();
+    closeModal();
+    renderProfiles();
+  });
 }
 
 function avatarEl(hero, cls) {
@@ -60,61 +121,27 @@ function isImageAvatar(hero) {
   return hero.avatar && (hero.avatar.startsWith('data:') || hero.avatar.startsWith('assets/'));
 }
 
-/* ── Creazione eroe ── */
-let pickedAvatar = DEFAULT_AVATARS[0];
-let uploadedAvatar = null;
+/* ── Creazione eroe (solo i due avatar dei protagonisti) ── */
+let pickedAvatar = FILE_AVATARS[0];
 
 function renderCreate() {
   const picker = $('#avatar-picker');
   picker.innerHTML = '';
-  // Avatar personalizzati (file in assets/avatars/): mostrati se esistono
   FILE_AVATARS.forEach(path => {
-    const img = el('img', 'avatar-choice' + (path === pickedAvatar && !uploadedAvatar ? ' selected' : ''));
+    const img = el('img', 'avatar-choice avatar-choice-big' + (path === pickedAvatar ? ' selected' : ''));
     img.src = path;
-    img.addEventListener('error', () => img.remove());
-    img.addEventListener('click', () => { pickedAvatar = path; uploadedAvatar = null; renderCreate(); });
+    img.addEventListener('click', () => { pickedAvatar = path; renderCreate(); });
     picker.appendChild(img);
   });
-  DEFAULT_AVATARS.forEach(a => {
-    const b = el('button', 'avatar-choice' + (a === pickedAvatar && !uploadedAvatar ? ' selected' : ''), a);
-    b.addEventListener('click', () => { pickedAvatar = a; uploadedAvatar = null; renderCreate(); });
-    picker.appendChild(b);
-  });
-  if (uploadedAvatar) {
-    const img = el('img', 'avatar-choice selected avatar-upload-preview');
-    img.src = uploadedAvatar;
-    picker.appendChild(img);
-  }
   show('screen-create');
 }
 
-$('#btn-new-hero').addEventListener('click', () => { $('#create-name').value = ''; uploadedAvatar = null; renderCreate(); });
+$('#btn-new-hero').addEventListener('click', () => { $('#create-name').value = ''; renderCreate(); });
 $('#btn-create-back').addEventListener('click', renderProfiles);
-$('#avatar-upload').addEventListener('change', e => {
-  const f = e.target.files[0];
-  if (!f) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    // ridimensiona per non gonfiare il salvataggio
-    const img = new Image();
-    img.onload = () => {
-      // mantiene le proporzioni (per avatar a figura intera), max 512px
-      const c = document.createElement('canvas');
-      const scale = Math.min(1, 512 / Math.max(img.width, img.height));
-      c.width = Math.round(img.width * scale);
-      c.height = Math.round(img.height * scale);
-      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-      uploadedAvatar = c.toDataURL('image/png');
-      renderCreate();
-    };
-    img.src = reader.result;
-  };
-  reader.readAsDataURL(f);
-});
 $('#btn-create-confirm').addEventListener('click', () => {
   const name = $('#create-name').value.trim();
   if (!name) { alert('Ogni eroe ha bisogno di un nome!'); return; }
-  const h = RPG.newHero(name, uploadedAvatar || pickedAvatar);
+  const h = RPG.newHero(name, pickedAvatar);
   STATE.heroes.push(h);
   STATE.current = h.id;
   persist();
@@ -126,9 +153,54 @@ $('#btn-create-confirm').addEventListener('click', () => {
 function enterGame() {
   HERO = STATE.heroes.find(h => h.id === STATE.current);
   if (!HERO) { renderProfiles(); return; }
+  RPG.migrateHero(HERO);
   show('screen-game');
   renderHUD();
   setTab('camp');
+  // Rollover incursione + FOMO del bottino perso
+  const missed = RPG.rolloverIncursion(HERO);
+  // Tesoro Giornaliero
+  const login = RPG.dailyLogin(HERO);
+  persist();
+  renderHUD();
+  if (missed) {
+    modal(`
+      <h3 class="panel-title">💨 Il Forziere Svanito…</h3>
+      <div class="lost-chest">🎁</div>
+      <p><b>${esc(missed.name)}</b></p>
+      <p class="muted">Hai mancato il forziere per soli <b>${missed.kmMissing} km</b>! L'occasione è svanita all'alba…</p>
+      <p class="small muted">Oggi c'è una nuova incursione: non lasciartela scappare!</p>
+      <button class="btn btn-primary wide" onclick="closeModal(); ${login ? 'showDailyLogin()' : ''}">Non succederà più!</button>
+    `);
+    window._pendingLogin = login;
+  } else if (login) {
+    window._pendingLogin = login;
+    showDailyLogin();
+  }
+}
+
+function showDailyLogin() {
+  const login = window._pendingLogin;
+  if (!login) return;
+  window._pendingLogin = null;
+  let html = `
+    <h3 class="panel-title">🗝️ Il Tesoro Giornaliero</h3>
+    <div class="streak-row">`;
+  for (let d = 1; d <= 7; d++) {
+    const idx = ((login.day - 1) % 7) + 1;
+    html += `<div class="streak-day${d <= idx ? ' filled' : ''}${d === 7 ? ' special' : ''}">${d === 7 ? '🎁' : d}</div>`;
+  }
+  html += `</div>
+    <p class="center"><b>Giorno ${login.day} di fila!</b></p>
+    <p class="center">🪙 +${login.gold} monete</p>`;
+  if (login.item) {
+    html += `<div class="loot rar-${login.item.rarity}">${login.item.icon} ${login.item.name} <span class="tag">${RPG.RARITIES[login.item.rarity].label}</span></div>
+      <p class="small muted center">Bonus del 7° giorno!</p>`;
+  }
+  html += `<p class="small muted center">Torna domani: il tesoro cresce ogni giorno. Se salti un giorno, riparte da capo!</p>
+    <button class="btn btn-primary wide" onclick="closeModal()">Riscuoti</button>`;
+  modal(html);
+  vibrate(80);
 }
 
 function renderHUD() {
@@ -156,7 +228,7 @@ function setTab(tab) {
   const c = $('#tab-content');
   c.classList.toggle('bg-parchment', tab === 'hero' && PARCHMENT_OK);
   c.innerHTML = '';
-  ({ camp: renderCamp, map: renderMap, train: renderTrain, cards: renderCards, hero: renderHero }[tab])(c);
+  ({ camp: renderCamp, map: renderMap, train: renderTrain, market: renderMarket, hero: renderHero }[tab])(c);
   c.scrollTop = 0;
 }
 
@@ -169,18 +241,21 @@ function renderCamp(c) {
     ? 'La tua casa nella radura. Il fumo del camino sale tranquillo tra gli alberi.'
     : 'Un falò tremolante in una radura. Dormi sotto le stelle… per ora.';
   if (HERO.buildings.length >= 4) { sceneEmoji = '🏡'; sceneDesc = 'Il tuo rifugio è ormai una vera dimora fortificata!'; }
-  scene.appendChild(el('div', 'camp-emoji', sceneEmoji + (HERO.companion ? ' 🐺' : '')));
+  const mount = HERO.mount ? RPG.mountById(HERO.mount) : null;
+  scene.appendChild(el('div', 'camp-emoji',
+    sceneEmoji + (HERO.companion ? ' 🐺' : '') + (mount ? ' ' + mount.emoji : '')));
   scene.appendChild(el('p', 'camp-desc', sceneDesc +
-    (HERO.companion ? '<br>Il Lupo Astrale sonnecchia accanto a te, la sua luce illumina la notte.' : '')));
+    (HERO.companion ? '<br>Il Lupo Astrale sonnecchia accanto a te.' : '') +
+    (mount ? `<br>${mount.name} riposa nella stalla.` : '')));
   c.appendChild(scene);
 
-  // Barra dell'Indagine (Frammenti di Memoria)
+  // Barra dell'Indagine
   const inv = el('div', 'panel');
   inv.appendChild(el('h3', 'panel-title', '🔍 Svela il Nemico'));
   const pct = HERO.fragmentsFound * 20;
   inv.appendChild(el('div', 'membar', `<div class="membar-fill" style="width:${pct}%"></div><span>${pct}%</span>`));
   inv.appendChild(el('p', 'muted small', pct >= 100
-    ? 'Le memorie sono complete: il Cavaliere del Drago è stato rivelato! Trova la carta nel tuo Album.'
+    ? 'Le memorie sono complete: il Cavaliere del Drago è stato rivelato! Trovalo nel Bestiario.'
     : `Ogni 20 km trovi un Frammento di Memoria (${HERO.fragmentsFound}/5). Chi ha distrutto Oakhaven?`));
   c.appendChild(inv);
 
@@ -195,10 +270,9 @@ function renderCamp(c) {
       const status = RPG.canBuild(HERO, b);
       const row = el('div', 'build-row' + (status === 'costruito' ? ' built' : ''));
       row.appendChild(el('div', 'build-icon', b.icon));
-      const mid = el('div', 'build-mid',
+      row.appendChild(el('div', 'build-mid',
         `<b>${b.name}</b><br><span class="small muted">${b.desc}</span><br>` +
-        `<span class="small">🪵 ${b.cost.wood} · 🪨 ${b.cost.stone} · Liv. ${b.minLevel}</span>`);
-      row.appendChild(mid);
+        `<span class="small">🪵 ${b.cost.wood} · 🪨 ${b.cost.stone} · Liv. ${b.minLevel}</span>`));
       const btn = el('button', 'btn btn-small');
       if (status === 'costruito') { btn.textContent = '✅'; btn.disabled = true; }
       else if (status === 'ok') {
@@ -209,9 +283,7 @@ function renderCamp(c) {
           toast(`${b.icon} ${b.name} costruito!`);
         });
       } else {
-        btn.textContent = '🔒';
-        btn.disabled = true;
-        btn.title = status === 'risorse' ? 'Risorse insufficienti' : 'Requisiti mancanti';
+        btn.textContent = '🔒'; btn.disabled = true;
       }
       row.appendChild(btn);
       bpanel.appendChild(row);
@@ -219,7 +291,7 @@ function renderCamp(c) {
   }
   c.appendChild(bpanel);
 
-  // Visita il rifugio dell'alleato
+  // Visita alleato
   const others = STATE.heroes.filter(h => h.id !== HERO.id);
   if (others.length) {
     const vp = el('div', 'panel');
@@ -232,7 +304,7 @@ function renderCamp(c) {
     c.appendChild(vp);
   }
 
-  // Giorno di riposo
+  // Riposo
   const rp = el('div', 'panel');
   rp.appendChild(el('h3', 'panel-title', '😴 Falò Rigenerante'));
   rp.appendChild(el('p', 'muted small',
@@ -250,13 +322,16 @@ function renderCamp(c) {
 }
 
 function showAllyBase(o) {
+  RPG.migrateHero(o);
   const built = RPG.BUILDINGS.filter(b => o.buildings.includes(b.id));
+  const mount = o.mount ? RPG.mountById(o.mount) : null;
   modal(`
     <h3 class="panel-title">🪞 Il Rifugio di ${esc(o.name)}</h3>
-    <div class="camp-emoji">${o.buildings.includes('fondamenta') ? '🛖' : '🔥'}${o.companion ? ' 🐺' : ''}</div>
+    <div class="camp-emoji">${o.buildings.includes('fondamenta') ? '🛖' : '🔥'}${o.companion ? ' 🐺' : ''}${mount ? ' ' + mount.emoji : ''}</div>
     <p class="muted">Liv. ${o.level} — ${RPG.heroTitle(o.level)} · ${o.totalKm.toFixed(1)} km totali</p>
     <p>${built.length ? 'Strutture: ' + built.map(b => b.icon + ' ' + b.name).join(', ') : 'Dorme ancora accanto al falò.'}</p>
-    <p class="muted small">${o.cards.length} carte collezionate · ${o.inventory.length} oggetti nel bottino</p>
+    ${mount ? `<p>Cavalcatura: ${mount.emoji} ${mount.name}</p>` : ''}
+    <p class="muted small">${o.cards.length} carte · ${(o.bestiary || []).length} creature nel Bestiario · ${(o.items || []).length} oggetti</p>
     <button class="btn btn-primary wide" onclick="closeModal()">Torna al tuo Rifugio</button>
   `);
 }
@@ -264,6 +339,31 @@ function showAllyBase(o) {
 /* ── TAB: Mappa ── */
 function renderMap(c) {
   c.appendChild(el('h2', 'section-title', '🗺️ Mappa del Mondo'));
+
+  // Bioma attuale
+  const biome = RPG.currentBiome(HERO.level);
+  c.appendChild(el('div', 'biome-banner',
+    `${biome.icon} <b>${biome.name}</b><br><span class="small">Livelli ${biome.min}–${biome.max} · Il tuo bioma attuale</span>`));
+
+  // Incursione del giorno
+  if (HERO.incursion && !HERO.incursion.done) {
+    const inc = HERO.incursion;
+    const p = el('div', 'panel incursion-panel');
+    p.appendChild(el('h3', 'panel-title', `⚡ INCURSIONE — solo oggi!`));
+    p.appendChild(el('p', '', `<b>${esc(inc.name)}</b>`));
+    const pct = Math.min(100, Math.round(inc.progressKm / inc.km * 100));
+    p.appendChild(el('div', 'membar', `<div class="membar-fill danger" style="width:${pct}%"></div><span>${inc.progressKm.toFixed(1)} / ${inc.km} km</span>`));
+    p.appendChild(el('p', 'muted small',
+      `Completa ${inc.km} km entro mezzanotte: nel forziere c'è un oggetto di rarità ${RPG.RARITIES[inc.minRarity].label} o superiore. Domani sarà troppo tardi!`));
+    if (inc.enemy !== 'cavaliere-drago') {
+      const img = el('img', 'incursion-img');
+      img.src = `assets/bestiario/${inc.enemy}.png`;
+      p.insertBefore(img, p.children[1]);
+    }
+    c.appendChild(p);
+  } else if (HERO.incursion && HERO.incursion.done) {
+    c.appendChild(el('div', 'panel', `<p class="center">✅ <b>Incursione di oggi respinta!</b><br><span class="small muted">Torna domani per la prossima.</span></p>`));
+  }
 
   // Missione attiva
   if (HERO.activeMission) {
@@ -273,7 +373,6 @@ function renderMap(c) {
     const done = HERO.activeMission.progressKm;
     const pct = Math.min(100, Math.round(done / m.km * 100));
     p.appendChild(el('div', 'membar', `<div class="membar-fill gold" style="width:${pct}%"></div><span>${done.toFixed(1)} / ${m.km} km</span>`));
-    p.appendChild(el('p', 'muted small', 'Allenati per far galoppare il tuo destriero verso la meta!'));
     const abandon = el('button', 'btn btn-small', 'Abbandona missione');
     abandon.addEventListener('click', () => { HERO.activeMission = null; persist(); setTab('map'); });
     p.appendChild(abandon);
@@ -290,9 +389,8 @@ function renderMap(c) {
       : `⛔ Troppo tardi: <b>${esc(ev.claimedBy)}</b> ha già reclamato il bottino questa settimana.`));
   } else {
     evp.appendChild(el('p', 'muted small',
-      `Il primo eroe che percorre <b>${ev.km} km</b> questa settimana reclama: <b>${ev.skin}</b> (oggetto estetico esclusivo!). ` +
-      `Km da te percorsi da inizio evento: conta il tuo prossimo allenamento!`));
-    const btn = el('button', 'btn wide', `Reclama (servono ${ev.km} km in un allenamento)`);
+      `Il primo eroe che completa un allenamento di <b>${ev.km} km</b> questa settimana reclama: <b>${ev.skin}</b>!`));
+    const btn = el('button', 'btn wide', `Reclama (${ev.km} km in un allenamento di oggi)`);
     btn.addEventListener('click', () => {
       const last = HERO.log[0];
       const today = new Date().toISOString().slice(0, 10);
@@ -310,13 +408,11 @@ function renderMap(c) {
   }
   c.appendChild(evp);
 
-  // Missioni per zona
+  // Missioni per zona (solo biomi raggiunti)
   const avail = RPG.availableMissions(HERO);
-  const zones = [...new Set(RPG.MISSIONS.map(m => m.zone))];
-  zones.forEach(zone => {
+  const zonesWithMissions = [...new Set(avail.map(m => m.zone))];
+  zonesWithMissions.forEach(zone => {
     const inZone = avail.filter(m => m.zone === zone);
-    const doneInZone = RPG.MISSIONS.filter(m => m.zone === zone && HERO.missionsDone.includes(m.id));
-    if (!inZone.length && !doneInZone.length) return;
     const zp = el('div', 'panel');
     zp.appendChild(el('h3', 'panel-title', zoneIcon(zone) + ' ' + zone));
     inZone.forEach(m => {
@@ -341,21 +437,23 @@ function renderMap(c) {
       row.appendChild(btn);
       zp.appendChild(row);
     });
-    doneInZone.forEach(m => {
-      zp.appendChild(el('div', 'mission-row done', `✅ <s>${m.name}</s>`));
-    });
     c.appendChild(zp);
   });
 
-  const locked = RPG.MISSIONS.filter(m => !HERO.missionsDone.includes(m.id) && !avail.includes(m));
-  if (locked.length) {
-    c.appendChild(el('p', 'muted small center',
-      `🔒 ${locked.length} missioni ancora avvolte nella nebbia… sali di livello e completa la storia per svelarle.`));
-  }
+  // Atlante dei biomi
+  const ap = el('div', 'panel');
+  ap.appendChild(el('h3', 'panel-title', '📖 L\'Atlante dei Biomi'));
+  RPG.BIOMES.forEach(b => {
+    const open = HERO.level >= b.min;
+    ap.appendChild(el('div', 'biome-row' + (open ? '' : ' locked') + (b === biome ? ' current' : ''),
+      `${open ? b.icon : '🔒'} <b>${open ? b.name : '???'}</b> <span class="small muted">Liv. ${b.min}–${b.max}</span>`));
+  });
+  c.appendChild(ap);
 }
 
 function zoneIcon(zone) {
-  return { 'Rovine di Oakhaven': '🏚️', 'Foresta Sussurrante': '🌲', 'Deserto di Ruggine': '🏜️' }[zone] || '📍';
+  const b = RPG.BIOMES.find(x => x.name === zone);
+  return b ? b.icon : '📍';
 }
 
 /* ── TAB: Allenati ── */
@@ -394,10 +492,8 @@ function renderTrain(c) {
   kmInput.type = 'number'; kmInput.step = '0.1'; kmInput.min = '0'; kmInput.placeholder = 'Es. 5.2';
   form.appendChild(kmInput);
   form.appendChild(el('p', 'muted small',
-    '📱 Apri l\'app <b>Salute</b> (o Strava/Fitness) sul tuo iPhone, leggi i km di oggi e riportali qui. ' +
-    'Il Custode del Tempo verificherà che il movimento sia degno di un vero eroe…'));
+    '📱 Apri l\'app <b>Salute</b> (o Strava/Fitness), leggi i km di oggi e riportali qui.'));
 
-  // Il pulsante principale: usa la targa in legno "GIOCA" se disponibile
   const go = el('button', 'btn btn-primary wide big', '🔥 SINCRONIZZA AVVENTURA');
   const plaque = new Image();
   plaque.onload = () => {
@@ -420,7 +516,6 @@ function renderTrain(c) {
   form.appendChild(go);
   c.appendChild(form);
 
-  // Storico
   if (HERO.log.length) {
     const lp = el('div', 'panel');
     lp.appendChild(el('h3', 'panel-title', '📜 Diario delle Imprese'));
@@ -432,6 +527,17 @@ function renderTrain(c) {
     });
     c.appendChild(lp);
   }
+}
+
+/* ── Report post-allenamento (con scrigno per le missioni) ── */
+let PENDING_CHEST = null;
+
+function itemHtml(it) {
+  return `<div class="loot rar-${it.rarity}">
+    <div class="loot-head">${it.icon} <b>${esc(it.name)}</b> <span class="tag">${RPG.RARITIES[it.rarity].label}</span></div>
+    <div class="small muted">${it.desc}</div>
+    <div class="small">📈 +${it.xp}% XP equipaggiato · 🪙 valore ${it.value}</div>
+  </div>`;
 }
 
 function showReport(r) {
@@ -448,14 +554,14 @@ function showReport(r) {
     html += `<p class="big-news">🆙 SEI SALITO AL LIVELLO ${r.levelsGained[r.levelsGained.length - 1]}!<br>
       <span class="small">${RPG.heroTitle(r.levelsGained[r.levelsGained.length - 1])}</span></p>`;
   if (r.capReached)
-    html += `<p class="muted">🔒 Livello 20 raggiunto: per crescere ancora dovrai forgiare l'<b>Amuleto del Viaggiatore Esperto</b> (guarda la Mappa).</p>`;
+    html += `<p class="muted">🔒 Livello 20 raggiunto: per l'Ascensione serve l'<b>Amuleto del Viaggiatore Esperto</b> (guarda la Mappa).</p>`;
   if (r.loot.length) {
-    html += `<h4>🎒 Sacchi del Viaggiatore aperti:</h4><div class="loot-list">`;
-    r.loot.forEach(l => { html += `<div class="loot rar-${l.rarity}">${l.icon} ${l.name} <span class="tag">${l.rarity}</span></div>`; });
+    html += `<h4>🎒 Sacchi del Viaggiatore:</h4><div class="loot-list">`;
+    r.loot.forEach(it => { html += itemHtml(it); });
     html += `</div>`;
   }
   if (r.fragments)
-    html += `<p>🔍 Hai trovato <b>${r.fragments} Frammento/i di Memoria</b>! La verità si avvicina…</p>`;
+    html += `<p>🔍 Hai trovato <b>${r.fragments} Frammento/i di Memoria</b>!</p>`;
   if (r.sighting) {
     html += `<div class="sighting">
       <img class="sighting-img" src="assets/bestiario/${r.sighting.id}.png" alt="">
@@ -463,17 +569,22 @@ function showReport(r) {
       <span class="small muted">Aggiunto al Bestiario</span></div>
     </div>`;
   }
-  if (r.finalReveal) {
-    html += `<p class="big-news">🐉 LE MEMORIE SONO COMPLETE!<br>
-      <span class="small">Il Cavaliere del Drago è stato aggiunto al Bestiario. Ora conosci il tuo nemico.</span></p>`;
+  if (r.finalReveal)
+    html += `<p class="big-news">🐉 LE MEMORIE SONO COMPLETE!<br><span class="small">Il Cavaliere del Drago è nel Bestiario.</span></p>`;
+  if (r.incursionProgress) {
+    const ip = r.incursionProgress;
+    html += `<p>⚡ Incursione: ${ip.done.toFixed(1)} / ${ip.km} km — resisti fino a mezzanotte!</p>`;
+  }
+  if (r.incursionComplete) {
+    html += `<p class="big-news">⚡ INCURSIONE RESPINTA!</p>`;
+    PENDING_CHEST = { title: r.incursionComplete.name, chest: r.incursionComplete.chest };
   }
   if (r.missionProgress) {
     const mp = r.missionProgress;
     html += `<p>🐎 Missione <b>${mp.mission.name}</b>: ${mp.done.toFixed(1)} / ${mp.mission.km} km.</p>`;
   }
   if (r.missionComplete) {
-    const m = r.missionComplete;
-    html += `<p class="big-news">🏆 MISSIONE COMPLETATA: ${m.name}!</p>`;
+    html += `<p class="big-news">🏆 MISSIONE COMPLETATA: ${r.missionComplete.name}!</p>`;
     if (r.bossDefeated) {
       html += `<div class="sighting boss-defeated">
         <img class="sighting-img" src="assets/bestiario/${r.bossDefeated.id}.png" alt="">
@@ -481,15 +592,48 @@ function showReport(r) {
         <span class="small muted">Aggiunto al Bestiario</span></div>
       </div>`;
     }
-    const rw = m.reward || {};
-    const parts = [];
-    if (rw.gold) parts.push(`🪙 ${rw.gold}`);
-    if (rw.wood) parts.push(`🪵 ${rw.wood}`);
-    if (rw.stone) parts.push(`🪨 ${rw.stone}`);
-    if (rw.item) parts.push(`🗡️ ${rw.item}`);
-    if (parts.length) html += `<p>Ricompense: ${parts.join(' · ')}</p>`;
+    PENDING_CHEST = PENDING_CHEST || { title: r.missionComplete.name, chest: r.chest, cards: r.cards };
   }
-  r.cards.forEach(cid => {
+  r.unlocks.forEach(u => { html += `<p class="big-news small">${u}</p>`; });
+
+  if (PENDING_CHEST) {
+    html += `<div class="chest-zone">
+      <p class="center"><b>Un forziere ti attende!</b></p>
+      <button class="chest-btn" id="btn-open-chest">🧰</button>
+      <p class="small muted center">Tocca lo scrigno per aprirlo</p>
+    </div>`;
+  }
+  html += `<button class="btn btn-primary wide" onclick="closeModal(); setTab('camp')">Torna al Rifugio</button>`;
+  modal(html);
+  const chestBtn = $('#btn-open-chest');
+  if (chestBtn) chestBtn.addEventListener('click', openChest);
+}
+
+function openChest() {
+  if (!PENDING_CHEST) return;
+  const { title, chest } = PENDING_CHEST;
+  PENDING_CHEST = null;
+  vibrate([80, 60, 80, 60, 200]);
+  const btn = $('#btn-open-chest');
+  if (btn) {
+    btn.classList.add('opening');
+    setTimeout(() => revealChest(title, chest), 900);
+  } else {
+    revealChest(title, chest);
+  }
+}
+
+function revealChest(title, chest) {
+  vibrate(300);
+  let html = `<div class="chest-burst">✨</div>
+    <h3 class="panel-title center">🧰 Il Bottino di "${esc(title)}"</h3>`;
+  const parts = [];
+  if (chest.gold) parts.push(`🪙 ${chest.gold}`);
+  if (chest.wood) parts.push(`🪵 ${chest.wood}`);
+  if (chest.stone) parts.push(`🪨 ${chest.stone}`);
+  if (parts.length) html += `<p class="center big-news small">${parts.join(' · ')}</p>`;
+  (chest.items || []).forEach(it => { html += itemHtml(it); });
+  (chest.cards || []).forEach(cid => {
     const card = RPG.CARDS[cid];
     html += `<div class="card-reveal rar-${card.rarity}">
       <div class="card-icon">${card.icon}</div>
@@ -497,24 +641,260 @@ function showReport(r) {
       <p class="small lore">${card.lore}</p>
     </div>`;
   });
-  r.unlocks.forEach(u => { html += `<p class="big-news small">${u}</p>`; });
-  html += `<button class="btn btn-primary wide" onclick="closeModal(); setTab('camp')">Torna al Rifugio</button>`;
+  html += `<p class="small muted center">Gli oggetti sono nel tuo zaino: equipaggiali dal menu Eroe o vendili al Mercato.</p>
+    <button class="btn btn-primary wide" onclick="closeModal(); setTab('hero')">Vai all'Equipaggiamento</button>
+    <button class="btn wide" onclick="closeModal()">Chiudi</button>`;
   modal(html);
 }
 
-/* ── TAB: Collezione (Carte + Bestiario) ── */
-let COLLECTION_VIEW = 'cards';
+/* ── TAB: Mercato ── */
+let MARKET_VIEW = 'stalla';
 
-function renderCards(c) {
+function renderMarket(c) {
+  c.appendChild(el('h2', 'section-title', '🏪 Il Mercato'));
   const sw = el('div', 'coll-switch');
-  const b1 = el('button', 'coll-btn' + (COLLECTION_VIEW === 'cards' ? ' active' : ''), '🎴 Carte');
-  const b2 = el('button', 'coll-btn' + (COLLECTION_VIEW === 'bestiary' ? ' active' : ''), '🐉 Bestiario');
-  b1.addEventListener('click', () => { COLLECTION_VIEW = 'cards'; setTab('cards'); });
-  b2.addEventListener('click', () => { COLLECTION_VIEW = 'bestiary'; setTab('cards'); });
-  sw.appendChild(b1); sw.appendChild(b2);
+  [['stalla', '🐴 Stalla'], ['nero', '🕯️ Mercato Nero'], ['fucina', '⚒️ Fucina']].forEach(([k, label]) => {
+    const b = el('button', 'coll-btn' + (MARKET_VIEW === k ? ' active' : ''), label);
+    b.addEventListener('click', () => { MARKET_VIEW = k; setTab('market'); });
+    sw.appendChild(b);
+  });
   c.appendChild(sw);
-  if (COLLECTION_VIEW === 'bestiary') { renderBestiary(c); return; }
+  ({ stalla: renderStalla, nero: renderNero, fucina: renderFucina }[MARKET_VIEW])(c);
+}
 
+function renderStalla(c) {
+  c.appendChild(el('p', 'muted small center', 'Le cavalcature aumentano i km "virtuali" di ogni allenamento. Più sali di livello, più destrieri leggendari si affacciano alla stalla…'));
+  RPG.MOUNTS.forEach(m => {
+    const owned = HERO.mountsOwned.includes(m.id);
+    const active = HERO.mount === m.id;
+    const locked = HERO.level < m.level;
+    const row = el('div', 'mount-row' + (locked ? ' locked' : '') + (active ? ' active-mount' : ''));
+    row.appendChild(el('div', 'mount-emoji', locked ? '🔒' : m.emoji));
+    row.appendChild(el('div', 'mount-mid',
+      `<b>${locked ? '???' : m.name}</b><br>` +
+      `<span class="small muted">Liv. ${m.level} · +${m.bonus}% km · 🪙 ${m.price}</span>`));
+    const btn = el('button', 'btn btn-small' + (owned && !active ? ' btn-primary' : ''));
+    if (locked) { btn.textContent = '🔒'; btn.disabled = true; }
+    else if (active) { btn.textContent = '✅ In sella'; btn.disabled = true; }
+    else {
+      btn.textContent = owned ? 'Sella' : 'Compra';
+      if (!owned && HERO.gold >= m.price) btn.classList.add('btn-primary');
+      btn.addEventListener('click', () => {
+        const err = RPG.buyMount(HERO, m.id);
+        persist(); renderHUD();
+        toast(err || `${m.emoji} ${m.name} è ora la tua cavalcatura! (+${m.bonus}% km)`);
+        if (!err) vibrate(100);
+        setTab('market');
+      });
+    }
+    row.appendChild(btn);
+    c.appendChild(row);
+  });
+}
+
+function renderNero(c) {
+  c.appendChild(el('p', 'muted small center', 'Il mercante incappucciato paga in monete sonanti qualunque bottino. Nessuna domanda.'));
+  const sellable = HERO.items.filter(i => !Object.values(HERO.equipment).includes(i.id));
+  if (!sellable.length) {
+    c.appendChild(el('div', 'panel', '<p class="center muted">Non hai bottini da vendere. Gli oggetti equipaggiati non si toccano!</p>'));
+    return;
+  }
+  sellable.forEach(it => {
+    const row = el('div', 'mission-row');
+    row.appendChild(el('div', 'mission-mid',
+      `${it.icon} <b>${esc(it.name)}</b> <span class="tag">${RPG.RARITIES[it.rarity].label}</span><br>
+       <span class="small muted">+${it.xp}% XP</span>`));
+    const btn = el('button', 'btn btn-small btn-primary', `Vendi 🪙${it.value}`);
+    btn.addEventListener('click', () => {
+      RPG.sellItem(HERO, it.id);
+      persist(); renderHUD();
+      toast(`🪙 +${it.value} monete!`);
+      setTab('market');
+    });
+    row.appendChild(btn);
+    c.appendChild(row);
+  });
+}
+
+function renderFucina(c) {
+  c.appendChild(el('p', 'muted small center', 'Il fabbro batte il ferro dall\'alba: ogni giorno 3 pezzi nuovi in vetrina. Compra armi e armature, o vendi le tue.'));
+  const offers = RPG.forgeOffers(HERO);
+  const op = el('div', 'panel');
+  op.appendChild(el('h3', 'panel-title', '🔥 In vetrina oggi'));
+  offers.forEach(o => {
+    const bought = HERO.items.some(i => i.name === o.name && i.rarity === o.rarity);
+    const row = el('div', 'mission-row');
+    row.appendChild(el('div', 'mission-mid',
+      `${o.icon} <b>${esc(o.name)}</b> <span class="tag">${RPG.RARITIES[o.rarity].label}</span><br>
+       <span class="small muted">+${o.xp}% XP · ${RPG.SLOTS[o.slot].label}</span>`));
+    const btn = el('button', 'btn btn-small', `🪙${o.price}`);
+    if (HERO.gold >= o.price && !bought) btn.classList.add('btn-primary');
+    if (bought) { btn.textContent = '✅'; btn.disabled = true; }
+    btn.addEventListener('click', () => {
+      const err = RPG.buyForgeItem(HERO, o);
+      persist(); renderHUD();
+      toast(err || `${o.icon} ${o.name} acquistato!`);
+      setTab('market');
+    });
+    row.appendChild(btn);
+    op.appendChild(row);
+  });
+  c.appendChild(op);
+
+  const wearable = HERO.items.filter(i =>
+    ['arma', 'scudo', 'elmo', 'armatura'].includes(i.slot) &&
+    !Object.values(HERO.equipment).includes(i.id));
+  if (wearable.length) {
+    const sp = el('div', 'panel');
+    sp.appendChild(el('h3', 'panel-title', '♻️ Vendi al fabbro'));
+    wearable.forEach(it => {
+      const row = el('div', 'mission-row');
+      row.appendChild(el('div', 'mission-mid',
+        `${it.icon} <b>${esc(it.name)}</b> <span class="tag">${RPG.RARITIES[it.rarity].label}</span>`));
+      const btn = el('button', 'btn btn-small', `Vendi 🪙${it.value}`);
+      btn.addEventListener('click', () => {
+        RPG.sellItem(HERO, it.id);
+        persist(); renderHUD();
+        toast(`🪙 +${it.value} monete!`);
+        setTab('market');
+      });
+      row.appendChild(btn);
+      sp.appendChild(row);
+    });
+    c.appendChild(sp);
+  }
+}
+
+/* ── TAB: Eroe (equipaggiamento + sottomenù) ── */
+let HERO_VIEW = 'main';
+
+function renderHero(c) {
+  if (HERO_VIEW === 'cards') { renderCardsView(c); return; }
+  if (HERO_VIEW === 'bestiary') { renderBestiaryView(c); return; }
+  if (HERO_VIEW === 'story') { renderStoryView(c); return; }
+
+  c.appendChild(el('h2', 'section-title on-parchment-title', '🛡️ Scheda dell\'Eroe'));
+
+  // Eroe con i 6 slot: 3 a sinistra, 3 a destra
+  const rig = el('div', 'hero-rig');
+  const leftCol = el('div', 'slot-col');
+  const rightCol = el('div', 'slot-col');
+  const slotKeys = Object.keys(RPG.SLOTS);
+  const leftSlots = slotKeys.slice(0, 3);
+  const rightSlots = slotKeys.slice(3);
+
+  const makeSlot = key => {
+    const s = RPG.SLOTS[key];
+    const itemId = HERO.equipment[key];
+    const item = HERO.items.find(i => i.id === itemId);
+    const slot = el('button', 'equip-slot' + (item ? ' filled rar-border-' + item.rarity : ''));
+    slot.innerHTML = item
+      ? `<span class="equip-icon">${item.icon}</span><span class="equip-label">+${item.xp}%</span>`
+      : `<span class="equip-icon empty">${s.icon}</span><span class="equip-label">${s.label}</span>`;
+    slot.addEventListener('click', () => openSlotPicker(key));
+    return slot;
+  };
+  leftSlots.forEach(k => leftCol.appendChild(makeSlot(k)));
+  rightSlots.forEach(k => rightCol.appendChild(makeSlot(k)));
+
+  const center = el('div', 'hero-center');
+  const av = avatarEl(HERO, isImageAvatar(HERO) ? 'hero-fullbody' : 'hero-avatar');
+  center.appendChild(av);
+  rig.appendChild(leftCol);
+  rig.appendChild(center);
+  rig.appendChild(rightCol);
+  c.appendChild(rig);
+
+  c.appendChild(el('h3', 'hero-name-plate center', esc(HERO.name)));
+  const mount = HERO.mount ? RPG.mountById(HERO.mount) : null;
+  c.appendChild(el('p', 'hero-title-plate center',
+    `Livello ${HERO.level} — ${RPG.heroTitle(HERO.level)}` +
+    (mount ? ` · ${mount.emoji}` : '') + (HERO.companion ? ' · 🐺' : '')));
+  const bonus = RPG.equipmentXpBonus(HERO);
+  c.appendChild(el('p', 'center small equip-total', bonus > 0
+    ? `⚡ Bonus equipaggiamento: <b>+${bonus}% XP</b>`
+    : 'Tocca gli slot per equipaggiare il tuo bottino'));
+
+  // Sottomenù
+  const sub = el('div', 'hero-submenu');
+  [['story', '📜 La tua Storia'], ['cards', '🎴 Carte & Imprese'], ['bestiary', '🐉 Bestiario']].forEach(([k, label]) => {
+    const b = el('button', 'btn', label);
+    b.addEventListener('click', () => { HERO_VIEW = k; setTab('hero'); });
+    sub.appendChild(b);
+  });
+  c.appendChild(sub);
+
+  // Statistiche
+  const stats = el('div', 'panel on-parchment');
+  stats.appendChild(el('h3', 'panel-title', '📊 Imprese'));
+  stats.innerHTML += `
+    <div class="stat-row">🥾 Km totali <b>${HERO.totalKm.toFixed(1)}</b></div>
+    <div class="stat-row">🚴 In sella <b>${(HERO.kmByType.cyclette || 0).toFixed(1)} km</b></div>
+    <div class="stat-row">🚶 A piedi <b>${(HERO.kmByType.camminata || 0).toFixed(1)} km</b></div>
+    <div class="stat-row">🏃 Di corsa <b>${(HERO.kmByType.corsa || 0).toFixed(1)} km</b></div>
+    <div class="stat-row">🗝️ Streak login <b>${HERO.streak.count} giorni</b></div>
+    <div class="stat-row">⚔️ Missioni compiute <b>${HERO.missionsDone.length}</b></div>
+    <div class="stat-row">🎒 Oggetti nello zaino <b>${HERO.items.length}</b></div>`;
+  c.appendChild(stats);
+
+  const sw = el('button', 'btn wide', '↩ Cambia Eroe');
+  sw.addEventListener('click', () => { STATE.current = null; persist(); renderProfiles(); });
+  c.appendChild(sw);
+}
+
+function openSlotPicker(slotKey) {
+  const s = RPG.SLOTS[slotKey];
+  const candidates = HERO.items.filter(i => i.slot === slotKey);
+  let html = `<h3 class="panel-title">${s.icon} ${s.label}</h3>`;
+  const current = HERO.equipment[slotKey];
+  if (!candidates.length) {
+    html += `<p class="muted center">Non hai ancora nessun oggetto per questo slot.<br>
+      <span class="small">Completa missioni e allenamenti per trovarne!</span></p>`;
+  }
+  html += `<div class="loot-list" id="slot-picker-list"></div>`;
+  if (current) html += `<button class="btn wide" id="btn-unequip">Rimuovi equipaggiamento</button>`;
+  html += `<button class="btn btn-primary wide" onclick="closeModal()">Chiudi</button>`;
+  modal(html);
+  const list = $('#slot-picker-list');
+  candidates.forEach(it => {
+    const row = el('div', 'loot rar-' + it.rarity + ' pickable' + (it.id === current ? ' equipped' : ''));
+    row.innerHTML = `<div class="loot-head">${it.icon} <b>${esc(it.name)}</b> <span class="tag">${RPG.RARITIES[it.rarity].label}</span>${it.id === current ? ' ✅' : ''}</div>
+      <div class="small">📈 +${it.xp}% XP · 🪙 ${it.value}</div>`;
+    row.addEventListener('click', () => {
+      RPG.equipItem(HERO, it.id);
+      persist(); renderHUD();
+      closeModal();
+      setTab('hero');
+      toast(`${it.icon} ${it.name} equipaggiato!`);
+    });
+    list.appendChild(row);
+  });
+  const unq = $('#btn-unequip');
+  if (unq) unq.addEventListener('click', () => {
+    RPG.unequipSlot(HERO, slotKey);
+    persist(); closeModal(); setTab('hero');
+  });
+}
+
+function renderStoryView(c) {
+  const story = STORIES[HERO.storyId] || STORIES.eroe1;
+  backBar(c);
+  c.appendChild(el('h2', 'section-title', '📜 ' + story.title));
+  const p = el('div', 'panel story-panel');
+  const av = avatarEl(HERO, 'story-avatar');
+  p.appendChild(av);
+  p.appendChild(el('div', 'story-text', esc(story.text).replace(/\n/g, ' ')));
+  c.appendChild(p);
+}
+
+function backBar(c) {
+  const b = el('button', 'btn btn-small', '↩ Torna all\'Eroe');
+  b.addEventListener('click', () => { HERO_VIEW = 'main'; setTab('hero'); });
+  c.appendChild(b);
+}
+
+function renderCardsView(c) {
+  backBar(c);
   c.appendChild(el('h2', 'section-title', '🎴 Il Tomo delle Memorie'));
   c.appendChild(el('p', 'muted small center',
     `${HERO.cards.length} / ${Object.keys(RPG.CARDS).length} carte collezionate`));
@@ -533,20 +913,18 @@ function renderCards(c) {
   c.appendChild(grid);
 }
 
-function renderBestiary(c) {
+function renderBestiaryView(c) {
+  backBar(c);
   HERO.bestiary = HERO.bestiary || [];
   c.appendChild(el('h2', 'section-title', '🐉 Il Bestiario dell\'Orda'));
   c.appendChild(el('p', 'muted small center',
-    `${HERO.bestiary.length} / ${RPG.BESTIARY.length} creature scoperte — ` +
-    `allenati per avvistarne di nuove, sconfiggi i boss nelle missioni!`));
-
+    `${HERO.bestiary.length} / ${RPG.BESTIARY.length} creature scoperte`));
   const zones = [...new Set(RPG.BESTIARY.map(b => b.zone))];
   const accessible = RPG.accessibleZones(HERO);
   zones.forEach(zone => {
     const inZone = RPG.BESTIARY.filter(b => b.zone === zone);
     const isOpen = accessible.includes(zone) || inZone.some(b => HERO.bestiary.includes(b.id));
-    const zTitle = el('h3', 'bestiary-zone', (isOpen ? zoneIcon(zone) + ' ' + zone : '🔒 ???'));
-    c.appendChild(zTitle);
+    c.appendChild(el('h3', 'bestiary-zone', (isOpen ? zoneIcon(zone) + ' ' + zone : '🔒 ???')));
     const grid = el('div', 'bestiary-grid');
     inZone.forEach(b => {
       const known = HERO.bestiary.includes(b.id);
@@ -579,44 +957,6 @@ function renderBestiary(c) {
   });
 }
 
-/* ── TAB: Eroe ── */
-function renderHero(c) {
-  c.appendChild(el('h2', 'section-title on-parchment-title', '🛡️ Scheda dell\'Eroe'));
-  const p = el('div', 'hero-showcase center-col');
-  // Avatar a figura intera in primo piano sulla pergamena
-  const av = avatarEl(HERO, isImageAvatar(HERO) ? 'hero-fullbody' : 'hero-avatar');
-  p.appendChild(av);
-  p.appendChild(el('h3', 'hero-name-plate', esc(HERO.name)));
-  p.appendChild(el('p', 'hero-title-plate', `Livello ${HERO.level} — ${RPG.heroTitle(HERO.level)}${HERO.companion ? ' · 🐺 Lupo Astrale' : ''}`));
-  c.appendChild(p);
-
-  const stats = el('div', 'panel on-parchment');
-  stats.appendChild(el('h3', 'panel-title', '📊 Imprese'));
-  stats.innerHTML += `
-    <div class="stat-row">🥾 Km totali <b>${HERO.totalKm.toFixed(1)}</b></div>
-    <div class="stat-row">🚴 In sella <b>${(HERO.kmByType.cyclette || 0).toFixed(1)} km</b></div>
-    <div class="stat-row">🚶 A piedi <b>${(HERO.kmByType.camminata || 0).toFixed(1)} km</b></div>
-    <div class="stat-row">🏃 Di corsa <b>${(HERO.kmByType.corsa || 0).toFixed(1)} km</b></div>
-    <div class="stat-row">🎒 Sacchi aperti <b>${HERO.lootBagsOpened}</b></div>
-    <div class="stat-row">⚔️ Missioni compiute <b>${HERO.missionsDone.length}</b></div>`;
-  c.appendChild(stats);
-
-  const inv = el('div', 'panel on-parchment');
-  inv.appendChild(el('h3', 'panel-title', '🎒 Bottino'));
-  if (!HERO.inventory.length) inv.appendChild(el('p', 'muted', 'Lo zaino è vuoto. Mettiti in marcia!'));
-  else {
-    const counts = {};
-    HERO.inventory.forEach(i => counts[i] = (counts[i] || 0) + 1);
-    Object.entries(counts).forEach(([name, n]) =>
-      inv.appendChild(el('div', 'stat-row', `${esc(name)} ${n > 1 ? '<b>x' + n + '</b>' : ''}`)));
-  }
-  c.appendChild(inv);
-
-  const sw = el('button', 'btn wide', '↩ Cambia Eroe');
-  sw.addEventListener('click', () => { STATE.current = null; persist(); renderProfiles(); });
-  c.appendChild(sw);
-}
-
 /* ══════════════ Modal & toast ══════════════ */
 function modal(html) {
   $('#modal-box').innerHTML = html;
@@ -635,7 +975,7 @@ function toast(msg) {
   toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
 }
 
-/* ── Sfondo pergamena: attivo solo se il file esiste ── */
+/* ── Sfondo pergamena ── */
 let PARCHMENT_OK = false;
 (() => {
   const probe = new Image();
@@ -646,15 +986,13 @@ let PARCHMENT_OK = false;
   probe.src = 'assets/backgrounds/pergamena.jpg';
 })();
 
-/* ── Icone UI personalizzate (generate con l'IA e scontornate) ──
-   Se questi file esistono in assets/ui/, sostituiscono le emoji:
-   la barra in basso e le risorse dell'header usano le tue icone. */
+/* ── Icone UI personalizzate ── */
 const UI_ICONS = {
-  camp:  'assets/ui/tab-rifugio.png',
-  map:   'assets/ui/tab-mappa.png',
-  train: 'assets/ui/tab-allenati.png',
-  cards: 'assets/ui/tab-carte.png',
-  hero:  'assets/ui/tab-eroe.png',
+  camp:   'assets/ui/tab-rifugio.png',
+  map:    'assets/ui/tab-mappa.png',
+  train:  'assets/ui/tab-allenati.png',
+  market: 'assets/ui/tab-mercato.png',
+  hero:   'assets/ui/tab-eroe.png',
 };
 const RES_ICONS = {
   gold:  'assets/ui/res-oro.png',
@@ -684,7 +1022,6 @@ const RES_ICONS = {
       const box = span.parentElement;
       const img = el('img', 'res-icon');
       img.src = path;
-      // sostituisce l'emoji iniziale mantenendo il contatore
       box.innerHTML = '';
       box.appendChild(img);
       box.appendChild(document.createTextNode(' '));

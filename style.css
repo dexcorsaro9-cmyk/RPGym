@@ -666,3 +666,185 @@ body {
 
 /* ── Etichetta versione ── */
 .version-tag { font-size: .72rem; color: var(--ink-light); opacity: .7; margin-top: auto; }
+
+/* ═══════════ v2.0: Mercato, Slot, Scrigni, Storie ═══════════ */
+
+/* ── Cancellazione profili ── */
+.btn-delete {
+  background: none; border: none; font-size: 1.2rem; cursor: pointer;
+  padding: 8px; opacity: .7; flex-shrink: 0;
+}
+.btn-danger {
+  background: linear-gradient(180deg, #c9524a, var(--danger)) !important;
+  border-color: #6b1f16 !important; color: #fff !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,.4);
+}
+
+/* ── Avatar grandi nella creazione ── */
+.avatar-choice-big {
+  width: 110px; height: 110px; border-radius: 16px;
+  object-fit: contain; background: #fff8ec;
+  padding: 6px;
+}
+
+/* ── Niente rimbalzo: eroe fermo e fiero ── */
+.hero-fullbody { animation: none; }
+
+/* ── Bioma banner e atlante ── */
+.biome-banner {
+  text-align: center; padding: 12px;
+  background: linear-gradient(160deg, rgba(232,182,76,.25), rgba(90,61,36,.35));
+  border: 2px solid var(--gold); border-radius: 12px;
+  color: #f4e7cd; margin-bottom: 14px;
+  text-shadow: 0 1px 3px rgba(0,0,0,.6);
+}
+.biome-row {
+  padding: 6px 8px; border-bottom: 1px dashed rgba(90,61,36,.3);
+  font-size: .92rem;
+}
+.biome-row.locked { opacity: .5; }
+.biome-row.current {
+  background: rgba(232,182,76,.25); border-radius: 8px;
+  border: 1px solid var(--gold);
+}
+
+/* ── Incursione ── */
+.incursion-panel {
+  border-color: var(--danger);
+  box-shadow: 0 0 16px rgba(163,51,39,.5);
+  animation: incPulse 2s ease-in-out infinite;
+}
+@keyframes incPulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(163,51,39,.4); }
+  50%      { box-shadow: 0 0 22px rgba(163,51,39,.75); }
+}
+.incursion-img { max-height: 90px; align-self: center; filter: drop-shadow(0 4px 6px rgba(0,0,0,.4)); }
+.membar-fill.danger { background: linear-gradient(90deg, var(--danger), #d9764a); }
+.lost-chest {
+  font-size: 3.5rem; text-align: center;
+  animation: fadeChest 2.5s ease-in-out infinite;
+  filter: grayscale(.7);
+}
+@keyframes fadeChest {
+  0%, 100% { opacity: .9; transform: scale(1); }
+  50%      { opacity: .25; transform: scale(.92); }
+}
+
+/* ── Tesoro giornaliero ── */
+.streak-row { display: flex; gap: 6px; justify-content: center; margin: 10px 0; }
+.streak-day {
+  width: 36px; height: 36px; border-radius: 8px;
+  border: 2px solid var(--leather);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; background: rgba(0,0,0,.15); color: var(--ink-light);
+}
+.streak-day.filled {
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+  color: #2a1d08; box-shadow: 0 0 8px rgba(232,182,76,.5);
+}
+.streak-day.special { border-color: var(--magic); }
+
+/* ── Scrigno ── */
+.chest-zone { text-align: center; margin: 14px 0; }
+.chest-btn {
+  font-size: 4.5rem; background: none; border: none; cursor: pointer;
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,.4));
+  animation: chestBounce 1.6s ease-in-out infinite;
+}
+@keyframes chestBounce {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  25%      { transform: translateY(-4px) rotate(-3deg); }
+  75%      { transform: translateY(-4px) rotate(3deg); }
+}
+.chest-btn.opening { animation: chestShake .9s ease-in-out; }
+@keyframes chestShake {
+  0%, 100% { transform: rotate(0) scale(1); }
+  20% { transform: rotate(-8deg) scale(1.05); }
+  40% { transform: rotate(8deg) scale(1.1); }
+  60% { transform: rotate(-10deg) scale(1.15); }
+  80% { transform: rotate(10deg) scale(1.25); }
+}
+.chest-burst {
+  font-size: 3rem; text-align: center;
+  animation: burst .8s ease-out;
+}
+@keyframes burst {
+  from { transform: scale(.3); opacity: 0; }
+  60%  { transform: scale(1.6); opacity: 1; }
+  to   { transform: scale(1); }
+}
+
+/* ── Loot con descrizione ── */
+.loot { display: flex; flex-direction: column; gap: 3px; }
+.loot-head { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.loot.rar-non_comune { border-color: #4a9948; }
+.loot.rar-divino { border-color: #e8d44c; background: rgba(232,212,76,.15); box-shadow: 0 0 10px rgba(232,212,76,.3); }
+.loot.rar-oscuro { border-color: #7a1fa0; background: rgba(60,10,80,.15); box-shadow: 0 0 10px rgba(122,31,160,.4); }
+.loot.pickable { cursor: pointer; }
+.loot.pickable:active { transform: scale(.98); }
+.loot.equipped { outline: 2px solid var(--gold); }
+
+/* ── Mercato ── */
+.mount-row {
+  display: flex; align-items: center; gap: 10px;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(255,255,255,.35), transparent 60%),
+    linear-gradient(160deg, var(--parchment), var(--parchment-dark));
+  border: 2px solid var(--leather); border-radius: 12px;
+  padding: 10px 12px; margin-bottom: 10px;
+  box-shadow: 0 3px 10px rgba(0,0,0,.35);
+}
+.mount-row.locked { opacity: .55; }
+.mount-row.active-mount { border-color: var(--gold); box-shadow: 0 0 12px rgba(232,182,76,.4); }
+.mount-emoji { font-size: 2rem; width: 44px; text-align: center; }
+.mount-mid { flex: 1; min-width: 0; }
+
+/* ── Eroe: slot equipaggiamento ── */
+.hero-rig {
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px; margin: 10px 0;
+}
+.slot-col { display: flex; flex-direction: column; gap: 12px; }
+.hero-center { flex: 1; display: flex; justify-content: center; }
+.equip-slot {
+  width: 64px; height: 64px; border-radius: 12px;
+  border: 2px solid var(--leather);
+  background: rgba(0,0,0,.25);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  cursor: pointer; gap: 1px;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,.4);
+}
+.bg-parchment .equip-slot { background: rgba(90,61,36,.2); }
+.equip-slot .equip-icon { font-size: 1.5rem; }
+.equip-slot .equip-icon.empty { opacity: .45; filter: grayscale(1); }
+.equip-slot .equip-label { font-size: .58rem; font-weight: 700; color: #c9b48f; }
+.bg-parchment .equip-slot .equip-label { color: var(--ink-light); }
+.equip-slot.filled { background: rgba(232,182,76,.2); }
+.rar-border-comune { border-color: var(--rar-comune) !important; }
+.rar-border-non_comune { border-color: #4a9948 !important; }
+.rar-border-raro { border-color: var(--rar-raro) !important; box-shadow: 0 0 8px rgba(46,111,176,.5); }
+.rar-border-epico { border-color: var(--rar-epico) !important; box-shadow: 0 0 8px rgba(123,63,191,.5); }
+.rar-border-leggendario { border-color: var(--rar-leggendario) !important; box-shadow: 0 0 10px rgba(217,130,43,.6); }
+.rar-border-divino { border-color: #e8d44c !important; box-shadow: 0 0 12px rgba(232,212,76,.7); }
+.rar-border-oscuro { border-color: #7a1fa0 !important; box-shadow: 0 0 12px rgba(122,31,160,.7); }
+.equip-total { color: #c9b48f; }
+.bg-parchment .equip-total { color: var(--ink-light); }
+
+.hero-submenu { display: flex; gap: 8px; margin: 12px 0; }
+.hero-submenu .btn { flex: 1; font-size: .78rem; padding: 10px 4px; }
+
+/* ── Storia ── */
+.story-panel { align-items: center; }
+.story-avatar {
+  width: 130px; height: 130px; object-fit: contain;
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,.35));
+}
+.story-text {
+  font-size: 1.02rem; line-height: 1.65; text-align: justify;
+  font-style: italic; color: var(--ink);
+}
+.story-text::first-letter {
+  font-family: 'Uncial Antiqua', serif;
+  font-size: 2.2rem; float: left; line-height: 1;
+  padding: 2px 6px 0 0; color: var(--leather);
+}
