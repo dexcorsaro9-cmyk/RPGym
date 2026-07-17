@@ -16,7 +16,14 @@ const el = (tag, cls, html) => {
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 /* ── Avatar dei protagonisti (creati con l'IA) ── */
-const FILE_AVATARS = ['assets/avatars/eroe1.png', 'assets/avatars/eroe2.png'];
+const AVATARS = [
+  { path: 'assets/avatars/eroe1.png',      storyId: 'eroe1',      label: 'Il Viandante' },
+  { path: 'assets/avatars/eroe2.png',      storyId: 'eroe2',      label: 'La Viandante' },
+  { path: 'assets/avatars/fabbro.png',     storyId: 'fabbro',     label: 'Il Fabbro' },
+  { path: 'assets/avatars/stregone.png',   storyId: 'stregone',   label: 'Lo Stregone' },
+  { path: 'assets/avatars/alchimista.png', storyId: 'alchimista', label: 'L\'Alchimista' },
+  { path: 'assets/avatars/furfante.png',   storyId: 'furfante',   label: 'Il Furfante' },
+];
 
 /* ── Le storie dei protagonisti ── */
 const STORIES = {
@@ -53,6 +60,72 @@ tua sacca chissà quando: "Se tutto brucia, cammina. Le radici profonde non temo
 Così fai. Ogni chilometro è un seme piantato, ogni missione un fiore strappato
 all'Orda. E quando arriverai alla Vetta Oscura, il Cavaliere del Drago scoprirà
 che niente è più pericoloso di chi sa far rinascere le cose.`,
+  },
+  fabbro: {
+    title: 'Il Fabbro delle Fucine Perdute',
+    text: `Per duecento anni la tua famiglia ha battuto il ferro nelle Fucine di Ruggine,
+e il tuo martello — intagliato in un cuore di vulcano — è passato di padre in
+figlio per sette generazioni. Dicevano che tu fossi il migliore: capace di
+forgiare una lama così affilata da tagliare il fumo, e così paziente da
+riparare la corona del re con gli occhi bendati, per scommessa.
+Poi l'Orda è arrivata anche lì. Non hanno spento le fucine: le hanno CORROTTE.
+I tuoi golem da lavoro, costruiti per aiutare, si sono rivoltati con gli occhi
+pieni di una luce sbagliata. Hai combattuto con il martello ancora rovente,
+ma un nano solo non ferma un esercito: sei uscito dalle gallerie con la barba
+bruciacchiata, l'incudine da campo sulle spalle e una rabbia che pesa più di entrambe.
+Ora percorri le strade del reame, e ogni chilometro è un colpo di martello sul
+ferro del destino. Perché un giorno tornerai alle tue Fucine, e quel giorno il
+Cavaliere del Drago imparerà la prima regola della bottega: chi rompe, paga.`,
+  },
+  stregone: {
+    title: 'Lo Stregone del Grimorio Scontroso',
+    text: `Eri l'apprendista più giovane — e più permaloso — della Torre dell'Alchimista.
+Gli altri studenti memorizzavano incantesimi; tu discutevi con loro. Perfino il
+tuo grimorio ha un caratteraccio: si chiama Grymoyre, si apre solo quando ne ha
+voglia e sbuffa scintille viola quando sbagli la pronuncia di una formula.
+Il tuo maestro diceva che il cappello troppo grande ti sarebbe andato bene
+"quando la testa avesse raggiunto l'ambizione". Non ha fatto in tempo a vederlo:
+la notte in cui il cielo si è riempito d'ali, la Torre è stata assediata e il
+maestro ti ha spinto nel passaggio segreto con il grimorio in braccio e un
+ultimo incarico sussurrato: "Trova la Valle dei Cristalli Oscuri. E non fidarti del Cavaliere."
+Da allora cammini, pedali e corri — perché la magia, come i muscoli, cresce solo
+con la fatica. Il cristallo sul tuo bastone si carica a ogni chilometro, e
+Grymoyre ha smesso di sbuffare: ora, quando ti guarda allenarti, applaude con le pagine.
+Il Cavaliere del Drago ha rubato il cielo. Tu hai intenzione di riprendertelo… con gli interessi.`,
+  },
+  alchimista: {
+    title: 'L\'Alchimista dalla Maschera di Corvo',
+    text: `Nessuno ha mai visto il tuo volto, e va bene così: la maschera dal lungo becco
+era di tua nonna, la guaritrice che fermò da sola la Febbre Grigia quando i
+medici del re scapparono a gambe levate. Dentro il becco lei custodiva erbe
+balsamiche; tu ci tieni anche una caramella alla menta, per le emergenze.
+Sei cresciuto tra alambicchi e vapori smeraldini, imparando la regola d'oro di
+famiglia: ogni veleno nasconde la propria cura, basta avere il coraggio di cercarla.
+Sul tuo guanto viaggia Becco, un corvo che ruba cucchiaini d'argento e trova
+ingredienti rari fiutandoli a un miglio di distanza.
+Quando l'Orda ha devastato Oakhaven, hai esaminato la cenere e il tuo sangue si
+è gelato: la fiamma del Drago non brucia soltanto — CORROMPE, e la corruzione
+si diffonde come una malattia. È la sfida che tua nonna avrebbe accettato senza esitare.
+Così cammini di bioma in bioma, fiala dopo fiala, chilometro dopo chilometro,
+distillando l'impossibile: l'antidoto al fuoco del Drago. Il Cavaliere ha portato
+la peste nel mondo. Tu sarai la cura.`,
+  },
+  furfante: {
+    title: 'Il Furfante dal Cuore d\'Oro',
+    text: `Sei cresciuto nei vicoli di Oakhaven senza famiglia e senza regole, ma con un
+codice tutto tuo: rubare solo ai ricchi antipatici, mai più di metà, e lasciare
+sempre un fiore al posto del maltolto — per lo stile, ovviamente.
+Le guardie ti chiamavano "la Piuma", perché quando arrivavano trovavano solo
+quella, infilata nella serratura svuotata. Il fornaio, che ti allungava una
+pagnotta nei giorni peggiori, ti chiamava semplicemente "quel bravo monello".
+La notte dell'attacco eri sui tetti, il posto migliore per contare le stelle e
+le borse dei mercanti. Hai visto il Drago prima di tutti, e hai fatto la cosa
+più folle della tua carriera: invece di scappare, hai svegliato il quartiere
+casa per casa, bussando ai vetri come un temporale. Quel "bravo monello" quella
+notte ha rubato all'Orda il bottino più grosso: settanta persone vive.
+Ora ti alleni tra i biomi con il sacco in spalla e il sorriso sotto la maschera,
+perché hai messo gli occhi sul colpo del secolo: intrufolarti nella Vetta Oscura
+e rubare al Cavaliere del Drago l'unica cosa che conta — la sua vittoria.`,
   },
 };
 
@@ -121,17 +194,21 @@ function isImageAvatar(hero) {
   return hero.avatar && (hero.avatar.startsWith('data:') || hero.avatar.startsWith('assets/'));
 }
 
-/* ── Creazione eroe (solo i due avatar dei protagonisti) ── */
-let pickedAvatar = FILE_AVATARS[0];
+/* ── Creazione eroe (i protagonisti creati con l'IA) ── */
+let pickedAvatar = AVATARS[0];
 
 function renderCreate() {
   const picker = $('#avatar-picker');
   picker.innerHTML = '';
-  FILE_AVATARS.forEach(path => {
-    const img = el('img', 'avatar-choice avatar-choice-big' + (path === pickedAvatar ? ' selected' : ''));
-    img.src = path;
-    img.addEventListener('click', () => { pickedAvatar = path; renderCreate(); });
-    picker.appendChild(img);
+  AVATARS.forEach(a => {
+    const box = el('div', 'avatar-box' + (a === pickedAvatar ? ' selected' : ''));
+    const img = el('img', 'avatar-choice avatar-choice-big');
+    img.src = a.path;
+    img.addEventListener('error', () => box.remove());
+    box.appendChild(img);
+    box.appendChild(el('div', 'avatar-label', a.label));
+    box.addEventListener('click', () => { pickedAvatar = a; renderCreate(); });
+    picker.appendChild(box);
   });
   show('screen-create');
 }
@@ -141,7 +218,8 @@ $('#btn-create-back').addEventListener('click', renderProfiles);
 $('#btn-create-confirm').addEventListener('click', () => {
   const name = $('#create-name').value.trim();
   if (!name) { alert('Ogni eroe ha bisogno di un nome!'); return; }
-  const h = RPG.newHero(name, pickedAvatar);
+  const h = RPG.newHero(name, pickedAvatar.path);
+  h.storyId = pickedAvatar.storyId;
   STATE.heroes.push(h);
   STATE.current = h.id;
   persist();
@@ -662,6 +740,16 @@ function renderMarket(c) {
   ({ stalla: renderStalla, nero: renderNero, fucina: renderFucina }[MARKET_VIEW])(c);
 }
 
+function npcBanner(imgPath, name, quote) {
+  const b = el('div', 'npc-banner');
+  const img = el('img', 'npc-img');
+  img.src = imgPath;
+  img.addEventListener('error', () => img.remove());
+  b.appendChild(img);
+  b.appendChild(el('div', 'npc-quote', `<b>${name}</b><br><span class="small">${quote}</span>`));
+  return b;
+}
+
 function renderStalla(c) {
   c.appendChild(el('p', 'muted small center', 'Le cavalcature aumentano i km "virtuali" di ogni allenamento. Più sali di livello, più destrieri leggendari si affacciano alla stalla…'));
   RPG.MOUNTS.forEach(m => {
@@ -693,7 +781,8 @@ function renderStalla(c) {
 }
 
 function renderNero(c) {
-  c.appendChild(el('p', 'muted small center', 'Il mercante incappucciato paga in monete sonanti qualunque bottino. Nessuna domanda.'));
+  c.appendChild(npcBanner('assets/avatars/furfante.png', 'La Piuma',
+    '«Bella merce… io pago in monete sonanti e non faccio domande. Tu non chiedermi dove finisce.»'));
   const sellable = HERO.items.filter(i => !Object.values(HERO.equipment).includes(i.id));
   if (!sellable.length) {
     c.appendChild(el('div', 'panel', '<p class="center muted">Non hai bottini da vendere. Gli oggetti equipaggiati non si toccano!</p>'));
@@ -717,7 +806,8 @@ function renderNero(c) {
 }
 
 function renderFucina(c) {
-  c.appendChild(el('p', 'muted small center', 'Il fabbro batte il ferro dall\'alba: ogni giorno 3 pezzi nuovi in vetrina. Compra armi e armature, o vendi le tue.'));
+  c.appendChild(npcBanner('assets/avatars/fabbro.png', 'Mastro Brontolo',
+    '«Batto il ferro dall\'alba, ragazzino. Tre pezzi al giorno, prendere o lasciare. E non toccare l\'incudine!»'));
   const offers = RPG.forgeOffers(HERO);
   const op = el('div', 'panel');
   op.appendChild(el('h3', 'panel-title', '🔥 In vetrina oggi'));

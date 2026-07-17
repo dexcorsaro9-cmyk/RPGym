@@ -848,3 +848,33 @@ body {
   font-size: 2.2rem; float: left; line-height: 1;
   padding: 2px 6px 0 0; color: var(--leather);
 }
+
+/* ── Selezione avatar a 6 con etichette ── */
+.avatar-box {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 8px; border-radius: 14px; cursor: pointer;
+  border: 2px solid transparent;
+}
+.avatar-box.selected {
+  border-color: var(--gold);
+  background: rgba(232,182,76,.2);
+  box-shadow: 0 0 12px rgba(232,182,76,.4);
+}
+.avatar-box .avatar-choice-big { width: 92px; height: 92px; border: none; box-shadow: none; background: none; }
+.avatar-label {
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: .68rem;
+  color: var(--leather);
+}
+
+/* ── NPC del Mercato ── */
+.npc-banner {
+  display: flex; align-items: center; gap: 12px;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(255,255,255,.35), transparent 60%),
+    linear-gradient(160deg, var(--parchment), var(--parchment-dark));
+  border: 2px solid var(--leather); border-radius: 12px;
+  padding: 10px 12px; margin-bottom: 12px;
+  box-shadow: 0 3px 10px rgba(0,0,0,.35);
+}
+.npc-img { height: 84px; max-width: 90px; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,.35)); }
+.npc-quote { flex: 1; font-style: italic; color: var(--ink); }

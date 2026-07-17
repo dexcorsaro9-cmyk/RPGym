@@ -1,5 +1,5 @@
 /* RPGym service worker — cache base per uso offline */
-const CACHE = 'rpgym-v4';
+const CACHE = 'rpgym-v5';
 const ASSETS = [
   '.',
   'index.html',
