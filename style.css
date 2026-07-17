@@ -571,3 +571,40 @@ body {
   0%, 100% { transform: translateY(0); }
   50%      { transform: translateY(-7px); }
 }
+
+/* ── Icone di gioco in legno (dai fogli generati con l'IA) ── */
+.act-icon-holder { font-size: 1.6rem; min-height: 46px; display: flex; align-items: center; justify-content: center; }
+.act-icon { width: 46px; height: 46px; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0,0,0,.4)); }
+
+.btn-plaque {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 4px 0 !important;
+  animation: none;
+}
+.btn-plaque .plaque-img {
+  width: min(78%, 300px);
+  display: block; margin: 0 auto;
+  filter: drop-shadow(0 6px 12px rgba(0,0,0,.55));
+  transition: transform .1s;
+}
+.btn-plaque:active .plaque-img { transform: scale(.96); }
+.btn-plaque .plaque-caption {
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: .8rem;
+  color: var(--gold-bright); margin-top: 4px; letter-spacing: 1px;
+  text-shadow: 0 1px 3px rgba(0,0,0,.8);
+}
+#tab-content .btn-plaque .plaque-caption { color: var(--gold-bright); }
+
+.btn-plaque-small {
+  background: none !important; border: none !important;
+  box-shadow: none !important; padding: 0 !important;
+}
+.btn-plaque-small .plaque-img-small {
+  width: 92px; display: block;
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,.5));
+  transition: transform .1s;
+}
+.btn-plaque-small:active .plaque-img-small { transform: scale(.94); }
+.btn-plaque-small:disabled .plaque-img-small { filter: grayscale(1) opacity(.5); }
