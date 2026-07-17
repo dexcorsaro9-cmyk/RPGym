@@ -1,0 +1,14 @@
+{
+  "name": "RPGym — L'Avventura del Viandante",
+  "short_name": "RPGym",
+  "description": "Trasforma camminate, corse e pedalate in un'avventura fantasy!",
+  "start_url": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#241a10",
+  "theme_color": "#3b2a1a",
+  "lang": "it",
+  "icons": [
+    { "src": "assets/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

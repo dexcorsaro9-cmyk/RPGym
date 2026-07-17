@@ -1,0 +1,406 @@
+/* ═══════════════ RPGym — Stile Pergamena Fantasy ═══════════════ */
+
+:root {
+  --parchment: #efe0c3;
+  --parchment-dark: #e2cda2;
+  --ink: #3b2a1a;
+  --ink-light: #6b543a;
+  --leather: #5a3d24;
+  --gold: #c9932e;
+  --gold-bright: #e8b64c;
+  --emerald: #2e8b57;
+  --magic: #6a4fc9;
+  --danger: #a33327;
+  --rar-comune: #8a7a5f;
+  --rar-raro: #2e6fb0;
+  --rar-epico: #7b3fbf;
+  --rar-leggendario: #d9822b;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body { height: 100%; }
+body {
+  font-family: 'Crimson Pro', Georgia, serif;
+  background: #241a10 radial-gradient(ellipse at 50% 0%, #3b2a1a 0%, #241a10 70%);
+  color: var(--ink);
+  overscroll-behavior: none;
+}
+
+.hidden { display: none !important; }
+.screen { min-height: 100dvh; display: flex; flex-direction: column; }
+
+/* ── Pergamena ── */
+.parchment {
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(255,255,255,.35), transparent 60%),
+    linear-gradient(160deg, var(--parchment) 0%, var(--parchment-dark) 100%);
+  border: 3px solid var(--leather);
+  border-radius: 14px;
+  box-shadow: 0 8px 30px rgba(0,0,0,.5), inset 0 0 40px rgba(90,61,36,.25);
+  margin: max(16px, env(safe-area-inset-top)) 12px 16px;
+  padding: 24px 18px;
+  flex: 1;
+  max-width: 520px;
+  width: calc(100% - 24px);
+  align-self: center;
+}
+
+.center-col { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+
+.game-title {
+  font-family: 'Cinzel', serif;
+  font-weight: 900;
+  font-size: 2.4rem;
+  color: var(--leather);
+  text-shadow: 0 2px 0 rgba(255,255,255,.4);
+  letter-spacing: 2px;
+}
+.subtitle { font-style: italic; color: var(--ink-light); margin-top: -8px; }
+.section-title {
+  font-family: 'Cinzel', serif;
+  font-size: 1.2rem;
+  color: var(--leather);
+  border-bottom: 2px solid var(--gold);
+  padding-bottom: 4px;
+  margin: 10px 0 6px;
+  text-align: center;
+}
+.lore-box {
+  background: rgba(90,61,36,.12);
+  border-left: 4px solid var(--gold);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-style: italic;
+  color: var(--ink-light);
+  font-size: .95rem;
+}
+
+.muted { color: var(--ink-light); }
+.small { font-size: .85rem; }
+.center { text-align: center; }
+.row { display: flex; }
+.gap { gap: 10px; }
+.wide { width: 100%; }
+
+/* ── Bottoni ── */
+.btn {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: .95rem;
+  padding: 12px 18px;
+  border-radius: 10px;
+  border: 2px solid var(--leather);
+  background: linear-gradient(180deg, #f4e7cd, #dfc99f);
+  color: var(--ink);
+  cursor: pointer;
+  box-shadow: 0 3px 0 rgba(59,42,26,.5);
+  transition: transform .08s;
+}
+.btn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(59,42,26,.5); }
+.btn:disabled { opacity: .5; cursor: default; }
+.btn-primary {
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+  border-color: #7a5a1a;
+  color: #2a1d08;
+}
+.btn-small { padding: 8px 12px; font-size: .8rem; }
+.btn.big { font-size: 1.1rem; padding: 16px; margin-top: 12px; }
+
+/* ── Input ── */
+.input {
+  width: 100%;
+  padding: 12px;
+  font-family: inherit;
+  font-size: 1.05rem;
+  border: 2px solid var(--leather);
+  border-radius: 8px;
+  background: rgba(255,255,255,.55);
+  color: var(--ink);
+}
+.field-label {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: .85rem;
+  color: var(--leather);
+  align-self: flex-start;
+  margin-top: 8px;
+}
+
+/* ── Profili ── */
+#profile-list { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+.profile-card {
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(255,255,255,.4);
+  border: 2px solid var(--leather);
+  border-radius: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+.profile-card:active { background: rgba(255,255,255,.7); }
+.profile-avatar, .avatar-emoji {
+  width: 56px; height: 56px; border-radius: 50%;
+  border: 2px solid var(--gold);
+  object-fit: cover;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem; background: #fff8ec;
+  flex-shrink: 0;
+}
+
+.avatar-picker { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.avatar-choice {
+  width: 54px; height: 54px; font-size: 1.8rem;
+  border-radius: 50%; border: 2px solid var(--leather);
+  background: #fff8ec; cursor: pointer; object-fit: cover;
+}
+.avatar-choice.selected { border: 3px solid var(--gold); box-shadow: 0 0 10px var(--gold-bright); }
+
+/* ── HUD ── */
+#screen-game { background: transparent; }
+#hud {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 8px;
+  padding: calc(8px + env(safe-area-inset-top)) 12px 8px;
+  background: linear-gradient(180deg, #2c1f12 0%, #3b2a1a 100%);
+  border-bottom: 3px solid var(--gold);
+  color: #f4e7cd;
+}
+.hud-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.hud-avatar { flex-shrink: 0; }
+.hud-avatar-inner, .hud-avatar .avatar-emoji {
+  width: 46px; height: 46px; border-radius: 50%;
+  border: 2px solid var(--gold); object-fit: cover;
+  font-size: 1.6rem; display: flex; align-items: center; justify-content: center;
+  background: #fff8ec;
+}
+.hud-info { min-width: 0; }
+.hud-name { font-family: 'Cinzel', serif; font-weight: 700; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hud-titolo { font-size: .72rem; color: #d9c39a; }
+.xpbar {
+  position: relative; width: 140px; height: 14px;
+  background: rgba(0,0,0,.5); border: 1px solid var(--gold);
+  border-radius: 7px; overflow: hidden; margin-top: 3px;
+}
+.xpbar-fill { height: 100%; background: linear-gradient(90deg, var(--emerald), #58c98b); transition: width .6s; }
+.xpbar-text {
+  position: absolute; inset: 0; font-size: .62rem; text-align: center;
+  line-height: 13px; color: #fff; text-shadow: 0 1px 2px #000;
+}
+.hud-right { display: flex; flex-direction: column; gap: 2px; font-size: .82rem; text-align: right; }
+.res { white-space: nowrap; }
+
+/* ── Contenuto tab ── */
+#tab-content {
+  flex: 1; overflow-y: auto;
+  padding: 14px 12px calc(90px + env(safe-area-inset-bottom));
+  max-width: 560px; width: 100%; align-self: center;
+}
+#tab-content .section-title { color: var(--gold-bright); border-color: var(--gold); }
+#tab-content > .muted, #tab-content > p.muted { color: #c9b48f; }
+
+.panel {
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(255,255,255,.35), transparent 60%),
+    linear-gradient(160deg, var(--parchment) 0%, var(--parchment-dark) 100%);
+  border: 2px solid var(--leather);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.4);
+  padding: 14px;
+  margin-bottom: 14px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.panel-title { font-family: 'Cinzel', serif; font-size: 1rem; color: var(--leather); }
+
+/* ── Rifugio ── */
+.camp-scene { text-align: center; margin-bottom: 14px; }
+.camp-emoji { font-size: 4.5rem; filter: drop-shadow(0 4px 8px rgba(0,0,0,.5)); }
+.camp-desc { color: #d9c39a; font-style: italic; margin-top: 6px; }
+
+.membar {
+  position: relative; height: 22px;
+  background: rgba(59,42,26,.3); border: 2px solid var(--leather);
+  border-radius: 11px; overflow: hidden;
+}
+.membar-fill { height: 100%; background: linear-gradient(90deg, var(--magic), #9a7ff0); transition: width .6s; }
+.membar-fill.gold { background: linear-gradient(90deg, var(--gold), var(--gold-bright)); }
+.membar span {
+  position: absolute; inset: 0; text-align: center; line-height: 19px;
+  font-size: .75rem; font-weight: 600; color: #fff; text-shadow: 0 1px 2px #000;
+}
+
+.build-row, .mission-row {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,.35);
+  border: 1px solid rgba(90,61,36,.4);
+  border-radius: 10px; padding: 8px 10px;
+}
+.build-row.built { opacity: .65; }
+.build-icon { font-size: 1.6rem; }
+.build-mid, .mission-mid { flex: 1; min-width: 0; }
+.mission-row.done { color: var(--ink-light); }
+.tag {
+  display: inline-block; font-size: .68rem; font-weight: 700;
+  padding: 1px 7px; border-radius: 8px;
+  background: var(--leather); color: #f4e7cd;
+  text-transform: uppercase; letter-spacing: .5px;
+}
+
+.active-mission { border-color: var(--gold); box-shadow: 0 0 14px rgba(201,147,46,.5); }
+.event-panel { border-color: var(--magic); }
+
+/* ── Allenamento ── */
+.act-row { display: flex; gap: 8px; }
+.act-choice {
+  flex: 1; padding: 10px 4px; text-align: center;
+  font-family: inherit; font-size: .9rem; line-height: 1.5;
+  border: 2px solid var(--leather); border-radius: 10px;
+  background: rgba(255,255,255,.4); cursor: pointer;
+}
+.act-choice.selected { border-color: var(--gold); background: rgba(232,182,76,.35); box-shadow: 0 0 8px rgba(201,147,46,.5); }
+
+.log-row { padding: 4px 0; border-bottom: 1px dashed rgba(90,61,36,.3); font-size: .92rem; }
+.stat-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed rgba(90,61,36,.3); }
+
+/* ── Report ricompense ── */
+.reward-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 10px 0; }
+.reward {
+  text-align: center; font-weight: 700; padding: 8px 4px;
+  background: rgba(255,255,255,.45); border: 1px solid var(--leather); border-radius: 10px;
+  font-size: .9rem;
+}
+.big-news {
+  font-family: 'Cinzel', serif; font-weight: 700; text-align: center;
+  color: var(--magic); margin: 10px 0; font-size: 1.05rem;
+}
+.loot-list { display: flex; flex-direction: column; gap: 5px; margin: 6px 0; }
+.loot { padding: 6px 10px; border-radius: 8px; background: rgba(255,255,255,.45); border-left: 4px solid; font-size: .9rem; }
+.loot.rar-comune { border-color: var(--rar-comune); }
+.loot.rar-raro { border-color: var(--rar-raro); }
+.loot.rar-epico { border-color: var(--rar-epico); }
+.loot.rar-leggendario { border-color: var(--rar-leggendario); background: rgba(217,130,43,.2); }
+
+/* ── Carte ── */
+.card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.tcard, .card-reveal {
+  border: 3px solid; border-radius: 14px;
+  padding: 14px 10px; text-align: center;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.5), transparent 70%),
+    linear-gradient(160deg, var(--parchment), var(--parchment-dark));
+  box-shadow: 0 4px 14px rgba(0,0,0,.4);
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.card-reveal { margin: 12px 0; animation: cardIn .6s ease; }
+@keyframes cardIn {
+  from { transform: scale(.5) rotate(-6deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0); opacity: 1; }
+}
+.tcard.locked { filter: grayscale(1); opacity: .55; }
+.card-icon { font-size: 2.6rem; }
+.lore { font-style: italic; color: var(--ink-light); }
+.tcard.rar-comune, .card-reveal.rar-comune { border-color: var(--rar-comune); }
+.tcard.rar-raro, .card-reveal.rar-raro { border-color: var(--rar-raro); }
+.tcard.rar-epico, .card-reveal.rar-epico { border-color: var(--rar-epico); box-shadow: 0 0 14px rgba(123,63,191,.4); }
+.tcard.rar-leggendario, .card-reveal.rar-leggendario { border-color: var(--rar-leggendario); box-shadow: 0 0 18px rgba(217,130,43,.6); }
+
+/* ── Font medievale per i nomi degli eroi ── */
+.font-medieval, .input-medieval, .hud-name, .hero-name-plate, .profile-info b {
+  font-family: 'Uncial Antiqua', 'Cinzel', Georgia, serif;
+  letter-spacing: 1px;
+}
+.input-medieval {
+  font-size: 1.25rem;
+  text-align: center;
+  color: var(--leather);
+}
+.input-medieval::placeholder { opacity: .45; font-size: 1rem; }
+
+/* ── Scheda Eroe su pergamena ── */
+#tab-content.bg-parchment {
+  background: url('assets/backgrounds/pergamena.jpg') center top / cover no-repeat;
+}
+.hero-showcase { padding: 12px 0 4px; }
+.hero-fullbody {
+  max-width: 68%;
+  max-height: 46dvh;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 18px rgba(0,0,0,.45));
+  animation: heroIn .5s ease;
+}
+@keyframes heroIn {
+  from { transform: translateY(14px) scale(.96); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+.hero-name-plate {
+  font-family: 'Cinzel', serif;
+  font-size: 1.35rem;
+  color: var(--ink);
+  text-shadow: 0 1px 0 rgba(255,255,255,.5);
+  margin-top: 6px;
+}
+.hero-title-plate { color: var(--ink-light); font-style: italic; }
+.bg-parchment .section-title.on-parchment-title {
+  color: var(--leather);
+  border-color: var(--leather);
+  text-shadow: 0 1px 0 rgba(255,255,255,.4);
+}
+.panel.on-parchment {
+  background: rgba(255, 250, 238, .55);
+  border-color: rgba(90,61,36,.55);
+  box-shadow: 0 2px 10px rgba(0,0,0,.2);
+  backdrop-filter: blur(2px);
+}
+/* Senza immagine di sfondo il tab Eroe resta leggibile sul tema scuro */
+#tab-content:not(.bg-parchment) .hero-name-plate { color: #f4e7cd; text-shadow: none; }
+#tab-content:not(.bg-parchment) .hero-title-plate { color: #c9b48f; }
+
+.hero-avatar, .panel .avatar-emoji.hero-avatar {
+  width: 110px; height: 110px; border-radius: 50%;
+  border: 4px solid var(--gold); object-fit: cover;
+  font-size: 4rem; display: flex; align-items: center; justify-content: center;
+  background: #fff8ec;
+}
+
+/* ── Tab bar ── */
+#tabbar {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
+  display: flex; justify-content: space-around; align-items: flex-end;
+  padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+  background: linear-gradient(0deg, #2c1f12 0%, #3b2a1a 100%);
+  border-top: 3px solid var(--gold);
+}
+.tab {
+  flex: 1; background: none; border: none; cursor: pointer;
+  font-size: 1.5rem; color: #d9c39a;
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  padding: 4px 0; border-radius: 10px;
+}
+.tab span { font-family: 'Cinzel', serif; font-size: .58rem; font-weight: 700; letter-spacing: .5px; }
+.tab.active { color: var(--gold-bright); text-shadow: 0 0 10px rgba(232,182,76,.7); }
+.tab-main { font-size: 1.9rem; }
+
+/* ── Modal ── */
+.modal {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(20,12,5,.75);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-box {
+  max-height: 85dvh; overflow-y: auto;
+  flex: none; margin: 0; width: 100%; max-width: 420px;
+}
+
+/* ── Toast ── */
+#toast {
+  position: fixed; bottom: calc(100px + env(safe-area-inset-bottom));
+  left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--leather); color: #f4e7cd;
+  border: 2px solid var(--gold);
+  padding: 10px 18px; border-radius: 12px;
+  font-size: .9rem; max-width: 90%;
+  opacity: 0; transition: all .3s; pointer-events: none; z-index: 60;
+  text-align: center;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }

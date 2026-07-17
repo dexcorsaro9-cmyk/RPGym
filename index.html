@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#3b2a1a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="RPGym">
+  <title>RPGym — L'Avventura del Viandante</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/icons/icon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=Uncial+Antiqua&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ══════════════ SCHERMATA SELEZIONE EROE ══════════════ -->
+  <div id="screen-profiles" class="screen">
+    <div class="parchment center-col">
+      <h1 class="game-title">⚔️ RPGym</h1>
+      <p class="subtitle">L'Avventura del Viandante</p>
+      <div class="lore-box">
+        Le Rovine di Oakhaven fumano ancora. Un'ombra alata ha oscurato il sole
+        e l'Orda ha devastato ogni cosa. Solo i più coraggiosi partiranno in
+        cerca di risposte… un passo alla volta.
+      </div>
+      <h2 class="section-title">Scegli il tuo Eroe</h2>
+      <div id="profile-list"></div>
+      <button id="btn-new-hero" class="btn btn-primary">✨ Crea un nuovo Eroe</button>
+    </div>
+  </div>
+
+  <!-- ══════════════ CREAZIONE EROE ══════════════ -->
+  <div id="screen-create" class="screen hidden">
+    <div class="parchment center-col">
+      <h2 class="section-title">Nasce un Viandante</h2>
+      <label class="field-label">Nome dell'Eroe</label>
+      <input id="create-name" class="input input-medieval" type="text" maxlength="20" placeholder="Es. Leo il Viandante">
+      <label class="field-label">Scegli il tuo volto</label>
+      <div id="avatar-picker" class="avatar-picker"></div>
+      <label class="field-label">…oppure carica il tuo avatar personalizzato</label>
+      <input id="avatar-upload" type="file" accept="image/*" class="input">
+      <div class="row gap">
+        <button id="btn-create-back" class="btn">↩ Indietro</button>
+        <button id="btn-create-confirm" class="btn btn-primary">🔥 Inizia l'Avventura</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ GIOCO PRINCIPALE ══════════════ -->
+  <div id="screen-game" class="screen hidden">
+
+    <!-- Header status -->
+    <header id="hud">
+      <div class="hud-left">
+        <div id="hud-avatar" class="hud-avatar"></div>
+        <div class="hud-info">
+          <div id="hud-name" class="hud-name"></div>
+          <div id="hud-title" class="hud-titolo"></div>
+          <div class="xpbar"><div id="hud-xpfill" class="xpbar-fill"></div><span id="hud-xptext" class="xpbar-text"></span></div>
+        </div>
+      </div>
+      <div class="hud-right">
+        <div class="res" title="Oro">🪙 <span id="res-gold">0</span></div>
+        <div class="res" title="Legna">🪵 <span id="res-wood">0</span></div>
+        <div class="res" title="Pietra">🪨 <span id="res-stone">0</span></div>
+      </div>
+    </header>
+
+    <!-- Contenuto tab -->
+    <main id="tab-content"></main>
+
+    <!-- Barra di navigazione -->
+    <nav id="tabbar">
+      <button class="tab" data-tab="camp">🏕️<span>Rifugio</span></button>
+      <button class="tab" data-tab="map">🗺️<span>Mappa</span></button>
+      <button class="tab tab-main" data-tab="train">⚔️<span>Allenati</span></button>
+      <button class="tab" data-tab="cards">🎴<span>Carte</span></button>
+      <button class="tab" data-tab="hero">🛡️<span>Eroe</span></button>
+    </nav>
+  </div>
+
+  <!-- Modal generico -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-box parchment" id="modal-box"></div>
+  </div>
+
+  <script src="game.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
