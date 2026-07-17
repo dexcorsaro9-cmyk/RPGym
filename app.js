@@ -207,6 +207,8 @@ function renderCreate() {
     img.addEventListener('error', () => box.remove());
     box.appendChild(img);
     box.appendChild(el('div', 'avatar-label', a.label));
+    const t = RPG.CLASS_TALENTS[a.storyId];
+    if (t) box.appendChild(el('div', 'avatar-talent', `${t.icon} ${t.desc}`));
     box.addEventListener('click', () => { pickedAvatar = a; renderCreate(); });
     picker.appendChild(box);
   });
@@ -612,7 +614,7 @@ let PENDING_CHEST = null;
 
 function itemHtml(it) {
   return `<div class="loot rar-${it.rarity}">
-    <div class="loot-head">${it.icon} <b>${esc(it.name)}</b> <span class="tag">${RPG.RARITIES[it.rarity].label}</span></div>
+    <div class="loot-head">${it.icon} <b>${esc(it.name)}</b> <span class="tag">${RPG.RARITIES[it.rarity].label}</span>${it.distilled ? ' <span class="tag tag-distilled">⚗️ Distillato!</span>' : ''}</div>
     <div class="small muted">${it.desc}</div>
     <div class="small">📈 +${it.xp}% XP equipaggiato · 🪙 valore ${it.value}</div>
   </div>`;
@@ -793,11 +795,12 @@ function renderNero(c) {
     row.appendChild(el('div', 'mission-mid',
       `${it.icon} <b>${esc(it.name)}</b> <span class="tag">${RPG.RARITIES[it.rarity].label}</span><br>
        <span class="small muted">+${it.xp}% XP</span>`));
-    const btn = el('button', 'btn btn-small btn-primary', `Vendi 🪙${it.value}`);
+    const sv = RPG.sellValue(HERO, it);
+    const btn = el('button', 'btn btn-small btn-primary', `Vendi 🪙${sv}`);
     btn.addEventListener('click', () => {
       RPG.sellItem(HERO, it.id);
       persist(); renderHUD();
-      toast(`🪙 +${it.value} monete!`);
+      toast(`🪙 +${sv} monete!`);
       setTab('market');
     });
     row.appendChild(btn);
@@ -841,11 +844,12 @@ function renderFucina(c) {
       const row = el('div', 'mission-row');
       row.appendChild(el('div', 'mission-mid',
         `${it.icon} <b>${esc(it.name)}</b> <span class="tag">${RPG.RARITIES[it.rarity].label}</span>`));
-      const btn = el('button', 'btn btn-small', `Vendi 🪙${it.value}`);
+      const sv = RPG.sellValue(HERO, it);
+      const btn = el('button', 'btn btn-small', `Vendi 🪙${sv}`);
       btn.addEventListener('click', () => {
         RPG.sellItem(HERO, it.id);
         persist(); renderHUD();
-        toast(`🪙 +${it.value} monete!`);
+        toast(`🪙 +${sv} monete!`);
         setTab('market');
       });
       row.appendChild(btn);
@@ -904,6 +908,9 @@ function renderHero(c) {
   c.appendChild(el('p', 'center small equip-total', bonus > 0
     ? `⚡ Bonus equipaggiamento: <b>+${bonus}% XP</b>`
     : 'Tocca gli slot per equipaggiare il tuo bottino'));
+  const talent = RPG.talentOf(HERO);
+  if (talent) c.appendChild(el('p', 'center small talent-line',
+    `${talent.icon} Talento: <b>${talent.name}</b> — ${talent.desc}`));
 
   // Sottomenù
   const sub = el('div', 'hero-submenu');
@@ -974,6 +981,9 @@ function renderStoryView(c) {
   const av = avatarEl(HERO, 'story-avatar');
   p.appendChild(av);
   p.appendChild(el('div', 'story-text', esc(story.text).replace(/\n/g, ' ')));
+  const talent = RPG.talentOf(HERO);
+  if (talent) p.appendChild(el('div', 'talent-box',
+    `${talent.icon} <b>${talent.name}</b><br><span class="small">${talent.desc}</span>`));
   c.appendChild(p);
 }
 

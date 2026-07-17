@@ -106,6 +106,24 @@ const RPG = (() => {
   });
   function mountById(id) { return MOUNTS.find(m => m.id === id); }
 
+  /* ── Talenti di Classe (uno per protagonista) ─────────────── */
+  const CLASS_TALENTS = {
+    eroe1:      { name: 'Passo Instancabile',      icon: '🥾',
+      desc: '+10% XP da camminata e corsa' },
+    eroe2:      { name: 'Radici Profonde',         icon: '🌿',
+      desc: '+25% legna e pietra raccolte' },
+    fabbro:     { name: 'Mani di Bottega',         icon: '⚒️',
+      desc: '-20% prezzi alla Fucina · +10% dalle vendite' },
+    stregone:   { name: 'Fame di Sapere',          icon: '🔮',
+      desc: '+10% XP da ogni allenamento' },
+    alchimista: { name: 'Occhio del Distillatore', icon: '⚗️',
+      desc: '10% di probabilità che il loot trovato salga di rarità' },
+    furfante:   { name: 'Dita Leste',              icon: '🪙',
+      desc: '+20% oro da ogni fonte' },
+  };
+  function talentOf(hero) { return CLASS_TALENTS[hero.storyId] || null; }
+  function isClass(hero, id) { return hero.storyId === id; }
+
   /* ── Rarità e loot ────────────────────────────────────────── */
   const RARITIES = {
     comune:      { label: 'Comune',      weight: 60,  xp: 1,  value: 10,   minLevel: 1  },
@@ -164,8 +182,8 @@ const RPG = (() => {
   }
 
   let itemSeq = 0;
-  function genItem(level, minRarity, forcedSlot) {
-    const rarity = rollRarity(level, minRarity);
+  function genItem(level, minRarity, forcedSlot, forcedRarity) {
+    const rarity = forcedRarity || rollRarity(level, minRarity);
     const slot = forcedSlot ||
       Object.keys(SLOTS)[Math.floor(Math.random() * Object.keys(SLOTS).length)];
     const base = ITEM_BASES[slot][Math.floor(Math.random() * ITEM_BASES[slot].length)];
@@ -187,6 +205,20 @@ const RPG = (() => {
     const what = { arma: 'Un\'arma', scudo: 'Uno scudo', elmo: 'Un elmo',
       armatura: 'Un\'armatura', anello: 'Un anello', amuleto: 'Un amuleto' }[slot];
     return `${what} di rarità ${r.label}. Equipaggiato: +${r.xp}% XP da ogni allenamento. Valore di mercato: ${r.value} monete.`;
+  }
+
+  // Genera loot per un eroe, applicando il talento dell'Alchimista
+  function genItemFor(hero, minRarity, forcedSlot) {
+    let item = genItem(hero.level, minRarity, forcedSlot);
+    if (isClass(hero, 'alchimista') && Math.random() < 0.10) {
+      const avail = availableRarities(hero.level);
+      const idx = avail.indexOf(item.rarity);
+      if (idx >= 0 && idx < avail.length - 1) {
+        item = genItem(hero.level, null, item.slot, avail[idx + 1]);
+        item.distilled = true; // il tocco dell'Alchimista
+      }
+    }
+    return item;
   }
 
   function equipmentXpBonus(hero) {
@@ -448,7 +480,7 @@ const RPG = (() => {
     hero.gold += gold;
     const reward = { day: hero.streak.count, gold };
     if (hero.streak.count % 7 === 0) {
-      const item = genItem(hero.level, 'raro');
+      const item = genItemFor(hero, 'raro');
       hero.items.push(item);
       reward.item = item;
     }
@@ -543,9 +575,14 @@ const RPG = (() => {
     let mult = 1;
     if (hero.restBonus) { mult = 2; hero.restBonus = false; report.restBonusUsed = true; }
 
-    const xpMult = 1 + buildingBonus(hero, 'xpMult') + equipmentXpBonus(hero) / 100;
-    const goldMult = 1 + buildingBonus(hero, 'goldMult');
-    const resMult = 1 + buildingBonus(hero, 'resMult');
+    let xpMult = 1 + buildingBonus(hero, 'xpMult') + equipmentXpBonus(hero) / 100;
+    let goldMult = 1 + buildingBonus(hero, 'goldMult');
+    let resMult = 1 + buildingBonus(hero, 'resMult');
+    // Talenti di classe
+    if (isClass(hero, 'stregone')) xpMult += 0.10;
+    if (isClass(hero, 'eroe1') && type !== 'cyclette') xpMult += 0.10;
+    if (isClass(hero, 'furfante')) goldMult += 0.20;
+    if (isClass(hero, 'eroe2')) resMult += 0.25;
     report.xp = Math.round(effKm * act.xpPerKm * mult * xpMult);
     report.gold = Math.round(effKm * GOLD_PER_KM * mult * goldMult);
     hero.xp += report.xp;
@@ -581,7 +618,7 @@ const RPG = (() => {
     const bagsDue = Math.floor(hero.totalKm / LOOT_BAG_KM);
     while (hero.lootBagsOpened < bagsDue) {
       hero.lootBagsOpened++;
-      const item = genItem(hero.level);
+      const item = genItemFor(hero);
       hero.items.push(item);
       report.loot.push(item);
     }
@@ -627,7 +664,7 @@ const RPG = (() => {
       hero.incursion.progressKm += km;
       if (hero.incursion.progressKm >= hero.incursion.km) {
         hero.incursion.done = true;
-        const item = genItem(hero.level, hero.incursion.minRarity);
+        const item = genItemFor(hero, hero.incursion.minRarity);
         const chest = { gold: Math.round(hero.incursion.km * 8), items: [item] };
         hero.gold += chest.gold;
         hero.items.push(item);
@@ -672,7 +709,7 @@ const RPG = (() => {
     hero.wood += chest.wood;
     hero.stone += chest.stone;
     for (let i = 0; i < (r.items || 0); i++) {
-      const item = genItem(hero.level, r.minRarity);
+      const item = genItemFor(hero, r.minRarity);
       hero.items.push(item);
       chest.items.push(item);
     }
@@ -722,6 +759,11 @@ const RPG = (() => {
     return null;
   }
 
+  // Valore di vendita (il Fabbro spunta prezzi migliori)
+  function sellValue(hero, item) {
+    return Math.round(item.value * (isClass(hero, 'fabbro') ? 1.10 : 1));
+  }
+
   function sellItem(hero, itemId) {
     const idx = hero.items.findIndex(i => i.id === itemId);
     if (idx < 0) return 'Oggetto non trovato.';
@@ -729,7 +771,7 @@ const RPG = (() => {
     Object.keys(hero.equipment).forEach(s => {
       if (hero.equipment[s] === itemId) hero.equipment[s] = null;
     });
-    hero.gold += item.value;
+    hero.gold += sellValue(hero, item);
     hero.items.splice(idx, 1);
     return null;
   }
@@ -758,7 +800,7 @@ const RPG = (() => {
         name: `${base} ${suf}`,
         icon: SLOTS[s].icon,
         xp: r.xp, value: r.value,
-        price: r.value * 2,
+        price: Math.round(r.value * 2 * (isClass(hero, 'fabbro') ? 0.8 : 1)),
         desc: descForItem(s, rarity),
       });
     }
@@ -841,7 +883,8 @@ const RPG = (() => {
     logWorkout, availableMissions, startMission,
     canBuild, build, declareRestDay,
     weeklyEvent, claimEvent, buildingBonus, equipmentXpBonus,
-    genItem, sellItem, buyMount, forgeOffers, buyForgeItem,
+    genItem, genItemFor, sellItem, sellValue, buyMount, forgeOffers, buyForgeItem,
+    CLASS_TALENTS, talentOf,
     equipItem, unequipSlot,
     dailyLogin, rolloverIncursion,
   };
