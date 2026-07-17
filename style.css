@@ -608,3 +608,58 @@ body {
 }
 .btn-plaque-small:active .plaque-img-small { transform: scale(.94); }
 .btn-plaque-small:disabled .plaque-img-small { filter: grayscale(1) opacity(.5); }
+
+/* ═══════════ BESTIARIO ═══════════ */
+.coll-switch { display: flex; gap: 8px; margin-bottom: 12px; }
+.coll-btn {
+  flex: 1; padding: 10px;
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: .9rem;
+  border: 2px solid var(--leather); border-radius: 10px;
+  background: rgba(0,0,0,.25); color: #c9b48f; cursor: pointer;
+}
+.coll-btn.active {
+  background: linear-gradient(180deg, var(--gold-bright), #b57f1e);
+  color: #2a1d08; border-color: #7a5a1a;
+  box-shadow: 0 0 10px rgba(232,182,76,.4);
+}
+
+.bestiary-zone {
+  font-family: 'Cinzel', serif; font-size: 1rem;
+  color: var(--gold-bright);
+  margin: 14px 0 8px; text-align: center;
+  text-shadow: 0 1px 3px rgba(0,0,0,.7);
+}
+.bestiary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.beast {
+  border: 2px solid var(--leather); border-radius: 14px;
+  padding: 10px 8px; text-align: center;
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='2'/><feColorMatrix type='saturate' values='0'/></filter><rect width='180' height='180' filter='url(%23p)' opacity='0.05'/></svg>"),
+    linear-gradient(160deg, var(--parchment), var(--parchment-dark));
+  box-shadow: 0 4px 12px rgba(0,0,0,.4), inset 0 0 0 1px rgba(201,147,46,.35);
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.beast.boss {
+  border-color: var(--danger);
+  box-shadow: 0 4px 14px rgba(0,0,0,.45), 0 0 12px rgba(163,51,39,.35), inset 0 0 0 1px rgba(163,51,39,.4);
+}
+.beast-img-wrap { height: 110px; display: flex; align-items: flex-end; justify-content: center; }
+.beast-img { max-height: 110px; max-width: 100%; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,.35)); }
+.beast-emoji { font-size: 3.4rem; }
+.beast.unknown .beast-img { filter: brightness(0) opacity(.55); }
+.beast.unknown .beast-emoji { filter: grayscale(1) opacity(.6); }
+.beast-name { font-family: 'Cinzel', serif; font-size: .82rem; }
+.beast-weak { color: var(--ink-light); }
+.tag-boss { background: var(--danger); }
+
+/* Avvistamento nel report */
+.sighting {
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(106,79,201,.12);
+  border: 2px solid var(--magic); border-radius: 12px;
+  padding: 8px 12px; margin: 10px 0;
+  animation: cardIn .5s ease;
+  text-align: left;
+}
+.sighting.boss-defeated { border-color: var(--danger); background: rgba(163,51,39,.1); }
+.sighting-img { height: 74px; max-width: 84px; object-fit: contain; filter: drop-shadow(0 3px 5px rgba(0,0,0,.35)); }

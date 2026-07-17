@@ -125,6 +125,81 @@ const RPG = (() => {
       lore: 'Ora conosci il volto del nemico. E lui conosce il tuo.' },
   };
 
+  /* ── Bestiario: i nemici dell'Orda ────────────────────────── */
+  // I nemici "avvistabili" si scoprono allenandosi nelle zone accessibili;
+  // i BOSS si scoprono completando la loro missione. Il Cavaliere del Drago
+  // si rivela solo completando i 5 Frammenti di Memoria.
+  const BESTIARY = [
+    // ── Rovine di Oakhaven ──
+    { id: 'goblin',              name: 'Goblin Sciacallo',      zone: 'Rovine di Oakhaven',
+      weakness: 'Fuoco', lore: 'Fruga tra le macerie in cerca di bottini. Odia chi arriva prima di lui.' },
+    { id: 'slime',               name: 'Slime della Palude',    zone: 'Rovine di Oakhaven',
+      weakness: 'Fulmine', lore: 'Gelatinoso e dispettoso: si infila negli stivali degli avventurieri.' },
+    { id: 'pipistrello',         name: 'Pipistrello Paffuto',   zone: 'Rovine di Oakhaven',
+      weakness: 'Luce', lore: 'Troppo grasso per volare in alto. Perfetto per gli agguati bassi.' },
+    { id: 'scheletro-arciere',   name: 'Scheletro Arciere',     zone: 'Rovine di Oakhaven',
+      weakness: 'Impatto', lore: 'Le sue frecce non mancano mai… le ossa dei bersagli, però, sì.' },
+    { id: 'scheletro-guerriero', name: 'Scheletro Guerriero',   zone: 'Rovine di Oakhaven',
+      weakness: 'Impatto', lore: 'La cresta rossa è finta: l\'ha rubata a uno spaventapasseri.' },
+    { id: 'spettro',             name: 'Spettro Errante',       zone: 'Rovine di Oakhaven',
+      weakness: 'Luce', lore: 'Vaga tra le rovine sussurrando i nomi di chi non c\'è più.' },
+    { id: 'scrigno-malefico',    name: 'Scrigno Malefico',      zone: 'Rovine di Oakhaven',
+      weakness: 'Astuzia', lore: 'Sembra un tesoro. È una trappola. La linguaccia lo tradisce sempre.' },
+    { id: 'guerriero-fantasma',  name: 'Guerriero Fantasma',    zone: 'Rovine di Oakhaven',
+      boss: true, mission: 'fuga',
+      weakness: 'Luce', lore: 'L\'ultimo difensore di Oakhaven, corrotto dall\'Orda. Custodisce le mura.' },
+    // ── Foresta Sussurrante ──
+    { id: 'pianta-killer',       name: 'Pianta Killer',         zone: 'Foresta Sussurrante',
+      weakness: 'Fuoco', lore: 'Ringhia dal vaso. Nessuno sa chi continui ad annaffiarla.' },
+    { id: 'pianta-carnivora',    name: 'Carnivora dell\'Imboscata', zone: 'Foresta Sussurrante',
+      weakness: 'Fuoco', lore: 'I suoi tentacoli sbucano dal sottobosco quando meno te lo aspetti.' },
+    { id: 'albero-assassino',    name: 'Albero Assassino',      zone: 'Foresta Sussurrante',
+      weakness: 'Ascia', lore: 'Non tutti gli alberi sono saggi e gentili. Questo colleziona bastoni… da passeggio.' },
+    { id: 'mandragora',          name: 'Mandragora Urlante',    zone: 'Foresta Sussurrante',
+      weakness: 'Silenzio', lore: 'Il suo urlo fa cadere le foglie a un chilometro di distanza.' },
+    { id: 'fungo-mago',          name: 'Fungo Mago Velenoso',   zone: 'Foresta Sussurrante',
+      weakness: 'Vento', lore: 'Il cappello rosso non è un cappello. Non chiedeteglielo, si offende.' },
+    { id: 'girasole',            name: 'Girasole Medievale',    zone: 'Foresta Sussurrante',
+      weakness: 'Ombra', lore: 'Segue il sole di giorno e gli intrusi di notte. Scudo di corteccia, sguardo torvo.' },
+    { id: 'soffioni',            name: 'Soffioni Dispettosi',   zone: 'Foresta Sussurrante',
+      weakness: 'Vento', lore: 'Esprimere un desiderio soffiando su di loro è ufficialmente sconsigliato.' },
+    { id: 'golem-tronchi',       name: 'Golem dei Tronchi',     zone: 'Foresta Sussurrante',
+      weakness: 'Fuoco', lore: 'Un guardiano antico risvegliato dall\'Orda. Le rune brillano quando è arrabbiato.' },
+    { id: 'orco',                name: 'Orco Predone',          zone: 'Foresta Sussurrante',
+      weakness: 'Astuzia', lore: 'Forte come tre buoi, furbo come mezzo. Devasta i sentieri della foresta.' },
+    { id: 'guerriero-anfibio',   name: 'Guerriero Anfibio',     zone: 'Foresta Sussurrante',
+      weakness: 'Gelo', lore: 'Il tridente l\'ha vinto a un torneo di stagno. Gracida prima di caricare.' },
+    { id: 'slime-boss',          name: 'Re Slime',              zone: 'Foresta Sussurrante',
+      boss: true, mission: 'santuario',
+      weakness: 'Fulmine', lore: 'Ha corrotto il Santuario con la sua melma regale. La corona? Rubata, ovvio.' },
+    { id: 'orco-capo',           name: 'Generale Orco',         zone: 'Foresta Sussurrante',
+      boss: true, mission: 'goblin',
+      weakness: 'Fuoco', lore: 'Primo luogotenente dell\'Orda. La sua ascia ha un nome: "Colazione".' },
+    // ── Deserto di Ruggine ──
+    { id: 'cactus-spadaccino',   name: 'Cactus Spadaccino',     zone: 'Deserto di Ruggine',
+      weakness: 'Gelo', lore: 'Duella con stile. Perdere contro di lui pizzica per una settimana.' },
+    { id: 'rovo-spaccapietre',   name: 'Rovo Spaccapietre',     zone: 'Deserto di Ruggine',
+      weakness: 'Fuoco', lore: 'Cresce nella roccia e la frantuma per dispetto. Le miniere lo temono.' },
+    { id: 'golem-molla',         name: 'Golem a Molla',         zone: 'Deserto di Ruggine',
+      boss: true, mission: 'golem',
+      weakness: 'Fulmine', lore: 'Secondo luogotenente dell\'Orda. Si ricarica da solo: la chiave inglese è sua.' },
+    { id: 'drago-komodo',        name: 'Drago di Komodo',       zone: 'Deserto di Ruggine',
+      boss: true, mission: 'amuleto',
+      weakness: 'Metallo Celeste', lore: 'Cucciolo della stirpe del Drago Antico. Se questo è il cucciolo…' },
+    // ── ??? ──
+    { id: 'cavaliere-drago',     name: 'Il Cavaliere del Drago', zone: 'La Vetta Oscura',
+      boss: true, final: true,
+      weakness: 'Sconosciuta', lore: 'Colui che ha distrutto Oakhaven. Il suo volto è stato rivelato dalle Memorie… ma il suo potere resta un mistero.' },
+  ];
+
+  // Zone accessibili in base alle missioni completate
+  function accessibleZones(hero) {
+    const zones = ['Rovine di Oakhaven'];
+    if (hero.missionsDone.includes('fuga')) zones.push('Foresta Sussurrante');
+    if (hero.missionsDone.includes('goblin')) zones.push('Deserto di Ruggine');
+    return zones;
+  }
+
   /* ── Strutture della casa (sbloccate al livello 5) ────────── */
   const BUILDINGS = [
     { id: 'fondamenta', name: 'Capanna del Pioniere', icon: '🛖',
@@ -163,6 +238,7 @@ const RPG = (() => {
       fragmentsFound: 0,
       inventory: [],
       cards: [],
+      bestiary: [],
       buildings: [],
       missionsDone: [],
       activeMission: null,      // { id, progressKm }
@@ -224,6 +300,7 @@ const RPG = (() => {
     const err = validateSession(type, km);
     if (err) return { error: err };
 
+    hero.bestiary = hero.bestiary || []; // migrazione salvataggi esistenti
     const act = ACTIVITIES[type];
     const report = { km, type, levelsGained: [], loot: [], cards: [], fragments: 0, unlocks: [] };
 
@@ -302,6 +379,24 @@ const RPG = (() => {
       hero.cards.push('card_100km'); report.cards.push('card_100km');
     }
 
+    // Avvistamento nel Bestiario: ogni allenamento rivela un nuovo
+    // nemico tra quelli che si aggirano nelle zone accessibili
+    const zones = accessibleZones(hero);
+    const pool = BESTIARY.filter(b =>
+      !b.boss && zones.includes(b.zone) && !hero.bestiary.includes(b.id));
+    if (pool.length) {
+      const found = pool[Math.floor(Math.random() * pool.length)];
+      hero.bestiary.push(found.id);
+      report.sighting = found;
+    }
+
+    // Il Cavaliere del Drago si rivela con le 5 Memorie complete
+    if (hero.fragmentsFound === 5 && !hero.bestiary.includes('cavaliere-drago')) {
+      hero.bestiary.push('cavaliere-drago');
+      report.sighting = report.sighting || null;
+      report.finalReveal = BESTIARY.find(b => b.id === 'cavaliere-drago');
+    }
+
     // Progresso missione attiva
     if (hero.activeMission) {
       const m = MISSIONS.find(x => x.id === hero.activeMission.id);
@@ -320,6 +415,13 @@ const RPG = (() => {
   function completeMission(hero, m, report) {
     hero.missionsDone.push(m.id);
     hero.activeMission = null;
+    // Boss sconfitto → entra nel Bestiario
+    hero.bestiary = hero.bestiary || [];
+    const boss = BESTIARY.find(b => b.mission === m.id);
+    if (boss && !hero.bestiary.includes(boss.id)) {
+      hero.bestiary.push(boss.id);
+      report.bossDefeated = boss;
+    }
     const r = m.reward || {};
     if (r.gold)  hero.gold += r.gold;
     if (r.wood)  hero.wood += r.wood;
@@ -409,7 +511,8 @@ const RPG = (() => {
   }
 
   return {
-    ACTIVITIES, MISSIONS, CARDS, BUILDINGS, LOOT_TABLE,
+    ACTIVITIES, MISSIONS, CARDS, BUILDINGS, LOOT_TABLE, BESTIARY,
+    accessibleZones,
     LEVEL_CAP_1, GOLD_PER_KM,
     xpForLevel, dailyGoalKm, heroTitle,
     newHero, load, save,

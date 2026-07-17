@@ -456,6 +456,17 @@ function showReport(r) {
   }
   if (r.fragments)
     html += `<p>🔍 Hai trovato <b>${r.fragments} Frammento/i di Memoria</b>! La verità si avvicina…</p>`;
+  if (r.sighting) {
+    html += `<div class="sighting">
+      <img class="sighting-img" src="assets/bestiario/${r.sighting.id}.png" alt="">
+      <div><b>👁️ Avvistamento!</b><br>${r.sighting.name}<br>
+      <span class="small muted">Aggiunto al Bestiario</span></div>
+    </div>`;
+  }
+  if (r.finalReveal) {
+    html += `<p class="big-news">🐉 LE MEMORIE SONO COMPLETE!<br>
+      <span class="small">Il Cavaliere del Drago è stato aggiunto al Bestiario. Ora conosci il tuo nemico.</span></p>`;
+  }
   if (r.missionProgress) {
     const mp = r.missionProgress;
     html += `<p>🐎 Missione <b>${mp.mission.name}</b>: ${mp.done.toFixed(1)} / ${mp.mission.km} km.</p>`;
@@ -463,6 +474,13 @@ function showReport(r) {
   if (r.missionComplete) {
     const m = r.missionComplete;
     html += `<p class="big-news">🏆 MISSIONE COMPLETATA: ${m.name}!</p>`;
+    if (r.bossDefeated) {
+      html += `<div class="sighting boss-defeated">
+        <img class="sighting-img" src="assets/bestiario/${r.bossDefeated.id}.png" alt="">
+        <div><b>⚔️ BOSS SCONFITTO!</b><br>${r.bossDefeated.name}<br>
+        <span class="small muted">Aggiunto al Bestiario</span></div>
+      </div>`;
+    }
     const rw = m.reward || {};
     const parts = [];
     if (rw.gold) parts.push(`🪙 ${rw.gold}`);
@@ -484,8 +502,19 @@ function showReport(r) {
   modal(html);
 }
 
-/* ── TAB: Carte ── */
+/* ── TAB: Collezione (Carte + Bestiario) ── */
+let COLLECTION_VIEW = 'cards';
+
 function renderCards(c) {
+  const sw = el('div', 'coll-switch');
+  const b1 = el('button', 'coll-btn' + (COLLECTION_VIEW === 'cards' ? ' active' : ''), '🎴 Carte');
+  const b2 = el('button', 'coll-btn' + (COLLECTION_VIEW === 'bestiary' ? ' active' : ''), '🐉 Bestiario');
+  b1.addEventListener('click', () => { COLLECTION_VIEW = 'cards'; setTab('cards'); });
+  b2.addEventListener('click', () => { COLLECTION_VIEW = 'bestiary'; setTab('cards'); });
+  sw.appendChild(b1); sw.appendChild(b2);
+  c.appendChild(sw);
+  if (COLLECTION_VIEW === 'bestiary') { renderBestiary(c); return; }
+
   c.appendChild(el('h2', 'section-title', '🎴 Il Tomo delle Memorie'));
   c.appendChild(el('p', 'muted small center',
     `${HERO.cards.length} / ${Object.keys(RPG.CARDS).length} carte collezionate`));
@@ -502,6 +531,52 @@ function renderCards(c) {
     grid.appendChild(cc);
   });
   c.appendChild(grid);
+}
+
+function renderBestiary(c) {
+  HERO.bestiary = HERO.bestiary || [];
+  c.appendChild(el('h2', 'section-title', '🐉 Il Bestiario dell\'Orda'));
+  c.appendChild(el('p', 'muted small center',
+    `${HERO.bestiary.length} / ${RPG.BESTIARY.length} creature scoperte — ` +
+    `allenati per avvistarne di nuove, sconfiggi i boss nelle missioni!`));
+
+  const zones = [...new Set(RPG.BESTIARY.map(b => b.zone))];
+  const accessible = RPG.accessibleZones(HERO);
+  zones.forEach(zone => {
+    const inZone = RPG.BESTIARY.filter(b => b.zone === zone);
+    const isOpen = accessible.includes(zone) || inZone.some(b => HERO.bestiary.includes(b.id));
+    const zTitle = el('h3', 'bestiary-zone', (isOpen ? zoneIcon(zone) + ' ' + zone : '🔒 ???'));
+    c.appendChild(zTitle);
+    const grid = el('div', 'bestiary-grid');
+    inZone.forEach(b => {
+      const known = HERO.bestiary.includes(b.id);
+      const card = el('div', 'beast' + (known ? '' : ' unknown') + (b.boss ? ' boss' : ''));
+      const imgWrap = el('div', 'beast-img-wrap');
+      if (b.id === 'cavaliere-drago') {
+        imgWrap.appendChild(el('div', 'beast-emoji', known ? '🐉' : '❓'));
+      } else {
+        const img = el('img', 'beast-img');
+        img.src = `assets/bestiario/${b.id}.png`;
+        img.loading = 'lazy';
+        imgWrap.appendChild(img);
+      }
+      card.appendChild(imgWrap);
+      if (known) {
+        card.appendChild(el('b', 'beast-name', b.name));
+        if (b.boss) card.appendChild(el('span', 'tag tag-boss', b.final ? 'NEMESI' : 'BOSS'));
+        card.appendChild(el('div', 'small beast-weak', `Debolezza: <b>${b.weakness}</b>`));
+        card.appendChild(el('p', 'small lore', b.lore));
+      } else {
+        card.appendChild(el('b', 'beast-name', '???'));
+        if (b.boss) card.appendChild(el('span', 'tag tag-boss', b.final ? 'NEMESI' : 'BOSS'));
+        card.appendChild(el('p', 'small lore muted', b.boss
+          ? (b.final ? 'Completa le 5 Memorie per svelarlo.' : 'Sconfiggilo nella sua missione.')
+          : 'Avvistalo allenandoti in questa zona.'));
+      }
+      grid.appendChild(card);
+    });
+    c.appendChild(grid);
+  });
 }
 
 /* ── TAB: Eroe ── */
