@@ -663,3 +663,6 @@ body {
 }
 .sighting.boss-defeated { border-color: var(--danger); background: rgba(163,51,39,.1); }
 .sighting-img { height: 74px; max-width: 84px; object-fit: contain; filter: drop-shadow(0 3px 5px rgba(0,0,0,.35)); }
+
+/* ── Etichetta versione ── */
+.version-tag { font-size: .72rem; color: var(--ink-light); opacity: .7; margin-top: auto; }
