@@ -545,6 +545,54 @@ let PARCHMENT_OK = false;
   probe.src = 'assets/backgrounds/pergamena.jpg';
 })();
 
+/* ── Icone UI personalizzate (generate con l'IA e scontornate) ──
+   Se questi file esistono in assets/ui/, sostituiscono le emoji:
+   la barra in basso e le risorse dell'header usano le tue icone. */
+const UI_ICONS = {
+  camp:  'assets/ui/tab-rifugio.png',
+  map:   'assets/ui/tab-mappa.png',
+  train: 'assets/ui/tab-allenati.png',
+  cards: 'assets/ui/tab-carte.png',
+  hero:  'assets/ui/tab-eroe.png',
+};
+const RES_ICONS = {
+  gold:  'assets/ui/res-oro.png',
+  wood:  'assets/ui/res-legna.png',
+  stone: 'assets/ui/res-pietra.png',
+};
+(() => {
+  Object.entries(UI_ICONS).forEach(([tab, path]) => {
+    const probe = new Image();
+    probe.onload = () => {
+      const btn = document.querySelector(`#tabbar .tab[data-tab="${tab}"]`);
+      if (!btn) return;
+      const label = btn.querySelector('span');
+      btn.textContent = '';
+      const img = el('img', 'tab-icon');
+      img.src = path;
+      btn.appendChild(img);
+      if (label) btn.appendChild(label);
+    };
+    probe.src = path;
+  });
+  Object.entries(RES_ICONS).forEach(([res, path]) => {
+    const probe = new Image();
+    probe.onload = () => {
+      const span = document.getElementById('res-' + res);
+      if (!span || !span.parentElement) return;
+      const box = span.parentElement;
+      const img = el('img', 'res-icon');
+      img.src = path;
+      // sostituisce l'emoji iniziale mantenendo il contatore
+      box.innerHTML = '';
+      box.appendChild(img);
+      box.appendChild(document.createTextNode(' '));
+      box.appendChild(span);
+    };
+    probe.src = path;
+  });
+})();
+
 /* ══════════════ Avvio ══════════════ */
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});

@@ -404,3 +404,170 @@ body {
   text-align: center;
 }
 #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ═══════════════════════════════════════════════════════════════
+   LIVELLO GRAFICO AVANZATO — texture, bagliori e animazioni
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Texture: legno scuro per il fondo, grana per la pergamena ── */
+body {
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.012 0.28' numOctaves='3'/><feColorMatrix type='saturate' values='0'/></filter><rect width='240' height='240' filter='url(%23n)' opacity='0.14'/></svg>"),
+    radial-gradient(ellipse at 50% -10%, #4a3520 0%, #2c1f12 55%, #1c1309 100%);
+  background-attachment: fixed;
+}
+
+.panel, .parchment, .modal-box, .tcard, .card-reveal {
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='2'/><feColorMatrix type='saturate' values='0'/></filter><rect width='180' height='180' filter='url(%23p)' opacity='0.05'/></svg>"),
+    radial-gradient(ellipse at 30% 15%, rgba(255,255,255,.4), transparent 60%),
+    linear-gradient(160deg, var(--parchment) 0%, var(--parchment-dark) 100%);
+}
+.panel.on-parchment {
+  background-image: none;
+  background-color: rgba(255, 250, 238, .55);
+}
+
+/* ── Pannelli: doppio bordo con filo dorato interno ── */
+.panel, .parchment, .modal-box {
+  box-shadow:
+    0 6px 22px rgba(0,0,0,.5),
+    inset 0 0 0 2px rgba(201,147,46,.45),
+    inset 0 0 34px rgba(90,61,36,.22);
+}
+
+/* ── Titoli con fregi ── */
+.section-title::before { content: '❧ '; color: var(--gold); }
+.section-title::after  { content: ' ☙'; color: var(--gold); }
+
+/* ── Bottoni: metallo dorato cesellato ── */
+.btn {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0) 45%),
+    linear-gradient(180deg, #f4e7cd, #d9c193);
+  box-shadow:
+    0 3px 0 rgba(59,42,26,.55),
+    inset 0 1px 0 rgba(255,255,255,.6),
+    inset 0 -2px 4px rgba(90,61,36,.25);
+  text-shadow: 0 1px 0 rgba(255,255,255,.5);
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.4), rgba(255,255,255,0) 45%),
+    linear-gradient(180deg, var(--gold-bright), #b57f1e);
+  box-shadow:
+    0 3px 0 #6b4c12,
+    inset 0 1px 0 rgba(255,255,230,.7),
+    inset 0 -2px 5px rgba(90,50,10,.4),
+    0 0 12px rgba(232,182,76,.35);
+  text-shadow: 0 1px 0 rgba(255,240,200,.6);
+}
+.btn.big { animation: pulseGlow 2.4s ease-in-out infinite; }
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 3px 0 #6b4c12, inset 0 1px 0 rgba(255,255,230,.7), 0 0 10px rgba(232,182,76,.3); }
+  50%      { box-shadow: 0 3px 0 #6b4c12, inset 0 1px 0 rgba(255,255,230,.7), 0 0 26px rgba(232,182,76,.75); }
+}
+
+/* ── HUD: banner in legno con bordino dorato ── */
+#hud {
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='60'><filter id='w'><feTurbulence type='fractalNoise' baseFrequency='0.01 0.35' numOctaves='3'/><feColorMatrix type='saturate' values='0'/></filter><rect width='240' height='60' filter='url(%23w)' opacity='0.16'/></svg>"),
+    linear-gradient(180deg, #332413 0%, #422f1a 100%);
+  box-shadow: 0 3px 14px rgba(0,0,0,.6);
+}
+.res {
+  background: rgba(0,0,0,.35);
+  border: 1px solid rgba(201,147,46,.5);
+  border-radius: 10px;
+  padding: 1px 8px;
+}
+.xpbar {
+  box-shadow: inset 0 2px 4px rgba(0,0,0,.6), 0 0 6px rgba(201,147,46,.3);
+}
+.xpbar-fill { position: relative; overflow: hidden; }
+.xpbar-fill::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.45) 50%, transparent 70%);
+  animation: shine 3s linear infinite;
+}
+@keyframes shine { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+
+/* ── Rifugio: scena notturna con fuoco vivo ── */
+.camp-scene {
+  position: relative;
+  border-radius: 14px;
+  border: 2px solid rgba(201,147,46,.4);
+  padding: 26px 14px 18px;
+  overflow: hidden;
+  background:
+    radial-gradient(2px 2px at 15% 20%, rgba(255,255,255,.9), transparent 60%),
+    radial-gradient(1.5px 1.5px at 75% 12%, rgba(255,255,255,.8), transparent 60%),
+    radial-gradient(1.5px 1.5px at 55% 30%, rgba(255,255,255,.7), transparent 60%),
+    radial-gradient(2px 2px at 88% 38%, rgba(255,255,255,.6), transparent 60%),
+    radial-gradient(1.5px 1.5px at 30% 42%, rgba(255,255,255,.5), transparent 60%),
+    linear-gradient(180deg, #101d33 0%, #1d2b45 46%, #23331f 78%, #182312 100%);
+  box-shadow: inset 0 0 40px rgba(0,0,0,.5), 0 6px 18px rgba(0,0,0,.45);
+}
+.camp-scene::after {
+  content: ''; position: absolute; left: 50%; bottom: 6px;
+  width: 190px; height: 110px; transform: translateX(-50%);
+  background: radial-gradient(ellipse at 50% 85%, rgba(255,166,48,.55) 0%, rgba(255,120,30,.25) 45%, transparent 75%);
+  animation: fireGlow 2.2s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes fireGlow {
+  0%, 100% { opacity: .75; transform: translateX(-50%) scale(1); }
+  40%      { opacity: 1;   transform: translateX(-50%) scale(1.08); }
+  70%      { opacity: .85; transform: translateX(-50%) scale(.97); }
+}
+.camp-emoji {
+  position: relative; z-index: 1;
+  animation: flicker 2.8s ease-in-out infinite;
+}
+@keyframes flicker {
+  0%, 100% { transform: scale(1); }
+  35%      { transform: scale(1.035) rotate(-.6deg); }
+  65%      { transform: scale(.985) rotate(.5deg); }
+}
+.camp-desc { position: relative; z-index: 1; color: #e8dcc0; }
+
+/* ── Carte: riflesso olografico su epiche e leggendarie ── */
+.tcard, .card-reveal { position: relative; overflow: hidden; }
+.tcard.rar-epico::after, .tcard.rar-leggendario::after,
+.card-reveal.rar-epico::after, .card-reveal.rar-leggendario::after {
+  content: ''; position: absolute; inset: -40%;
+  background: linear-gradient(115deg, transparent 38%, rgba(255,255,255,.5) 48%, rgba(180,140,255,.35) 52%, transparent 62%);
+  animation: holo 3.6s linear infinite;
+  pointer-events: none;
+}
+.tcard.locked::after { display: none; }
+@keyframes holo { from { transform: translateX(-60%); } to { transform: translateX(60%); } }
+.tcard .tag, .card-reveal .tag { z-index: 1; }
+
+/* ── Tab bar: legno intagliato ── */
+#tabbar {
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='60'><filter id='t'><feTurbulence type='fractalNoise' baseFrequency='0.012 0.3' numOctaves='3'/><feColorMatrix type='saturate' values='0'/></filter><rect width='240' height='60' filter='url(%23t)' opacity='0.15'/></svg>"),
+    linear-gradient(0deg, #241809 0%, #3b2a1a 100%);
+  box-shadow: 0 -3px 14px rgba(0,0,0,.55);
+}
+.tab.active {
+  background: radial-gradient(ellipse at 50% 100%, rgba(232,182,76,.22), transparent 70%);
+}
+.tab img.tab-icon {
+  width: 34px; height: 34px; object-fit: contain;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,.6));
+}
+.tab.tab-main img.tab-icon { width: 44px; height: 44px; }
+
+/* ── Icone risorse personalizzate (se presenti in assets/ui/) ── */
+.res img.res-icon { width: 18px; height: 18px; object-fit: contain; vertical-align: -3px; }
+
+/* ── Avatar full-body: leggera levitazione ── */
+.hero-fullbody { animation: heroFloat 4.5s ease-in-out infinite; }
+@keyframes heroFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-7px); }
+}
