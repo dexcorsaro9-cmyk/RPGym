@@ -324,6 +324,14 @@ function renderMap(c) {
       row.appendChild(el('div', 'mission-mid',
         `<b>${m.name}</b> <span class="tag">${m.km} km</span><br><span class="small muted">${m.desc}</span>`));
       const btn = el('button', 'btn btn-small btn-primary', 'Parti');
+      const vimg = new Image();
+      vimg.onload = () => {
+        btn.classList.add('btn-plaque-small');
+        btn.innerHTML = '';
+        vimg.className = 'plaque-img-small';
+        btn.appendChild(vimg);
+      };
+      vimg.src = 'assets/ui/btn-viaggio.png';
       btn.disabled = !!HERO.activeMission;
       btn.addEventListener('click', () => {
         RPG.startMission(HERO, m.id); persist();
@@ -361,9 +369,17 @@ function renderTrain(c) {
   form.appendChild(el('label', 'field-label', 'Tipo di attività'));
   const actRow = el('div', 'act-row');
   let chosen = 'camminata';
+  const ACT_ICON_FILES = { cyclette: 'assets/ui/act-cyclette.png', corsa: 'assets/ui/act-corsa.png' };
   Object.entries(RPG.ACTIVITIES).forEach(([key, a]) => {
-    const b = el('button', 'act-choice' + (key === chosen ? ' selected' : ''),
-      `${a.icon}<br>${a.label}<br><span class="small muted">${a.xpPerKm} XP/km</span>`);
+    const b = el('button', 'act-choice' + (key === chosen ? ' selected' : ''));
+    const iconHolder = el('div', 'act-icon-holder', a.icon);
+    if (ACT_ICON_FILES[key]) {
+      const img = el('img', 'act-icon');
+      img.src = ACT_ICON_FILES[key];
+      img.addEventListener('load', () => { iconHolder.textContent = ''; iconHolder.appendChild(img); });
+    }
+    b.appendChild(iconHolder);
+    b.appendChild(el('div', '', `${a.label}<br><span class="small muted">${a.xpPerKm} XP/km</span>`));
     b.dataset.key = key;
     b.addEventListener('click', () => {
       chosen = key;
@@ -381,7 +397,17 @@ function renderTrain(c) {
     '📱 Apri l\'app <b>Salute</b> (o Strava/Fitness) sul tuo iPhone, leggi i km di oggi e riportali qui. ' +
     'Il Custode del Tempo verificherà che il movimento sia degno di un vero eroe…'));
 
+  // Il pulsante principale: usa la targa in legno "GIOCA" se disponibile
   const go = el('button', 'btn btn-primary wide big', '🔥 SINCRONIZZA AVVENTURA');
+  const plaque = new Image();
+  plaque.onload = () => {
+    go.classList.add('btn-plaque');
+    go.innerHTML = '';
+    plaque.className = 'plaque-img';
+    go.appendChild(plaque);
+    go.appendChild(el('div', 'plaque-caption', 'Sincronizza Avventura'));
+  };
+  plaque.src = 'assets/ui/btn-gioca.png';
   go.addEventListener('click', () => {
     const km = parseFloat(kmInput.value);
     const report = RPG.logWorkout(HERO, chosen, km);
@@ -543,6 +569,54 @@ let PARCHMENT_OK = false;
     if (CURRENT_TAB === 'hero') $('#tab-content').classList.add('bg-parchment');
   };
   probe.src = 'assets/backgrounds/pergamena.jpg';
+})();
+
+/* ── Icone UI personalizzate (generate con l'IA e scontornate) ──
+   Se questi file esistono in assets/ui/, sostituiscono le emoji:
+   la barra in basso e le risorse dell'header usano le tue icone. */
+const UI_ICONS = {
+  camp:  'assets/ui/tab-rifugio.png',
+  map:   'assets/ui/tab-mappa.png',
+  train: 'assets/ui/tab-allenati.png',
+  cards: 'assets/ui/tab-carte.png',
+  hero:  'assets/ui/tab-eroe.png',
+};
+const RES_ICONS = {
+  gold:  'assets/ui/res-oro.png',
+  wood:  'assets/ui/res-legna.png',
+  stone: 'assets/ui/res-pietra.png',
+};
+(() => {
+  Object.entries(UI_ICONS).forEach(([tab, path]) => {
+    const probe = new Image();
+    probe.onload = () => {
+      const btn = document.querySelector(`#tabbar .tab[data-tab="${tab}"]`);
+      if (!btn) return;
+      const label = btn.querySelector('span');
+      btn.textContent = '';
+      const img = el('img', 'tab-icon');
+      img.src = path;
+      btn.appendChild(img);
+      if (label) btn.appendChild(label);
+    };
+    probe.src = path;
+  });
+  Object.entries(RES_ICONS).forEach(([res, path]) => {
+    const probe = new Image();
+    probe.onload = () => {
+      const span = document.getElementById('res-' + res);
+      if (!span || !span.parentElement) return;
+      const box = span.parentElement;
+      const img = el('img', 'res-icon');
+      img.src = path;
+      // sostituisce l'emoji iniziale mantenendo il contatore
+      box.innerHTML = '';
+      box.appendChild(img);
+      box.appendChild(document.createTextNode(' '));
+      box.appendChild(span);
+    };
+    probe.src = path;
+  });
 })();
 
 /* ══════════════ Avvio ══════════════ */
