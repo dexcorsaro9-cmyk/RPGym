@@ -477,6 +477,9 @@ const RPG = (() => {
     h.incursion = h.incursion || null;
     h.bestiary = h.bestiary || [];
     h.storyId = h.storyId || (h.avatar && String(h.avatar).includes('eroe2') ? 'eroe2' : 'eroe1');
+    h.forgeSeen = h.forgeSeen || null;      // ultima data in cui ha visto la vetrina
+    h.summarySeen = h.summarySeen || null;  // ultima data del riepilogo giornaliero
+    h.eventNotified = h.eventNotified || null; // settimana della Taglia già notificata
     // vecchio inventario a stringhe → convertito in oro
     if (Array.isArray(h.inventory) && h.inventory.length) {
       h.gold += h.inventory.length * 10;
@@ -843,6 +846,27 @@ const RPG = (() => {
         icon: SLOTS[s].icon,
         xp: r.xp, value: r.value,
         price: Math.round(r.value * 2 * (isClass(hero, 'fabbro') ? 0.8 : 1)),
+        desc: descForItem(s, rarity),
+      });
+    }
+    // L'OCCASIONE DEL SABATO: un pezzo della miglior rarità disponibile, -30%, solo oggi!
+    if (new Date().getDay() === 6) {
+      const avail = availableRarities(hero.level);
+      const rarity = avail[avail.length - 1];
+      const s = slots[seed % slots.length];
+      const base = ITEM_BASES[s][(seed + 11) % ITEM_BASES[s].length];
+      const suf = RARITY_SUFFIX[rarity][(seed + 17) % RARITY_SUFFIX[rarity].length];
+      const r = RARITIES[rarity];
+      const full = Math.round(r.value * 2 * (isClass(hero, 'fabbro') ? 0.8 : 1));
+      offers.push({
+        id: 'forge-' + today + '-occasione',
+        slot: s, rarity,
+        name: `${base} ${suf}`,
+        icon: SLOTS[s].icon,
+        xp: r.xp, value: r.value,
+        price: Math.round(full * 0.7),
+        fullPrice: full,
+        special: true,
         desc: descForItem(s, rarity),
       });
     }

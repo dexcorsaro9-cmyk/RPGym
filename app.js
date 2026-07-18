@@ -243,20 +243,35 @@ function enterGame() {
   const login = RPG.dailyLogin(HERO);
   persist();
   renderHUD();
-  if (missed) {
-    modal(`
+
+  // Coda dei popup di apertura
+  OPEN_QUEUE = [];
+  if (missed) OPEN_QUEUE.push(() => modal(`
       <h3 class="panel-title">💨 Il Forziere Svanito…</h3>
       <div class="lost-chest">🎁</div>
-      <p><b>${esc(missed.name)}</b></p>
-      <p class="muted">Hai mancato il forziere per soli <b>${missed.kmMissing} km</b>! L'occasione è svanita all'alba…</p>
-      <p class="small muted">Oggi c'è una nuova incursione: non lasciartela scappare!</p>
-      <button class="btn btn-primary wide" onclick="closeModal(); ${login ? 'showDailyLogin()' : ''}">Non succederà più!</button>
-    `);
-    window._pendingLogin = login;
-  } else if (login) {
-    window._pendingLogin = login;
-    showDailyLogin();
+      <p class="center"><b>${esc(missed.name)}</b></p>
+      <p class="muted center">Hai mancato il forziere per soli <b>${missed.kmMissing} km</b>! L'occasione è svanita all'alba…</p>
+      <button class="btn btn-primary wide" onclick="nextOpening()">Non succederà più!</button>`));
+  if (login) { window._pendingLogin = login; OPEN_QUEUE.push(showDailyLogin); }
+  // La Taglia è stata reclamata dall'altro eroe?
+  const ev = RPG.weeklyEvent(STATE);
+  if (ev.claimedBy && ev.claimedBy !== HERO.name && HERO.eventNotified !== ev.week) {
+    HERO.eventNotified = ev.week;
+    persist();
+    OPEN_QUEUE.push(() => modal(`
+      <h3 class="panel-title">⛔ Taglia Sfumata!</h3>
+      <p class="center" style="font-size:2.5rem">${ev.icon}</p>
+      <p class="center"><b>${esc(ev.claimedBy)}</b> ha reclamato <b>${ev.skin}</b> prima di te.</p>
+      <p class="muted small center">La prossima Taglia arriva tra <span data-cd="week">…</span>. Stavolta non farti battere!</p>
+      <button class="btn btn-primary wide" onclick="nextOpening()">La prossima è mia</button>`));
   }
+  // Riepilogo "cosa ti aspetta oggi" (una volta al giorno)
+  if (HERO.summarySeen !== todayISO()) {
+    HERO.summarySeen = todayISO();
+    persist();
+    OPEN_QUEUE.push(showDailySummary);
+  }
+  nextOpening();
 }
 
 function showDailyLogin() {
@@ -278,8 +293,9 @@ function showDailyLogin() {
       <p class="small muted center">Bonus del 7° giorno!</p>`;
   }
   html += `<p class="small muted center">Torna domani: il tesoro cresce ogni giorno. Se salti un giorno, riparte da capo!</p>
-    <button class="btn btn-primary wide" onclick="closeModal()">Riscuoti</button>`;
+    <button class="btn btn-primary wide" onclick="nextOpening()">Riscuoti</button>`;
   modal(html);
+  sfx('coin');
   vibrate(80);
 }
 
@@ -304,9 +320,28 @@ function renderHUD() {
   const pct = Math.min(100, Math.round(HERO.xp / need * 100));
   $('#hud-xpfill').style.width = pct + '%';
   $('#hud-xptext').textContent = `${HERO.xp} / ${need} XP`;
+  // streak nel titolo
+  const streak = HERO.streak && HERO.streak.count > 1 ? ` · 🔥${HERO.streak.count}` : '';
+  $('#hud-title').textContent = `Liv. ${HERO.level} — ${RPG.heroTitle(HERO.level)}${streak}`;
+  // barra che "esplode" vicino al level-up + prossimo sblocco
+  const bar = document.querySelector('.xpbar');
+  let next = $('#hud-next');
+  if (!next) { next = el('div', 'hud-next'); next.id = 'hud-next'; $('.hud-info').appendChild(next); }
+  if (need - HERO.xp > 0 && HERO.xp / need >= 0.9) {
+    bar.classList.add('almost');
+    const kmLeft = Math.max(0.1, (need - HERO.xp) / 15).toFixed(1);
+    next.innerHTML = `⚡ Ti bastano <b>${kmLeft} km</b> per il Livello ${HERO.level + 1}!`;
+    next.classList.add('hot');
+  } else {
+    bar.classList.remove('almost');
+    next.classList.remove('hot');
+    const nu = nextUnlock(HERO);
+    next.innerHTML = nu ? `${nu.icon} Liv. ${nu.level}: ${nu.text} <span class="hud-next-in">(tra ${nu.inLv} liv.)</span>` : '';
+  }
   $('#res-gold').textContent = HERO.gold;
   $('#res-wood').textContent = HERO.wood;
   $('#res-stone').textContent = HERO.stone;
+  updateBadges();
 }
 
 document.querySelectorAll('#tabbar .tab').forEach(t =>
@@ -324,6 +359,7 @@ function setTab(tab) {
   c.innerHTML = '';
   ({ camp: renderCamp, map: renderMap, train: renderTrain, market: renderMarket, hero: renderHero }[tab])(c);
   c.scrollTop = 0;
+  updateBadges();
 }
 
 /* ── TAB: Rifugio ── */
@@ -449,7 +485,8 @@ function renderMap(c) {
     const pct = Math.min(100, Math.round(inc.progressKm / inc.km * 100));
     p.appendChild(el('div', 'membar', `<div class="membar-fill danger" style="width:${pct}%"></div><span>${inc.progressKm.toFixed(1)} / ${inc.km} km</span>`));
     p.appendChild(el('p', 'muted small center',
-      `Entro mezzanotte: forziere con oggetto ${RPG.RARITIES[inc.minRarity].label} o superiore. Domani sarà troppo tardi!`));
+      `Forziere con oggetto ${RPG.RARITIES[inc.minRarity].label} o superiore.<br>` +
+      `<b class="cd-hot"><span data-cd="midnight">…</span> alla scadenza!</b>`));
     c.appendChild(p);
   } else if (HERO.incursion && HERO.incursion.done) {
     c.appendChild(el('div', 'panel done-strip', `✅ <b>Incursione di oggi respinta!</b> <span class="small muted">Torna domani.</span>`));
@@ -511,7 +548,8 @@ function renderMap(c) {
       : `⛔ <b>${esc(ev.claimedBy)}</b> è arrivato prima di te questa settimana.`));
   } else {
     evp.appendChild(el('p', 'muted small',
-      `Primo allenamento singolo da <b>${ev.km} km</b> della settimana vince: <b>${ev.skin}</b>.`));
+      `Primo allenamento singolo da <b>${ev.km} km</b> della settimana vince: <b>${ev.skin}</b>.<br>` +
+      `<b class="cd-hot"><span data-cd="week">…</span> alla fine dell'evento</b>`));
     const btn = el('button', 'btn wide btn-small', `Reclama la Taglia`);
     btn.addEventListener('click', () => {
       const last = HERO.log[0];
@@ -540,6 +578,7 @@ function renderMap(c) {
     cell.innerHTML = `<div class="biome-cell-icon">${open ? b.icon : '🔒'}</div>
       <div class="biome-cell-name">${open ? zoneShort(b.name) : '???'}</div>
       <div class="biome-cell-lv">${b.min}–${b.max}</div>`;
+    cell.addEventListener('click', () => showBiomePreview(b, open));
     grid.appendChild(cell);
   });
   ap.appendChild(grid);
@@ -610,6 +649,7 @@ function renderTrain(c) {
       <button class="btn btn-primary wide" onclick="closeModal()">Va bene…</button>`); return; }
     persist();
     renderHUD();
+    sfx(report.levelsGained.length ? 'level' : 'coin');
     showReport(report);
   });
   form.appendChild(go);
@@ -734,6 +774,7 @@ function openChest() {
 
 function revealChest(title, chest) {
   vibrate(300);
+  sfx('chest');
   let html = `<div class="chest-burst">✨</div>
     <h3 class="panel-title center">🧰 Il Bottino di "${esc(title)}"</h3>`;
   const parts = [];
@@ -861,6 +902,9 @@ function renderNero(c) {
 }
 
 function renderFucina(c) {
+  HERO.forgeSeen = todayISO();
+  persist();
+  updateBadges();
   c.appendChild(npcBanner('assets/avatars/fabbro.png', 'Mastro Brontolo',
     '«Batto il ferro dall\'alba, ragazzino. Tre pezzi al giorno, prendere o lasciare. E non toccare l\'incudine!»'));
   const offers = RPG.forgeOffers(HERO);
@@ -868,10 +912,11 @@ function renderFucina(c) {
   op.appendChild(el('h3', 'panel-title', '🔥 In vetrina oggi'));
   offers.forEach(o => {
     const bought = HERO.items.some(i => i.name === o.name && i.rarity === o.rarity);
-    const row = el('div', 'mission-row');
+    const row = el('div', 'mission-row' + (o.special ? ' special-offer' : ''));
     row.appendChild(el('div', 'mission-mid',
+      (o.special ? `<span class="tag tag-sale">🔥 -30% SOLO OGGI · <span data-cd="midnight">…</span></span><br>` : '') +
       `${itemIconHtml(o, 'item-icon')} <b>${esc(o.name)}</b> <span class="tag">${RPG.RARITIES[o.rarity].label}</span><br>
-       <span class="small muted">+${o.xp}% XP · ${RPG.SLOTS[o.slot].label}</span>`));
+       <span class="small muted">+${o.xp}% XP · ${RPG.SLOTS[o.slot].label}${o.special ? ` · <s>🪙${o.fullPrice}</s>` : ''}</span>`));
     const btn = el('button', 'btn btn-small', `🪙${o.price}`);
     if (HERO.gold >= o.price && !bought) btn.classList.add('btn-primary');
     if (bought) { btn.textContent = '✅'; btn.disabled = true; }
@@ -1192,3 +1237,153 @@ if ('serviceWorker' in navigator) {
 
 if (STATE.current && STATE.heroes.find(h => h.id === STATE.current)) enterGame();
 else renderProfiles();
+
+/* ═══════════ v2.7: UX & FOMO ═══════════ */
+
+function todayISO() { return new Date().toISOString().slice(0, 10); }
+
+/* ── Coda dei popup di apertura ── */
+let OPEN_QUEUE = [];
+function nextOpening() {
+  closeModal();
+  const fn = OPEN_QUEUE.shift();
+  if (fn) fn();
+}
+
+/* ── Riepilogo "cosa ti aspetta oggi" ── */
+function showDailySummary() {
+  let rows = '';
+  if (HERO.incursion && !HERO.incursion.done) {
+    rows += `<div class="today-row">⚡ <div><b>Incursione:</b> ${esc(HERO.incursion.name)}<br>
+      <span class="small muted">${(HERO.incursion.km - HERO.incursion.progressKm).toFixed(1)} km per il forziere · <span data-cd="midnight">…</span></span></div></div>`;
+  }
+  if (HERO.activeMission) {
+    const m = RPG.MISSIONS.find(x => x.id === HERO.activeMission.id);
+    if (m) rows += `<div class="today-row">🐎 <div><b>Missione:</b> ${m.name}<br>
+      <span class="small muted">mancano ${(m.km - HERO.activeMission.progressKm).toFixed(1)} km</span></div></div>`;
+  }
+  rows += `<div class="today-row">🎯 <div><b>Obiettivo del giorno:</b> ${RPG.dailyGoalKm(HERO.level)} km</div></div>`;
+  if (HERO.streak.count > 1)
+    rows += `<div class="today-row">🔥 <div><b>Streak:</b> ${HERO.streak.count} giorni di fila — non spezzarla!</div></div>`;
+  const nu = nextUnlock(HERO);
+  if (nu) rows += `<div class="today-row">${nu.icon} <div><b>Prossimo sblocco</b> (liv. ${nu.level}): ${nu.text}</div></div>`;
+  modal(`
+    <h3 class="panel-title">🌅 La tua Giornata, ${esc(HERO.name)}</h3>
+    ${rows}
+    <button class="btn btn-primary wide" onclick="nextOpening(); setTab('train')">⚔️ Vado ad allenarmi!</button>
+    <button class="btn wide" onclick="nextOpening()">Dopo</button>
+  `);
+}
+
+/* ── Prossimo sblocco in arrivo ── */
+function nextUnlock(hero) {
+  const c = [];
+  if (hero.level < 100) {
+    const nm = Math.ceil((hero.level + 1) / 5) * 5;
+    const mount = RPG.MOUNTS.find(m => m.level === nm);
+    if (mount) c.push({ level: nm, icon: '🐴', text: `nuova cavalcatura` });
+  }
+  const nb = RPG.BIOMES.find(b => b.min > hero.level);
+  if (nb) c.push({ level: nb.min, icon: nb.icon, text: `nuovo bioma da esplorare` });
+  const tiers = [[16, 'Epici'], [31, 'Leggendari'], [51, 'Divini'], [76, 'Oscuri']];
+  const nt = tiers.find(([lv]) => lv > hero.level);
+  if (nt) c.push({ level: nt[0], icon: '💎', text: `loot di rarità ${nt[1]}!` });
+  if (!c.length) return null;
+  c.sort((a, b) => a.level - b.level);
+  const n = c[0];
+  n.inLv = n.level - hero.level;
+  return n;
+}
+
+/* ── Badge rossi sulla tab bar ── */
+function updateBadges() {
+  if (!HERO) return;
+  const set = (tab, on) => {
+    const b = document.querySelector(`#tabbar .tab[data-tab="${tab}"]`);
+    if (!b) return;
+    let d = b.querySelector('.tab-badge');
+    if (on && !d) b.appendChild(el('span', 'tab-badge'));
+    if (!on && d) d.remove();
+  };
+  set('map', !!(HERO.incursion && !HERO.incursion.done));
+  set('market', HERO.forgeSeen !== todayISO());
+  set('hero', Object.entries(HERO.equipment || {}).some(([s, id]) =>
+    !id && (HERO.items || []).some(i => i.slot === s)));
+}
+
+/* ── Countdown live (aggiornati ogni secondo) ── */
+function msToMidnight() {
+  const d = new Date(); const m = new Date(d);
+  m.setHours(24, 0, 0, 0);
+  return m - d;
+}
+function msToWeekEnd() {
+  const d = new Date(); const m = new Date(d);
+  const dow = (d.getDay() + 6) % 7; // 0 = lunedì
+  m.setDate(d.getDate() + (7 - dow));
+  m.setHours(0, 0, 0, 0);
+  return m - d;
+}
+function fmtMs(ms) {
+  const h = Math.floor(ms / 3600000), mm = Math.floor(ms % 3600000 / 60000);
+  if (h >= 48) return Math.floor(h / 24) + ' giorni';
+  if (h >= 1) return h + 'h ' + mm + 'm';
+  const s = Math.floor(ms % 60000 / 1000);
+  return mm + 'm ' + s + 's';
+}
+setInterval(() => {
+  document.querySelectorAll('[data-cd]').forEach(e => {
+    e.textContent = '⏳ ' + fmtMs(e.dataset.cd === 'week' ? msToWeekEnd() : msToMidnight());
+  });
+}, 1000);
+
+/* ── Anteprima dei biomi (anche bloccati: hype!) ── */
+function showBiomePreview(b, open) {
+  const enemies = RPG.BESTIARY.filter(x => x.zone === b.name);
+  let beasts = '';
+  if (enemies.length) {
+    beasts = `<p class="small muted center">Creature avvistate da queste parti:</p><div class="preview-beasts">` +
+      enemies.map(x => {
+        const known = HERO.bestiary.includes(x.id);
+        return x.id === 'cavaliere-drago'
+          ? `<div class="preview-beast">❓</div>`
+          : `<img class="preview-beast${known && open ? '' : ' shadow'}" src="assets/bestiario/${x.id}.png">`;
+      }).join('') + `</div>`;
+  } else {
+    beasts = `<p class="small muted center">Nessuno è mai tornato per raccontare quali creature si aggirino qui…</p>`;
+  }
+  modal(`
+    <p class="center" style="font-size:3rem">${b.icon}</p>
+    <h3 class="panel-title center">${b.name}</h3>
+    <p class="center small"><span class="tag">Livelli ${b.min}–${b.max}</span></p>
+    ${beasts}
+    ${open
+      ? `<p class="center small">✅ Bioma raggiunto: le sue missioni sono sulla Mappa.</p>`
+      : `<p class="center"><b>🔒 Si apre al Livello ${b.min}</b><br><span class="small muted">Ti mancano ${b.min - HERO.level} livelli. Continua ad allenarti!</span></p>`}
+    <button class="btn btn-primary wide" onclick="closeModal()">Chiudi</button>
+  `);
+}
+
+/* ── Suoni (WebAudio, niente file esterni) ── */
+let _AC = null;
+function sfx(kind) {
+  try {
+    _AC = _AC || new (window.AudioContext || window.webkitAudioContext)();
+    if (_AC.state === 'suspended') _AC.resume();
+    const t = _AC.currentTime;
+    const nota = (freq, start, dur, type = 'triangle', vol = 0.12) => {
+      const o = _AC.createOscillator(), g = _AC.createGain();
+      o.type = type; o.frequency.value = freq;
+      g.gain.setValueAtTime(vol, t + start);
+      g.gain.exponentialRampToValueAtTime(0.001, t + start + dur);
+      o.connect(g).connect(_AC.destination);
+      o.start(t + start); o.stop(t + start + dur);
+    };
+    if (kind === 'coin')  { nota(880, 0, .12); nota(1318, .07, .18); }
+    if (kind === 'level') { [523, 659, 784, 1047].forEach((f, i) => nota(f, i * .1, .3)); }
+    if (kind === 'chest') {
+      nota(160, 0, .25, 'sawtooth', .18);
+      [784, 988, 1175, 1568].forEach((f, i) => nota(f, .3 + i * .08, .35));
+    }
+  } catch {}
+}
