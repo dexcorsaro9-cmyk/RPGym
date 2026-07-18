@@ -566,7 +566,7 @@ function renderTrain(c) {
   form.appendChild(el('label', 'field-label', 'Tipo di attività'));
   const actRow = el('div', 'act-row');
   let chosen = 'camminata';
-  const ACT_ICON_FILES = { cyclette: 'assets/ui/act-cyclette.png', corsa: 'assets/ui/act-corsa.png' };
+  const ACT_ICON_FILES = { cyclette: 'assets/ui/act-cyclette.png', camminata: 'assets/ui/act-camminata.png', corsa: 'assets/ui/act-corsa.png' };
   Object.entries(RPG.ACTIVITIES).forEach(([key, a]) => {
     const b = el('button', 'act-choice' + (key === chosen ? ' selected' : ''));
     const iconHolder = el('div', 'act-icon-holder', a.icon);
