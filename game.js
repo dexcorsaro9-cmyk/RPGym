@@ -480,6 +480,7 @@ const RPG = (() => {
     h.forgeSeen = h.forgeSeen || null;      // ultima data in cui ha visto la vetrina
     h.summarySeen = h.summarySeen || null;  // ultima data del riepilogo giornaliero
     h.eventNotified = h.eventNotified || null; // settimana della Taglia già notificata
+    h.battles = h.battles || { date: null, count: 0 }; // sfide dell'Arena usate oggi
     // vecchio inventario a stringhe → convertito in oro
     if (Array.isArray(h.inventory) && h.inventory.length) {
       h.gold += h.inventory.length * 10;
@@ -939,6 +940,61 @@ const RPG = (() => {
     return true;
   }
 
+  /* ── L'Arena: Morra dei Guerrieri (best of 5) ─────────────── */
+  const BATTLE_MAX_DAY = 5; // sfide al giorno
+  const BATTLE_MOVES = {
+    fendente:    { label: 'Fendente',    icon: '⚔️', beats: 'incantesimo',
+      flavor: 'Colpisci prima che scagli l\'incantesimo!' },
+    parata:      { label: 'Parata',      icon: '🛡️', beats: 'fendente',
+      flavor: 'Pari il colpo e contrattacchi!' },
+    incantesimo: { label: 'Incantesimo', icon: '✨', beats: 'parata',
+      flavor: 'La magia aggira lo scudo!' },
+  };
+  function battleBeats(a, b) { return BATTLE_MOVES[a] && BATTLE_MOVES[a].beats === b; }
+  function randomMove() {
+    const k = Object.keys(BATTLE_MOVES);
+    return k[Math.floor(Math.random() * k.length)];
+  }
+
+  // Quante sfide restano oggi
+  function battlesLeft(hero) {
+    hero.battles = hero.battles || { date: null, count: 0 };
+    if (hero.battles.date !== todayStamp()) return BATTLE_MAX_DAY;
+    return Math.max(0, BATTLE_MAX_DAY - hero.battles.count);
+  }
+  // Consuma una sfida (ritorna false se esaurite)
+  function useBattle(hero) {
+    const today = todayStamp();
+    if (hero.battles.date !== today) hero.battles = { date: today, count: 0 };
+    if (hero.battles.count >= BATTLE_MAX_DAY) return false;
+    hero.battles.count++;
+    return true;
+  }
+
+  function pickVillain(hero) {
+    // preferisce nemici delle zone raggiunte, ma con varietà
+    const zones = accessibleZones(hero);
+    const near = BESTIARY.filter(b => !b.final && zones.includes(b.zone));
+    const pool = (Math.random() < 0.8 && near.length) ? near : BESTIARY.filter(b => !b.final);
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  // Forziere del vincitore (randomico)
+  function battleReward(hero, villain) {
+    const boss = !!villain.boss;
+    const chest = {
+      gold: Math.round((boss ? 50 : 20) + hero.level * (boss ? 5 : 2.5) + Math.random() * 20),
+      items: [],
+    };
+    hero.gold += chest.gold;
+    if (Math.random() < (boss ? 0.65 : 0.4)) {
+      const it = genItemFor(hero, boss ? 'raro' : null);
+      hero.items.push(it);
+      chest.items.push(it);
+    }
+    return chest;
+  }
+
   return {
     ACTIVITIES, MISSIONS, CARDS, BUILDINGS, BESTIARY,
     BIOMES, MOUNTS, RARITIES, SLOTS,
@@ -951,6 +1007,8 @@ const RPG = (() => {
     weeklyEvent, claimEvent, buildingBonus, equipmentXpBonus,
     genItem, genItemFor, sellItem, sellValue, buyMount, forgeOffers, buyForgeItem,
     CLASS_TALENTS, talentOf, itemImg,
+    BATTLE_MOVES, BATTLE_MAX_DAY, battleBeats, randomMove,
+    battlesLeft, useBattle, pickVillain, battleReward,
     equipItem, unequipSlot,
     dailyLogin, rolloverIncursion,
   };

@@ -655,6 +655,19 @@ function renderTrain(c) {
   form.appendChild(go);
   c.appendChild(form);
 
+  // ── L'Arena dei Guerrieri ──
+  const left = RPG.battlesLeft(HERO);
+  const ap = el('div', 'panel arena-panel');
+  ap.appendChild(el('h3', 'panel-title', '⚔️ L\'Arena dei Guerrieri'));
+  ap.appendChild(el('p', 'muted small',
+    'Sfida un nemico a duello! Scegli tra Fendente, Parata e Incantesimo: vinci <b>3 round su 5</b> e apri un forziere. Puoi combattere <b>5 volte al giorno</b>.'));
+  ap.appendChild(el('div', 'arena-tokens', `🎫 Sfide rimaste oggi: <b>${left}</b> / ${RPG.BATTLE_MAX_DAY}`));
+  const abtn = el('button', 'btn btn-primary wide big', left > 0 ? '⚔️ ENTRA NELL\'ARENA' : '⏳ Torna domani per nuove sfide');
+  abtn.disabled = left < 1;
+  abtn.addEventListener('click', openArena);
+  ap.appendChild(abtn);
+  c.appendChild(ap);
+
   if (HERO.log.length) {
     const lp = el('div', 'panel');
     lp.appendChild(el('h3', 'panel-title', '📜 Diario delle Imprese'));
@@ -1385,5 +1398,223 @@ function sfx(kind) {
       nota(160, 0, .25, 'sawtooth', .18);
       [784, 988, 1175, 1568].forEach((f, i) => nota(f, .3 + i * .08, .35));
     }
+    if (kind === 'hit')   { nota(220, 0, .1, 'sawtooth', .22); nota(110, .03, .16, 'square', .18); }
+    if (kind === 'lose')  { nota(330, 0, .14, 'sawtooth', .2); nota(180, .1, .22, 'sawtooth', .18); }
+    if (kind === 'block') { nota(500, 0, .06, 'square', .14); nota(400, .05, .09, 'square', .1); }
+    if (kind === 'defeat'){ [440, 349, 262, 196].forEach((f, i) => nota(f, i * .16, .4, 'sawtooth', .16)); }
   } catch {}
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   L'ARENA — Duello a Morra dei Guerrieri (best of 5)
+   ═══════════════════════════════════════════════════════════════ */
+let BATTLE = null;
+const battleEl = () => document.getElementById('battle');
+
+function openArena() {
+  if (RPG.battlesLeft(HERO) < 1) { toast('Nessuna sfida rimasta oggi. Torna domani!'); return; }
+  const v = RPG.pickVillain(HERO);
+  const isFinal = v.id === 'cavaliere-drago';
+  const fig = isFinal ? '<div class="battle-emoji">🐉</div>'
+    : `<img class="arena-intro-img" src="assets/bestiario/${v.id}.png">`;
+  modal(`
+    <div class="arena-intro">
+      <p class="center big-news">⚔️ Uno sfidante appare!</p>
+      ${fig}
+      <h3 class="panel-title center">${v.name} ${v.boss ? '<span class="tag tag-boss">BOSS</span>' : ''}</h3>
+      <p class="center small muted">Debolezza: <b>${v.weakness}</b></p>
+      <p class="center small">Vinci <b>3 round su 5</b> a colpi di Fendente, Parata e Incantesimo!</p>
+      <button class="btn btn-primary wide big" id="btn-begin-battle">🔥 COMBATTI!</button>
+      <button class="btn wide" onclick="closeModal()">Fuggi…</button>
+    </div>`);
+  document.getElementById('btn-begin-battle').addEventListener('click', () => beginBattle(v.id));
+}
+
+function beginBattle(villainId) {
+  const v = RPG.BESTIARY.find(b => b.id === villainId);
+  if (!RPG.useBattle(HERO)) { closeModal(); toast('Sfide esaurite per oggi!'); return; }
+  // scoperta nel Bestiario incontrandolo nell'arena
+  HERO.bestiary = HERO.bestiary || [];
+  if (!HERO.bestiary.includes(v.id)) HERO.bestiary.push(v.id);
+  persist();
+  BATTLE = { v, heroHP: 100, vHP: 100, dmg: 34, hw: 0, vw: 0, round: 1, busy: false, done: false };
+  closeModal();
+  battleEl().classList.remove('hidden');
+  drawBattle();
+  try { if (_AC && _AC.state === 'suspended') _AC.resume(); } catch {}
+}
+
+function drawBattle() {
+  const b = BATTLE;
+  const isFinal = b.v.id === 'cavaliere-drago';
+  const vFig = isFinal ? '<div class="battle-emoji big">🐉</div>'
+    : `<img class="battle-villain-img" id="battle-villain-img" src="assets/bestiario/${b.v.id}.png">`;
+  const heroFig = isImageAvatar(HERO)
+    ? `<img class="battle-hero-img" id="battle-hero-fig" src="${HERO.avatar}">`
+    : `<div class="battle-hero-img battle-hero-emoji" id="battle-hero-fig">${HERO.avatar || '🧑‍🌾'}</div>`;
+  battleEl().innerHTML = `
+    <div class="battle-arena">
+      <div class="battle-topbar">
+        <div class="battle-name">${b.v.name} ${b.v.boss ? '<span class="tag tag-boss">BOSS</span>' : ''}</div>
+        <div class="pips" id="pips-v"></div>
+      </div>
+      <div class="hpbar-lg"><div class="hpbar-fill v" id="hp-v" style="width:100%"></div><span id="hp-v-num">100</span></div>
+
+      <div class="battle-stage">
+        <div class="stage-slot villain" id="stage-villain">${vFig}</div>
+        <div class="battle-center" id="battle-center">
+          <div class="battle-round">Round ${b.round}</div>
+          <div class="battle-weak small">Debolezza: ${b.v.weakness}</div>
+        </div>
+        <div class="stage-slot hero" id="stage-hero">${heroFig}</div>
+      </div>
+
+      <div class="hpbar-lg hero"><div class="hpbar-fill h" id="hp-h" style="width:100%"></div><span id="hp-h-num">100</span></div>
+      <div class="battle-topbar">
+        <div class="pips" id="pips-h"></div>
+        <div class="battle-name right">${esc(HERO.name)}</div>
+      </div>
+
+      <div class="battle-moves" id="battle-moves"></div>
+    </div>`;
+  drawPips();
+  drawMoves();
+}
+
+function drawPips() {
+  const mk = (n) => Array.from({ length: 3 }, (_, i) => `<span class="pip${i < n ? ' on' : ''}"></span>`).join('');
+  const pv = document.getElementById('pips-v'); if (pv) pv.innerHTML = mk(BATTLE.vw);
+  const ph = document.getElementById('pips-h'); if (ph) ph.innerHTML = mk(BATTLE.hw);
+}
+
+function drawMoves() {
+  const wrap = document.getElementById('battle-moves');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  Object.entries(RPG.BATTLE_MOVES).forEach(([key, m]) => {
+    const btn = el('button', 'move-btn', `<span class="move-icon">${m.icon}</span><span class="move-label">${m.label}</span>`);
+    btn.addEventListener('click', () => chooseMove(key));
+    wrap.appendChild(btn);
+  });
+}
+
+function chooseMove(move) {
+  const b = BATTLE;
+  if (!b || b.busy || b.done) return;
+  b.busy = true;
+  const vmove = RPG.randomMove();
+  const hm = RPG.BATTLE_MOVES[move], vm = RPG.BATTLE_MOVES[vmove];
+
+  // Fase 1: rivelazione delle mosse
+  const center = document.getElementById('battle-center');
+  center.innerHTML = `<div class="reveal">
+    <span class="reveal-move hero-move">${hm.icon}</span>
+    <span class="reveal-vs">VS</span>
+    <span class="reveal-move villain-move">${vm.icon}</span>
+  </div>`;
+  document.getElementById('battle-moves').classList.add('locked');
+
+  setTimeout(() => {
+    let result;
+    if (move === vmove) result = 'tie';
+    else if (RPG.battleBeats(move, vmove)) result = 'win';
+    else result = 'lose';
+
+    let msg;
+    if (result === 'win') {
+      b.vHP = Math.max(0, b.vHP - b.dmg); b.hw++;
+      hitEffect('villain', b.dmg); sfx('hit');
+      msg = `<div class="res-txt win">${hm.label}! ${hm.flavor}</div>`;
+    } else if (result === 'lose') {
+      b.heroHP = Math.max(0, b.heroHP - b.dmg); b.vw++;
+      hitEffect('hero', b.dmg); sfx('lose');
+      msg = `<div class="res-txt lose">${vm.label} nemico! Sei stato colpito!</div>`;
+    } else {
+      sfx('block');
+      msg = `<div class="res-txt tie">Colpi che si annullano!</div>`;
+    }
+    center.innerHTML += msg;
+    updateBars();
+    drawPips();
+
+    setTimeout(() => {
+      if (b.hw >= 3) return endBattle(true);
+      if (b.vw >= 3) return endBattle(false);
+      if (result !== 'tie') b.round++;
+      b.busy = false;
+      const c = document.getElementById('battle-center');
+      c.innerHTML = `<div class="battle-round">Round ${b.round}</div><div class="battle-weak small">Debolezza: ${b.v.weakness}</div>`;
+      document.getElementById('battle-moves').classList.remove('locked');
+    }, 1100);
+  }, 700);
+}
+
+function hitEffect(who, dmg) {
+  const slot = document.getElementById(who === 'villain' ? 'stage-villain' : 'stage-hero');
+  const arena = document.querySelector('.battle-arena');
+  if (slot) {
+    slot.classList.remove('hit'); void slot.offsetWidth; slot.classList.add('hit');
+    const dn = el('div', 'dmg-float', '-' + dmg);
+    slot.appendChild(dn);
+    setTimeout(() => dn.remove(), 900);
+  }
+  if (arena) { arena.classList.remove('shake'); void arena.offsetWidth; arena.classList.add('shake'); }
+  vibrate(who === 'hero' ? [60, 40, 60] : 40);
+}
+
+function updateBars() {
+  const b = BATTLE;
+  const hv = document.getElementById('hp-v'), hh = document.getElementById('hp-h');
+  if (hv) hv.style.width = b.vHP + '%';
+  if (hh) hh.style.width = b.heroHP + '%';
+  const nv = document.getElementById('hp-v-num'), nh = document.getElementById('hp-h-num');
+  if (nv) nv.textContent = Math.round(b.vHP);
+  if (nh) nh.textContent = Math.round(b.heroHP);
+}
+
+function endBattle(heroWon) {
+  const b = BATTLE;
+  b.done = true;
+  const moves = document.getElementById('battle-moves');
+  if (moves) moves.innerHTML = '';
+  const center = document.getElementById('battle-center');
+
+  if (heroWon) {
+    const chest = RPG.battleReward(HERO, b.v);
+    persist(); renderHUD();
+    sfx('level');
+    if (center) center.innerHTML = `<div class="battle-result win">VITTORIA!</div>`;
+    const vs = document.getElementById('stage-villain');
+    if (vs) vs.classList.add('defeated');
+    setTimeout(() => {
+      closeBattle();
+      PENDING_CHEST = { title: 'Vittoria su ' + b.v.name, chest };
+      modal(`<div class="chest-zone">
+        <p class="center big-news">⚔️ Hai sconfitto ${esc(b.v.name)}!</p>
+        <button class="chest-btn" id="btn-open-chest">🧰</button>
+        <p class="small muted center">Tocca lo scrigno per aprirlo</p>
+      </div>`);
+      document.getElementById('btn-open-chest').addEventListener('click', openChest);
+    }, 1500);
+  } else {
+    persist();
+    sfx('defeat');
+    if (center) center.innerHTML = `<div class="battle-result lose">SCONFITTA…</div>`;
+    const hs = document.getElementById('stage-hero');
+    if (hs) hs.classList.add('defeated');
+    setTimeout(() => {
+      closeBattle();
+      modal(`<h3 class="panel-title center">💀 Sconfitta</h3>
+        <p class="center">${esc(b.v.name)} ha avuto la meglio, stavolta.</p>
+        <p class="muted small center">Nessuna vergogna! Equipaggia oggetti migliori, sali di livello e tornerai più forte.</p>
+        <button class="btn btn-primary wide" onclick="closeModal()">Tornerò più forte!</button>`);
+    }, 1500);
+  }
+}
+
+function closeBattle() {
+  const s = battleEl();
+  s.classList.add('hidden');
+  s.innerHTML = '';
+  if (CURRENT_TAB === 'train') setTab('train'); // aggiorna il contatore sfide
 }
