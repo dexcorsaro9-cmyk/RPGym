@@ -283,6 +283,17 @@ function showDailyLogin() {
   vibrate(80);
 }
 
+/* Popup dettaglio risorse (tocco sulle risorse in alto a destra) */
+function showResources() {
+  modal(`
+    <h3 class="panel-title">🎒 Le tue Risorse</h3>
+    <div class="res-detail"><span class="res-detail-icon">🪙</span><div><b>Moneta d'Oro</b><br><span class="small muted">La valuta del reame: compra cavalcature, armi e armature.</span></div><b class="res-detail-qty">${HERO.gold}</b></div>
+    <div class="res-detail"><span class="res-detail-icon">🪵</span><div><b>Legno</b><br><span class="small muted">Materiale da costruzione per il tuo Rifugio.</span></div><b class="res-detail-qty">${HERO.wood}</b></div>
+    <div class="res-detail"><span class="res-detail-icon">🪨</span><div><b>Roccia</b><br><span class="small muted">Pietra grezza per le strutture più solide.</span></div><b class="res-detail-qty">${HERO.stone}</b></div>
+    <button class="btn btn-primary wide" onclick="closeModal()">Chiudi</button>
+  `);
+}
+
 function renderHUD() {
   const av = $('#hud-avatar');
   av.innerHTML = '';
@@ -300,6 +311,9 @@ function renderHUD() {
 
 document.querySelectorAll('#tabbar .tab').forEach(t =>
   t.addEventListener('click', () => setTab(t.dataset.tab)));
+
+// Tocco sulle risorse dell'header → popup dettaglio
+document.querySelector('.hud-right').addEventListener('click', () => { if (HERO) showResources(); });
 
 function setTab(tab) {
   CURRENT_TAB = tab;
@@ -328,16 +342,6 @@ function renderCamp(c) {
     (HERO.companion ? '<br>Il Lupo Astrale sonnecchia accanto a te.' : '') +
     (mount ? `<br>${mount.name} riposa nella stalla.` : '')));
   c.appendChild(scene);
-
-  // Barra dell'Indagine
-  const inv = el('div', 'panel');
-  inv.appendChild(el('h3', 'panel-title', '🔍 Svela il Nemico'));
-  const pct = HERO.fragmentsFound * 20;
-  inv.appendChild(el('div', 'membar', `<div class="membar-fill" style="width:${pct}%"></div><span>${pct}%</span>`));
-  inv.appendChild(el('p', 'muted small', pct >= 100
-    ? 'Le memorie sono complete: il Cavaliere del Drago è stato rivelato! Trovalo nel Bestiario.'
-    : `Ogni 20 km trovi un Frammento di Memoria (${HERO.fragmentsFound}/5). Chi ha distrutto Oakhaven?`));
-  c.appendChild(inv);
 
   // Costruzione
   const bpanel = el('div', 'panel');
@@ -418,87 +422,64 @@ function showAllyBase(o) {
 
 /* ── TAB: Mappa ── */
 function renderMap(c) {
-  c.appendChild(el('h2', 'section-title', '🗺️ Mappa del Mondo'));
-
-  // Bioma attuale
   const biome = RPG.currentBiome(HERO.level);
-  c.appendChild(el('div', 'biome-banner',
-    `${biome.icon} <b>${biome.name}</b><br><span class="small">Livelli ${biome.min}–${biome.max} · Il tuo bioma attuale</span>`));
 
-  // Incursione del giorno
+  // ── Il bioma attuale, con progresso verso il prossimo ──
+  const span = biome.max - biome.min + 1;
+  const pctBiome = Math.min(100, Math.round((HERO.level - biome.min + 1) / span * 100));
+  const hdr = el('div', 'biome-hero');
+  hdr.innerHTML = `
+    <div class="biome-hero-icon">${biome.icon}</div>
+    <div class="biome-hero-name">${biome.name}</div>
+    <div class="biome-hero-lv small">Livelli ${biome.min}–${biome.max}</div>
+    <div class="membar slim"><div class="membar-fill gold" style="width:${pctBiome}%"></div><span>Liv. ${HERO.level}</span></div>`;
+  c.appendChild(hdr);
+
+  // ── Incursione del giorno ──
   if (HERO.incursion && !HERO.incursion.done) {
     const inc = HERO.incursion;
     const p = el('div', 'panel incursion-panel');
     p.appendChild(el('h3', 'panel-title', `⚡ INCURSIONE — solo oggi!`));
-    p.appendChild(el('p', '', `<b>${esc(inc.name)}</b>`));
-    const pct = Math.min(100, Math.round(inc.progressKm / inc.km * 100));
-    p.appendChild(el('div', 'membar', `<div class="membar-fill danger" style="width:${pct}%"></div><span>${inc.progressKm.toFixed(1)} / ${inc.km} km</span>`));
-    p.appendChild(el('p', 'muted small',
-      `Completa ${inc.km} km entro mezzanotte: nel forziere c'è un oggetto di rarità ${RPG.RARITIES[inc.minRarity].label} o superiore. Domani sarà troppo tardi!`));
     if (inc.enemy !== 'cavaliere-drago') {
       const img = el('img', 'incursion-img');
       img.src = `assets/bestiario/${inc.enemy}.png`;
-      p.insertBefore(img, p.children[1]);
+      p.appendChild(img);
     }
+    p.appendChild(el('p', 'center', `<b>${esc(inc.name)}</b>`));
+    const pct = Math.min(100, Math.round(inc.progressKm / inc.km * 100));
+    p.appendChild(el('div', 'membar', `<div class="membar-fill danger" style="width:${pct}%"></div><span>${inc.progressKm.toFixed(1)} / ${inc.km} km</span>`));
+    p.appendChild(el('p', 'muted small center',
+      `Entro mezzanotte: forziere con oggetto ${RPG.RARITIES[inc.minRarity].label} o superiore. Domani sarà troppo tardi!`));
     c.appendChild(p);
   } else if (HERO.incursion && HERO.incursion.done) {
-    c.appendChild(el('div', 'panel', `<p class="center">✅ <b>Incursione di oggi respinta!</b><br><span class="small muted">Torna domani per la prossima.</span></p>`));
+    c.appendChild(el('div', 'panel done-strip', `✅ <b>Incursione di oggi respinta!</b> <span class="small muted">Torna domani.</span>`));
   }
 
-  // Missione attiva
+  // ── Missione attiva ──
   if (HERO.activeMission) {
     const m = RPG.MISSIONS.find(x => x.id === HERO.activeMission.id);
     const p = el('div', 'panel active-mission');
-    p.appendChild(el('h3', 'panel-title', `⚔️ In viaggio: ${m.name}`));
+    p.appendChild(el('h3', 'panel-title', `🐎 In viaggio: ${m.name}`));
     const done = HERO.activeMission.progressKm;
     const pct = Math.min(100, Math.round(done / m.km * 100));
     p.appendChild(el('div', 'membar', `<div class="membar-fill gold" style="width:${pct}%"></div><span>${done.toFixed(1)} / ${m.km} km</span>`));
-    const abandon = el('button', 'btn btn-small', 'Abbandona missione');
+    const abandon = el('button', 'btn btn-small', 'Abbandona');
     abandon.addEventListener('click', () => { HERO.activeMission = null; persist(); setTab('map'); });
     p.appendChild(abandon);
     c.appendChild(p);
   }
 
-  // Taglia Unica settimanale
-  const ev = RPG.weeklyEvent(STATE);
-  const evp = el('div', 'panel event-panel');
-  evp.appendChild(el('h3', 'panel-title', `${ev.icon} Taglia Unica: ${ev.name}`));
-  if (ev.claimedBy) {
-    evp.appendChild(el('p', 'muted', ev.claimedBy === HERO.name
-      ? `🏆 L'hai reclamata TU! Ricompensa: ${ev.skin}`
-      : `⛔ Troppo tardi: <b>${esc(ev.claimedBy)}</b> ha già reclamato il bottino questa settimana.`));
-  } else {
-    evp.appendChild(el('p', 'muted small',
-      `Il primo eroe che completa un allenamento di <b>${ev.km} km</b> questa settimana reclama: <b>${ev.skin}</b>!`));
-    const btn = el('button', 'btn wide', `Reclama (${ev.km} km in un allenamento di oggi)`);
-    btn.addEventListener('click', () => {
-      const last = HERO.log[0];
-      const today = new Date().toISOString().slice(0, 10);
-      if (last && new Date(last.date).toISOString().slice(0, 10) === today && last.km >= ev.km) {
-        if (RPG.claimEvent(STATE, HERO, ev)) {
-          persist();
-          toast(`🏆 ${ev.skin} è TUO! Il tuo alleato troverà solo un cartello…`);
-          setTab('map');
-        }
-      } else {
-        toast(`Devi completare un allenamento di almeno ${ev.km} km oggi per reclamare la Taglia!`);
-      }
-    });
-    evp.appendChild(btn);
-  }
-  c.appendChild(evp);
-
-  // Missioni per zona (solo biomi raggiunti)
+  // ── Missioni disponibili (un solo pannello ordinato) ──
   const avail = RPG.availableMissions(HERO);
-  const zonesWithMissions = [...new Set(avail.map(m => m.zone))];
-  zonesWithMissions.forEach(zone => {
-    const inZone = avail.filter(m => m.zone === zone);
-    const zp = el('div', 'panel');
-    zp.appendChild(el('h3', 'panel-title', zoneIcon(zone) + ' ' + zone));
-    inZone.forEach(m => {
+  if (avail.length) {
+    const mp = el('div', 'panel');
+    mp.appendChild(el('h3', 'panel-title', '⚔️ Missioni'));
+    avail.forEach(m => {
       const row = el('div', 'mission-row');
+      row.appendChild(el('div', 'mission-zone-icon', zoneIcon(m.zone)));
       row.appendChild(el('div', 'mission-mid',
-        `<b>${m.name}</b> <span class="tag">${m.km} km</span><br><span class="small muted">${m.desc}</span>`));
+        `<b>${m.name}</b> <span class="tag">${m.km} km</span><br>` +
+        `<span class="small muted">${zoneShort(m.zone)} — ${m.desc}</span>`));
       const btn = el('button', 'btn btn-small btn-primary', 'Parti');
       const vimg = new Image();
       vimg.onload = () => {
@@ -515,20 +496,58 @@ function renderMap(c) {
         setTab('map');
       });
       row.appendChild(btn);
-      zp.appendChild(row);
+      mp.appendChild(row);
     });
-    c.appendChild(zp);
-  });
+    c.appendChild(mp);
+  }
 
-  // Atlante dei biomi
+  // ── Taglia Unica settimanale (compatta) ──
+  const ev = RPG.weeklyEvent(STATE);
+  const evp = el('div', 'panel event-panel');
+  evp.appendChild(el('h3', 'panel-title', `${ev.icon} Taglia: ${ev.name}`));
+  if (ev.claimedBy) {
+    evp.appendChild(el('p', 'muted small', ev.claimedBy === HERO.name
+      ? `🏆 Reclamata da TE! Ricompensa: ${ev.skin}`
+      : `⛔ <b>${esc(ev.claimedBy)}</b> è arrivato prima di te questa settimana.`));
+  } else {
+    evp.appendChild(el('p', 'muted small',
+      `Primo allenamento singolo da <b>${ev.km} km</b> della settimana vince: <b>${ev.skin}</b>.`));
+    const btn = el('button', 'btn wide btn-small', `Reclama la Taglia`);
+    btn.addEventListener('click', () => {
+      const last = HERO.log[0];
+      const today = new Date().toISOString().slice(0, 10);
+      if (last && new Date(last.date).toISOString().slice(0, 10) === today && last.km >= ev.km) {
+        if (RPG.claimEvent(STATE, HERO, ev)) {
+          persist();
+          toast(`🏆 ${ev.skin} è TUO!`);
+          setTab('map');
+        }
+      } else {
+        toast(`Serve un allenamento di almeno ${ev.km} km oggi per reclamarla!`);
+      }
+    });
+    evp.appendChild(btn);
+  }
+  c.appendChild(evp);
+
+  // ── Atlante: griglia dei 20 biomi ──
   const ap = el('div', 'panel');
-  ap.appendChild(el('h3', 'panel-title', '📖 L\'Atlante dei Biomi'));
+  ap.appendChild(el('h3', 'panel-title', '📖 L\'Atlante del Reame'));
+  const grid = el('div', 'biome-grid');
   RPG.BIOMES.forEach(b => {
     const open = HERO.level >= b.min;
-    ap.appendChild(el('div', 'biome-row' + (open ? '' : ' locked') + (b === biome ? ' current' : ''),
-      `${open ? b.icon : '🔒'} <b>${open ? b.name : '???'}</b> <span class="small muted">Liv. ${b.min}–${b.max}</span>`));
+    const cell = el('div', 'biome-cell' + (open ? '' : ' locked') + (b === biome ? ' current' : ''));
+    cell.innerHTML = `<div class="biome-cell-icon">${open ? b.icon : '🔒'}</div>
+      <div class="biome-cell-name">${open ? zoneShort(b.name) : '???'}</div>
+      <div class="biome-cell-lv">${b.min}–${b.max}</div>`;
+    grid.appendChild(cell);
   });
+  ap.appendChild(grid);
   c.appendChild(ap);
+}
+
+function zoneShort(zone) {
+  return zone.replace(/^(Il |La |Le |L')/, '');
 }
 
 function zoneIcon(zone) {
@@ -612,11 +631,21 @@ function renderTrain(c) {
 /* ── Report post-allenamento (con scrigno per le missioni) ── */
 let PENDING_CHEST = null;
 
+function itemIconHtml(it, cls) {
+  const img = RPG.itemImg(it);
+  return img
+    ? `<img class="${cls || 'item-icon'}" src="${img}" onerror="this.outerHTML='${it.icon}'" alt="">`
+    : it.icon;
+}
+
 function itemHtml(it) {
-  return `<div class="loot rar-${it.rarity}">
-    <div class="loot-head">${it.icon} <b>${esc(it.name)}</b> <span class="tag">${RPG.RARITIES[it.rarity].label}</span>${it.distilled ? ' <span class="tag tag-distilled">⚗️ Distillato!</span>' : ''}</div>
-    <div class="small muted">${it.desc}</div>
-    <div class="small">📈 +${it.xp}% XP equipaggiato · 🪙 valore ${it.value}</div>
+  return `<div class="loot rar-${it.rarity} loot-with-img">
+    ${itemIconHtml(it, 'item-icon-big')}
+    <div class="loot-body">
+      <div class="loot-head"><b>${esc(it.name)}</b> <span class="tag">${RPG.RARITIES[it.rarity].label}</span>${it.distilled ? ' <span class="tag tag-distilled">⚗️ Distillato!</span>' : ''}</div>
+      <div class="small muted">${it.desc}</div>
+      <div class="small">📈 +${it.xp}% XP equipaggiato · 🪙 valore ${it.value}</div>
+    </div>
   </div>`;
 }
 
@@ -733,7 +762,7 @@ let MARKET_VIEW = 'stalla';
 function renderMarket(c) {
   c.appendChild(el('h2', 'section-title', '🏪 Il Mercato'));
   const sw = el('div', 'coll-switch');
-  [['stalla', '🐴 Stalla'], ['nero', '🕯️ Mercato Nero'], ['fucina', '⚒️ Fucina']].forEach(([k, label]) => {
+  [['stalla', '🐴 Stalla'], ['nero', '🕯️ Contrabbando'], ['fucina', '⚒️ Fucina']].forEach(([k, label]) => {
     const b = el('button', 'coll-btn' + (MARKET_VIEW === k ? ' active' : ''), label);
     b.addEventListener('click', () => { MARKET_VIEW = k; setTab('market'); });
     sw.appendChild(b);
@@ -753,32 +782,55 @@ function npcBanner(imgPath, name, quote) {
 }
 
 function renderStalla(c) {
-  c.appendChild(el('p', 'muted small center', 'Le cavalcature aumentano i km "virtuali" di ogni allenamento. Più sali di livello, più destrieri leggendari si affacciano alla stalla…'));
+  c.appendChild(el('p', 'muted small center',
+    'Le cavalcature aumentano i km "virtuali" di ogni allenamento. Una nuova compagna di viaggio ogni 5 livelli: tocca una miniatura per conoscere la sua storia…'));
+  const grid = el('div', 'mount-grid');
   RPG.MOUNTS.forEach(m => {
     const owned = HERO.mountsOwned.includes(m.id);
     const active = HERO.mount === m.id;
     const locked = HERO.level < m.level;
-    const row = el('div', 'mount-row' + (locked ? ' locked' : '') + (active ? ' active-mount' : ''));
-    row.appendChild(el('div', 'mount-emoji', locked ? '🔒' : m.emoji));
-    row.appendChild(el('div', 'mount-mid',
-      `<b>${locked ? '???' : m.name}</b><br>` +
-      `<span class="small muted">Liv. ${m.level} · +${m.bonus}% km · 🪙 ${m.price}</span>`));
-    const btn = el('button', 'btn btn-small' + (owned && !active ? ' btn-primary' : ''));
-    if (locked) { btn.textContent = '🔒'; btn.disabled = true; }
-    else if (active) { btn.textContent = '✅ In sella'; btn.disabled = true; }
-    else {
-      btn.textContent = owned ? 'Sella' : 'Compra';
-      if (!owned && HERO.gold >= m.price) btn.classList.add('btn-primary');
-      btn.addEventListener('click', () => {
-        const err = RPG.buyMount(HERO, m.id);
-        persist(); renderHUD();
-        toast(err || `${m.emoji} ${m.name} è ora la tua cavalcatura! (+${m.bonus}% km)`);
-        if (!err) vibrate(100);
-        setTab('market');
-      });
-    }
-    row.appendChild(btn);
-    c.appendChild(row);
+    const card = el('div', 'mount-card' + (locked ? ' locked' : '') + (active ? ' active-mount' : ''));
+    const img = el('img', 'mount-thumb');
+    img.src = m.img;
+    img.loading = 'lazy';
+    img.addEventListener('error', () => { img.outerHTML = `<div class="mount-emoji-big">${m.emoji}</div>`; });
+    card.appendChild(img);
+    card.appendChild(el('div', 'mount-name', m.name));
+    card.appendChild(el('div', 'mount-req small',
+      (active ? '✅ In sella' : locked ? `🔒 Liv. ${m.level}` : owned ? 'Nella stalla' : `🪙 ${m.price}`) +
+      ` · +${m.bonus}% km`));
+    card.addEventListener('click', () => showMountSheet(m));
+    grid.appendChild(card);
+  });
+  c.appendChild(grid);
+}
+
+function showMountSheet(m) {
+  const owned = HERO.mountsOwned.includes(m.id);
+  const active = HERO.mount === m.id;
+  const locked = HERO.level < m.level;
+  let action = '';
+  if (active) action = `<p class="center big-news small">✅ È la tua cavalcatura attuale</p>`;
+  else if (locked) action = `<p class="center muted">🔒 Si sblocca al <b>Livello ${m.level}</b> (sei al ${HERO.level}). Continua ad allenarti: ti sta aspettando…</p>`;
+  else action = `<button class="btn btn-primary wide" id="btn-mount-buy">${owned ? '🐎 Sella!' : `🪙 Compra per ${m.price}`}</button>`;
+  modal(`
+    <div class="mount-sheet">
+      <img class="mount-sheet-img${locked ? ' mount-locked-img' : ''}" src="${m.img}" onerror="this.outerHTML='<div class=&quot;mount-emoji-big&quot;>${m.emoji}</div>'">
+      <h3 class="panel-title center">${m.name}</h3>
+      <p class="center small"><span class="tag">Liv. ${m.level}</span> <span class="tag">+${m.bonus}% km</span> <span class="tag">🪙 ${m.price}</span></p>
+      <div class="mount-bio">${esc(m.bio)}</div>
+      ${action}
+      <button class="btn wide" onclick="closeModal()">Torna alla Stalla</button>
+    </div>
+  `);
+  const buy = $('#btn-mount-buy');
+  if (buy) buy.addEventListener('click', () => {
+    const err = RPG.buyMount(HERO, m.id);
+    persist(); renderHUD();
+    toast(err || `${m.emoji} ${m.name} è ora la tua cavalcatura! (+${m.bonus}% km)`);
+    if (!err) vibrate(100);
+    closeModal();
+    setTab('market');
   });
 }
 
@@ -793,7 +845,7 @@ function renderNero(c) {
   sellable.forEach(it => {
     const row = el('div', 'mission-row');
     row.appendChild(el('div', 'mission-mid',
-      `${it.icon} <b>${esc(it.name)}</b> <span class="tag">${RPG.RARITIES[it.rarity].label}</span><br>
+      `${itemIconHtml(it, 'item-icon')} <b>${esc(it.name)}</b> <span class="tag">${RPG.RARITIES[it.rarity].label}</span><br>
        <span class="small muted">+${it.xp}% XP</span>`));
     const sv = RPG.sellValue(HERO, it);
     const btn = el('button', 'btn btn-small btn-primary', `Vendi 🪙${sv}`);
@@ -818,7 +870,7 @@ function renderFucina(c) {
     const bought = HERO.items.some(i => i.name === o.name && i.rarity === o.rarity);
     const row = el('div', 'mission-row');
     row.appendChild(el('div', 'mission-mid',
-      `${o.icon} <b>${esc(o.name)}</b> <span class="tag">${RPG.RARITIES[o.rarity].label}</span><br>
+      `${itemIconHtml(o, 'item-icon')} <b>${esc(o.name)}</b> <span class="tag">${RPG.RARITIES[o.rarity].label}</span><br>
        <span class="small muted">+${o.xp}% XP · ${RPG.SLOTS[o.slot].label}</span>`));
     const btn = el('button', 'btn btn-small', `🪙${o.price}`);
     if (HERO.gold >= o.price && !bought) btn.classList.add('btn-primary');
@@ -843,7 +895,7 @@ function renderFucina(c) {
     wearable.forEach(it => {
       const row = el('div', 'mission-row');
       row.appendChild(el('div', 'mission-mid',
-        `${it.icon} <b>${esc(it.name)}</b> <span class="tag">${RPG.RARITIES[it.rarity].label}</span>`));
+        `${itemIconHtml(it, 'item-icon')} <b>${esc(it.name)}</b> <span class="tag">${RPG.RARITIES[it.rarity].label}</span>`));
       const sv = RPG.sellValue(HERO, it);
       const btn = el('button', 'btn btn-small', `Vendi 🪙${sv}`);
       btn.addEventListener('click', () => {
@@ -883,7 +935,7 @@ function renderHero(c) {
     const item = HERO.items.find(i => i.id === itemId);
     const slot = el('button', 'equip-slot' + (item ? ' filled rar-border-' + item.rarity : ''));
     slot.innerHTML = item
-      ? `<span class="equip-icon">${item.icon}</span><span class="equip-label">+${item.xp}%</span>`
+      ? `${itemIconHtml(item, 'equip-img')}<span class="equip-label">+${item.xp}%</span>`
       : `<span class="equip-icon empty">${s.icon}</span><span class="equip-label">${s.label}</span>`;
     slot.addEventListener('click', () => openSlotPicker(key));
     return slot;
@@ -955,8 +1007,10 @@ function openSlotPicker(slotKey) {
   const list = $('#slot-picker-list');
   candidates.forEach(it => {
     const row = el('div', 'loot rar-' + it.rarity + ' pickable' + (it.id === current ? ' equipped' : ''));
-    row.innerHTML = `<div class="loot-head">${it.icon} <b>${esc(it.name)}</b> <span class="tag">${RPG.RARITIES[it.rarity].label}</span>${it.id === current ? ' ✅' : ''}</div>
-      <div class="small">📈 +${it.xp}% XP · 🪙 ${it.value}</div>`;
+    row.classList.add('loot-with-img');
+    row.innerHTML = `${itemIconHtml(it, 'item-icon-big')}<div class="loot-body">
+      <div class="loot-head"><b>${esc(it.name)}</b> <span class="tag">${RPG.RARITIES[it.rarity].label}</span>${it.id === current ? ' ✅' : ''}</div>
+      <div class="small">📈 +${it.xp}% XP · 🪙 ${it.value}</div></div>`;
     row.addEventListener('click', () => {
       RPG.equipItem(HERO, it.id);
       persist(); renderHUD();
