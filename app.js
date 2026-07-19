@@ -23,6 +23,7 @@ const AVATARS = [
   { path: 'assets/avatars/stregone.png',   storyId: 'stregone',   label: 'Lo Stregone' },
   { path: 'assets/avatars/alchimista.png', storyId: 'alchimista', label: 'L\'Alchimista' },
   { path: 'assets/avatars/furfante.png',   storyId: 'furfante',   label: 'Il Furfante' },
+  { path: 'assets/avatars/maga.png',       storyId: 'maga',       label: 'La Maga' },
 ];
 
 /* ── Le storie dei protagonisti ── */
@@ -126,6 +127,27 @@ notte ha rubato all'Orda il bottino più grosso: settanta persone vive.
 Ora ti alleni tra i biomi con il sacco in spalla e il sorriso sotto la maschera,
 perché hai messo gli occhi sul colpo del secolo: intrufolarti nella Vetta Oscura
 e rubare al Cavaliere del Drago l'unica cosa che conta — la sua vittoria.`,
+  },
+  maga: {
+    title: 'La Maga delle Rune Sussurrate',
+    text: `Sei l'ultima allieva della Torre dell'Alchimista a essere entrata nella Foresta
+Sussurrante — non per studiare le piante, ma per ascoltarle. Da bambina scoprivi
+rune incise nella corteccia degli alberi più antichi, simboli che nessun libro
+della Torre elencava, e il tuo bastone (intagliato da tua nonna erborista, la
+stessa che curava mezzo Oakhaven) porta ancora i segni delle prime rune che hai
+imparato a incidere: uno per ogni pozione riuscita, uno per ogni incantesimo
+capito a metà e corretto sul campo. Nella tua bisaccia tintinnano fiale di
+colori diversi — verde per guarire, viola per confondere — miscelate con la
+stessa pazienza di chi sa che la magia, come le piante, non si affretta.
+La notte dell'attacco stavi decifrando una runa nuova alla luce di una candela,
+troppo assorta per accorgerti subito del boato. Quando sei corsa fuori, Oakhaven
+bruciava e il cristallo in cima al tuo bastone, per la prima volta, si è acceso
+da solo — una luce fredda e azzurra che nessun manuale ti aveva insegnato a
+evocare. Da allora non si è più spento: pulsa più forte a ogni chilometro,
+come se il tuo stesso movimento lo alimentasse. Le rune antiche parlano di un
+"Cavaliere" molto prima che tu nascessi: la tua ricerca da studiosa è diventata
+una caccia, e ogni passo verso la Vetta Oscura è anche un passo verso la verità
+che le rune sussurrate hanno sempre custodito.`,
   },
 };
 

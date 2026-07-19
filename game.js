@@ -154,6 +154,8 @@ const RPG = (() => {
       desc: '10% di probabilità che il loot trovato salga di rarità' },
     furfante:   { name: 'Dita Leste',              icon: '🪙',
       desc: '+20% oro da ogni fonte' },
+    maga:       { name: 'Sapienza Runica',         icon: '🔷',
+      desc: '+15% legna e pietra raccolte, +5% XP da ogni allenamento' },
   };
   function talentOf(hero) { return CLASS_TALENTS[hero.storyId] || null; }
   function isClass(hero, id) { return hero.storyId === id; }
@@ -640,6 +642,7 @@ const RPG = (() => {
     if (isClass(hero, 'eroe1') && type !== 'cyclette') xpMult += 0.10;
     if (isClass(hero, 'furfante')) goldMult += 0.20;
     if (isClass(hero, 'eroe2')) resMult += 0.25;
+    if (isClass(hero, 'maga')) { resMult += 0.15; xpMult += 0.05; }
     report.xp = Math.round(effKm * act.xpPerKm * mult * xpMult);
     report.gold = Math.round(effKm * GOLD_PER_KM * mult * goldMult);
     hero.xp += report.xp;
