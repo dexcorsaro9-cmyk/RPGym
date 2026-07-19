@@ -50,7 +50,7 @@ const RPG = (() => {
     { name: 'Rovine di Oakhaven',        min: 1,  max: 4,   icon: '🏚️' },
     { name: 'Foresta Sussurrante',       min: 5,  max: 10,  icon: '🌲' },
     { name: 'Il Giardino Lastricato',    min: 11, max: 15,  icon: '🌿' },
-    { name: 'Il Ponte del Pedaggio',     min: 16, max: 20,  icon: '🌉' },
+    { name: 'Le Pianure del Vento',     min: 16, max: 20,  icon: '🌬️' },
     { name: 'L\'Antico Archivio',        min: 21, max: 25,  icon: '📚' },
     { name: 'Le Fucine di Ruggine',      min: 26, max: 30,  icon: '⚙️' },
     { name: 'La Torre dell\'Alchimista', min: 31, max: 35,  icon: '⚗️' },
@@ -61,7 +61,7 @@ const RPG = (() => {
     { name: 'La Costa del Relitto',      min: 56, max: 60,  icon: '⚓' },
     { name: 'Il Picco Innevato',         min: 61, max: 65,  icon: '🏔️' },
     { name: 'Il Deserto di Cenere',      min: 66, max: 70,  icon: '🌋' },
-    { name: 'La Palude Sabbiosa',        min: 71, max: 75,  icon: '🦎' },
+    { name: 'La Palude Nebbiosa',        min: 71, max: 75,  icon: '🌫️' },
     { name: 'Il Cimitero dei Draghi',    min: 76, max: 80,  icon: '🐉' },
     { name: 'Miniere del Corruttore',    min: 81, max: 85,  icon: '⛏️' },
     { name: 'Sala del Trono Corrotto',   min: 86, max: 90,  icon: '👑' },
@@ -71,6 +71,17 @@ const RPG = (() => {
 
   function currentBiome(level) {
     return BIOMES.find(b => level >= b.min && level <= b.max) || BIOMES[BIOMES.length - 1];
+  }
+  // slug per i file immagine: assets/biomi/<slug>.png e assets/ui/biomi/<slug>.png
+  const BIOME_SLUGS = [
+    'rovine-oakhaven','foresta-sussurrante','giardino-lastricato','pianure-del-vento','antico-archivio',
+    'fucine-ruggine','torre-alchimista','cripta-orologiaio','baia-corallo','fossato-profondo',
+    'fognature-reame','costa-relitto','picco-innevato','deserto-cenere','palude-nebbiosa',
+    'cimitero-draghi','miniere-corruttore','sala-trono-corrotto','abisso-vuoto','valle-cristalli-oscuri',
+  ];
+  function biomeSlug(biome) {
+    const i = BIOMES.indexOf(biome);
+    return i >= 0 ? BIOME_SLUGS[i] : null;
   }
   function accessibleZones(hero) {
     return BIOMES.filter(b => hero.level >= b.min).map(b => b.name);
@@ -306,11 +317,11 @@ const RPG = (() => {
       km: 15, minLevel: 11, requires: 'goblin',
       desc: 'Le siepi del giardino nascondono piante malvagie in agguato.',
       reward: { gold: 120, stone: 50, items: 1 } },
-    { id: 'golem',     zone: 'Il Ponte del Pedaggio', name: 'Il Generale dei Golem',
+    { id: 'golem',     zone: 'Le Pianure del Vento', name: 'Il Generale dei Golem',
       km: 25, minLevel: 16, requires: 'giardino1',
-      desc: 'Un colosso a molla riscuote il pedaggio del ponte. Sconfiggilo!',
+      desc: 'Un colosso a molla marcia tra l\'erba alta delle pianure spazzate dal vento. Sconfiggilo!',
       reward: { gold: 250, card: 'card_golem', items: 2 } },
-    { id: 'amuleto',   zone: 'Il Ponte del Pedaggio', name: 'L\'Amuleto del Viaggiatore Esperto',
+    { id: 'amuleto',   zone: 'Le Pianure del Vento', name: 'L\'Amuleto del Viaggiatore Esperto',
       km: 30, minLevel: 19, requires: 'golem',
       desc: 'Forgia l\'amuleto che spezza il sigillo del Livello 20. Il Drago ti attende oltre.',
       reward: { gold: 300, unlocks: 'ascension', card: 'card_amuleto', items: 2, minRarity: 'epico' } },
@@ -405,10 +416,10 @@ const RPG = (() => {
       weakness: 'Gelo', lore: 'Duella con stile. Perdere contro di lui pizzica per una settimana.' },
     { id: 'rovo-spaccapietre',   name: 'Rovo Spaccapietre',     zone: 'Il Giardino Lastricato',
       weakness: 'Fuoco', lore: 'Cresce nella roccia e la frantuma per dispetto. Le lastre del giardino lo temono.' },
-    { id: 'golem-molla',         name: 'Golem a Molla',         zone: 'Il Ponte del Pedaggio',
+    { id: 'golem-molla',         name: 'Golem a Molla',         zone: 'Le Pianure del Vento',
       boss: true, mission: 'golem',
-      weakness: 'Fulmine', lore: 'Secondo luogotenente dell\'Orda. Riscuote il pedaggio: la chiave inglese è sua.' },
-    { id: 'drago-komodo',        name: 'Drago di Komodo',       zone: 'Il Ponte del Pedaggio',
+      weakness: 'Fulmine', lore: 'Secondo luogotenente dell\'Orda. Marcia tra l\'erba spazzata dal vento: la chiave inglese è sua.' },
+    { id: 'drago-komodo',        name: 'Drago di Komodo',       zone: 'Le Pianure del Vento',
       boss: true, mission: 'amuleto',
       weakness: 'Metallo Celeste', lore: 'Cucciolo della stirpe del Drago Antico. Se questo è il cucciolo…' },
     { id: 'cavaliere-drago',     name: 'Il Cavaliere del Drago', zone: 'La Vetta Oscura',
@@ -1000,7 +1011,7 @@ const RPG = (() => {
     BIOMES, MOUNTS, RARITIES, SLOTS,
     MAX_LEVEL, LEVEL_CAP_1, GOLD_PER_KM,
     xpForLevel, dailyGoalKm, heroTitle,
-    currentBiome, accessibleZones, mountById,
+    currentBiome, accessibleZones, mountById, biomeSlug,
     newHero, migrateHero, load, save, deleteHero,
     logWorkout, availableMissions, startMission,
     canBuild, build, declareRestDay,

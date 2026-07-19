@@ -380,8 +380,16 @@ function renderCamp(c) {
   c.appendChild(scene);
 
   // Costruzione
+  const BUILD_ICON_FILES = {
+    fondamenta: 'torre-mago', baule: 'baule', letto: null,
+    muro: 'muro', fucina: 'fucina', lab: 'laboratorio',
+  };
   const bpanel = el('div', 'panel');
-  bpanel.appendChild(el('h3', 'panel-title', '🔨 Costruisci'));
+  const bTitle = el('h3', 'panel-title', '🔨 Costruisci');
+  bpanel.appendChild(bTitle);
+  const hammerImg = new Image();
+  hammerImg.onload = () => { bTitle.innerHTML = `<img class="panel-title-icon" src="assets/ui/rifugio/costruisci.png"> Costruisci`; };
+  hammerImg.src = 'assets/ui/rifugio/costruisci.png';
   if (HERO.level < 5) {
     bpanel.appendChild(el('p', 'muted',
       `Raggiungi il <b>Livello 5</b> per piantare le radici e costruire la tua casa. (Ora sei al ${HERO.level}.)`));
@@ -389,7 +397,14 @@ function renderCamp(c) {
     RPG.BUILDINGS.forEach(b => {
       const status = RPG.canBuild(HERO, b);
       const row = el('div', 'build-row' + (status === 'costruito' ? ' built' : ''));
-      row.appendChild(el('div', 'build-icon', b.icon));
+      const iconFile = BUILD_ICON_FILES[b.id];
+      const iconHolder = el('div', 'build-icon', b.icon);
+      if (iconFile) {
+        const bimg = new Image();
+        bimg.onload = () => { iconHolder.textContent = ''; bimg.className = 'build-icon-img'; iconHolder.appendChild(bimg); };
+        bimg.src = `assets/ui/rifugio/${iconFile}.png`;
+      }
+      row.appendChild(iconHolder);
       row.appendChild(el('div', 'build-mid',
         `<b>${b.name}</b><br><span class="small muted">${b.desc}</span><br>` +
         `<span class="small">🪵 ${b.cost.wood} · 🪨 ${b.cost.stone} · Liv. ${b.minLevel}</span>`));
@@ -415,7 +430,11 @@ function renderCamp(c) {
   const others = STATE.heroes.filter(h => h.id !== HERO.id);
   if (others.length) {
     const vp = el('div', 'panel');
-    vp.appendChild(el('h3', 'panel-title', '🪞 Visita il Rifugio del tuo Alleato'));
+    const vTitle = el('h3', 'panel-title', '🪞 Visita il Rifugio del tuo Alleato');
+    vp.appendChild(vTitle);
+    const trofeoImg = new Image();
+    trofeoImg.onload = () => { vTitle.innerHTML = `<img class="panel-title-icon" src="assets/ui/rifugio/trofeo-alleato.png"> Visita il Rifugio del tuo Alleato`; };
+    trofeoImg.src = 'assets/ui/rifugio/trofeo-alleato.png';
     others.forEach(o => {
       const btn = el('button', 'btn wide', `Guarda la base di ${esc(o.name)}`);
       btn.addEventListener('click', () => showAllyBase(o));
@@ -465,10 +484,15 @@ function renderMap(c) {
   const pctBiome = Math.min(100, Math.round((HERO.level - biome.min + 1) / span * 100));
   const hdr = el('div', 'biome-hero');
   hdr.innerHTML = `
-    <div class="biome-hero-icon">${biome.icon}</div>
     <div class="biome-hero-name">${biome.name}</div>
     <div class="biome-hero-lv small">Livelli ${biome.min}–${biome.max}</div>
     <div class="membar slim"><div class="membar-fill gold" style="width:${pctBiome}%"></div><span>Liv. ${HERO.level}</span></div>`;
+  const slug = RPG.biomeSlug(biome);
+  if (slug) {
+    const bg = new Image();
+    bg.onload = () => { hdr.style.backgroundImage = `linear-gradient(180deg, rgba(28,18,9,.25), rgba(28,18,9,.85)), url('assets/biomi/${slug}.png')`; hdr.classList.add('has-diorama'); };
+    bg.src = `assets/biomi/${slug}.png`;
+  }
   c.appendChild(hdr);
 
   // ── Incursione del giorno ──
@@ -575,7 +599,11 @@ function renderMap(c) {
   RPG.BIOMES.forEach(b => {
     const open = HERO.level >= b.min;
     const cell = el('div', 'biome-cell' + (open ? '' : ' locked') + (b === biome ? ' current' : ''));
-    cell.innerHTML = `<div class="biome-cell-icon">${open ? b.icon : '🔒'}</div>
+    const slug = RPG.biomeSlug(b);
+    const iconHtml = open && slug
+      ? `<img class="biome-cell-icon-img" src="assets/ui/biomi/${slug}.png" onerror="this.outerHTML='<div class=&quot;biome-cell-icon&quot;>${b.icon}</div>'">`
+      : `<div class="biome-cell-icon">${open ? b.icon : '🔒'}</div>`;
+    cell.innerHTML = `${iconHtml}
       <div class="biome-cell-name">${open ? zoneShort(b.name) : '???'}</div>
       <div class="biome-cell-lv">${b.min}–${b.max}</div>`;
     cell.addEventListener('click', () => showBiomePreview(b, open));
@@ -816,8 +844,12 @@ let MARKET_VIEW = 'stalla';
 function renderMarket(c) {
   c.appendChild(el('h2', 'section-title', '🏪 Il Mercato'));
   const sw = el('div', 'coll-switch');
-  [['stalla', '🐴 Stalla'], ['nero', '🕯️ Contrabbando'], ['fucina', '⚒️ Fucina']].forEach(([k, label]) => {
-    const b = el('button', 'coll-btn' + (MARKET_VIEW === k ? ' active' : ''), label);
+  [['stalla', 'stalla', '🐴', 'Stalla'], ['nero', 'contrabbando', '🕯️', 'Contrabbando'], ['fucina', 'fucina', '⚒️', 'Fucina']].forEach(([k, file, emoji, label]) => {
+    const b = el('button', 'coll-btn' + (MARKET_VIEW === k ? ' active' : ''));
+    const img = new Image();
+    img.onload = () => { b.innerHTML = ''; img.className = 'coll-btn-icon'; b.appendChild(img); b.appendChild(document.createTextNode(' ' + label)); };
+    img.src = `assets/ui/mercato/${file}.png`;
+    b.textContent = `${emoji} ${label}`;
     b.addEventListener('click', () => { MARKET_VIEW = k; setTab('market'); });
     sw.appendChild(b);
   });
@@ -977,7 +1009,11 @@ function renderHero(c) {
   if (HERO_VIEW === 'bestiary') { renderBestiaryView(c); return; }
   if (HERO_VIEW === 'story') { renderStoryView(c); return; }
 
-  c.appendChild(el('h2', 'section-title on-parchment-title', '🛡️ Scheda dell\'Eroe'));
+  const titleH2 = el('h2', 'section-title on-parchment-title', '🛡️ Scheda dell\'Eroe');
+  const titleIcon = new Image();
+  titleIcon.onload = () => { titleH2.innerHTML = `<img class="title-icon" src="assets/ui/eroe/eroe.png"> Scheda dell'Eroe`; };
+  titleIcon.src = 'assets/ui/eroe/eroe.png';
+  c.appendChild(titleH2);
 
   // Eroe con i 6 slot: 3 a sinistra, 3 a destra
   const rig = el('div', 'hero-rig');
@@ -1024,8 +1060,12 @@ function renderHero(c) {
 
   // Sottomenù
   const sub = el('div', 'hero-submenu');
-  [['story', '📜 La tua Storia'], ['cards', '🎴 Carte & Imprese'], ['bestiary', '🐉 Bestiario']].forEach(([k, label]) => {
-    const b = el('button', 'btn', label);
+  [['story', 'storia', '📜', 'La tua Storia'], ['cards', 'carte', '🎴', 'Carte & Imprese'], ['bestiary', 'bestiario', '🐉', 'Bestiario']].forEach(([k, file, emoji, label]) => {
+    const b = el('button', 'btn submenu-btn');
+    b.innerHTML = `<span class="submenu-emoji">${emoji}</span><span>${label}</span>`;
+    const img = new Image();
+    img.onload = () => { b.innerHTML = `<img class="submenu-icon" src="assets/ui/eroe/${file}.png"><span>${label}</span>`; };
+    img.src = `assets/ui/eroe/${file}.png`;
     b.addEventListener('click', () => { HERO_VIEW = k; setTab('hero'); });
     sub.appendChild(b);
   });
@@ -1365,8 +1405,12 @@ function showBiomePreview(b, open) {
   } else {
     beasts = `<p class="small muted center">Nessuno è mai tornato per raccontare quali creature si aggirino qui…</p>`;
   }
+  const slug = RPG.biomeSlug(b);
+  const figHtml = slug
+    ? `<img class="preview-diorama${open ? '' : ' locked-diorama'}" src="assets/biomi/${slug}.png" onerror="this.outerHTML='<p class=&quot;center&quot; style=&quot;font-size:3rem&quot;>${b.icon}</p>'">`
+    : `<p class="center" style="font-size:3rem">${b.icon}</p>`;
   modal(`
-    <p class="center" style="font-size:3rem">${b.icon}</p>
+    ${figHtml}
     <h3 class="panel-title center">${b.name}</h3>
     <p class="center small"><span class="tag">Livelli ${b.min}–${b.max}</span></p>
     ${beasts}
