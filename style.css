@@ -1346,3 +1346,40 @@ body {
 .move-btn:active { transform: translateY(3px); box-shadow: 0 0 0 #000; }
 .move-icon { font-size: 1.8rem; }
 .move-label { font-family: 'Cinzel', serif; font-weight: 700; font-size: .72rem; }
+
+/* ═══════════ v2.9: Biomi rinominati + integrazione asset multipli ═══════════ */
+
+/* Banner del bioma con diorama di sfondo */
+.biome-hero {
+  background-size: cover; background-position: center;
+  transition: background-image .4s ease;
+}
+.biome-hero.has-diorama .biome-hero-name,
+.biome-hero.has-diorama .biome-hero-lv {
+  text-shadow: 0 2px 5px #000, 0 0 10px rgba(0,0,0,.8);
+}
+
+/* Icone dell'Atlante */
+.biome-cell-icon-img { width: 44px; height: 44px; object-fit: contain; margin: 0 auto; filter: drop-shadow(0 2px 3px rgba(0,0,0,.4)); }
+
+/* Anteprima diorama nel popup bioma */
+.preview-diorama {
+  display: block; margin: 0 auto; max-width: 220px; max-height: 150px; object-fit: contain;
+  border-radius: 10px; filter: drop-shadow(0 6px 10px rgba(0,0,0,.4));
+}
+.preview-diorama.locked-diorama { filter: grayscale(.85) brightness(.6); }
+
+/* Icone dei sotto-tab Mercato */
+.coll-btn-icon { width: 26px; height: 26px; object-fit: contain; vertical-align: -7px; margin-right: 4px; }
+
+/* Icona del titolo Eroe */
+.title-icon { width: 28px; height: 28px; object-fit: contain; vertical-align: -7px; margin-right: 2px; }
+
+/* Sottomenù Eroe con icone quadrate */
+.submenu-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 4px; }
+.submenu-icon { width: 40px; height: 40px; object-fit: contain; border-radius: 8px; }
+.submenu-emoji { font-size: 1.6rem; }
+
+/* Icone di costruzione nel Rifugio */
+.build-icon-img { width: 40px; height: 40px; object-fit: contain; }
+.panel-title-icon { width: 24px; height: 24px; object-fit: contain; vertical-align: -6px; margin-right: 2px; }
