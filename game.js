@@ -494,6 +494,7 @@ const RPG = (() => {
     h.summarySeen = h.summarySeen || null;  // ultima data del riepilogo giornaliero
     h.eventNotified = h.eventNotified || null; // settimana della Taglia già notificata
     h.battles = h.battles || { date: null, count: 0 }; // sfide dell'Arena usate oggi
+    h.healthSync = h.healthSync || { date: null, applied: {} }; // sincronizzazione da Apple Salute
     // vecchio inventario a stringhe → convertito in oro
     if (Array.isArray(h.inventory) && h.inventory.length) {
       h.gold += h.inventory.length * 10;
@@ -618,8 +619,8 @@ const RPG = (() => {
     return null;
   }
 
-  function logWorkout(hero, type, km) {
-    const err = validateSession(type, km);
+  function logWorkout(hero, type, km, opts) {
+    const err = (opts && opts.skipValidation) ? null : validateSession(type, km);
     if (err) return { error: err };
 
     migrateHero(hero);
@@ -750,6 +751,37 @@ const RPG = (() => {
       }
     }
 
+    return report;
+  }
+
+  /* ── Sincronizzazione automatica da Apple Salute (via Comandi Rapidi) ──
+     Il Comando Rapido apre la PWA con ?sync_km=X&sync_type=Y contenente il
+     TOTALE cumulativo di oggi (non la singola sessione). Qui calcoliamo la
+     differenza rispetto a quanto già applicato oggi, per non ricontare tutto
+     ogni volta che l'app si riapre. Bypassa il tetto anti-baro per sessione
+     (la fonte è HealthKit, non un input manuale) ma applica un tetto di
+     sicurezza contro dati anomali. */
+  const HEALTH_SYNC_DAILY_CAP = 60; // km massimi accreditabili per tipo al giorno
+  function healthSyncState(hero) {
+    hero.healthSync = hero.healthSync || { date: null, applied: {} };
+    const today = todayStamp();
+    if (hero.healthSync.date !== today) hero.healthSync = { date: today, applied: {} };
+    return hero.healthSync;
+  }
+  function logHealthSync(hero, type, totalKmToday) {
+    if (!ACTIVITIES[type] || !(totalKmToday >= 0)) return null;
+    const hs = healthSyncState(hero);
+    const already = hs.applied[type] || 0;
+    let delta = totalKmToday - already;
+    if (!(delta > 0.05)) return null; // nulla di nuovo, o rumore verso il basso
+    delta = Math.round(delta * 100) / 100;
+    const capped = Math.min(delta, Math.max(0, HEALTH_SYNC_DAILY_CAP - already));
+    if (capped <= 0) return null;
+    const report = logWorkout(hero, type, capped, { skipValidation: true });
+    if (report && !report.error) {
+      hs.applied[type] = already + capped;
+      report.autoSync = true;
+    }
     return report;
   }
 
@@ -1023,6 +1055,7 @@ const RPG = (() => {
     CLASS_TALENTS, talentOf, itemImg,
     BATTLE_MOVES, BATTLE_MAX_DAY, battleBeats, randomMove,
     battlesLeft, useBattle, pickVillain, battleReward,
+    logHealthSync,
     equipItem, unequipSlot,
     dailyLogin, rolloverIncursion,
   };

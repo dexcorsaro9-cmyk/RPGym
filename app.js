@@ -266,8 +266,13 @@ function enterGame() {
   persist();
   renderHUD();
 
+  // Sincronizzazione automatica da Apple Salute (Comandi Rapidi -> ?sync_km=&sync_type=)
+  const healthReport = applyHealthSyncFromURL(HERO);
+  if (healthReport) { persist(); renderHUD(); }
+
   // Coda dei popup di apertura
   OPEN_QUEUE = [];
+  if (healthReport) OPEN_QUEUE.push(() => showHealthSyncResult(healthReport));
   if (missed) OPEN_QUEUE.push(() => modal(`
       <h3 class="panel-title">💨 Il Forziere Svanito…</h3>
       <div class="lost-chest">🎁</div>
@@ -753,7 +758,9 @@ function itemHtml(it) {
 }
 
 function showReport(r) {
-  let html = `<h3 class="panel-title">🎉 Impresa Registrata!</h3>`;
+  let html = r.autoSync
+    ? `<h3 class="panel-title">🏥 Sincronizzato da Salute!</h3>`
+    : `<h3 class="panel-title">🎉 Impresa Registrata!</h3>`;
   const a = RPG.ACTIVITIES[r.type];
   html += `<p>${a.icon} <b>${r.km} km</b> di ${a.label.toLowerCase()}${r.restBonusUsed ? ' <b>(x2 Bonus Riposo!)</b>' : ''}</p>`;
   html += `<div class="reward-grid">
@@ -815,7 +822,7 @@ function showReport(r) {
       <p class="small muted center">Tocca lo scrigno per aprirlo</p>
     </div>`;
   }
-  html += `<button class="btn btn-primary wide" onclick="closeModal(); setTab('camp')">Torna al Rifugio</button>`;
+  html += `<button class="btn btn-primary wide" onclick="nextOpening(); setTab('camp')">Torna al Rifugio</button>`;
   modal(html);
   const chestBtn = $('#btn-open-chest');
   if (chestBtn) chestBtn.addEventListener('click', openChest);
@@ -1305,17 +1312,44 @@ const RES_ICONS = {
   });
 })();
 
-/* ══════════════ Avvio ══════════════ */
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
-}
-
-if (STATE.current && STATE.heroes.find(h => h.id === STATE.current)) enterGame();
-else renderProfiles();
 
 /* ═══════════ v2.7: UX & FOMO ═══════════ */
 
 function todayISO() { return new Date().toISOString().slice(0, 10); }
+
+/* ── Sincronizzazione da Apple Salute via Comandi Rapidi ──────
+   Il Comando Rapido apre: https://.../?sync_km=5.2&sync_type=camminata
+   Nessun server coinvolto: il numero arriva incollato nell'URL e il gioco
+   lo applica all'eroe attualmente selezionato su QUESTO telefono. */
+function applyHealthSyncFromURL(hero) {
+  try {
+    const params = new URLSearchParams(location.search);
+    const km = parseFloat(params.get('sync_km'));
+    const type = params.get('sync_type');
+    // ripulisce l'URL subito, così un refresh non ripropone lo stesso valore
+    if (params.has('sync_km') || params.has('sync_type')) {
+      history.replaceState({}, '', location.pathname + location.hash);
+    }
+    if (!hero || !(km >= 0) || !type || !RPG.ACTIVITIES[type]) return null;
+    return RPG.logHealthSync(hero, type, km);
+  } catch (err) {
+    console.error('Errore sincronizzazione Salute:', err);
+    return null;
+  }
+}
+
+function showHealthSyncResult(report) {
+  if (!report || report.error) { nextOpening(); return; }
+  const notable = report.levelsGained.length || report.missionComplete ||
+    report.incursionComplete || report.fragments || report.sighting ||
+    report.finalReveal || (report.loot && report.loot.length);
+  if (notable) {
+    showReport(report); // stesso popup completo degli allenamenti manuali
+  } else {
+    toast(`🏥 Sincronizzato da Salute: +${report.km} km, +${report.xp} XP`);
+    nextOpening();
+  }
+}
 
 /* ── Coda dei popup di apertura ── */
 let OPEN_QUEUE = [];
@@ -1710,3 +1744,17 @@ function closeBattle() {
   s.innerHTML = '';
   if (CURRENT_TAB === 'train') setTab('train'); // aggiorna il contatore sfide
 }
+
+/* ══════════════ Avvio ══════════════
+   IMPORTANTE: questo blocco deve restare l'ULTIMA cosa nel file.
+   Se venisse eseguito prima che tutte le dichiarazioni `let`/`const`
+   di livello superiore (OPEN_QUEUE, BATTLE, ecc.) siano state
+   valutate, chi riapre l'app con un eroe già selezionato manderebbe
+   in crash l'intero script a metà (Temporal Dead Zone), lasciando
+   funzionalità come l'Arena rotte per tutta la sessione. */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+if (STATE.current && STATE.heroes.find(h => h.id === STATE.current)) enterGame();
+else renderProfiles();
