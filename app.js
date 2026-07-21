@@ -1206,9 +1206,9 @@ function renderMarket(c) {
   [['stalla', 'stalla', '🐴', 'Stalla'], ['nero', 'contrabbando', '🕯️', 'Contrabbando'], ['fucina', 'fucina', '⚒️', 'Fucina']].forEach(([k, file, emoji, label]) => {
     const b = el('button', 'coll-btn' + (MARKET_VIEW === k ? ' active' : ''));
     const img = new Image();
-    img.onload = () => { b.innerHTML = ''; img.className = 'coll-btn-icon'; b.appendChild(img); b.appendChild(document.createTextNode(' ' + label)); };
+    img.onload = () => { b.innerHTML = `<span>${label}</span>`; img.className = 'coll-btn-icon'; b.insertBefore(img, b.firstChild); };
     img.src = `assets/ui/mercato/${file}.png`;
-    b.textContent = `${emoji} ${label}`;
+    b.innerHTML = `<span class="coll-btn-emoji">${emoji}</span><span>${label}</span>`;
     b.addEventListener('click', () => { MARKET_VIEW = k; setTab('market'); });
     sw.appendChild(b);
   });
