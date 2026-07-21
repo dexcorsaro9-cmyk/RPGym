@@ -1523,40 +1523,54 @@ function beginBattle(villainId) {
 }
 
 function drawBattle() {
-  const b = BATTLE;
-  const isFinal = b.v.id === 'cavaliere-drago';
-  const vFig = isFinal ? '<div class="battle-emoji big">🐉</div>'
-    : `<img class="battle-villain-img" id="battle-villain-img" src="assets/bestiario/${b.v.id}.png">`;
-  const heroFig = isImageAvatar(HERO)
-    ? `<img class="battle-hero-img" id="battle-hero-fig" src="${HERO.avatar}">`
-    : `<div class="battle-hero-img battle-hero-emoji" id="battle-hero-fig">${HERO.avatar || '🧑‍🌾'}</div>`;
-  battleEl().innerHTML = `
-    <div class="battle-arena">
-      <div class="battle-topbar">
-        <div class="battle-name">${b.v.name} ${b.v.boss ? '<span class="tag tag-boss">BOSS</span>' : ''}</div>
-        <div class="pips" id="pips-v"></div>
-      </div>
-      <div class="hpbar-lg"><div class="hpbar-fill v" id="hp-v" style="width:100%"></div><span id="hp-v-num">100</span></div>
-
-      <div class="battle-stage">
-        <div class="stage-slot villain" id="stage-villain">${vFig}</div>
-        <div class="battle-center" id="battle-center">
-          <div class="battle-round">Round ${b.round}</div>
-          <div class="battle-weak small">Debolezza: ${b.v.weakness}</div>
+  try {
+    const b = BATTLE;
+    const isFinal = b.v.id === 'cavaliere-drago';
+    const vFig = isFinal ? '<div class="battle-emoji big">🐉</div>'
+      : `<img class="battle-villain-img" id="battle-villain-img" src="assets/bestiario/${b.v.id}.png" onerror="this.outerHTML='<div class=&quot;battle-emoji&quot;>👹</div>'">`;
+    const heroFig = isImageAvatar(HERO)
+      ? `<img class="battle-hero-img" id="battle-hero-fig" src="${HERO.avatar}" onerror="this.outerHTML='<div class=&quot;battle-hero-img battle-hero-emoji&quot;>🧑</div>'">`
+      : `<div class="battle-hero-img battle-hero-emoji" id="battle-hero-fig">${HERO.avatar || '🧑‍🌾'}</div>`;
+    battleEl().innerHTML = `
+      <div class="battle-arena">
+        <button class="battle-flee" id="battle-flee-btn" title="Fuggi dalla battaglia">✕ Fuggi</button>
+        <div class="battle-topbar">
+          <div class="battle-name">${b.v.name} ${b.v.boss ? '<span class="tag tag-boss">BOSS</span>' : ''}</div>
+          <div class="pips" id="pips-v"></div>
         </div>
-        <div class="stage-slot hero" id="stage-hero">${heroFig}</div>
-      </div>
+        <div class="hpbar-lg"><div class="hpbar-fill v" id="hp-v" style="width:100%"></div><span id="hp-v-num">100</span></div>
 
-      <div class="hpbar-lg hero"><div class="hpbar-fill h" id="hp-h" style="width:100%"></div><span id="hp-h-num">100</span></div>
-      <div class="battle-topbar">
-        <div class="pips" id="pips-h"></div>
-        <div class="battle-name right">${esc(HERO.name)}</div>
-      </div>
+        <div class="battle-stage">
+          <div class="stage-slot villain" id="stage-villain">${vFig}</div>
+          <div class="battle-center" id="battle-center">
+            <div class="battle-round">Round ${b.round}</div>
+            <div class="battle-weak small">Debolezza: ${b.v.weakness}</div>
+          </div>
+          <div class="stage-slot hero" id="stage-hero">${heroFig}</div>
+        </div>
 
-      <div class="battle-moves" id="battle-moves"></div>
-    </div>`;
-  drawPips();
-  drawMoves();
+        <div class="hpbar-lg hero"><div class="hpbar-fill h" id="hp-h" style="width:100%"></div><span id="hp-h-num">100</span></div>
+        <div class="battle-topbar">
+          <div class="pips" id="pips-h"></div>
+          <div class="battle-name right">${esc(HERO.name)}</div>
+        </div>
+
+        <div class="battle-moves" id="battle-moves"></div>
+      </div>`;
+    const fleeBtn = document.getElementById('battle-flee-btn');
+    if (fleeBtn) fleeBtn.addEventListener('click', () => {
+      BATTLE = null;
+      closeBattle();
+      toast('Sei fuggito dalla battaglia.');
+    });
+    drawPips();
+    drawMoves();
+  } catch (err) {
+    console.error('Errore disegno battaglia:', err);
+    BATTLE = null;
+    closeBattle();
+    toast('⚠️ Errore nella battaglia: ' + err.message);
+  }
 }
 
 function drawPips() {

@@ -1383,3 +1383,13 @@ body {
 /* Icone di costruzione nel Rifugio */
 .build-icon-img { width: 40px; height: 40px; object-fit: contain; }
 .panel-title-icon { width: 24px; height: 24px; object-fit: contain; vertical-align: -6px; margin-right: 2px; }
+
+/* Pulsante Fuggi sempre visibile durante la battaglia */
+.battle-flee {
+  position: absolute; top: calc(6px + env(safe-area-inset-top)); right: 6px;
+  z-index: 5;
+  background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.3);
+  color: #f4e7cd; font-size: .75rem; font-weight: 700;
+  padding: 6px 10px; border-radius: 8px; cursor: pointer;
+}
+.battle-flee:active { background: rgba(0,0,0,.8); }
