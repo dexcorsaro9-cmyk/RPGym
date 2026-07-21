@@ -1330,7 +1330,11 @@ function renderHero(c) {
 
   // Statistiche
   const stats = el('div', 'panel on-parchment');
-  stats.appendChild(el('h3', 'panel-title', '📊 Imprese'));
+  const impreseTitle = el('h3', 'panel-title', '📊 Imprese');
+  stats.appendChild(impreseTitle);
+  const shieldImg = new Image();
+  shieldImg.onload = () => { impreseTitle.innerHTML = `<img class="panel-title-icon" src="assets/ui/eroe/imprese_scudo.png"> Imprese`; };
+  shieldImg.src = 'assets/ui/eroe/imprese_scudo.png';
   const impreseRows = [
     ['stivale', 'Km totali', `${HERO.totalKm.toFixed(1)}`],
     ['cavallo', 'In sella', `${(HERO.kmByType.cyclette || 0).toFixed(1)} km`],
