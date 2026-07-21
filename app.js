@@ -403,10 +403,11 @@ function renderCamp(c) {
     : 'Un falò tremolante in una radura. Dormi sotto le stelle… per ora.';
   if (HERO.buildings.length >= 4) { sceneEmoji = '🏡'; sceneDesc = 'Il tuo rifugio è ormai una vera dimora fortificata!'; }
   const mount = HERO.mount ? RPG.mountById(HERO.mount) : null;
+  const petSpeciesInfo = HERO.pet ? RPG.PET_SPECIES[HERO.pet.species] : null;
   scene.appendChild(el('div', 'camp-emoji',
     sceneEmoji + (HERO.companion ? ' 🐺' : '') + (mount ? ' ' + mount.emoji : '')));
   scene.appendChild(el('p', 'camp-desc', sceneDesc +
-    (HERO.companion ? '<br>Il Lupo Astrale sonnecchia accanto a te.' : '') +
+    (HERO.companion && petSpeciesInfo ? `<br>${esc(HERO.pet.name)} ${petSpeciesInfo.icon} sonnecchia accanto a te.` : '') +
     (mount ? `<br>${mount.name} riposa nella stalla.` : '')));
   c.appendChild(scene);
 
@@ -414,13 +415,17 @@ function renderCamp(c) {
   if (HERO.companion && HERO.pet) {
     RPG.tickPet(HERO); persist();
     const p = HERO.pet;
-    const sp = el('div', 'panel');
+    const sp = el('div', 'panel santuario-teaser');
     sp.appendChild(el('h3', 'panel-title', '🐾 Il Santuario dei Famigli'));
+    const thumb = el('img', 'pet-thumb');
+    thumb.src = petImageSrc(p);
+    thumb.onerror = () => { thumb.style.display = 'none'; };
+    sp.appendChild(thumb);
     let statusMsg = 'Tutto tranquillo.';
     if (p.sick) statusMsg = '🤒 È malato! Ha bisogno di cure urgenti.';
     else if (p.hunger < 30 || p.mood < 30 || p.hygiene < 30 || p.energy < 30) statusMsg = '⚠️ Ha bisogno di attenzioni!';
     else if (p.wish) statusMsg = '💭 Ha un desiderio da esaudire!';
-    sp.appendChild(el('p', 'muted small', `${esc(p.name)} — Liv. ${p.level}. ${statusMsg}`));
+    sp.appendChild(el('p', 'muted small center', `${esc(p.name)} — Liv. ${p.level}. ${statusMsg}`));
     const enterBtn = el('button', 'btn btn-primary wide', 'Entra nel Santuario');
     enterBtn.addEventListener('click', () => { CAMP_VIEW = 'santuario'; setTab('camp'); });
     sp.appendChild(enterBtn);
@@ -523,6 +528,11 @@ function showAllyBase(o) {
   `);
 }
 
+function petImageSrc(pet) {
+  const stage = RPG.petStage(pet.level);
+  return `assets/pet/${pet.species}/${stage}.png`;
+}
+
 function renderSantuarioView(c) {
   RPG.tickPet(HERO); persist();
   const pet = HERO.pet;
@@ -534,11 +544,19 @@ function renderSantuarioView(c) {
 
   c.appendChild(el('h2', 'section-title', '🐾 Il Santuario dei Famigli'));
 
+  const speciesInfo = RPG.PET_SPECIES[pet.species];
+  const stage = RPG.petStage(pet.level);
   const head = el('div', 'panel center');
-  head.innerHTML = `
-    <div class="pet-portrait">🐺${pet.accessory ? RPG.PET_ACCESSORIES[pet.accessory].icon : ''}</div>
-    <h3 class="hero-name-plate center">${esc(pet.name)} — Liv. ${pet.level}</h3>
-    <p class="small muted">${pers.icon} <b>${pers.name}</b><br>${pers.desc}</p>`;
+  const portraitWrap = el('div', 'pet-portrait-wrap');
+  const img = el('img', 'pet-portrait-img');
+  img.src = petImageSrc(pet);
+  img.onerror = () => { img.outerHTML = `<div class="pet-portrait">${speciesInfo.icon}</div>`; };
+  portraitWrap.appendChild(img);
+  if (pet.accessory) portraitWrap.appendChild(el('div', 'pet-accessory-badge', RPG.PET_ACCESSORIES[pet.accessory].icon));
+  head.appendChild(portraitWrap);
+  head.appendChild(el('div', 'pet-stage-tag small', `${speciesInfo.icon} ${speciesInfo.name} · Stadio ${stage}/5`));
+  head.appendChild(el('h3', 'hero-name-plate center', `${esc(pet.name)} — Liv. ${pet.level}`));
+  head.appendChild(el('p', 'small muted', `${pers.icon} <b>${pers.name}</b><br>${pers.desc}`));
   c.appendChild(head);
 
   if (RPG.packAuraActive(STATE, HERO)) {

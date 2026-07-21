@@ -498,6 +498,10 @@ const RPG = (() => {
     h.battles = h.battles || { date: null, count: 0 }; // sfide dell'Arena usate oggi
     h.healthSync = h.healthSync || { date: null, applied: {} }; // sincronizzazione da Apple Salute
     h.pet = h.pet || null;
+    if (h.pet && !h.pet.species) {
+      h.pet.species = PET_SPECIES_KEYS[Math.floor(Math.random() * PET_SPECIES_KEYS.length)];
+      if (!h.pet.name || h.pet.name === 'Ignis') h.pet.name = PET_SPECIES[h.pet.species].name;
+    }
     h.stamina = h.stamina || 0;
     // vecchio inventario a stringhe → convertito in oro
     if (Array.isArray(h.inventory) && h.inventory.length) {
@@ -819,7 +823,8 @@ const RPG = (() => {
     if (r.unlocks === 'companion' && !hero.companion) {
       hero.companion = true;
       hero.pet = createPet();
-      report.unlocks.push('🐺 EVENTO DEL RISVEGLIO! Il Lupo Astrale ti ha scelto: è la tua cavalcatura in missione (+10% km) e il tuo compagno al Rifugio. Visita il Santuario dei Famigli per prendertene cura!');
+      const sp = PET_SPECIES[hero.pet.species];
+      report.unlocks.push(`🐺 EVENTO DEL RISVEGLIO! Il Lupo Astrale ti ha scelto: è la tua cavalcatura in missione (+10% km). Nello stesso istante, un misterioso uovo di ${sp.name} ${sp.icon} è apparso al Rifugio: visita il Santuario dei Famigli per prendertene cura e vederlo evolvere!`);
     }
     if (r.unlocks === 'ascension') {
       hero.ascended = true;
@@ -1051,6 +1056,24 @@ const RPG = (() => {
      IL SANTUARIO DEI FAMIGLI — meccaniche stile Tamagotchi
      ═══════════════════════════════════════════════════════════ */
 
+  const PET_SPECIES = {
+    ignis:   { name: 'Ignis',   icon: '🔥', desc: 'Nato da un frammento di lava incandescente, cresce fino a diventare un drago di fuoco.' },
+    aqua:    { name: 'Marea',   icon: '🌊', desc: 'Sboccia da una perla di corallo e matura in un drago dei mari.' },
+    glacio:  { name: 'Glacio',  icon: '❄️', desc: 'Un cristallo di ghiaccio antico che si risveglia in un lupo glaciale.' },
+    terras:  { name: 'Terras',  icon: '🏜️', desc: 'Un uovo di sabbia sigillato da geroglifici, custode dei segreti del deserto.' },
+    umbra:   { name: 'Umbra',   icon: '🌑', desc: 'Un frammento d\'ombra stellata che diventa una tigre cosmica.' },
+    volt:    { name: 'Volt',    icon: '⚡', desc: 'Scintille pure imprigionate in un uovo, destinate a un rapace della tempesta.' },
+    silvano: { name: 'Silvano', icon: '🌿', desc: 'Un seme millenario che germoglia in un guardiano della foresta.' },
+    chronos: { name: 'Chronos', icon: '⏳', desc: 'Un ingranaggio incantato che si trasforma in un gufo dei meccanismi del tempo.' },
+  };
+  const PET_SPECIES_KEYS = Object.keys(PET_SPECIES);
+  const PET_EVOLUTION_STAGES = 5;
+  const PET_LEVELS_PER_STAGE = 4;
+
+  function petStage(level) {
+    return Math.min(PET_EVOLUTION_STAGES, Math.floor((level - 1) / PET_LEVELS_PER_STAGE) + 1);
+  }
+
   const PET_PERSONALITIES = {
     goloso: { name: 'Golosone', icon: '🍖',
       desc: 'La fame scende il 30% più in fretta, ma regala +5% XP extra all\'eroe.',
@@ -1084,9 +1107,11 @@ const RPG = (() => {
   function createPet() {
     const keys = Object.keys(PET_PERSONALITIES);
     const personality = keys[Math.floor(Math.random() * keys.length)];
+    const species = PET_SPECIES_KEYS[Math.floor(Math.random() * PET_SPECIES_KEYS.length)];
     const now = Date.now();
     return {
-      name: 'Ignis',
+      name: PET_SPECIES[species].name,
+      species,
       level: 1, xp: 0,
       personality,
       hunger: 100, mood: 100, hygiene: 100, energy: 100,
@@ -1327,9 +1352,9 @@ const RPG = (() => {
     logHealthSync,
     equipItem, unequipSlot,
     dailyLogin, rolloverIncursion,
-    PET_PERSONALITIES, PET_FOODS, PET_ACCESSORIES,
+    PET_PERSONALITIES, PET_FOODS, PET_ACCESSORIES, PET_SPECIES,
     PHOENIX_POTION_PRICE, EXPEDITION_HOURS, WISH_WINDOW_MINUTES,
-    createPet, petXpForLevel, tickPet, petArenaBonus,
+    createPet, petXpForLevel, petStage, tickPet, petArenaBonus,
     feedPet, playWithPet, cleanPet, sleepPet, curePet,
     buyAccessory, addPetXp,
     startExpedition, expeditionStatus, collectExpedition,
