@@ -24,6 +24,10 @@ const AVATARS = [
   { path: 'assets/avatars/alchimista.png', storyId: 'alchimista', label: 'L\'Alchimista' },
   { path: 'assets/avatars/furfante.png',   storyId: 'furfante',   label: 'Il Furfante' },
   { path: 'assets/avatars/maga.png',       storyId: 'maga',       label: 'La Maga' },
+  { path: 'assets/avatars/paladino.png',          storyId: 'paladino',         label: 'Il Paladino' },
+  { path: 'assets/avatars/ranger.png',            storyId: 'ranger',           label: 'Il Ranger' },
+  { path: 'assets/avatars/fata.png',              storyId: 'fata',             label: 'La Fata Elfica' },
+  { path: 'assets/avatars/fabbro-guerriero.png',  storyId: 'fabbro-guerriero', label: 'Il Fabbro Guerriero' },
 ];
 
 /* ── Le storie dei protagonisti ── */
@@ -148,6 +152,80 @@ come se il tuo stesso movimento lo alimentasse. Le rune antiche parlano di un
 "Cavaliere" molto prima che tu nascessi: la tua ricerca da studiosa è diventata
 una caccia, e ogni passo verso la Vetta Oscura è anche un passo verso la verità
 che le rune sussurrate hanno sempre custodito.`,
+  },
+  paladino: {
+    title: 'Il Paladino dell\'Ultima Guardia',
+    text: `Eri il più giovane scudiero mai ammesso nella guarnigione di Oakhaven, e lo
+stemma del grifone dorato sul tuo petto — quello della tua famiglia, protettori
+del borgo da tre generazioni — pesava più della tua armatura intera. Tuo padre,
+capitano delle mura, ti ripeteva sempre la stessa regola prima di ogni turno di
+guardia: "Lo scudo protegge gli altri. La spada protegge lo scudo. Tu proteggi entrambi."
+La notte dell'attacco eri di sentinella al portale nord. Hai visto il Cavaliere
+del Drago oscurare la luna un istante prima che il fuoco cadesse dal cielo, e
+hai suonato l'allarme prima ancora che le guardie più esperte si voltassero.
+Hai tenuto quel portale da solo abbastanza a lungo da far fuggire dodici
+famiglie — finché una trave in fiamme non ti ha sepolto sotto le macerie insieme
+al tuo scudo, l'unica cosa che sei riuscito a salvare oltre alla tua vita.
+Da allora ti alleni senza sosta: ogni chilometro rinforza le braccia che un
+giorno reggeranno di nuovo quello scudo davanti alla Vetta Oscura. Non hai
+potuto salvare Oakhaven quella notte. La prossima volta, giuri, sarai in tempo.`,
+  },
+  ranger: {
+    title: 'Il Ranger dei Sentieri Perduti',
+    text: `Nessuno conosce la Foresta Sussurrante come te: da bambino ti perdevi apposta
+tra gli alberi solo per il gusto di ritrovare la strada da solo, e a dodici anni
+già leggevi le tracce di un cervo meglio dei cacciatori adulti del borgo. La
+bussola che porti al collo era di tuo nonno, esploratore delle terre di confine;
+la faretra è cucita con le tue mani, rune-portafortuna incise su ogni freccia.
+Vivevi ai margini di Oakhaven, più a tuo agio sotto le fronde che dentro le mura,
+quando il cielo si è squarciato di fuoco. Sei corso verso il villaggio contro
+ogni istinto di sopravvivenza che la foresta ti aveva insegnato, ma sei arrivato
+quando ormai restavano solo braci e un silenzio che nessun animale del bosco
+avrebbe mai osato rompere. Hai seguito le tracce dell'Orda per giorni, oltre
+i confini che conoscevi, imparando che anche i mostri lasciano un sentiero.
+Ora quel sentiero è la tua unica missione: ogni chilometro percorso è una traccia
+letta, un indizio in più su dove si nasconde il Cavaliere del Drago. Il migliore
+cacciatore del reame non perde mai la sua preda — nemmeno quando la preda è un mostro.`,
+  },
+  fata: {
+    title: 'La Fata delle Radure Segrete',
+    text: `Sei nata — se "nascere" è la parola giusta — in una radura della Foresta
+Sussurrante che nessuna mappa umana ha mai segnato, dove i funghi crescono in
+cerchi perfetti e le lucciole raccontano storie a chi sa ascoltare. Le tue ali,
+sottili come vetro colorato, si accendono quando sei felice e sbiadiscono
+quando sei triste — un problema, per una fata che non ha mai imparato a nascondere
+i sentimenti. Il bastone di legno di sambuco che porti sempre con te è stato un
+regalo della Regina del Sottobosco, il giorno in cui hai deciso di lasciare la
+radura per curiosare tra gli umani di Oakhaven — gente strana, ma capace di gesti
+di una gentilezza che il tuo popolo non conosceva.
+La notte dell'attacco stavi giocando a nascondino con i bambini del villaggio,
+proprio come facevi ogni sera. Quando il fuoco è caduto dal cielo, hai usato
+l'ultima polvere di folletto che avevi per creare uno scudo di luce attorno a
+loro — e sei svenuta per lo sforzo, la prima e unica volta in vita tua.
+Ti sei risvegliata tra le ceneri, sola: i bambini erano salvi, ma il villaggio
+no. Ora voli — o meglio, corri, pedali, cammini, perché la magia da sola non
+basta più — in cerca del Cavaliere che ha osato portare l'oscurità nel tuo bosco.
+Le fate non dimenticano. E questa fata, in particolare, non perdona.`,
+  },
+  'fabbro-guerriero': {
+    title: 'Il Fabbro delle Cento Guerre',
+    text: `A differenza dei fabbri di bottega, tu non hai mai forgiato una lama che non
+avessi prima impugnato in battaglia. Mercenario e armaiolo delle caravane che
+attraversavano i passi vicino a Oakhaven, hai il volto segnato da più cicatrici
+che rughe e un martello che pesa quanto un bambino piccolo — te lo sei forgiato
+da solo, dopo che il precedente si è spezzato fermando l'ascia di un troll delle
+nevi. "Un'arma che non hai mai testato sulla tua stessa pelle," dicevi sempre,
+"non merita di proteggere quella di un altro."
+Eri di passaggio a Oakhaven per riparare le difese delle mura quando l'Orda è
+calata dal cielo. Non sei scappato: hai afferrato il martello ancora caldo di
+lavoro e hai combattuto tra le rovine finché le braccia non hanno ceduto per lo
+sfinimento, non per la paura. Hai visto cadere guerrieri più giovani di te, e
+il loro ricordo ora è inciso — letteralmente, a colpi di scalpello — sull'impugnatura
+della tua arma.
+Ogni chilometro che percorri è allenamento per il prossimo scontro, perché sai
+bene una cosa che i fabbri da bottega non capiscono mai fino in fondo: alla
+Vetta Oscura non basterà un'arma ben forgiata. Servirà un braccio che non trema.
+Il tuo, promette il martello sulla tua spalla, non tremerà.`,
   },
 };
 
@@ -1887,13 +1965,14 @@ function beginBattle(villainId) {
     persist();
     const petBonus = RPG.petArenaBonus(HERO);
     const furn = RPG.furnitureAggregate(HERO);
+    const classBonus = RPG.classArenaBonus(HERO);
     const furnHpBonus = Math.round(100 * furn.arenaHpMult);
     const furnDmgBonus = Math.round(34 * (furn.arenaDmgMult + (v.boss ? furn.bossDmgMult : 0)));
-    const maxHP = 100 + petBonus.hpBonus + furnHpBonus;
+    const maxHP = 100 + petBonus.hpBonus + furnHpBonus + classBonus.hpBonus;
     BATTLE = {
       v, heroHP: maxHP, heroMaxHP: maxHP, vHP: 100, dmg: 34, hw: 0, vw: 0, round: 1, busy: false, done: false,
       petBonus, furnBonus: {
-        dmgBonus: furnDmgBonus,
+        dmgBonus: furnDmgBonus + classBonus.dmgBonus,
         critChance: furn.arenaCritChance,
         critDmgMult: 1 + furn.arenaCritDmgMult,
         defMult: 1 - Math.min(0.8, furn.arenaDefMult),

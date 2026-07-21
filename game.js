@@ -156,6 +156,14 @@ const RPG = (() => {
       desc: '+20% oro da ogni fonte' },
     maga:       { name: 'Sapienza Runica',         icon: '🔷',
       desc: '+15% legna e pietra raccolte, +5% XP da ogni allenamento' },
+    paladino:   { name: 'Baluardo del Regno',      icon: '🛡️',
+      desc: '+12% Danni e +12% HP in Arena' },
+    ranger:     { name: 'Occhio del Cacciatore',   icon: '🏹',
+      desc: '+15% probabilità di un bottino extra dai forzieri delle missioni' },
+    fata:       { name: 'Polvere di Fata',         icon: '🧚',
+      desc: 'Un Giorno di Riposo extra a settimana (3 invece di 2)' },
+    'fabbro-guerriero': { name: 'Martello da Battaglia', icon: '⚔️',
+      desc: '+15% Danni in Arena · Sconto 10% alla Fucina' },
   };
   function talentOf(hero) { return CLASS_TALENTS[hero.storyId] || null; }
   function isClass(hero, id) { return hero.storyId === id; }
@@ -844,7 +852,8 @@ const RPG = (() => {
       hero.items.push(item);
       chest.items.push(item);
     }
-    if (Math.random() < furn.dropProjectChance) {
+    const rangerChance = isClass(hero, 'ranger') ? 0.15 : 0;
+    if (Math.random() < furn.dropProjectChance + rangerChance) {
       const bonusItem = genItemFor(hero);
       hero.items.push(bonusItem);
       chest.items.push(bonusItem);
@@ -922,7 +931,8 @@ const RPG = (() => {
     const slots = ['arma', 'scudo', 'elmo', 'armatura'];
     const offers = [];
     const furn = furnitureAggregate(hero);
-    const discount = 1 - Math.min(0.6, furn.marketDiscount);
+    const classDiscount = isClass(hero, 'fabbro-guerriero') ? 0.10 : 0;
+    const discount = 1 - Math.min(0.6, furn.marketDiscount + classDiscount);
     for (let i = 0; i < 3; i++) {
       const s = slots[(seed + i * 7) % slots.length];
       // rarità pseudo-casuale ma stabile nel giorno
@@ -1006,7 +1016,8 @@ const RPG = (() => {
   function declareRestDay(hero) {
     const ws = weekStamp();
     if (hero.weekStamp !== ws) { hero.weekStamp = ws; hero.restDaysThisWeek = 0; }
-    if (hero.restDaysThisWeek >= 2) return 'Hai già usato i tuoi 2 Giorni di Riposo questa settimana!';
+    const maxRest = isClass(hero, 'fata') ? 3 : 2;
+    if (hero.restDaysThisWeek >= maxRest) return `Hai già usato i tuoi ${maxRest} Giorni di Riposo questa settimana!`;
     if (hero.restBonus) return 'Hai già un Bonus Riposo attivo: usalo prima!';
     hero.restDaysThisWeek++;
     hero.restBonus = true;
@@ -1234,6 +1245,13 @@ const RPG = (() => {
       if (best[0] === 'cyclette') out.hpBonus = Math.round(20 * moodFactor);
       if (best[0] === 'camminata') out.dmgBonus = Math.round(6 * moodFactor);
     }
+    return out;
+  }
+
+  function classArenaBonus(hero) {
+    const out = { dmgBonus: 0, hpBonus: 0 };
+    if (isClass(hero, 'paladino')) { out.dmgBonus = Math.round(34 * 0.12); out.hpBonus = Math.round(100 * 0.12); }
+    if (isClass(hero, 'fabbro-guerriero')) { out.dmgBonus = Math.round(34 * 0.15); }
     return out;
   }
 
@@ -1834,7 +1852,7 @@ const RPG = (() => {
     dailyLogin, rolloverIncursion,
     PET_PERSONALITIES, PET_FOODS, PET_ACCESSORIES, PET_SPECIES,
     PHOENIX_POTION_PRICE, EXPEDITION_HOURS, WISH_WINDOW_MINUTES,
-    createPet, petXpForLevel, petStage, tickPet, petArenaBonus,
+    createPet, petXpForLevel, petStage, tickPet, petArenaBonus, classArenaBonus,
     feedPet, playWithPet, cleanPet, sleepPet, curePet,
     buyAccessory, addPetXp,
     startExpedition, expeditionStatus, collectExpedition,
