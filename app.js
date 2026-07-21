@@ -390,7 +390,11 @@ function setTab(tab) {
 }
 
 /* ── TAB: Rifugio ── */
+let CAMP_VIEW = 'main';
+
 function renderCamp(c) {
+  if (CAMP_VIEW === 'santuario') { renderSantuarioView(c); return; }
+
   const scene = el('div', 'camp-scene');
   const hasHouse = HERO.buildings.includes('fondamenta');
   let sceneEmoji = hasHouse ? '🛖' : '🔥';
@@ -405,6 +409,23 @@ function renderCamp(c) {
     (HERO.companion ? '<br>Il Lupo Astrale sonnecchia accanto a te.' : '') +
     (mount ? `<br>${mount.name} riposa nella stalla.` : '')));
   c.appendChild(scene);
+
+  // Santuario dei Famigli
+  if (HERO.companion && HERO.pet) {
+    RPG.tickPet(HERO); persist();
+    const p = HERO.pet;
+    const sp = el('div', 'panel');
+    sp.appendChild(el('h3', 'panel-title', '🐾 Il Santuario dei Famigli'));
+    let statusMsg = 'Tutto tranquillo.';
+    if (p.sick) statusMsg = '🤒 È malato! Ha bisogno di cure urgenti.';
+    else if (p.hunger < 30 || p.mood < 30 || p.hygiene < 30 || p.energy < 30) statusMsg = '⚠️ Ha bisogno di attenzioni!';
+    else if (p.wish) statusMsg = '💭 Ha un desiderio da esaudire!';
+    sp.appendChild(el('p', 'muted small', `${esc(p.name)} — Liv. ${p.level}. ${statusMsg}`));
+    const enterBtn = el('button', 'btn btn-primary wide', 'Entra nel Santuario');
+    enterBtn.addEventListener('click', () => { CAMP_VIEW = 'santuario'; setTab('camp'); });
+    sp.appendChild(enterBtn);
+    c.appendChild(sp);
+  }
 
   // Costruzione
   const BUILD_ICON_FILES = {
@@ -500,6 +521,195 @@ function showAllyBase(o) {
     <p class="muted small">${o.cards.length} carte · ${(o.bestiary || []).length} creature nel Bestiario · ${(o.items || []).length} oggetti</p>
     <button class="btn btn-primary wide" onclick="closeModal()">Torna al tuo Rifugio</button>
   `);
+}
+
+function renderSantuarioView(c) {
+  RPG.tickPet(HERO); persist();
+  const pet = HERO.pet;
+  const pers = RPG.PET_PERSONALITIES[pet.personality];
+
+  const backBtn = el('button', 'btn btn-small', '↩ Torna al Rifugio');
+  backBtn.addEventListener('click', () => { CAMP_VIEW = 'main'; setTab('camp'); });
+  c.appendChild(backBtn);
+
+  c.appendChild(el('h2', 'section-title', '🐾 Il Santuario dei Famigli'));
+
+  const head = el('div', 'panel center');
+  head.innerHTML = `
+    <div class="pet-portrait">🐺${pet.accessory ? RPG.PET_ACCESSORIES[pet.accessory].icon : ''}</div>
+    <h3 class="hero-name-plate center">${esc(pet.name)} — Liv. ${pet.level}</h3>
+    <p class="small muted">${pers.icon} <b>${pers.name}</b><br>${pers.desc}</p>`;
+  c.appendChild(head);
+
+  if (RPG.packAuraActive(STATE, HERO)) {
+    c.appendChild(el('div', 'panel done-strip', '🌟 <b>Aura del Branco attiva!</b> Entrambi i famigli sono felici: sconto e bonus drop condivisi!'));
+  }
+
+  if (pet.sick) {
+    const sickP = el('div', 'panel incursion-panel');
+    sickP.innerHTML = `<h3 class="panel-title">🤒 ${esc(pet.name)} è malato!</h3>
+      <p class="small muted center">Solo la Pozione della Fenice può guarirlo.</p>`;
+    const cureBtn = el('button', 'btn btn-primary wide', `🧪 Cura (${RPG.PHOENIX_POTION_PRICE} 🪙)`);
+    cureBtn.addEventListener('click', () => {
+      const r = RPG.curePet(HERO);
+      persist();
+      if (r && r.ok) { toast('✨ Guarito! Il tuo famiglio sta di nuovo bene.'); sfx('level'); }
+      else toast(r);
+      renderHUD(); setTab('camp');
+    });
+    sickP.appendChild(cureBtn);
+    c.appendChild(sickP);
+  }
+
+  if (pet.wish) {
+    const food = RPG.PET_FOODS[pet.wish.item];
+    const minLeft = Math.max(0, Math.ceil((pet.wish.deadline - Date.now()) / 60000));
+    const wp = el('div', 'panel incursion-panel');
+    wp.innerHTML = `<h3 class="panel-title">💭 Desiderio improvviso!</h3>
+      <p class="center">${esc(pet.name)} desidera: <b>${food.icon} ${food.name}</b></p>
+      <p class="muted small center">Scade tra ${minLeft} min!</p>`;
+    const giveBtn = el('button', 'btn btn-primary wide', `Dai ${food.icon} ${food.name}`);
+    giveBtn.addEventListener('click', () => {
+      const r = RPG.feedPet(HERO, pet.wish.item);
+      persist();
+      if (r && r.ok) { toast(r.wishFulfilled ? '🎉 Desiderio esaudito!' : `${food.icon} sfamato!`); sfx('coin'); }
+      else toast(r);
+      renderHUD(); setTab('camp');
+    });
+    wp.appendChild(giveBtn);
+    c.appendChild(wp);
+  }
+
+  const statsPanel = el('div', 'panel');
+  statsPanel.appendChild(el('h3', 'panel-title', '📊 Bisogni'));
+  [
+    ['🍖 Sazietà', pet.hunger],
+    ['🎾 Umore', pet.mood],
+    ['🛁 Igiene', pet.hygiene],
+    ['🌙 Energia', pet.energy],
+  ].forEach(([label, val]) => {
+    const cls = val < 30 ? 'danger' : 'gold';
+    statsPanel.innerHTML += `<div class="stat-row">${label} <b>${Math.round(val)}%</b></div>
+      <div class="membar slim"><div class="membar-fill ${cls}" style="width:${Math.round(val)}%"></div></div>`;
+  });
+  c.appendChild(statsPanel);
+
+  const actionsPanel = el('div', 'panel');
+  actionsPanel.appendChild(el('h3', 'panel-title', '🤲 Prenditi cura di lui'));
+  const grid = el('div', 'hero-submenu');
+
+  const feedBtn = el('button', 'btn submenu-btn');
+  feedBtn.innerHTML = `<span class="submenu-emoji">🍖</span><span>Nutri</span>`;
+  feedBtn.addEventListener('click', openFeedPicker);
+  grid.appendChild(feedBtn);
+
+  const playBtn = el('button', 'btn submenu-btn');
+  playBtn.innerHTML = `<span class="submenu-emoji">🎾</span><span>Gioca</span>`;
+  playBtn.addEventListener('click', () => {
+    const r = RPG.playWithPet(HERO);
+    persist();
+    if (r && r.ok) { toast('🎾 Che divertimento!'); sfx('coin'); } else toast(r);
+    setTab('camp');
+  });
+  grid.appendChild(playBtn);
+
+  const cleanBtn = el('button', 'btn submenu-btn');
+  cleanBtn.innerHTML = `<span class="submenu-emoji">🛁</span><span>Pulisci</span>`;
+  cleanBtn.addEventListener('click', () => {
+    const r = RPG.cleanPet(HERO);
+    persist();
+    if (r && r.ok) { toast('🛁 Pulito e profumato!'); sfx('coin'); } else toast(r);
+    setTab('camp');
+  });
+  grid.appendChild(cleanBtn);
+
+  const sleepBtn = el('button', 'btn submenu-btn');
+  sleepBtn.innerHTML = `<span class="submenu-emoji">🌙</span><span>Nanna</span>`;
+  sleepBtn.addEventListener('click', () => {
+    const r = RPG.sleepPet(HERO);
+    persist();
+    if (r && r.ok) { toast('🌙 Dorme sereno... energia piena domani!'); sfx('coin'); } else toast(r);
+    setTab('camp');
+  });
+  grid.appendChild(sleepBtn);
+
+  actionsPanel.appendChild(grid);
+  c.appendChild(actionsPanel);
+
+  const expStatus = RPG.expeditionStatus(HERO);
+  const expPanel = el('div', 'panel');
+  expPanel.appendChild(el('h3', 'panel-title', '🎒 Spedizione di Foraggiamento'));
+  if (!pet.expedition) {
+    expPanel.appendChild(el('p', 'muted small', `Invia ${esc(pet.name)} in esplorazione per ${RPG.EXPEDITION_HOURS} ore. Più km percorri nel frattempo, più ricco sarà il bottino al ritorno!`));
+    const startBtn = el('button', 'btn btn-primary wide', '🚀 Invia in spedizione');
+    startBtn.disabled = !!pet.sick;
+    startBtn.addEventListener('click', () => {
+      const r = RPG.startExpedition(HERO);
+      persist();
+      if (r && r.ok) toast('🎒 Spedizione iniziata!'); else toast(r);
+      setTab('camp');
+    });
+    expPanel.appendChild(startBtn);
+  } else if (expStatus.ready) {
+    expPanel.appendChild(el('p', 'center', '📦 Il bottino è pronto!'));
+    const collectBtn = el('button', 'btn btn-primary wide', 'Riscuoti');
+    collectBtn.addEventListener('click', () => {
+      const r = RPG.collectExpedition(HERO);
+      persist();
+      if (r) {
+        toast(r.epic ? `🌟 Bottino epico! 🪙${r.gold} 🪵${r.wood} 🪨${r.stone}` : `🎒 Bottino: 🪵${r.wood} 🪨${r.stone}`);
+        sfx('chest');
+      }
+      renderHUD(); setTab('camp');
+    });
+    expPanel.appendChild(collectBtn);
+  } else {
+    expPanel.appendChild(el('div', 'membar slim', `<div class="membar-fill gold" style="width:${expStatus.pctDone}%"></div><span>${expStatus.pctDone}%</span>`));
+    expPanel.appendChild(el('p', 'muted small center', 'In esplorazione... torna più tardi!'));
+  }
+  c.appendChild(expPanel);
+
+  const shop = el('div', 'panel');
+  shop.appendChild(el('h3', 'panel-title', '🛍️ Bottega degli Accessori'));
+  const shopGrid = el('div', 'loot-list');
+  Object.entries(RPG.PET_ACCESSORIES).forEach(([key, acc]) => {
+    const owned = pet.accessoriesOwned.includes(key);
+    const equipped = pet.accessory === key;
+    const row = el('div', 'loot pickable' + (equipped ? ' equipped' : ''));
+    row.innerHTML = `<div class="loot-body"><div class="loot-head"><b>${acc.icon} ${acc.name}</b>${equipped ? ' ✅' : ''}</div>
+      <div class="small">${owned ? (equipped ? 'Equipaggiato' : 'Posseduto — tocca per indossare') : `🪙 ${acc.price}`}</div></div>`;
+    row.addEventListener('click', () => {
+      const r = RPG.buyAccessory(HERO, key);
+      persist();
+      if (r && r.ok) { toast(equipped ? 'Rimosso' : `${acc.icon} Equipaggiato!`); renderHUD(); }
+      else toast(r);
+      setTab('camp');
+    });
+    shopGrid.appendChild(row);
+  });
+  shop.appendChild(shopGrid);
+  c.appendChild(shop);
+}
+
+function openFeedPicker() {
+  let html = `<h3 class="panel-title">🍖 Scegli il pasto</h3><div class="loot-list" id="feed-picker-list"></div>
+    <button class="btn wide" onclick="closeModal()">Annulla</button>`;
+  modal(html);
+  const list = $('#feed-picker-list');
+  Object.entries(RPG.PET_FOODS).forEach(([key, food]) => {
+    const row = el('div', 'loot pickable');
+    row.innerHTML = `<div class="loot-body"><div class="loot-head"><b>${food.icon} ${food.name}</b></div>
+      <div class="small">Sazietà +${food.restoreHunger} · 🪙 ${food.price}</div></div>`;
+    row.addEventListener('click', () => {
+      const r = RPG.feedPet(HERO, key);
+      persist();
+      closeModal();
+      if (r && r.ok) { toast(r.wishFulfilled ? '🎉 Desiderio esaudito!' : `${food.icon} Nutrito!`); sfx('coin'); renderHUD(); }
+      else toast(r);
+      setTab('camp');
+    });
+    list.appendChild(row);
+  });
 }
 
 /* ── TAB: Mappa ── */
@@ -1545,7 +1755,9 @@ function beginBattle(villainId) {
     HERO.bestiary = HERO.bestiary || [];
     if (!HERO.bestiary.includes(v.id)) HERO.bestiary.push(v.id);
     persist();
-    BATTLE = { v, heroHP: 100, vHP: 100, dmg: 34, hw: 0, vw: 0, round: 1, busy: false, done: false };
+    const petBonus = RPG.petArenaBonus(HERO);
+    const maxHP = 100 + petBonus.hpBonus;
+    BATTLE = { v, heroHP: maxHP, heroMaxHP: maxHP, vHP: 100, dmg: 34, hw: 0, vw: 0, round: 1, busy: false, done: false, petBonus };
     closeModal();
     battleEl().classList.remove('hidden');
     drawBattle();
@@ -1646,15 +1858,24 @@ function chooseMove(move) {
     else if (RPG.battleBeats(move, vmove)) result = 'win';
     else result = 'lose';
 
+    const pb = b.petBonus || { dmgBonus: 0, dodgeChance: 0, critMult: 1 };
     let msg;
     if (result === 'win') {
-      b.vHP = Math.max(0, b.vHP - b.dmg); b.hw++;
-      hitEffect('villain', b.dmg); sfx('hit');
-      msg = `<div class="res-txt win">${hm.label}! ${hm.flavor}</div>`;
+      let dealt = b.dmg + (pb.dmgBonus || 0);
+      let isCrit = pb.critMult > 1 && Math.random() < 0.25;
+      if (isCrit) dealt = Math.round(dealt * pb.critMult);
+      b.vHP = Math.max(0, b.vHP - dealt); b.hw++;
+      hitEffect('villain', dealt); sfx('hit');
+      msg = `<div class="res-txt win">${hm.label}! ${hm.flavor}${isCrit ? ' 🐾 COLPO CRITICO del tuo famiglio!' : ''}</div>`;
     } else if (result === 'lose') {
-      b.heroHP = Math.max(0, b.heroHP - b.dmg); b.vw++;
-      hitEffect('hero', b.dmg); sfx('lose');
-      msg = `<div class="res-txt lose">${vm.label} nemico! Sei stato colpito!</div>`;
+      if (pb.dodgeChance > 0 && Math.random() < pb.dodgeChance) {
+        sfx('block');
+        msg = `<div class="res-txt tie">🐾 Il tuo famiglio ti aiuta a schivare il colpo!</div>`;
+      } else {
+        b.heroHP = Math.max(0, b.heroHP - b.dmg); b.vw++;
+        hitEffect('hero', b.dmg); sfx('lose');
+        msg = `<div class="res-txt lose">${vm.label} nemico! Sei stato colpito!</div>`;
+      }
     } else {
       sfx('block');
       msg = `<div class="res-txt tie">Colpi che si annullano!</div>`;
@@ -1692,7 +1913,7 @@ function updateBars() {
   const b = BATTLE;
   const hv = document.getElementById('hp-v'), hh = document.getElementById('hp-h');
   if (hv) hv.style.width = b.vHP + '%';
-  if (hh) hh.style.width = b.heroHP + '%';
+  if (hh) hh.style.width = Math.round(b.heroHP / (b.heroMaxHP || 100) * 100) + '%';
   const nv = document.getElementById('hp-v-num'), nh = document.getElementById('hp-h-num');
   if (nv) nv.textContent = Math.round(b.vHP);
   if (nh) nh.textContent = Math.round(b.heroHP);
