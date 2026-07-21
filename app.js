@@ -1331,14 +1331,20 @@ function renderHero(c) {
   // Statistiche
   const stats = el('div', 'panel on-parchment');
   stats.appendChild(el('h3', 'panel-title', '📊 Imprese'));
-  stats.innerHTML += `
-    <div class="stat-row">🥾 Km totali <b>${HERO.totalKm.toFixed(1)}</b></div>
-    <div class="stat-row">🚴 In sella <b>${(HERO.kmByType.cyclette || 0).toFixed(1)} km</b></div>
-    <div class="stat-row">🚶 A piedi <b>${(HERO.kmByType.camminata || 0).toFixed(1)} km</b></div>
-    <div class="stat-row">🏃 Di corsa <b>${(HERO.kmByType.corsa || 0).toFixed(1)} km</b></div>
-    <div class="stat-row">🗝️ Streak login <b>${HERO.streak.count} giorni</b></div>
-    <div class="stat-row">⚔️ Missioni compiute <b>${HERO.missionsDone.length}</b></div>
-    <div class="stat-row">🎒 Oggetti nello zaino <b>${HERO.items.length}</b></div>`;
+  const impreseRows = [
+    ['stivale', 'Km totali', `${HERO.totalKm.toFixed(1)}`],
+    ['cavallo', 'In sella', `${(HERO.kmByType.cyclette || 0).toFixed(1)} km`],
+    ['pellegrino', 'A piedi', `${(HERO.kmByType.camminata || 0).toFixed(1)} km`],
+    ['cavaliere', 'Di corsa', `${(HERO.kmByType.corsa || 0).toFixed(1)} km`],
+    ['chiave', 'Streak login', `${HERO.streak.count} giorni`],
+    ['spade', 'Missioni compiute', `${HERO.missionsDone.length}`],
+    ['zaino', 'Oggetti nello zaino', `${HERO.items.length}`],
+  ];
+  impreseRows.forEach(([file, label, val]) => {
+    const row = el('div', 'stat-row');
+    row.innerHTML = `<span class="stat-row-label"><img class="stat-row-icon" src="assets/ui/eroe/imprese_${file}.png" onerror="this.style.display='none'">${label}</span><b>${val}</b>`;
+    stats.appendChild(row);
+  });
   c.appendChild(stats);
 
   const sw = el('button', 'btn wide', '↩ Cambia Eroe');

@@ -260,7 +260,9 @@ body {
 .act-choice.selected { border-color: var(--gold); background: rgba(232,182,76,.35); box-shadow: 0 0 8px rgba(201,147,46,.5); }
 
 .log-row { padding: 4px 0; border-bottom: 1px dashed rgba(90,61,36,.3); font-size: .92rem; }
-.stat-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed rgba(90,61,36,.3); }
+.stat-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px dashed rgba(90,61,36,.3); }
+.stat-row-label { display: flex; align-items: center; gap: 8px; }
+.stat-row-icon { width: 26px; height: 26px; object-fit: contain; flex-shrink: 0; }
 
 /* ── Report ricompense ── */
 .reward-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 10px 0; }
