@@ -462,8 +462,19 @@ function renderCamp(c) {
   if (HERO.buildings.length >= 4) { sceneEmoji = '🏡'; sceneDesc = 'Il tuo rifugio è ormai una vera dimora fortificata!'; }
   const mount = HERO.mount ? RPG.mountById(HERO.mount) : null;
   const petSpeciesInfo = HERO.pet ? RPG.PET_SPECIES[HERO.pet.species] : null;
-  scene.appendChild(el('div', 'camp-emoji',
-    sceneEmoji + (HERO.companion ? ' 🐺' : '') + (mount ? ' ' + mount.emoji : '')));
+  scene.appendChild(el('div', 'camp-emoji', sceneEmoji));
+  if (HERO.companion && HERO.pet) {
+    const petThumb = el('img', 'camp-companion-img');
+    petThumb.src = petImageSrc(HERO.pet);
+    petThumb.onerror = () => { petThumb.outerHTML = `<span class="camp-companion-emoji">${petSpeciesInfo ? petSpeciesInfo.icon : '🐺'}</span>`; };
+    scene.appendChild(petThumb);
+  }
+  if (mount) {
+    const mountThumb = el('img', 'camp-companion-img');
+    mountThumb.src = mount.img;
+    mountThumb.onerror = () => { mountThumb.outerHTML = `<span class="camp-companion-emoji">${mount.emoji}</span>`; };
+    scene.appendChild(mountThumb);
+  }
   scene.appendChild(el('p', 'camp-desc', sceneDesc +
     (HERO.companion && petSpeciesInfo ? `<br>${esc(HERO.pet.name)} ${petSpeciesInfo.icon} sonnecchia accanto a te.` : '') +
     (mount ? `<br>${mount.name} riposa nella stalla.` : '')));
@@ -1337,8 +1348,8 @@ function showMountSheet(m) {
 }
 
 function renderNero(c) {
-  c.appendChild(npcBanner('assets/avatars/furfante.png', 'La Piuma',
-    '«Bella merce… io pago in monete sonanti e non faccio domande. Tu non chiedermi dove finisce.»'));
+  c.appendChild(npcBanner('assets/avatars/npc/mercante-contrabbando.png', 'Messer Bilancia',
+    '«Ogni oggetto ha il suo giusto peso in monete… la mia bilancia non sbaglia mai. Vendimi pure, qui non si fanno domande.»'));
   const sellable = HERO.items.filter(i => !Object.values(HERO.equipment).includes(i.id));
   if (!sellable.length) {
     c.appendChild(el('div', 'panel', '<p class="center muted">Non hai bottini da vendere. Gli oggetti equipaggiati non si toccano!</p>'));
@@ -1439,14 +1450,22 @@ function renderHero(c) {
   const leftSlots = slotKeys.slice(0, 3);
   const rightSlots = slotKeys.slice(3);
 
+  const EMPTY_SLOT_IMG = {
+    elmo: 'assets/loot/comune/elmo-0.png',
+    armatura: 'assets/loot/comune/armatura-0.png',
+  };
   const makeSlot = key => {
     const s = RPG.SLOTS[key];
     const itemId = HERO.equipment[key];
     const item = HERO.items.find(i => i.id === itemId);
     const slot = el('button', 'equip-slot' + (item ? ' filled rar-border-' + item.rarity : ''));
-    slot.innerHTML = item
-      ? `${itemIconHtml(item, 'equip-img')}<span class="equip-label">+${item.xp}%</span>`
-      : `<span class="equip-icon empty">${s.icon}</span><span class="equip-label">${s.label}</span>`;
+    if (item) {
+      slot.innerHTML = `${itemIconHtml(item, 'equip-img')}<span class="equip-label">+${item.xp}%</span>`;
+    } else if (EMPTY_SLOT_IMG[key]) {
+      slot.innerHTML = `<img class="equip-icon-img empty" src="${EMPTY_SLOT_IMG[key]}"><span class="equip-label">${s.label}</span>`;
+    } else {
+      slot.innerHTML = `<span class="equip-icon empty">${s.icon}</span><span class="equip-label">${s.label}</span>`;
+    }
     slot.addEventListener('click', () => openSlotPicker(key));
     return slot;
   };
@@ -1554,7 +1573,7 @@ function openSlotPicker(slotKey) {
 function renderStoryView(c) {
   const story = STORIES[HERO.storyId] || STORIES.eroe1;
   backBar(c);
-  c.appendChild(el('h2', 'section-title', '📜 ' + story.title));
+  c.appendChild(el('h2', 'section-title on-parchment-title', '📜 ' + story.title));
   const p = el('div', 'panel story-panel');
   const av = avatarEl(HERO, 'story-avatar');
   p.appendChild(av);
@@ -1573,7 +1592,11 @@ function backBar(c) {
 
 function renderCardsView(c) {
   backBar(c);
-  c.appendChild(el('h2', 'section-title', '🎴 Il Tomo delle Memorie'));
+  const cardsTitle = el('h2', 'section-title on-parchment-title', '🎴 Il Tomo delle Memorie');
+  c.appendChild(cardsTitle);
+  const tomeImg = new Image();
+  tomeImg.onload = () => { cardsTitle.innerHTML = `<img class="title-icon" src="assets/ui/eroe/carte.png"> Il Tomo delle Memorie`; };
+  tomeImg.src = 'assets/ui/eroe/carte.png';
   c.appendChild(el('p', 'muted small center',
     `${HERO.cards.length} / ${Object.keys(RPG.CARDS).length} carte collezionate`));
   const grid = el('div', 'card-grid');
@@ -1589,12 +1612,50 @@ function renderCardsView(c) {
     grid.appendChild(cc);
   });
   c.appendChild(grid);
+
+  // Le Imprese — 100 traguardi, uno per livello
+  const claimed = HERO.achievementsClaimed || [];
+  const unlockedCount = RPG.achievementsUnlocked(HERO).length;
+  c.appendChild(el('h3', 'section-title on-parchment-title small-title', '🏆 Le Imprese del Viandante'));
+  c.appendChild(el('p', 'muted small center',
+    `${unlockedCount} / 100 sbloccate · ${claimed.length} riscosse`));
+  const list = el('div', 'achievement-list');
+  RPG.ACHIEVEMENTS.forEach(a => {
+    const unlocked = HERO.level >= a.level;
+    const isClaimed = claimed.includes(a.id);
+    const row = el('div', 'achievement-row' + (unlocked ? '' : ' locked') + (a.epic ? ' epic' : ''));
+    row.innerHTML = `
+      <div class="achievement-icon">${unlocked ? a.icon : '🔒'}</div>
+      <div class="achievement-mid">
+        <b>${unlocked ? esc(a.name) : '???'}</b>
+        <div class="small muted">${unlocked ? esc(a.desc) : `Sblocca al Livello ${a.level}`}</div>
+      </div>
+      <div class="achievement-side"></div>`;
+    const side = row.querySelector('.achievement-side');
+    if (isClaimed) {
+      side.innerHTML = '<span class="tag">✅</span>';
+    } else if (unlocked) {
+      const btn = el('button', 'btn btn-small btn-primary', `🪙${a.reward.gold}`);
+      btn.addEventListener('click', () => {
+        const r = RPG.claimAchievement(HERO, a.id);
+        persist(); renderHUD();
+        if (r && r.ok) { toast(`${a.icon} Impresa riscossa! +${r.reward.gold} 🪙 +${r.reward.xp} XP`); sfx('coin'); }
+        else toast(r);
+        setTab('hero');
+      });
+      side.appendChild(btn);
+    } else {
+      side.innerHTML = `<span class="small muted">Liv. ${a.level}</span>`;
+    }
+    list.appendChild(row);
+  });
+  c.appendChild(list);
 }
 
 function renderBestiaryView(c) {
   backBar(c);
   HERO.bestiary = HERO.bestiary || [];
-  c.appendChild(el('h2', 'section-title', '🐉 Il Bestiario dell\'Orda'));
+  c.appendChild(el('h2', 'section-title on-parchment-title', '🐉 Il Bestiario dell\'Orda'));
   c.appendChild(el('p', 'muted small center',
     `${HERO.bestiary.length} / ${RPG.BESTIARY.length} creature scoperte`));
   const zones = [...new Set(RPG.BESTIARY.map(b => b.zone))];
@@ -1974,6 +2035,17 @@ function drawBattle() {
   try {
     const b = BATTLE;
     const isFinal = b.v.id === 'cavaliere-drago';
+    const battleBiome = RPG.BIOMES.find(bi => bi.name === b.v.zone) || RPG.currentBiome(HERO.level);
+    const battleSlug = RPG.biomeSlug(battleBiome);
+    if (battleSlug) {
+      const bgImg = new Image();
+      bgImg.onload = () => {
+        battleEl().style.backgroundImage =
+          `linear-gradient(180deg, rgba(30,8,10,.35), rgba(15,6,8,.55) 50%, rgba(8,4,5,.85)), radial-gradient(ellipse at 50% 35%, rgba(120,20,20,.25), transparent 60%), url('assets/biomi/${battleSlug}.png')`;
+        battleEl().classList.add('has-diorama');
+      };
+      bgImg.src = `assets/biomi/${battleSlug}.png`;
+    }
     const vFig = isFinal ? '<div class="battle-emoji big">🐉</div>'
       : `<img class="battle-villain-img" id="battle-villain-img" src="assets/bestiario/${b.v.id}.png" onerror="this.outerHTML='<div class=&quot;battle-emoji&quot;>👹</div>'">`;
     const heroFig = isImageAvatar(HERO)

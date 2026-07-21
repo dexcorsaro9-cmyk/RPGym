@@ -534,6 +534,16 @@ body {
   65%      { transform: scale(.985) rotate(.5deg); }
 }
 .camp-desc { position: relative; z-index: 1; color: #e8dcc0; }
+.camp-companion-img {
+  position: relative; z-index: 1;
+  width: 64px; height: 64px; object-fit: contain;
+  vertical-align: middle; margin: 0 4px;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,.6));
+}
+.camp-companion-emoji {
+  position: relative; z-index: 1;
+  font-size: 2.6rem; vertical-align: middle; margin: 0 4px;
+}
 
 /* ── Carte: riflesso olografico su epiche e leggendarie ── */
 .tcard, .card-reveal { position: relative; overflow: hidden; }
@@ -943,6 +953,8 @@ body {
 }
 .bg-parchment .equip-slot .equip-label { color: #f4e7cd; }
 .equip-img { width: 46px; height: 46px; object-fit: contain; border-radius: 8px; }
+.equip-icon-img { width: 40px; height: 40px; object-fit: contain; border-radius: 8px; }
+.equip-icon-img.empty { opacity: .55; filter: grayscale(.6); }
 .bg-parchment .hero-name-plate, .bg-parchment .hero-title-plate { text-shadow: 0 1px 0 rgba(255,255,255,.55); }
 
 /* ── Mappa v2 ── */
@@ -1181,9 +1193,12 @@ body {
   position: fixed; inset: 0; z-index: 100;
   background:
     radial-gradient(ellipse at 50% 30%, #4a1520 0%, #1a0d10 55%, #050304 100%);
+  background-size: cover; background-position: center;
   display: flex; align-items: center; justify-content: center;
   padding: calc(10px + env(safe-area-inset-top)) 12px calc(10px + env(safe-area-inset-bottom));
+  transition: background-image .4s ease;
 }
+.battle-screen.has-diorama { background-size: cover; background-position: center; }
 .battle-arena {
   width: 100%; max-width: 480px;
   display: flex; flex-direction: column; gap: 8px;
@@ -1407,3 +1422,17 @@ body {
 .set-bonus-active { color: var(--gold-bright); font-weight: 700; }
 .furniture-item-row.equipped { opacity: .75; }
 .furniture-fallback-icon { font-size: 2rem; display: flex; align-items: center; justify-content: center; width: 56px; height: 56px; }
+
+/* Le Imprese del Viandante — 100 traguardi */
+.section-title.small-title { font-size: 1rem; margin-top: 16px; }
+.achievement-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.achievement-row {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,.45); border-left: 4px solid var(--gold);
+  border-radius: 8px; padding: 8px 10px;
+}
+.achievement-row.locked { opacity: .55; border-left-color: rgba(90,61,36,.3); }
+.achievement-row.epic { border-left-color: var(--rar-leggendario, #d9822b); background: rgba(217,130,43,.15); }
+.achievement-icon { font-size: 1.6rem; width: 34px; text-align: center; flex-shrink: 0; }
+.achievement-mid { flex: 1; min-width: 0; }
+.achievement-side { flex-shrink: 0; }

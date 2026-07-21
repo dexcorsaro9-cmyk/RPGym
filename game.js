@@ -483,6 +483,7 @@ const RPG = (() => {
       pet: null,
       stamina: 0,
       furniture: { owned: [] },
+      achievementsClaimed: [],
       ascended: false,
       restBonus: false,
       restDaysThisWeek: 0,
@@ -514,6 +515,7 @@ const RPG = (() => {
     }
     h.stamina = h.stamina || 0;
     h.furniture = h.furniture || { owned: [] };
+    h.achievementsClaimed = h.achievementsClaimed || [];
     // vecchio inventario a stringhe → convertito in oro
     if (Array.isArray(h.inventory) && h.inventory.length) {
       h.gold += h.inventory.length * 10;
@@ -722,8 +724,10 @@ const RPG = (() => {
       report.loot.push(item);
     }
 
-    // Frammenti di Memoria
-    const fragsDue = Math.min(5, Math.floor(hero.totalKm / MEMORY_FRAGMENT_KM));
+    // Frammenti di Memoria — l'ultimo (che rivela il Cavaliere del Drago)
+    // resta bloccato finché l'eroe non raggiunge il Livello 100.
+    const rawFragsDue = Math.min(5, Math.floor(hero.totalKm / MEMORY_FRAGMENT_KM));
+    const fragsDue = (rawFragsDue >= 5 && hero.level < MAX_LEVEL) ? 4 : rawFragsDue;
     if (fragsDue > hero.fragmentsFound) {
       report.fragments = fragsDue - hero.fragmentsFound;
       hero.fragmentsFound = fragsDue;
@@ -1829,6 +1833,130 @@ const RPG = (() => {
     return others.some(o => { tickPet(o); return isHappy(o.pet); });
   }
 
+
+
+  /* ═══════════════════════════════════════════════════════════
+     LE IMPRESE DEL VIANDANTE — 100 traguardi, uno per livello
+     ═══════════════════════════════════════════════════════════ */
+  const ACHIEVEMENTS = [
+    {id:"imp001", level:1, name:"Il Primo Passo", icon:"\ud83e\udd7e", desc:"Il viaggio di mille chilometri inizia da qui.", epic:true, reward:{gold:79, xp:53}},
+    {id:"imp002", level:2, name:"Gambe d'Acciaio · Liv. 2", icon:"\ud83e\uddb5", desc:"I muscoli ricordano ogni chilometro percorso.", epic:false, reward:{gold:23, xp:16}},
+    {id:"imp003", level:3, name:"Sudore Guadagnato · Liv. 3", icon:"\ud83d\udca7", desc:"Nessuna scorciatoia: solo fatica onesta.", epic:false, reward:{gold:27, xp:19}},
+    {id:"imp004", level:4, name:"Occhio Allenato · Liv. 4", icon:"\ud83d\udc41\ufe0f", desc:"Riconosci un pericolo prima che si mostri.", epic:false, reward:{gold:31, xp:22}},
+    {id:"imp005", level:5, name:"Guardiano di Oakhaven", icon:"\ud83c\udfda\ufe0f", desc:"Hai onorato la memoria del villaggio perduto.", epic:true, reward:{gold:95, xp:65}},
+    {id:"imp006", level:6, name:"Zaino più Leggero · Liv. 6", icon:"\ud83c\udf92", desc:"Porti il peso del viaggio con più grazia.", epic:false, reward:{gold:39, xp:28}},
+    {id:"imp007", level:7, name:"Sentiero Noto · Liv. 7", icon:"\ud83d\uddfa\ufe0f", desc:"Questa strada inizia a sembrarti casa.", epic:false, reward:{gold:43, xp:31}},
+    {id:"imp008", level:8, name:"Alba dopo Alba · Liv. 8", icon:"\ud83c\udf05", desc:"Ti sei allenato anche quando non ne avevi voglia.", epic:false, reward:{gold:47, xp:34}},
+    {id:"imp009", level:9, name:"Volontà di Ferro · Liv. 9", icon:"\ud83d\udd29", desc:"Un altro traguardo che pochi raggiungono.", epic:false, reward:{gold:51, xp:37}},
+    {id:"imp010", level:10, name:"Voce della Foresta Sussurrante", icon:"\ud83c\udf32", desc:"Gli alberi ricordano il tuo passaggio.", epic:true, reward:{gold:115, xp:80}},
+    {id:"imp011", level:11, name:"Fiato Robusto · Liv. 11", icon:"\ud83d\udca8", desc:"Il tuo respiro non trema più sotto sforzo.", epic:false, reward:{gold:59, xp:43}},
+    {id:"imp012", level:12, name:"Gambe d'Acciaio · Liv. 12", icon:"\ud83e\uddb5", desc:"I muscoli ricordano ogni chilometro percorso.", epic:false, reward:{gold:63, xp:46}},
+    {id:"imp013", level:13, name:"Sudore Guadagnato · Liv. 13", icon:"\ud83d\udca7", desc:"Nessuna scorciatoia: solo fatica onesta.", epic:false, reward:{gold:67, xp:49}},
+    {id:"imp014", level:14, name:"Occhio Allenato · Liv. 14", icon:"\ud83d\udc41\ufe0f", desc:"Riconosci un pericolo prima che si mostri.", epic:false, reward:{gold:71, xp:52}},
+    {id:"imp015", level:15, name:"Custode del Giardino Lastricato", icon:"\ud83c\udf3f", desc:"Le pietre lastricate conoscono il tuo passo.", epic:true, reward:{gold:135, xp:95}},
+    {id:"imp016", level:16, name:"Zaino più Leggero · Liv. 16", icon:"\ud83c\udf92", desc:"Porti il peso del viaggio con più grazia.", epic:false, reward:{gold:79, xp:58}},
+    {id:"imp017", level:17, name:"Sentiero Noto · Liv. 17", icon:"\ud83d\uddfa\ufe0f", desc:"Questa strada inizia a sembrarti casa.", epic:false, reward:{gold:83, xp:61}},
+    {id:"imp018", level:18, name:"Alba dopo Alba · Liv. 18", icon:"\ud83c\udf05", desc:"Ti sei allenato anche quando non ne avevi voglia.", epic:false, reward:{gold:87, xp:64}},
+    {id:"imp019", level:19, name:"Volontà di Ferro · Liv. 19", icon:"\ud83d\udd29", desc:"Un altro traguardo che pochi raggiungono.", epic:false, reward:{gold:91, xp:67}},
+    {id:"imp020", level:20, name:"Signore delle Pianure del Vento", icon:"\ud83c\udf2c\ufe0f", desc:"Il vento non ti rallenta più.", epic:true, reward:{gold:155, xp:110}},
+    {id:"imp021", level:21, name:"Fiato Robusto · Liv. 21", icon:"\ud83d\udca8", desc:"Il tuo respiro non trema più sotto sforzo.", epic:false, reward:{gold:99, xp:73}},
+    {id:"imp022", level:22, name:"Gambe d'Acciaio · Liv. 22", icon:"\ud83e\uddb5", desc:"I muscoli ricordano ogni chilometro percorso.", epic:false, reward:{gold:103, xp:76}},
+    {id:"imp023", level:23, name:"Sudore Guadagnato · Liv. 23", icon:"\ud83d\udca7", desc:"Nessuna scorciatoia: solo fatica onesta.", epic:false, reward:{gold:107, xp:79}},
+    {id:"imp024", level:24, name:"Occhio Allenato · Liv. 24", icon:"\ud83d\udc41\ufe0f", desc:"Riconosci un pericolo prima che si mostri.", epic:false, reward:{gold:111, xp:82}},
+    {id:"imp025", level:25, name:"Erudito dell'Antico Archivio", icon:"\ud83d\udcda", desc:"Hai letto ciò che pochi osano cercare.", epic:true, reward:{gold:175, xp:125}},
+    {id:"imp026", level:26, name:"Zaino più Leggero · Liv. 26", icon:"\ud83c\udf92", desc:"Porti il peso del viaggio con più grazia.", epic:false, reward:{gold:119, xp:88}},
+    {id:"imp027", level:27, name:"Sentiero Noto · Liv. 27", icon:"\ud83d\uddfa\ufe0f", desc:"Questa strada inizia a sembrarti casa.", epic:false, reward:{gold:123, xp:91}},
+    {id:"imp028", level:28, name:"Alba dopo Alba · Liv. 28", icon:"\ud83c\udf05", desc:"Ti sei allenato anche quando non ne avevi voglia.", epic:false, reward:{gold:127, xp:94}},
+    {id:"imp029", level:29, name:"Volontà di Ferro · Liv. 29", icon:"\ud83d\udd29", desc:"Un altro traguardo che pochi raggiungono.", epic:false, reward:{gold:131, xp:97}},
+    {id:"imp030", level:30, name:"Martello delle Fucine di Ruggine", icon:"\u2699\ufe0f", desc:"Il metallo si piega alla tua costanza.", epic:true, reward:{gold:195, xp:140}},
+    {id:"imp031", level:31, name:"Fiato Robusto · Liv. 31", icon:"\ud83d\udca8", desc:"Il tuo respiro non trema più sotto sforzo.", epic:false, reward:{gold:139, xp:103}},
+    {id:"imp032", level:32, name:"Gambe d'Acciaio · Liv. 32", icon:"\ud83e\uddb5", desc:"I muscoli ricordano ogni chilometro percorso.", epic:false, reward:{gold:143, xp:106}},
+    {id:"imp033", level:33, name:"Sudore Guadagnato · Liv. 33", icon:"\ud83d\udca7", desc:"Nessuna scorciatoia: solo fatica onesta.", epic:false, reward:{gold:147, xp:109}},
+    {id:"imp034", level:34, name:"Occhio Allenato · Liv. 34", icon:"\ud83d\udc41\ufe0f", desc:"Riconosci un pericolo prima che si mostri.", epic:false, reward:{gold:151, xp:112}},
+    {id:"imp035", level:35, name:"Adepto della Torre dell'Alchimista", icon:"\u2697\ufe0f", desc:"Hai distillato la pazienza in potere.", epic:true, reward:{gold:215, xp:155}},
+    {id:"imp036", level:36, name:"Zaino più Leggero · Liv. 36", icon:"\ud83c\udf92", desc:"Porti il peso del viaggio con più grazia.", epic:false, reward:{gold:159, xp:118}},
+    {id:"imp037", level:37, name:"Sentiero Noto · Liv. 37", icon:"\ud83d\uddfa\ufe0f", desc:"Questa strada inizia a sembrarti casa.", epic:false, reward:{gold:163, xp:121}},
+    {id:"imp038", level:38, name:"Alba dopo Alba · Liv. 38", icon:"\ud83c\udf05", desc:"Ti sei allenato anche quando non ne avevi voglia.", epic:false, reward:{gold:167, xp:124}},
+    {id:"imp039", level:39, name:"Volontà di Ferro · Liv. 39", icon:"\ud83d\udd29", desc:"Un altro traguardo che pochi raggiungono.", epic:false, reward:{gold:171, xp:127}},
+    {id:"imp040", level:40, name:"Orologiaio della Cripta", icon:"\ud83d\udd70\ufe0f", desc:"Il tempo stesso rallenta per osservarti.", epic:true, reward:{gold:235, xp:170}},
+    {id:"imp041", level:41, name:"Fiato Robusto · Liv. 41", icon:"\ud83d\udca8", desc:"Il tuo respiro non trema più sotto sforzo.", epic:false, reward:{gold:179, xp:133}},
+    {id:"imp042", level:42, name:"Gambe d'Acciaio · Liv. 42", icon:"\ud83e\uddb5", desc:"I muscoli ricordano ogni chilometro percorso.", epic:false, reward:{gold:183, xp:136}},
+    {id:"imp043", level:43, name:"Sudore Guadagnato · Liv. 43", icon:"\ud83d\udca7", desc:"Nessuna scorciatoia: solo fatica onesta.", epic:false, reward:{gold:187, xp:139}},
+    {id:"imp044", level:44, name:"Occhio Allenato · Liv. 44", icon:"\ud83d\udc41\ufe0f", desc:"Riconosci un pericolo prima che si mostri.", epic:false, reward:{gold:191, xp:142}},
+    {id:"imp045", level:45, name:"Perla della Baia del Corallo", icon:"\ud83e\udeb8", desc:"Le maree ti portano rispetto.", epic:true, reward:{gold:255, xp:185}},
+    {id:"imp046", level:46, name:"Zaino più Leggero · Liv. 46", icon:"\ud83c\udf92", desc:"Porti il peso del viaggio con più grazia.", epic:false, reward:{gold:199, xp:148}},
+    {id:"imp047", level:47, name:"Sentiero Noto · Liv. 47", icon:"\ud83d\uddfa\ufe0f", desc:"Questa strada inizia a sembrarti casa.", epic:false, reward:{gold:203, xp:151}},
+    {id:"imp048", level:48, name:"Alba dopo Alba · Liv. 48", icon:"\ud83c\udf05", desc:"Ti sei allenato anche quando non ne avevi voglia.", epic:false, reward:{gold:207, xp:154}},
+    {id:"imp049", level:49, name:"Volontà di Ferro · Liv. 49", icon:"\ud83d\udd29", desc:"Un altro traguardo che pochi raggiungono.", epic:false, reward:{gold:211, xp:157}},
+    {id:"imp050", level:50, name:"Eroe di Mezza Via", icon:"\u2b50", desc:"Cinquanta livelli, e non hai mai smesso di correre.", epic:true, reward:{gold:275, xp:200}},
+    {id:"imp051", level:51, name:"Fiato Robusto · Liv. 51", icon:"\ud83d\udca8", desc:"Il tuo respiro non trema più sotto sforzo.", epic:false, reward:{gold:219, xp:163}},
+    {id:"imp052", level:52, name:"Gambe d'Acciaio · Liv. 52", icon:"\ud83e\uddb5", desc:"I muscoli ricordano ogni chilometro percorso.", epic:false, reward:{gold:223, xp:166}},
+    {id:"imp053", level:53, name:"Sudore Guadagnato · Liv. 53", icon:"\ud83d\udca7", desc:"Nessuna scorciatoia: solo fatica onesta.", epic:false, reward:{gold:227, xp:169}},
+    {id:"imp054", level:54, name:"Occhio Allenato · Liv. 54", icon:"\ud83d\udc41\ufe0f", desc:"Riconosci un pericolo prima che si mostri.", epic:false, reward:{gold:231, xp:172}},
+    {id:"imp055", level:55, name:"Esploratore del Fossato Profondo", icon:"\ud83d\udd73\ufe0f", desc:"L'abisso ti ha guardato, e tu hai retto lo sguardo.", epic:true, reward:{gold:295, xp:215}},
+    {id:"imp056", level:56, name:"Zaino più Leggero · Liv. 56", icon:"\ud83c\udf92", desc:"Porti il peso del viaggio con più grazia.", epic:false, reward:{gold:239, xp:178}},
+    {id:"imp057", level:57, name:"Sentiero Noto · Liv. 57", icon:"\ud83d\uddfa\ufe0f", desc:"Questa strada inizia a sembrarti casa.", epic:false, reward:{gold:243, xp:181}},
+    {id:"imp058", level:58, name:"Alba dopo Alba · Liv. 58", icon:"\ud83c\udf05", desc:"Ti sei allenato anche quando non ne avevi voglia.", epic:false, reward:{gold:247, xp:184}},
+    {id:"imp059", level:59, name:"Volontà di Ferro · Liv. 59", icon:"\ud83d\udd29", desc:"Un altro traguardo che pochi raggiungono.", epic:false, reward:{gold:251, xp:187}},
+    {id:"imp060", level:60, name:"Ombra delle Fognature del Reame", icon:"\ud83d\udc00", desc:"Nessun vicolo cieco ti trattiene.", epic:true, reward:{gold:315, xp:230}},
+    {id:"imp061", level:61, name:"Fiato Robusto · Liv. 61", icon:"\ud83d\udca8", desc:"Il tuo respiro non trema più sotto sforzo.", epic:false, reward:{gold:259, xp:193}},
+    {id:"imp062", level:62, name:"Gambe d'Acciaio · Liv. 62", icon:"\ud83e\uddb5", desc:"I muscoli ricordano ogni chilometro percorso.", epic:false, reward:{gold:263, xp:196}},
+    {id:"imp063", level:63, name:"Sudore Guadagnato · Liv. 63", icon:"\ud83d\udca7", desc:"Nessuna scorciatoia: solo fatica onesta.", epic:false, reward:{gold:267, xp:199}},
+    {id:"imp064", level:64, name:"Occhio Allenato · Liv. 64", icon:"\ud83d\udc41\ufe0f", desc:"Riconosci un pericolo prima che si mostri.", epic:false, reward:{gold:271, xp:202}},
+    {id:"imp065", level:65, name:"Naufrago della Costa del Relitto", icon:"\u2693", desc:"Hai domato mari che spezzano le navi.", epic:true, reward:{gold:335, xp:245}},
+    {id:"imp066", level:66, name:"Zaino più Leggero · Liv. 66", icon:"\ud83c\udf92", desc:"Porti il peso del viaggio con più grazia.", epic:false, reward:{gold:279, xp:208}},
+    {id:"imp067", level:67, name:"Sentiero Noto · Liv. 67", icon:"\ud83d\uddfa\ufe0f", desc:"Questa strada inizia a sembrarti casa.", epic:false, reward:{gold:283, xp:211}},
+    {id:"imp068", level:68, name:"Alba dopo Alba · Liv. 68", icon:"\ud83c\udf05", desc:"Ti sei allenato anche quando non ne avevi voglia.", epic:false, reward:{gold:287, xp:214}},
+    {id:"imp069", level:69, name:"Volontà di Ferro · Liv. 69", icon:"\ud83d\udd29", desc:"Un altro traguardo che pochi raggiungono.", epic:false, reward:{gold:291, xp:217}},
+    {id:"imp070", level:70, name:"Scalatore del Picco Innevato", icon:"\ud83c\udfd4\ufe0f", desc:"L'aria sottile non ferma il tuo cuore.", epic:true, reward:{gold:355, xp:260}},
+    {id:"imp071", level:71, name:"Fiato Robusto · Liv. 71", icon:"\ud83d\udca8", desc:"Il tuo respiro non trema più sotto sforzo.", epic:false, reward:{gold:299, xp:223}},
+    {id:"imp072", level:72, name:"Gambe d'Acciaio · Liv. 72", icon:"\ud83e\uddb5", desc:"I muscoli ricordano ogni chilometro percorso.", epic:false, reward:{gold:303, xp:226}},
+    {id:"imp073", level:73, name:"Sudore Guadagnato · Liv. 73", icon:"\ud83d\udca7", desc:"Nessuna scorciatoia: solo fatica onesta.", epic:false, reward:{gold:307, xp:229}},
+    {id:"imp074", level:74, name:"Occhio Allenato · Liv. 74", icon:"\ud83d\udc41\ufe0f", desc:"Riconosci un pericolo prima che si mostri.", epic:false, reward:{gold:311, xp:232}},
+    {id:"imp075", level:75, name:"Cenere del Deserto", icon:"\ud83c\udf0b", desc:"Hai attraversato il fuoco e sei tornato.", epic:true, reward:{gold:375, xp:275}},
+    {id:"imp076", level:76, name:"Zaino più Leggero · Liv. 76", icon:"\ud83c\udf92", desc:"Porti il peso del viaggio con più grazia.", epic:false, reward:{gold:319, xp:238}},
+    {id:"imp077", level:77, name:"Sentiero Noto · Liv. 77", icon:"\ud83d\uddfa\ufe0f", desc:"Questa strada inizia a sembrarti casa.", epic:false, reward:{gold:323, xp:241}},
+    {id:"imp078", level:78, name:"Alba dopo Alba · Liv. 78", icon:"\ud83c\udf05", desc:"Ti sei allenato anche quando non ne avevi voglia.", epic:false, reward:{gold:327, xp:244}},
+    {id:"imp079", level:79, name:"Volontà di Ferro · Liv. 79", icon:"\ud83d\udd29", desc:"Un altro traguardo che pochi raggiungono.", epic:false, reward:{gold:331, xp:247}},
+    {id:"imp080", level:80, name:"Spettro della Palude Nebbiosa", icon:"\ud83c\udf2b\ufe0f", desc:"La nebbia si apre al tuo passaggio.", epic:true, reward:{gold:395, xp:290}},
+    {id:"imp081", level:81, name:"Fiato Robusto · Liv. 81", icon:"\ud83d\udca8", desc:"Il tuo respiro non trema più sotto sforzo.", epic:false, reward:{gold:339, xp:253}},
+    {id:"imp082", level:82, name:"Gambe d'Acciaio · Liv. 82", icon:"\ud83e\uddb5", desc:"I muscoli ricordano ogni chilometro percorso.", epic:false, reward:{gold:343, xp:256}},
+    {id:"imp083", level:83, name:"Sudore Guadagnato · Liv. 83", icon:"\ud83d\udca7", desc:"Nessuna scorciatoia: solo fatica onesta.", epic:false, reward:{gold:347, xp:259}},
+    {id:"imp084", level:84, name:"Occhio Allenato · Liv. 84", icon:"\ud83d\udc41\ufe0f", desc:"Riconosci un pericolo prima che si mostri.", epic:false, reward:{gold:351, xp:262}},
+    {id:"imp085", level:85, name:"Necromante del Cimitero dei Draghi", icon:"\ud83d\udc09", desc:"Le ossa antiche sussurrano il tuo nome.", epic:true, reward:{gold:415, xp:305}},
+    {id:"imp086", level:86, name:"Zaino più Leggero · Liv. 86", icon:"\ud83c\udf92", desc:"Porti il peso del viaggio con più grazia.", epic:false, reward:{gold:359, xp:268}},
+    {id:"imp087", level:87, name:"Sentiero Noto · Liv. 87", icon:"\ud83d\uddfa\ufe0f", desc:"Questa strada inizia a sembrarti casa.", epic:false, reward:{gold:363, xp:271}},
+    {id:"imp088", level:88, name:"Alba dopo Alba · Liv. 88", icon:"\ud83c\udf05", desc:"Ti sei allenato anche quando non ne avevi voglia.", epic:false, reward:{gold:367, xp:274}},
+    {id:"imp089", level:89, name:"Volontà di Ferro · Liv. 89", icon:"\ud83d\udd29", desc:"Un altro traguardo che pochi raggiungono.", epic:false, reward:{gold:371, xp:277}},
+    {id:"imp090", level:90, name:"Minatore del Corruttore", icon:"\u26cf\ufe0f", desc:"Hai scavato nel cuore corrotto del reame.", epic:true, reward:{gold:435, xp:320}},
+    {id:"imp091", level:91, name:"Fiato Robusto · Liv. 91", icon:"\ud83d\udca8", desc:"Il tuo respiro non trema più sotto sforzo.", epic:false, reward:{gold:379, xp:283}},
+    {id:"imp092", level:92, name:"Gambe d'Acciaio · Liv. 92", icon:"\ud83e\uddb5", desc:"I muscoli ricordano ogni chilometro percorso.", epic:false, reward:{gold:383, xp:286}},
+    {id:"imp093", level:93, name:"Sudore Guadagnato · Liv. 93", icon:"\ud83d\udca7", desc:"Nessuna scorciatoia: solo fatica onesta.", epic:false, reward:{gold:387, xp:289}},
+    {id:"imp094", level:94, name:"Pretendente al Trono Corrotto", icon:"\ud83d\udc51", desc:"Il trono trema alla tua vicinanza.", epic:true, reward:{gold:451, xp:332}},
+    {id:"imp095", level:95, name:"Cuore Instancabile · Liv. 95", icon:"\u2764\ufe0f", desc:"Il battito rallenta, la forza cresce.", epic:false, reward:{gold:395, xp:295}},
+    {id:"imp096", level:96, name:"Zaino più Leggero · Liv. 96", icon:"\ud83c\udf92", desc:"Porti il peso del viaggio con più grazia.", epic:false, reward:{gold:399, xp:298}},
+    {id:"imp097", level:97, name:"Viandante dell'Abisso del Vuoto", icon:"\ud83c\udf11", desc:"Il vuoto stesso esita davanti a te.", epic:true, reward:{gold:463, xp:341}},
+    {id:"imp098", level:98, name:"Alba dopo Alba · Liv. 98", icon:"\ud83c\udf05", desc:"Ti sei allenato anche quando non ne avevi voglia.", epic:false, reward:{gold:407, xp:304}},
+    {id:"imp099", level:99, name:"Volontà di Ferro · Liv. 99", icon:"\ud83d\udd29", desc:"Un altro traguardo che pochi raggiungono.", epic:false, reward:{gold:411, xp:307}},
+    {id:"imp100", level:100, name:"Leggenda della Valle dei Cristalli Oscuri", icon:"\ud83d\udd2e", desc:"Cento livelli. Il Cavaliere del Drago ti attende.", epic:true, reward:{gold:475, xp:350}},
+  ];
+
+  function achievementsUnlocked(hero) {
+    return ACHIEVEMENTS.filter(a => hero.level >= a.level);
+  }
+
+  function claimAchievement(hero, id) {
+    const a = ACHIEVEMENTS.find(x => x.id === id);
+    if (!a) return 'Impresa sconosciuta.';
+    hero.achievementsClaimed = hero.achievementsClaimed || [];
+    if (hero.achievementsClaimed.includes(id)) return 'Ricompensa già ritirata.';
+    if (hero.level < a.level) return `Raggiungi il Livello ${a.level} per sbloccarla.`;
+    hero.achievementsClaimed.push(id);
+    hero.gold += a.reward.gold;
+    hero.xp += a.reward.xp;
+    return { ok: true, reward: a.reward };
+  }
+
   return {
     ACTIVITIES, MISSIONS, CARDS, BUILDINGS, BESTIARY,
     BIOMES, MOUNTS, RARITIES, SLOTS,
@@ -1855,5 +1983,6 @@ const RPG = (() => {
     packAuraActive,
     FURNITURE_SETS, furnitureSetById, furnitureSetOwnedCount, furnitureSetComplete,
     furnitureUnlockedSets, furnitureAggregate, buyFurniture,
+    ACHIEVEMENTS, achievementsUnlocked, claimAchievement,
   };
 })();
