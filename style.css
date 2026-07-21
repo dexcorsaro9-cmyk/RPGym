@@ -923,11 +923,6 @@ body {
   padding-top: 6px;
 }
 .bg-parchment .hero-rig { margin-top: 0; }
-.hero-fullbody {
-  max-width: 82%;
-  max-height: 56dvh;
-  min-height: 300px;
-}
 
 /* ── Slot equipaggiamento: neri e ben visibili ── */
 .equip-slot {
@@ -1019,16 +1014,7 @@ body {
 
 /* ═══════════ v2.6: Scheda Eroe potenziata ═══════════ */
 
-/* Eroe il 50% più grande: l'immagine "sborda" sotto gli slot */
-.hero-rig { position: relative; margin: 6px -6px 0; }
-.hero-center { margin: 0 -30px; z-index: 0; }
-.hero-fullbody {
-  max-width: none;
-  width: 100%;
-  max-height: 78dvh;
-  min-height: 450px;
-  object-fit: contain;
-}
+.hero-rig { position: relative; margin: 6px 0 0; }
 .slot-col { z-index: 2; }
 
 /* Titolo "Scheda dell'Eroe" su banda scura, sempre leggibile */
@@ -1092,10 +1078,6 @@ body {
   display: block;
 }
 .hero-title-plate b, .equip-total b, .talent-line b { color: var(--gold-bright); }
-
-/* L'eroe si espande sotto gli slot: massima grandezza possibile */
-.hero-center { margin: 0 -58px; }
-.hero-fullbody { min-height: 340px; }
 
 /* ═══════════ v2.7: UX & FOMO ═══════════ */
 
