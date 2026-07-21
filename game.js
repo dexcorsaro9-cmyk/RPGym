@@ -162,8 +162,6 @@ const RPG = (() => {
       desc: '+15% probabilità di un bottino extra dai forzieri delle missioni' },
     fata:       { name: 'Polvere di Fata',         icon: '🧚',
       desc: 'Un Giorno di Riposo extra a settimana (3 invece di 2)' },
-    'fabbro-guerriero': { name: 'Martello da Battaglia', icon: '⚔️',
-      desc: '+15% Danni in Arena · Sconto 10% alla Fucina' },
   };
   function talentOf(hero) { return CLASS_TALENTS[hero.storyId] || null; }
   function isClass(hero, id) { return hero.storyId === id; }
@@ -931,8 +929,7 @@ const RPG = (() => {
     const slots = ['arma', 'scudo', 'elmo', 'armatura'];
     const offers = [];
     const furn = furnitureAggregate(hero);
-    const classDiscount = isClass(hero, 'fabbro-guerriero') ? 0.10 : 0;
-    const discount = 1 - Math.min(0.6, furn.marketDiscount + classDiscount);
+    const discount = 1 - Math.min(0.6, furn.marketDiscount);
     for (let i = 0; i < 3; i++) {
       const s = slots[(seed + i * 7) % slots.length];
       // rarità pseudo-casuale ma stabile nel giorno
@@ -1251,7 +1248,6 @@ const RPG = (() => {
   function classArenaBonus(hero) {
     const out = { dmgBonus: 0, hpBonus: 0 };
     if (isClass(hero, 'paladino')) { out.dmgBonus = Math.round(34 * 0.12); out.hpBonus = Math.round(100 * 0.12); }
-    if (isClass(hero, 'fabbro-guerriero')) { out.dmgBonus = Math.round(34 * 0.15); }
     return out;
   }
 

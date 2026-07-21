@@ -27,7 +27,6 @@ const AVATARS = [
   { path: 'assets/avatars/paladino.png',          storyId: 'paladino',         label: 'Il Paladino' },
   { path: 'assets/avatars/ranger.png',            storyId: 'ranger',           label: 'Il Ranger' },
   { path: 'assets/avatars/fata.png',              storyId: 'fata',             label: 'La Fata Elfica' },
-  { path: 'assets/avatars/fabbro-guerriero.png',  storyId: 'fabbro-guerriero', label: 'Il Fabbro Guerriero' },
 ];
 
 /* ── Le storie dei protagonisti ── */
@@ -206,26 +205,6 @@ Ti sei risvegliata tra le ceneri, sola: i bambini erano salvi, ma il villaggio
 no. Ora voli — o meglio, corri, pedali, cammini, perché la magia da sola non
 basta più — in cerca del Cavaliere che ha osato portare l'oscurità nel tuo bosco.
 Le fate non dimenticano. E questa fata, in particolare, non perdona.`,
-  },
-  'fabbro-guerriero': {
-    title: 'Il Fabbro delle Cento Guerre',
-    text: `A differenza dei fabbri di bottega, tu non hai mai forgiato una lama che non
-avessi prima impugnato in battaglia. Mercenario e armaiolo delle caravane che
-attraversavano i passi vicino a Oakhaven, hai il volto segnato da più cicatrici
-che rughe e un martello che pesa quanto un bambino piccolo — te lo sei forgiato
-da solo, dopo che il precedente si è spezzato fermando l'ascia di un troll delle
-nevi. "Un'arma che non hai mai testato sulla tua stessa pelle," dicevi sempre,
-"non merita di proteggere quella di un altro."
-Eri di passaggio a Oakhaven per riparare le difese delle mura quando l'Orda è
-calata dal cielo. Non sei scappato: hai afferrato il martello ancora caldo di
-lavoro e hai combattuto tra le rovine finché le braccia non hanno ceduto per lo
-sfinimento, non per la paura. Hai visto cadere guerrieri più giovani di te, e
-il loro ricordo ora è inciso — letteralmente, a colpi di scalpello — sull'impugnatura
-della tua arma.
-Ogni chilometro che percorri è allenamento per il prossimo scontro, perché sai
-bene una cosa che i fabbri da bottega non capiscono mai fino in fondo: alla
-Vetta Oscura non basterà un'arma ben forgiata. Servirà un braccio che non trema.
-Il tuo, promette il martello sulla tua spalla, non tremerà.`,
   },
 };
 
