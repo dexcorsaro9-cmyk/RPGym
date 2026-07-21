@@ -1478,36 +1478,48 @@ let BATTLE = null;
 const battleEl = () => document.getElementById('battle');
 
 function openArena() {
-  if (RPG.battlesLeft(HERO) < 1) { toast('Nessuna sfida rimasta oggi. Torna domani!'); return; }
-  const v = RPG.pickVillain(HERO);
-  const isFinal = v.id === 'cavaliere-drago';
-  const fig = isFinal ? '<div class="battle-emoji">🐉</div>'
-    : `<img class="arena-intro-img" src="assets/bestiario/${v.id}.png">`;
-  modal(`
-    <div class="arena-intro">
-      <p class="center big-news">⚔️ Uno sfidante appare!</p>
-      ${fig}
-      <h3 class="panel-title center">${v.name} ${v.boss ? '<span class="tag tag-boss">BOSS</span>' : ''}</h3>
-      <p class="center small muted">Debolezza: <b>${v.weakness}</b></p>
-      <p class="center small">Vinci <b>3 round su 5</b> a colpi di Fendente, Parata e Incantesimo!</p>
-      <button class="btn btn-primary wide big" id="btn-begin-battle">🔥 COMBATTI!</button>
-      <button class="btn wide" onclick="closeModal()">Fuggi…</button>
-    </div>`);
-  document.getElementById('btn-begin-battle').addEventListener('click', () => beginBattle(v.id));
+  try {
+    if (RPG.battlesLeft(HERO) < 1) { toast('Nessuna sfida rimasta oggi. Torna domani!'); return; }
+    const v = RPG.pickVillain(HERO);
+    if (!v) { toast('Errore: nessuno sfidante trovato. Riprova.'); return; }
+    const isFinal = v.id === 'cavaliere-drago';
+    const fig = isFinal ? '<div class="battle-emoji">🐉</div>'
+      : `<img class="arena-intro-img" src="assets/bestiario/${v.id}.png" onerror="this.style.display='none'">`;
+    modal(`
+      <div class="arena-intro">
+        <p class="center big-news">⚔️ Uno sfidante appare!</p>
+        ${fig}
+        <h3 class="panel-title center">${v.name} ${v.boss ? '<span class="tag tag-boss">BOSS</span>' : ''}</h3>
+        <p class="center small muted">Debolezza: <b>${v.weakness}</b></p>
+        <p class="center small">Vinci <b>3 round su 5</b> a colpi di Fendente, Parata e Incantesimo!</p>
+        <button class="btn btn-primary wide big" id="btn-begin-battle">🔥 COMBATTI!</button>
+        <button class="btn wide" onclick="closeModal()">Fuggi…</button>
+      </div>`);
+    const beginBtn = document.getElementById('btn-begin-battle');
+    if (beginBtn) beginBtn.addEventListener('click', () => beginBattle(v.id));
+  } catch (err) {
+    console.error('Errore Arena:', err);
+    toast('⚠️ Errore Arena: ' + err.message);
+  }
 }
 
 function beginBattle(villainId) {
-  const v = RPG.BESTIARY.find(b => b.id === villainId);
-  if (!RPG.useBattle(HERO)) { closeModal(); toast('Sfide esaurite per oggi!'); return; }
-  // scoperta nel Bestiario incontrandolo nell'arena
-  HERO.bestiary = HERO.bestiary || [];
-  if (!HERO.bestiary.includes(v.id)) HERO.bestiary.push(v.id);
-  persist();
-  BATTLE = { v, heroHP: 100, vHP: 100, dmg: 34, hw: 0, vw: 0, round: 1, busy: false, done: false };
-  closeModal();
-  battleEl().classList.remove('hidden');
-  drawBattle();
-  try { if (_AC && _AC.state === 'suspended') _AC.resume(); } catch {}
+  try {
+    const v = RPG.BESTIARY.find(b => b.id === villainId);
+    if (!v) { toast('⚠️ Sfidante non trovato.'); return; }
+    if (!RPG.useBattle(HERO)) { closeModal(); toast('Sfide esaurite per oggi!'); return; }
+    HERO.bestiary = HERO.bestiary || [];
+    if (!HERO.bestiary.includes(v.id)) HERO.bestiary.push(v.id);
+    persist();
+    BATTLE = { v, heroHP: 100, vHP: 100, dmg: 34, hw: 0, vw: 0, round: 1, busy: false, done: false };
+    closeModal();
+    battleEl().classList.remove('hidden');
+    drawBattle();
+    try { if (_AC && _AC.state === 'suspended') _AC.resume(); } catch {}
+  } catch (err) {
+    console.error('Errore inizio battaglia:', err);
+    toast('⚠️ Errore: ' + err.message);
+  }
 }
 
 function drawBattle() {
