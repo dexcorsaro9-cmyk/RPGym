@@ -265,12 +265,15 @@ const RPG = (() => {
   // Genera loot per un eroe, applicando il talento dell'Alchimista
   function genItemFor(hero, minRarity, forcedSlot) {
     let item = genItem(hero.level, minRarity, forcedSlot);
-    if (isClass(hero, 'alchimista') && Math.random() < 0.10) {
+    const alchProc = isClass(hero, 'alchimista') && Math.random() < 0.10;
+    const furn = furnitureAggregate(hero);
+    const furnProc = Math.random() < furn.dropRareChance;
+    if (alchProc || furnProc) {
       const avail = availableRarities(hero.level);
       const idx = avail.indexOf(item.rarity);
       if (idx >= 0 && idx < avail.length - 1) {
         item = genItem(hero.level, null, item.slot, avail[idx + 1]);
-        item.distilled = true; // il tocco dell'Alchimista
+        if (alchProc) item.distilled = true; // il tocco dell'Alchimista
       }
     }
     return item;
@@ -473,6 +476,7 @@ const RPG = (() => {
       companion: false,
       pet: null,
       stamina: 0,
+      furniture: { owned: [] },
       ascended: false,
       restBonus: false,
       restDaysThisWeek: 0,
@@ -503,6 +507,7 @@ const RPG = (() => {
       if (!h.pet.name || h.pet.name === 'Ignis') h.pet.name = PET_SPECIES[h.pet.species].name;
     }
     h.stamina = h.stamina || 0;
+    h.furniture = h.furniture || { owned: [] };
     // vecchio inventario a stringhe → convertito in oro
     if (Array.isArray(h.inventory) && h.inventory.length) {
       h.gold += h.inventory.length * 10;
@@ -652,19 +657,37 @@ const RPG = (() => {
     if (isClass(hero, 'furfante')) goldMult += 0.20;
     if (isClass(hero, 'eroe2')) resMult += 0.25;
     if (isClass(hero, 'maga')) { resMult += 0.15; xpMult += 0.05; }
+
+    // Cimeli del Rifugio (Espansione)
+    const furn = furnitureAggregate(hero);
+    xpMult += (furn.xpMult[type] || 0) + (furn.xpMult.global || 0);
+    goldMult += furn.goldMult;
+    let localWoodMult = resMult + furn.woodMult;
+    let localStoneMult = resMult + furn.stoneMult;
+    // Dualità: Cittadella dell'Eclissi, +risorse dopo le 18:00
+    if (furn.flags.dualityBonus && new Date().getHours() >= 18) {
+      goldMult += furn.flags.dualityBonus;
+      localWoodMult += furn.flags.dualityBonus;
+      localStoneMult += furn.flags.dualityBonus;
+    }
+
     report.xp = Math.round(effKm * act.xpPerKm * mult * xpMult);
     report.gold = Math.round(effKm * GOLD_PER_KM * mult * goldMult);
     hero.xp += report.xp;
     hero.gold += report.gold;
 
-    report.wood = Math.round((effKm * (1 + Math.random())) * resMult);
-    report.stone = Math.round((effKm * Math.random()) * resMult);
+    report.wood = Math.round((effKm * (1 + Math.random())) * localWoodMult);
+    report.stone = Math.round((effKm * Math.random()) * localStoneMult);
     hero.wood += report.wood;
     hero.stone += report.stone;
 
     hero.totalKm += km;
     hero.kmByType[type] = (hero.kmByType[type] || 0) + km;
-    if (type === 'corsa') hero.stamina = (hero.stamina || 0) + km * 5;
+    if (type === 'corsa') {
+      let staminaGain = km * 5 + furn.staminaMaxBonus;
+      if (furn.flags.doubleStamina) staminaGain *= 2;
+      hero.stamina = (hero.stamina || 0) + staminaGain;
+    }
     hero.log.unshift({ date: Date.now(), type, km, xp: report.xp });
     if (hero.log.length > 100) hero.log.pop();
 
@@ -803,9 +826,16 @@ const RPG = (() => {
       report.bossDefeated = boss;
     }
     const r = m.reward || {};
+    const furn = furnitureAggregate(hero);
+    const doubleChest = Math.random() < furn.doubleDropChance;
     // Lo scrigno: le ricompense vengono consegnate subito allo stato,
     // ma l'interfaccia le rivela con l'apertura dello scrigno.
-    const chest = { gold: r.gold || 0, wood: r.wood || 0, stone: r.stone || 0, items: [], cards: [] };
+    const chest = {
+      gold: (r.gold || 0) * (doubleChest ? 2 : 1),
+      wood: (r.wood || 0) * (doubleChest ? 2 : 1),
+      stone: (r.stone || 0) * (doubleChest ? 2 : 1),
+      items: [], cards: [], doubled: doubleChest,
+    };
     hero.gold += chest.gold;
     hero.wood += chest.wood;
     hero.stone += chest.stone;
@@ -813,6 +843,12 @@ const RPG = (() => {
       const item = genItemFor(hero, r.minRarity);
       hero.items.push(item);
       chest.items.push(item);
+    }
+    if (Math.random() < furn.dropProjectChance) {
+      const bonusItem = genItemFor(hero);
+      hero.items.push(bonusItem);
+      chest.items.push(bonusItem);
+      chest.bonusFind = true;
     }
     if (r.card && !hero.cards.includes(r.card)) {
       hero.cards.push(r.card);
@@ -885,6 +921,8 @@ const RPG = (() => {
     const seed = dateSeed(today + '-forge');
     const slots = ['arma', 'scudo', 'elmo', 'armatura'];
     const offers = [];
+    const furn = furnitureAggregate(hero);
+    const discount = 1 - Math.min(0.6, furn.marketDiscount);
     for (let i = 0; i < 3; i++) {
       const s = slots[(seed + i * 7) % slots.length];
       // rarità pseudo-casuale ma stabile nel giorno
@@ -903,7 +941,7 @@ const RPG = (() => {
         name: `${base} ${suf}`,
         icon: SLOTS[s].icon,
         xp: r.xp, value: r.value,
-        price: Math.round(r.value * 2 * (isClass(hero, 'fabbro') ? 0.8 : 1)),
+        price: Math.round(r.value * 2 * (isClass(hero, 'fabbro') ? 0.8 : 1) * discount),
         desc: descForItem(s, rarity),
       });
     }
@@ -915,7 +953,7 @@ const RPG = (() => {
       const base = ITEM_BASES[s][(seed + 11) % ITEM_BASES[s].length];
       const suf = RARITY_SUFFIX[rarity][(seed + 17) % RARITY_SUFFIX[rarity].length];
       const r = RARITIES[rarity];
-      const full = Math.round(r.value * 2 * (isClass(hero, 'fabbro') ? 0.8 : 1));
+      const full = Math.round(r.value * 2 * (isClass(hero, 'fabbro') ? 0.8 : 1) * discount);
       offers.push({
         id: 'forge-' + today + '-occasione',
         slot: s, rarity,
@@ -1324,6 +1362,448 @@ const RPG = (() => {
     return result;
   }
 
+  /* ═══════════════════════════════════════════════════════════
+     ESPANSIONE DEL RIFUGIO — 20 set di cimeli, 200 oggetti
+     ═══════════════════════════════════════════════════════════ */
+
+  const FURNITURE_SETS = [
+    {
+      id: "set01", num: 1, name: "I Cimeli di Oakhaven",
+      biomeIdx: 0, fallbackIcon: "🏚️",
+      setBonusDesc: "+10% XP base da tutte le Camminate",
+      setBonusEffects: [{"type": "xpMult", "activity": "camminata", "value": 0.1}],
+      items: [
+        {id: "f001", name: "Tappeto Intrecciato di Oakhaven", bonusText: "+0.5% XP Camminata", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "camminata", "value": 0.005}], price: {"gold": 11, "wood": 4, "stone": 3}, img: "assets/ui/rifugio/furniture/set01/01.png"},
+        {id: "f002", name: "Torcia in Legno Grezzo", bonusText: "+1% Monete trovate", epic: false, wall: false, effects: [{"type": "goldMult", "value": 0.01}], price: {"gold": 12, "wood": 4, "stone": 3}, img: "assets/ui/rifugio/furniture/set01/02.png"},
+        {id: "f003", name: "Tavolo della Taverna", bonusText: "+1% Legna trovata", epic: false, wall: false, effects: [{"type": "woodMult", "value": 0.01}], price: {"gold": 14, "wood": 4, "stone": 4}, img: "assets/ui/rifugio/furniture/set01/03.png"},
+        {id: "f004", name: "Sgabello a Tre Gambe", bonusText: "+0.5% XP Camminata", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "camminata", "value": 0.005}], price: {"gold": 15, "wood": 5, "stone": 4}, img: "assets/ui/rifugio/furniture/set01/04.png"},
+        {id: "f005", name: "Scudo di Legno Scheggiato", bonusText: "+1% Danni in Arena", epic: false, wall: true, effects: [{"type": "arenaDmgMult", "value": 0.01}], price: {"gold": 17, "wood": 8, "stone": 10}, img: "assets/ui/rifugio/furniture/set01/05.png"},
+        {id: "f006", name: "Mappa della Foresta", bonusText: "+1% Probabilità di trovare Progetti", epic: false, wall: true, effects: [{"type": "dropProjectChance", "value": 0.01}], price: {"gold": 18, "wood": 8, "stone": 11}, img: "assets/ui/rifugio/furniture/set01/06.png"},
+        {id: "f007", name: "Statuina del Gufo", bonusText: "+0.5% XP Camminata", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "camminata", "value": 0.005}], price: {"gold": 20, "wood": 6, "stone": 5}, img: "assets/ui/rifugio/furniture/set01/07.png"},
+        {id: "f008", name: "Mola per Affilare", bonusText: "+1% Danni in Arena", epic: false, wall: false, effects: [{"type": "arenaDmgMult", "value": 0.01}], price: {"gold": 21, "wood": 7, "stone": 6}, img: "assets/ui/rifugio/furniture/set01/08.png"},
+        {id: "f009", name: "Cesta di Mele", bonusText: "+1 Stamina massima", epic: false, wall: false, effects: [{"type": "staminaMax", "value": 1.0}], price: {"gold": 22, "wood": 7, "stone": 6}, img: "assets/ui/rifugio/furniture/set01/09.png"},
+        {id: "f010", name: "Lo Stendardo del Viandante", bonusText: "+2% XP Camminata", epic: true, wall: false, effects: [{"type": "xpMult", "activity": "camminata", "value": 0.02}], price: {"gold": 72, "wood": 23, "stone": 20}, img: "assets/ui/rifugio/furniture/set01/10.png"},
+      ],
+    },
+    {
+      id: "set02", num: 2, name: "L'Arsenale del Fabbro",
+      biomeIdx: 5, fallbackIcon: "⚙️",
+      setBonusDesc: "Sconto del 15% su tutti gli acquisti nel Mercato",
+      setBonusEffects: [{"type": "marketDiscount", "value": 0.15}],
+      items: [
+        {id: "f011", name: "Pavimentazione in Pietra Lavica", bonusText: "+0.5% Pietra trovata", epic: false, wall: false, effects: [{"type": "stoneMult", "value": 0.005}], price: {"gold": 17, "wood": 5, "stone": 5}, img: "assets/ui/rifugio/furniture/set02/01.png"},
+        {id: "f012", name: "Braciere a Carbone", bonusText: "+1% Pietra trovata", epic: false, wall: false, effects: [{"type": "stoneMult", "value": 0.01}], price: {"gold": 19, "wood": 6, "stone": 5}, img: "assets/ui/rifugio/furniture/set02/02.png"},
+        {id: "f013", name: "Banco da Lavoro in Ferro", bonusText: "Sconto 1% al Mercato", epic: false, wall: false, effects: [{"type": "marketDiscount", "value": 0.01}], price: {"gold": 21, "wood": 7, "stone": 6}, img: "assets/ui/rifugio/furniture/set02/03.png"},
+        {id: "f014", name: "Sedia del Mastro Fabbro", bonusText: "Sconto 1% al Mercato", epic: false, wall: false, effects: [{"type": "marketDiscount", "value": 0.01}], price: {"gold": 24, "wood": 8, "stone": 6}, img: "assets/ui/rifugio/furniture/set02/04.png"},
+        {id: "f015", name: "Rastrelliera per Spade", bonusText: "+2% Danni in Arena", epic: false, wall: true, effects: [{"type": "arenaDmgMult", "value": 0.02}], price: {"gold": 26, "wood": 12, "stone": 15}, img: "assets/ui/rifugio/furniture/set02/05.png"},
+        {id: "f016", name: "Ruota Dentata Gigante", bonusText: "+1% Probabilità doppio drop risorse", epic: false, wall: true, effects: [{"type": "doubleDropChance", "value": 0.01}], price: {"gold": 28, "wood": 13, "stone": 17}, img: "assets/ui/rifugio/furniture/set02/06.png"},
+        {id: "f017", name: "Scultura di Ruggine", bonusText: "Sconto 1% al Mercato", epic: false, wall: false, effects: [{"type": "marketDiscount", "value": 0.01}], price: {"gold": 30, "wood": 10, "stone": 8}, img: "assets/ui/rifugio/furniture/set02/07.png"},
+        {id: "f018", name: "Incudine Fumante", bonusText: "Sconto 2% al Mercato", epic: false, wall: false, effects: [{"type": "marketDiscount", "value": 0.02}], price: {"gold": 33, "wood": 10, "stone": 9}, img: "assets/ui/rifugio/furniture/set02/08.png"},
+        {id: "f019", name: "Cassa in Ferro Battuto", bonusText: "+1% Pietra trovata", epic: false, wall: false, effects: [{"type": "stoneMult", "value": 0.01}], price: {"gold": 35, "wood": 11, "stone": 9}, img: "assets/ui/rifugio/furniture/set02/09.png"},
+        {id: "f020", name: "Il Martello del Titano", bonusText: "+3% Danni in Arena e Sconto 2% Mercato", epic: true, wall: false, effects: [{"type": "arenaDmgMult", "value": 0.03}, {"type": "marketDiscount", "value": 0.02}], price: {"gold": 111, "wood": 35, "stone": 30}, img: "assets/ui/rifugio/furniture/set02/10.png"},
+      ],
+    },
+    {
+      id: "set03", num: 3, name: "Lo Studio dell'Alchimista",
+      biomeIdx: 6, fallbackIcon: "⚗️",
+      setBonusDesc: "+20% Monete d'oro da ogni attività",
+      setBonusEffects: [{"type": "goldMult", "value": 0.2}],
+      items: [
+        {id: "f021", name: "Tappeto Mandala Elementale", bonusText: "+1% Monete", epic: false, wall: false, effects: [{"type": "goldMult", "value": 0.01}], price: {"gold": 23, "wood": 7, "stone": 6}, img: "assets/ui/rifugio/furniture/set03/01.png"},
+        {id: "f022", name: "Lampadario a Cristalli Fluttuanti", bonusText: "+1% Monete", epic: false, wall: false, effects: [{"type": "goldMult", "value": 0.01}], price: {"gold": 26, "wood": 8, "stone": 7}, img: "assets/ui/rifugio/furniture/set03/02.png"},
+        {id: "f023", name: "Scrivania con Alambicchi", bonusText: "+2% Monete", epic: false, wall: false, effects: [{"type": "goldMult", "value": 0.02}], price: {"gold": 29, "wood": 9, "stone": 8}, img: "assets/ui/rifugio/furniture/set03/03.png"},
+        {id: "f024", name: "Poltrona da Lettura in Velluto", bonusText: "+1% Monete", epic: false, wall: false, effects: [{"type": "goldMult", "value": 0.01}], price: {"gold": 32, "wood": 10, "stone": 9}, img: "assets/ui/rifugio/furniture/set03/04.png"},
+        {id: "f025", name: "Arazzo delle Formule", bonusText: "+1% XP Corsa", epic: false, wall: true, effects: [{"type": "xpMult", "activity": "corsa", "value": 0.01}], price: {"gold": 35, "wood": 16, "stone": 21}, img: "assets/ui/rifugio/furniture/set03/05.png"},
+        {id: "f026", name: "Libreria di Pergamene", bonusText: "+1% XP Corsa", epic: false, wall: true, effects: [{"type": "xpMult", "activity": "corsa", "value": 0.01}], price: {"gold": 38, "wood": 17, "stone": 23}, img: "assets/ui/rifugio/furniture/set03/06.png"},
+        {id: "f027", name: "Sfera del Drago in Vetro", bonusText: "+2% Probabilità drop Progetti rari", epic: false, wall: false, effects: [{"type": "dropProjectChance", "value": 0.02}], price: {"gold": 41, "wood": 13, "stone": 11}, img: "assets/ui/rifugio/furniture/set03/07.png"},
+        {id: "f028", name: "Calderone Ribollente", bonusText: "+2% Monete", epic: false, wall: false, effects: [{"type": "goldMult", "value": 0.02}], price: {"gold": 44, "wood": 14, "stone": 12}, img: "assets/ui/rifugio/furniture/set03/08.png"},
+        {id: "f029", name: "Cassaforte Incantata", bonusText: "+1% Monete", epic: false, wall: false, effects: [{"type": "goldMult", "value": 0.01}], price: {"gold": 47, "wood": 15, "stone": 13}, img: "assets/ui/rifugio/furniture/set03/09.png"},
+        {id: "f030", name: "La Pietra Filosofale", bonusText: "+4% Monete", epic: true, wall: false, effects: [{"type": "goldMult", "value": 0.04}], price: {"gold": 150, "wood": 48, "stone": 41}, img: "assets/ui/rifugio/furniture/set03/10.png"},
+      ],
+    },
+    {
+      id: "set04", num: 4, name: "Il Giardino Sussurrante",
+      biomeIdx: 1, fallbackIcon: "🌲",
+      setBonusDesc: "+15% XP base da tutta la Corsa",
+      setBonusEffects: [{"type": "xpMult", "activity": "corsa", "value": 0.15}],
+      items: [
+        {id: "f031", name: "Prato in Miniatura (Pavimento)", bonusText: "+0.5% XP Corsa", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "corsa", "value": 0.005}], price: {"gold": 29, "wood": 9, "stone": 8}, img: "assets/ui/rifugio/furniture/set04/01.png"},
+        {id: "f032", name: "Lucciole in Barattolo (Luce)", bonusText: "+1% Legna trovata", epic: false, wall: false, effects: [{"type": "woodMult", "value": 0.01}], price: {"gold": 33, "wood": 10, "stone": 9}, img: "assets/ui/rifugio/furniture/set04/02.png"},
+        {id: "f033", name: "Tronco Intagliato a Tavola", bonusText: "+0.5% XP Corsa", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "corsa", "value": 0.005}], price: {"gold": 37, "wood": 12, "stone": 10}, img: "assets/ui/rifugio/furniture/set04/03.png"},
+        {id: "f034", name: "Trono di Liane e Foglie", bonusText: "+1% XP Corsa", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "corsa", "value": 0.01}], price: {"gold": 41, "wood": 13, "stone": 11}, img: "assets/ui/rifugio/furniture/set04/04.png"},
+        {id: "f035", name: "Rampicante Luminoso", bonusText: "+1% Legna trovata", epic: false, wall: true, effects: [{"type": "woodMult", "value": 0.01}], price: {"gold": 44, "wood": 20, "stone": 26}, img: "assets/ui/rifugio/furniture/set04/05.png"},
+        {id: "f036", name: "Finestra Illusoria sulla Foresta", bonusText: "+1% XP Camminata", epic: false, wall: true, effects: [{"type": "xpMult", "activity": "camminata", "value": 0.01}], price: {"gold": 48, "wood": 22, "stone": 28}, img: "assets/ui/rifugio/furniture/set04/06.png"},
+        {id: "f037", name: "Bonsai dell'Albero Madre", bonusText: "+1% XP Corsa", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "corsa", "value": 0.01}], price: {"gold": 52, "wood": 17, "stone": 14}, img: "assets/ui/rifugio/furniture/set04/07.png"},
+        {id: "f038", name: "Pressa per Fiori Antichi", bonusText: "+1% Probabilità drop Monete", epic: false, wall: false, effects: [{"type": "goldMult", "value": 0.01}], price: {"gold": 56, "wood": 18, "stone": 15}, img: "assets/ui/rifugio/furniture/set04/08.png"},
+        {id: "f039", name: "Cesto in Vimini Magico", bonusText: "+1% Legna trovata", epic: false, wall: false, effects: [{"type": "woodMult", "value": 0.01}], price: {"gold": 59, "wood": 19, "stone": 16}, img: "assets/ui/rifugio/furniture/set04/09.png"},
+        {id: "f040", name: "La Gemma Seme di Yggdrasil", bonusText: "+3% XP Corsa", epic: true, wall: false, effects: [{"type": "xpMult", "activity": "corsa", "value": 0.03}], price: {"gold": 189, "wood": 60, "stone": 52}, img: "assets/ui/rifugio/furniture/set04/10.png"},
+      ],
+    },
+    {
+      id: "set05", num: 5, name: "L'Avamposto Glaciale",
+      biomeIdx: 12, fallbackIcon: "🏔️",
+      setBonusDesc: "+15% XP base da tutta la Cyclette/Ciclismo",
+      setBonusEffects: [{"type": "xpMult", "activity": "cyclette", "value": 0.15}],
+      items: [
+        {id: "f041", name: "Tappeto in Pelle di Yeti", bonusText: "+0.5% XP Cyclette", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "cyclette", "value": 0.005}], price: {"gold": 35, "wood": 11, "stone": 10}, img: "assets/ui/rifugio/furniture/set05/01.png"},
+        {id: "f042", name: "Cristallo di Ghiaccio Illuminescente", bonusText: "+1% Pietra trovata", epic: false, wall: false, effects: [{"type": "stoneMult", "value": 0.01}], price: {"gold": 40, "wood": 13, "stone": 11}, img: "assets/ui/rifugio/furniture/set05/02.png"},
+        {id: "f043", name: "Tavolo in Ghiaccio Perenne", bonusText: "+0.5% XP Cyclette", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "cyclette", "value": 0.005}], price: {"gold": 44, "wood": 14, "stone": 12}, img: "assets/ui/rifugio/furniture/set05/03.png"},
+        {id: "f044", name: "Seduta in Blocco di Neve", bonusText: "+1% XP Cyclette", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "cyclette", "value": 0.01}], price: {"gold": 49, "wood": 16, "stone": 13}, img: "assets/ui/rifugio/furniture/set05/04.png"},
+        {id: "f045", name: "Sciabole Incrociate", bonusText: "+1% Danni Arena", epic: false, wall: true, effects: [{"type": "arenaDmgMult", "value": 0.01}], price: {"gold": 54, "wood": 24, "stone": 32}, img: "assets/ui/rifugio/furniture/set05/05.png"},
+        {id: "f046", name: "Trofeo Corna di Mammut", bonusText: "+2% HP in Arena", epic: false, wall: true, effects: [{"type": "arenaHpMult", "value": 0.02}], price: {"gold": 58, "wood": 26, "stone": 34}, img: "assets/ui/rifugio/furniture/set05/06.png"},
+        {id: "f047", name: "Statua del Pinguino Guerriero", bonusText: "+1% XP Cyclette", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "cyclette", "value": 0.01}], price: {"gold": 63, "wood": 20, "stone": 17}, img: "assets/ui/rifugio/furniture/set05/07.png"},
+        {id: "f048", name: "Fornello da Campo Invernale", bonusText: "+1 Stamina massima", epic: false, wall: false, effects: [{"type": "staminaMax", "value": 1.0}], price: {"gold": 67, "wood": 21, "stone": 18}, img: "assets/ui/rifugio/furniture/set05/08.png"},
+        {id: "f049", name: "Forziere Congelato", bonusText: "+1% Monete trovate", epic: false, wall: false, effects: [{"type": "goldMult", "value": 0.01}], price: {"gold": 72, "wood": 23, "stone": 20}, img: "assets/ui/rifugio/furniture/set05/09.png"},
+        {id: "f050", name: "Il Cuore di Ghiaccio", bonusText: "+3% XP Cyclette", epic: true, wall: false, effects: [{"type": "xpMult", "activity": "cyclette", "value": 0.03}], price: {"gold": 229, "wood": 73, "stone": 62}, img: "assets/ui/rifugio/furniture/set05/10.png"},
+      ],
+    },
+    {
+      id: "set06", num: 6, name: "La Cripta dell'Orologiaio",
+      biomeIdx: 7, fallbackIcon: "🕰️",
+      setBonusDesc: "+10% a tutti gli XP (Bonus Globale)",
+      setBonusEffects: [{"type": "xpMult", "activity": "global", "value": 0.1}],
+      items: [
+        {id: "f051", name: "Pavimento a Scacchiera Meccanica", bonusText: "+0.5% XP Globale", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "global", "value": 0.005}], price: {"gold": 41, "wood": 13, "stone": 11}, img: "assets/ui/rifugio/furniture/set06/01.png"},
+        {id: "f052", name: "Lampada a Pendolo", bonusText: "+0.5% XP Globale", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "global", "value": 0.005}], price: {"gold": 47, "wood": 15, "stone": 13}, img: "assets/ui/rifugio/furniture/set06/02.png"},
+        {id: "f053", name: "Banco dei Meccanismi Minuti", bonusText: "+1% XP Globale", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "global", "value": 0.01}], price: {"gold": 52, "wood": 17, "stone": 14}, img: "assets/ui/rifugio/furniture/set06/03.png"},
+        {id: "f054", name: "Sgabello a Molla", bonusText: "+0.5% XP Globale", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "global", "value": 0.005}], price: {"gold": 57, "wood": 18, "stone": 16}, img: "assets/ui/rifugio/furniture/set06/04.png"},
+        {id: "f055", name: "Orologio a Ingranaggi a Vista", bonusText: "Riduce i tempi di attesa dell'1%", epic: false, wall: true, effects: [{"type": "marketDiscount", "value": 0.01}], price: {"gold": 63, "wood": 28, "stone": 37}, img: "assets/ui/rifugio/furniture/set06/05.png"},
+        {id: "f056", name: "Calendario Perpetuo", bonusText: "+1% XP Globale", epic: false, wall: true, effects: [{"type": "xpMult", "activity": "global", "value": 0.01}], price: {"gold": 68, "wood": 31, "stone": 40}, img: "assets/ui/rifugio/furniture/set06/06.png"},
+        {id: "f057", name: "Automa Meccanico (Animato)", bonusText: "+1% XP Globale", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "global", "value": 0.01}], price: {"gold": 73, "wood": 23, "stone": 20}, img: "assets/ui/rifugio/furniture/set06/07.png"},
+        {id: "f058", name: "Macchina del Moto Perpetuo", bonusText: "+2% XP Globale", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "global", "value": 0.02}], price: {"gold": 79, "wood": 25, "stone": 21}, img: "assets/ui/rifugio/furniture/set06/08.png"},
+        {id: "f059", name: "Cassetta degli Attrezzi in Rame", bonusText: "+1% Pietra e Legna", epic: false, wall: false, effects: [{"type": "stoneMult", "value": 0.01}, {"type": "woodMult", "value": 0.01}], price: {"gold": 84, "wood": 27, "stone": 23}, img: "assets/ui/rifugio/furniture/set06/09.png"},
+        {id: "f060", name: "La Clessidra dell'Eternità", bonusText: "+3% XP Globale", epic: true, wall: false, effects: [{"type": "xpMult", "activity": "global", "value": 0.03}], price: {"gold": 268, "wood": 85, "stone": 73}, img: "assets/ui/rifugio/furniture/set06/10.png"},
+      ],
+    },
+    {
+      id: "set07", num: 7, name: "Il Covo delle Ombre",
+      biomeIdx: 10, fallbackIcon: "🐀",
+      setBonusDesc: "+25% Danni Critici in Arena",
+      setBonusEffects: [{"type": "arenaCritDmgMult", "value": 0.25}],
+      items: [
+        {id: "f061", name: "Tappeto Consunto", bonusText: "+1% Probabilità Critico (Arena)", epic: false, wall: false, effects: [{"type": "arenaCritChance", "value": 0.01}], price: {"gold": 47, "wood": 15, "stone": 13}, img: "assets/ui/rifugio/furniture/set07/01.png"},
+        {id: "f062", name: "Candele Gocciolanti", bonusText: "+1% Danni Critici", epic: false, wall: false, effects: [{"type": "arenaCritDmgMult", "value": 0.01}], price: {"gold": 53, "wood": 17, "stone": 15}, img: "assets/ui/rifugio/furniture/set07/02.png"},
+        {id: "f063", name: "Tavolo dei Piani Segreti", bonusText: "+2% Danni Critici", epic: false, wall: false, effects: [{"type": "arenaCritDmgMult", "value": 0.02}], price: {"gold": 60, "wood": 19, "stone": 16}, img: "assets/ui/rifugio/furniture/set07/03.png"},
+        {id: "f064", name: "Poltrona Nascosta nell'Ombra", bonusText: "+1% Probabilità Critico", epic: false, wall: false, effects: [{"type": "arenaCritChance", "value": 0.01}], price: {"gold": 66, "wood": 21, "stone": 18}, img: "assets/ui/rifugio/furniture/set07/04.png"},
+        {id: "f065", name: "Mappa dei Sotterranei", bonusText: "+1% Probabilità doppio drop", epic: false, wall: true, effects: [{"type": "doubleDropChance", "value": 0.01}], price: {"gold": 72, "wood": 33, "stone": 42}, img: "assets/ui/rifugio/furniture/set07/05.png"},
+        {id: "f066", name: "Collezione di Pugnali", bonusText: "+2% Danni Critici", epic: false, wall: true, effects: [{"type": "arenaCritDmgMult", "value": 0.02}], price: {"gold": 78, "wood": 35, "stone": 46}, img: "assets/ui/rifugio/furniture/set07/06.png"},
+        {id: "f067", name: "Gargoyle da Interno", bonusText: "+1% HP Arena", epic: false, wall: false, effects: [{"type": "arenaHpMult", "value": 0.01}], price: {"gold": 84, "wood": 27, "stone": 23}, img: "assets/ui/rifugio/furniture/set07/07.png"},
+        {id: "f068", name: "Kit da Scasso", bonusText: "+1% Probabilità Monete bonus", epic: false, wall: false, effects: [{"type": "goldMult", "value": 0.01}], price: {"gold": 90, "wood": 29, "stone": 25}, img: "assets/ui/rifugio/furniture/set07/08.png"},
+        {id: "f069", name: "Barile Contrabbandato (Forziere)", bonusText: "+1% Monete", epic: false, wall: false, effects: [{"type": "goldMult", "value": 0.01}], price: {"gold": 96, "wood": 31, "stone": 26}, img: "assets/ui/rifugio/furniture/set07/09.png"},
+        {id: "f070", name: "Il Mantello dell'Invisibilità Esposto", bonusText: "+5% Danni Critici", epic: true, wall: false, effects: [{"type": "arenaCritDmgMult", "value": 0.05}], price: {"gold": 307, "wood": 98, "stone": 84}, img: "assets/ui/rifugio/furniture/set07/10.png"},
+      ],
+    },
+    {
+      id: "set08", num: 8, name: "La Tenda del Nomade",
+      biomeIdx: 13, fallbackIcon: "🏜️",
+      setBonusDesc: "Raddoppia la Stamina o gli invii di Incursioni giornaliere",
+      setBonusEffects: [{"type": "flag", "key": "doubleStamina"}],
+      items: [
+        {id: "f071", name: "Tappeto Persiano Fluttuante", bonusText: "+1 Stamina", epic: false, wall: false, effects: [{"type": "staminaMax", "value": 1.0}], price: {"gold": 53, "wood": 17, "stone": 15}, img: null},
+        {id: "f072", name: "Lanterna ad Olio del Genio", bonusText: "+1% Monete", epic: false, wall: false, effects: [{"type": "goldMult", "value": 0.01}], price: {"gold": 60, "wood": 19, "stone": 16}, img: null},
+        {id: "f073", name: "Tavolino Basso in Ottone", bonusText: "+1% XP Corsa", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "corsa", "value": 0.01}], price: {"gold": 67, "wood": 21, "stone": 18}, img: null},
+        {id: "f074", name: "Cuscino in Seta (Seduta)", bonusText: "+1 Stamina", epic: false, wall: false, effects: [{"type": "staminaMax", "value": 1.0}], price: {"gold": 74, "wood": 24, "stone": 20}, img: null},
+        {id: "f075", name: "Scimitarre Decorate", bonusText: "+1% Danni Arena", epic: false, wall: true, effects: [{"type": "arenaDmgMult", "value": 0.01}], price: {"gold": 81, "wood": 37, "stone": 48}, img: null},
+        {id: "f076", name: "Arazzo delle Dune", bonusText: "+1% XP Camminata", epic: false, wall: true, effects: [{"type": "xpMult", "activity": "camminata", "value": 0.01}], price: {"gold": 88, "wood": 40, "stone": 52}, img: null},
+        {id: "f077", name: "Oasi in Vaso", bonusText: "+1 Stamina", epic: false, wall: false, effects: [{"type": "staminaMax", "value": 1.0}], price: {"gold": 95, "wood": 30, "stone": 26}, img: null},
+        {id: "f078", name: "Telaio da Tessitore", bonusText: "+1% Probabilità drop Progetti", epic: false, wall: false, effects: [{"type": "dropProjectChance", "value": 0.01}], price: {"gold": 102, "wood": 32, "stone": 28}, img: null},
+        {id: "f079", name: "Cesta di Spezie", bonusText: "+1% Monete", epic: false, wall: false, effects: [{"type": "goldMult", "value": 0.01}], price: {"gold": 109, "wood": 35, "stone": 30}, img: null},
+        {id: "f080", name: "L'Occhio del Ciclone di Sabbia", bonusText: "+3 Stamina", epic: true, wall: false, effects: [{"type": "staminaMax", "value": 3.0}], price: {"gold": 347, "wood": 110, "stone": 95}, img: null},
+      ],
+    },
+    {
+      id: "set09", num: 9, name: "Il Santuario di Cristallo",
+      biomeIdx: 19, fallbackIcon: "🔮",
+      setBonusDesc: "+15% Probabilità di trovare Progetti e Oggetti rari",
+      setBonusEffects: [{"type": "dropRareChance", "value": 0.15}, {"type": "dropProjectChance", "value": 0.15}],
+      items: [
+        {id: "f081", name: "Pavimento in Ossidiana Riflettente", bonusText: "+1% Drop Rari", epic: false, wall: false, effects: [{"type": "dropRareChance", "value": 0.01}], price: {"gold": 59, "wood": 19, "stone": 16}, img: "assets/ui/rifugio/furniture/set09/01.png"},
+        {id: "f082", name: "Prisma Centrale Illuminescente", bonusText: "+1% Drop Rari", epic: false, wall: false, effects: [{"type": "dropRareChance", "value": 0.01}], price: {"gold": 67, "wood": 21, "stone": 18}, img: "assets/ui/rifugio/furniture/set09/02.png"},
+        {id: "f083", name: "Altare di Quarzo", bonusText: "+2% Drop Rari", epic: false, wall: false, effects: [{"type": "dropRareChance", "value": 0.02}], price: {"gold": 75, "wood": 24, "stone": 20}, img: "assets/ui/rifugio/furniture/set09/03.png"},
+        {id: "f084", name: "Trono Levitatore di Cristallo", bonusText: "+1% Drop Rari", epic: false, wall: false, effects: [{"type": "dropRareChance", "value": 0.01}], price: {"gold": 83, "wood": 26, "stone": 23}, img: "assets/ui/rifugio/furniture/set09/04.png"},
+        {id: "f085", name: "Mosaico di Vetro Magico", bonusText: "+1% Drop Rari", epic: false, wall: true, effects: [{"type": "dropRareChance", "value": 0.01}], price: {"gold": 90, "wood": 41, "stone": 53}, img: "assets/ui/rifugio/furniture/set09/05.png"},
+        {id: "f086", name: "Specchio delle Dimensioni", bonusText: "+1% Drop Rari", epic: false, wall: true, effects: [{"type": "dropRareChance", "value": 0.01}], price: {"gold": 98, "wood": 45, "stone": 58}, img: "assets/ui/rifugio/furniture/set09/06.png"},
+        {id: "f087", name: "Geode Gigante Aperto", bonusText: "+2% Drop Rari", epic: false, wall: false, effects: [{"type": "dropRareChance", "value": 0.02}], price: {"gold": 106, "wood": 34, "stone": 29}, img: "assets/ui/rifugio/furniture/set09/07.png"},
+        {id: "f088", name: "Taglierina per Gemme", bonusText: "+1% Drop Rari", epic: false, wall: false, effects: [{"type": "dropRareChance", "value": 0.01}], price: {"gold": 113, "wood": 36, "stone": 31}, img: "assets/ui/rifugio/furniture/set09/08.png"},
+        {id: "f089", name: "Cassetta di Sicurezza in Diamante", bonusText: "+2% Monete", epic: false, wall: false, effects: [{"type": "goldMult", "value": 0.02}], price: {"gold": 121, "wood": 39, "stone": 33}, img: "assets/ui/rifugio/furniture/set09/09.png"},
+        {id: "f090", name: "La Corona del Re di Cristallo", bonusText: "+4% Drop Rari", epic: true, wall: false, effects: [{"type": "dropRareChance", "value": 0.04}], price: {"gold": 386, "wood": 123, "stone": 105}, img: "assets/ui/rifugio/furniture/set09/10.png"},
+      ],
+    },
+    {
+      id: "set10", num: 10, name: "La Sala del Corruttore",
+      biomeIdx: 17, fallbackIcon: "👑",
+      setBonusDesc: "+20% Danni a tutti i Boss e badge visivo permanente",
+      setBonusEffects: [{"type": "bossDmgMult", "value": 0.2}, {"type": "flag", "key": "corruptorBadge"}],
+      items: [
+        {id: "f091", name: "Tappeto di Fiamme Oscure", bonusText: "+1% Danni Boss", epic: false, wall: false, effects: [{"type": "bossDmgMult", "value": 0.01}], price: {"gold": 65, "wood": 21, "stone": 18}, img: "assets/ui/rifugio/furniture/set10/01.png"},
+        {id: "f092", name: "Braciere dell'Anima", bonusText: "+1% Danni Boss", epic: false, wall: false, effects: [{"type": "bossDmgMult", "value": 0.01}], price: {"gold": 74, "wood": 24, "stone": 20}, img: "assets/ui/rifugio/furniture/set10/02.png"},
+        {id: "f093", name: "Tavolo delle Tattiche Demoniache", bonusText: "+2% Danni Boss", epic: false, wall: false, effects: [{"type": "bossDmgMult", "value": 0.02}], price: {"gold": 82, "wood": 26, "stone": 22}, img: "assets/ui/rifugio/furniture/set10/03.png"},
+        {id: "f094", name: "Il Trono del Corruttore Sconfitto", bonusText: "+2% Danni Boss", epic: false, wall: false, effects: [{"type": "bossDmgMult", "value": 0.02}], price: {"gold": 91, "wood": 29, "stone": 25}, img: "assets/ui/rifugio/furniture/set10/04.png"},
+        {id: "f095", name: "Catene Spezzate", bonusText: "+1% Danni Boss", epic: false, wall: true, effects: [{"type": "bossDmgMult", "value": 0.01}], price: {"gold": 99, "wood": 45, "stone": 59}, img: "assets/ui/rifugio/furniture/set10/05.png"},
+        {id: "f096", name: "Vessillo della Vittoria Oscura", bonusText: "+1% Danni Boss", epic: false, wall: true, effects: [{"type": "bossDmgMult", "value": 0.01}], price: {"gold": 108, "wood": 49, "stone": 64}, img: "assets/ui/rifugio/furniture/set10/06.png"},
+        {id: "f097", name: "Teschio del Drago d'Ombra", bonusText: "+2% Danni Boss", epic: false, wall: false, effects: [{"type": "bossDmgMult", "value": 0.02}], price: {"gold": 117, "wood": 37, "stone": 32}, img: "assets/ui/rifugio/furniture/set10/07.png"},
+        {id: "f098", name: "Fucina del Vuoto", bonusText: "+1% Danni Boss", epic: false, wall: false, effects: [{"type": "bossDmgMult", "value": 0.01}], price: {"gold": 125, "wood": 40, "stone": 34}, img: "assets/ui/rifugio/furniture/set10/08.png"},
+        {id: "f099", name: "Forziere del Titano Caduto", bonusText: "+2% Danni Boss", epic: false, wall: false, effects: [{"type": "bossDmgMult", "value": 0.02}], price: {"gold": 134, "wood": 42, "stone": 36}, img: "assets/ui/rifugio/furniture/set10/09.png"},
+        {id: "f100", name: "Il Cuore Pulsante dell'Oscurità Purificata", bonusText: "+5% Danni Boss e +5% XP Globale", epic: true, wall: false, effects: [{"type": "bossDmgMult", "value": 0.05}, {"type": "xpMult", "activity": "global", "value": 0.05}], price: {"gold": 425, "wood": 135, "stone": 116}, img: "assets/ui/rifugio/furniture/set10/10.png"},
+      ],
+    },
+    {
+      id: "set11", num: 11, name: "La Palude Nebbiosa",
+      biomeIdx: 14, fallbackIcon: "🌫️",
+      setBonusDesc: "+20% Legna raccolta durante le Camminate",
+      setBonusEffects: [{"type": "woodMult", "value": 0.2}],
+      items: [
+        {id: "f101", name: "Stuoia di Giunchi Intrecciati", bonusText: "+0.5% Legna", epic: false, wall: false, effects: [{"type": "woodMult", "value": 0.005}], price: {"gold": 72, "wood": 23, "stone": 20}, img: "assets/ui/rifugio/furniture/set11/01.png"},
+        {id: "f102", name: "Lanterna con Fuoco Fatuo", bonusText: "+1% Legna", epic: false, wall: false, effects: [{"type": "woodMult", "value": 0.01}], price: {"gold": 81, "wood": 26, "stone": 22}, img: "assets/ui/rifugio/furniture/set11/02.png"},
+        {id: "f103", name: "Tavolo in Legno Marcescente", bonusText: "+0.5% Legna", epic: false, wall: false, effects: [{"type": "woodMult", "value": 0.005}], price: {"gold": 90, "wood": 29, "stone": 25}, img: "assets/ui/rifugio/furniture/set11/03.png"},
+        {id: "f104", name: "Sedia di Radici Contorte", bonusText: "+0.5% Legna", epic: false, wall: false, effects: [{"type": "woodMult", "value": 0.005}], price: {"gold": 99, "wood": 32, "stone": 27}, img: "assets/ui/rifugio/furniture/set11/04.png"},
+        {id: "f105", name: "Teschio di Coccodrillo", bonusText: "+1% Danni in Arena", epic: false, wall: true, effects: [{"type": "arenaDmgMult", "value": 0.01}], price: {"gold": 109, "wood": 49, "stone": 64}, img: "assets/ui/rifugio/furniture/set11/05.png"},
+        {id: "f106", name: "Mappa delle Acque Morte", bonusText: "+1% Probabilità Progetti", epic: false, wall: true, effects: [{"type": "dropProjectChance", "value": 0.01}], price: {"gold": 118, "wood": 54, "stone": 70}, img: "assets/ui/rifugio/furniture/set11/06.png"},
+        {id: "f107", name: "Statuina del Rospo Guardiano", bonusText: "+1% Legna", epic: false, wall: false, effects: [{"type": "woodMult", "value": 0.01}], price: {"gold": 127, "wood": 40, "stone": 35}, img: "assets/ui/rifugio/furniture/set11/07.png"},
+        {id: "f108", name: "Pestello da Strega", bonusText: "+1% Monete", epic: false, wall: false, effects: [{"type": "goldMult", "value": 0.01}], price: {"gold": 137, "wood": 43, "stone": 37}, img: "assets/ui/rifugio/furniture/set11/08.png"},
+        {id: "f109", name: "Cassa Coperta di Muschio", bonusText: "+1% Legna", epic: false, wall: false, effects: [{"type": "woodMult", "value": 0.01}], price: {"gold": 146, "wood": 46, "stone": 40}, img: "assets/ui/rifugio/furniture/set11/09.png"},
+        {id: "f110", name: "Il Fiore di Loto Luminescente", bonusText: "+3% Legna e +1% XP", epic: true, wall: false, effects: [{"type": "woodMult", "value": 0.03}, {"type": "xpMult", "activity": "global", "value": 0.01}], price: {"gold": 465, "wood": 148, "stone": 127}, img: "assets/ui/rifugio/furniture/set11/10.png"},
+      ],
+    },
+    {
+      id: "set12", num: 12, name: "Le Pianure del Vento",
+      biomeIdx: 3, fallbackIcon: "🌬️",
+      setBonusDesc: "+15% XP base da tutta la Corsa",
+      setBonusEffects: [{"type": "xpMult", "activity": "corsa", "value": 0.15}],
+      items: [
+        {id: "f111", name: "Tappeto di Erba Soffice", bonusText: "+0.5% XP Corsa", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "corsa", "value": 0.005}], price: {"gold": 78, "wood": 25, "stone": 21}, img: "assets/ui/rifugio/furniture/set12/01.png"},
+        {id: "f112", name: "Rintocco di Vento (Lampada)", bonusText: "+0.5% XP Corsa", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "corsa", "value": 0.005}], price: {"gold": 88, "wood": 28, "stone": 24}, img: "assets/ui/rifugio/furniture/set12/02.png"},
+        {id: "f113", name: "Tavolino ad Aquilone", bonusText: "+1% XP Corsa", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "corsa", "value": 0.01}], price: {"gold": 98, "wood": 31, "stone": 27}, img: "assets/ui/rifugio/furniture/set12/03.png"},
+        {id: "f114", name: "Sgabello Aerodinamico", bonusText: "+0.5% XP Corsa", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "corsa", "value": 0.005}], price: {"gold": 108, "wood": 34, "stone": 29}, img: "assets/ui/rifugio/furniture/set12/04.png"},
+        {id: "f115", name: "Piume Giganti Intrecciate", bonusText: "+1% Velocità (Bonus XP)", epic: false, wall: true, effects: [{"type": "xpMult", "activity": "global", "value": 0.01}], price: {"gold": 118, "wood": 54, "stone": 70}, img: "assets/ui/rifugio/furniture/set12/05.png"},
+        {id: "f116", name: "Mappa delle Correnti", bonusText: "+1% Probabilità Drop Rari", epic: false, wall: true, effects: [{"type": "dropRareChance", "value": 0.01}], price: {"gold": 128, "wood": 58, "stone": 76}, img: "assets/ui/rifugio/furniture/set12/06.png"},
+        {id: "f117", name: "Statua del Falco Pellegrino", bonusText: "+1% XP Corsa", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "corsa", "value": 0.01}], price: {"gold": 138, "wood": 44, "stone": 38}, img: "assets/ui/rifugio/furniture/set12/07.png"},
+        {id: "f118", name: "Mulino a Vento in Miniatura", bonusText: "+2% Monete", epic: false, wall: false, effects: [{"type": "goldMult", "value": 0.02}], price: {"gold": 148, "wood": 47, "stone": 40}, img: "assets/ui/rifugio/furniture/set12/08.png"},
+        {id: "f119", name: "Cassa di Legno Leggero", bonusText: "+1% XP Corsa", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "corsa", "value": 0.01}], price: {"gold": 158, "wood": 50, "stone": 43}, img: "assets/ui/rifugio/furniture/set12/09.png"},
+        {id: "f120", name: "Il Tornado in Bottiglia", bonusText: "+3% XP Corsa", epic: true, wall: false, effects: [{"type": "xpMult", "activity": "corsa", "value": 0.03}], price: {"gold": 504, "wood": 160, "stone": 137}, img: "assets/ui/rifugio/furniture/set12/10.png"},
+      ],
+    },
+    {
+      id: "set13", num: 13, name: "La Costa dei Relitti",
+      biomeIdx: 11, fallbackIcon: "⚓",
+      setBonusDesc: "Probabilità Forzieri Monete doppi +25%",
+      setBonusEffects: [{"type": "doubleDropChance", "value": 0.25}],
+      items: [
+        {id: "f121", name: "Rete da Pesca (Tappeto)", bonusText: "+1% Monete", epic: false, wall: false, effects: [{"type": "goldMult", "value": 0.01}], price: {"gold": 84, "wood": 27, "stone": 23}, img: "assets/ui/rifugio/furniture/set13/01.png"},
+        {id: "f122", name: "Lanterna da Nave Antica", bonusText: "+1% Monete", epic: false, wall: false, effects: [{"type": "goldMult", "value": 0.01}], price: {"gold": 94, "wood": 30, "stone": 26}, img: "assets/ui/rifugio/furniture/set13/02.png"},
+        {id: "f123", name: "Tavolo fatto con un Timone", bonusText: "+1% Monete", epic: false, wall: false, effects: [{"type": "goldMult", "value": 0.01}], price: {"gold": 105, "wood": 34, "stone": 29}, img: "assets/ui/rifugio/furniture/set13/03.png"},
+        {id: "f124", name: "Barile di Rum (Seduta)", bonusText: "+0.5% XP Camminata", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "camminata", "value": 0.005}], price: {"gold": 116, "wood": 37, "stone": 32}, img: "assets/ui/rifugio/furniture/set13/04.png"},
+        {id: "f125", name: "Ancora Arrugginita", bonusText: "+1% Danni Arena", epic: false, wall: true, effects: [{"type": "arenaDmgMult", "value": 0.01}], price: {"gold": 127, "wood": 58, "stone": 75}, img: "assets/ui/rifugio/furniture/set13/05.png"},
+        {id: "f126", name: "Mappa del Tesoro Strappata", bonusText: "+2% Monete", epic: false, wall: true, effects: [{"type": "goldMult", "value": 0.02}], price: {"gold": 138, "wood": 63, "stone": 82}, img: "assets/ui/rifugio/furniture/set13/06.png"},
+        {id: "f127", name: "Polena a Sirena (Statua)", bonusText: "+1% Monete", epic: false, wall: false, effects: [{"type": "goldMult", "value": 0.01}], price: {"gold": 149, "wood": 47, "stone": 41}, img: "assets/ui/rifugio/furniture/set13/07.png"},
+        {id: "f128", name: "Bussola Impazzita", bonusText: "+1% Drop Rari", epic: false, wall: false, effects: [{"type": "dropRareChance", "value": 0.01}], price: {"gold": 160, "wood": 51, "stone": 44}, img: "assets/ui/rifugio/furniture/set13/08.png"},
+        {id: "f129", name: "Baule del Pirata (Forziere)", bonusText: "+2% Monete", epic: false, wall: false, effects: [{"type": "goldMult", "value": 0.02}], price: {"gold": 171, "wood": 54, "stone": 47}, img: "assets/ui/rifugio/furniture/set13/09.png"},
+        {id: "f130", name: "La Perla Nera Maledetta", bonusText: "+5% Monete", epic: true, wall: false, effects: [{"type": "goldMult", "value": 0.05}], price: {"gold": 543, "wood": 173, "stone": 148}, img: "assets/ui/rifugio/furniture/set13/10.png"},
+      ],
+    },
+    {
+      id: "set14", num: 14, name: "Le Miniere Profonde",
+      biomeIdx: 16, fallbackIcon: "⛏️",
+      setBonusDesc: "+20% Pietra raccolta in tutte le attività",
+      setBonusEffects: [{"type": "stoneMult", "value": 0.2}],
+      items: [
+        {id: "f131", name: "Pavimentazione a Binari", bonusText: "+0.5% Pietra", epic: false, wall: false, effects: [{"type": "stoneMult", "value": 0.005}], price: {"gold": 90, "wood": 29, "stone": 24}, img: "assets/ui/rifugio/furniture/set14/01.png"},
+        {id: "f132", name: "Caschetto con Candela (Luce)", bonusText: "+1% Pietra", epic: false, wall: false, effects: [{"type": "stoneMult", "value": 0.01}], price: {"gold": 101, "wood": 32, "stone": 28}, img: "assets/ui/rifugio/furniture/set14/02.png"},
+        {id: "f133", name: "Vagonetto Rovesciato (Tavolo)", bonusText: "+1% Pietra", epic: false, wall: false, effects: [{"type": "stoneMult", "value": 0.01}], price: {"gold": 113, "wood": 36, "stone": 31}, img: "assets/ui/rifugio/furniture/set14/03.png"},
+        {id: "f134", name: "Blocco di Grafite (Sedia)", bonusText: "+0.5% Pietra", epic: false, wall: false, effects: [{"type": "stoneMult", "value": 0.005}], price: {"gold": 125, "wood": 40, "stone": 34}, img: "assets/ui/rifugio/furniture/set14/04.png"},
+        {id: "f135", name: "Picconi Incrociati", bonusText: "+1% Danni Arena", epic: false, wall: true, effects: [{"type": "arenaDmgMult", "value": 0.01}], price: {"gold": 136, "wood": 62, "stone": 81}, img: "assets/ui/rifugio/furniture/set14/05.png"},
+        {id: "f136", name: "Mappa dei Giacimenti", bonusText: "+1% Drop Progetti", epic: false, wall: true, effects: [{"type": "dropProjectChance", "value": 0.01}], price: {"gold": 148, "wood": 67, "stone": 87}, img: "assets/ui/rifugio/furniture/set14/06.png"},
+        {id: "f137", name: "Statuina della Talpa Cieca", bonusText: "+1% Pietra", epic: false, wall: false, effects: [{"type": "stoneMult", "value": 0.01}], price: {"gold": 160, "wood": 51, "stone": 44}, img: "assets/ui/rifugio/furniture/set14/07.png"},
+        {id: "f138", name: "Detonatore a Stantuffo", bonusText: "+1% Danni Critici", epic: false, wall: false, effects: [{"type": "arenaCritDmgMult", "value": 0.01}], price: {"gold": 171, "wood": 54, "stone": 47}, img: "assets/ui/rifugio/furniture/set14/08.png"},
+        {id: "f139", name: "Cassa Rinforzata in Acciaio", bonusText: "+1% Pietra", epic: false, wall: false, effects: [{"type": "stoneMult", "value": 0.01}], price: {"gold": 183, "wood": 58, "stone": 50}, img: "assets/ui/rifugio/furniture/set14/09.png"},
+        {id: "f140", name: "La Pepita d'Oro Puro", bonusText: "+3% Pietra e +2% Monete", epic: true, wall: false, effects: [{"type": "stoneMult", "value": 0.03}, {"type": "goldMult", "value": 0.02}], price: {"gold": 583, "wood": 185, "stone": 159}, img: "assets/ui/rifugio/furniture/set14/10.png"},
+      ],
+    },
+    {
+      id: "set15", num: 15, name: "La Selva dei Funghi Giganti",
+      biomeIdx: 2, fallbackIcon: "🍄",
+      setBonusDesc: "Rigenerazione in Arena (recupera 10% HP tra i round)",
+      setBonusEffects: [{"type": "flag", "key": "arenaRegen", "value": 0.1}],
+      items: [
+        {id: "f141", name: "Tappeto di Spore Soffici", bonusText: "+1% HP Arena", epic: false, wall: false, effects: [{"type": "arenaHpMult", "value": 0.01}], price: {"gold": 96, "wood": 30, "stone": 26}, img: null},
+        {id: "f142", name: "Cappello di Fungo Luminescente", bonusText: "+1% HP Arena", epic: false, wall: false, effects: [{"type": "arenaHpMult", "value": 0.01}], price: {"gold": 108, "wood": 34, "stone": 29}, img: null},
+        {id: "f143", name: "Fetta di Fungo Porcino (Tavolo)", bonusText: "+1% XP Camminata", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "camminata", "value": 0.01}], price: {"gold": 121, "wood": 38, "stone": 33}, img: null},
+        {id: "f144", name: "Fungo Velenoso (Sgabello)", bonusText: "+1% Danni Arena", epic: false, wall: false, effects: [{"type": "arenaDmgMult", "value": 0.01}], price: {"gold": 133, "wood": 42, "stone": 36}, img: null},
+        {id: "f145", name: "Giardino Verticale di Micelio", bonusText: "+1% HP Arena", epic: false, wall: true, effects: [{"type": "arenaHpMult", "value": 0.01}], price: {"gold": 145, "wood": 66, "stone": 86}, img: null},
+        {id: "f146", name: "Arazzo delle Spore", bonusText: "+1% Drop Progetti", epic: false, wall: true, effects: [{"type": "dropProjectChance", "value": 0.01}], price: {"gold": 158, "wood": 72, "stone": 93}, img: null},
+        {id: "f147", name: "Miconide in Vaso (Creatura viva)", bonusText: "+2% HP Arena", epic: false, wall: false, effects: [{"type": "arenaHpMult", "value": 0.02}], price: {"gold": 170, "wood": 54, "stone": 46}, img: null},
+        {id: "f148", name: "Mortaio per Unguenti", bonusText: "+1% HP Arena", epic: false, wall: false, effects: [{"type": "arenaHpMult", "value": 0.01}], price: {"gold": 183, "wood": 58, "stone": 50}, img: null},
+        {id: "f149", name: "Cassa di Corteccia", bonusText: "+1% Legna", epic: false, wall: false, effects: [{"type": "woodMult", "value": 0.01}], price: {"gold": 195, "wood": 62, "stone": 53}, img: null},
+        {id: "f150", name: "La Madre Spora", bonusText: "+5% HP Arena", epic: true, wall: false, effects: [{"type": "arenaHpMult", "value": 0.05}], price: {"gold": 622, "wood": 198, "stone": 170}, img: null},
+      ],
+    },
+    {
+      id: "set16", num: 16, name: "L'Arcipelago Fluttuante",
+      biomeIdx: 8, fallbackIcon: "🏝️",
+      setBonusDesc: "+15% XP base da tutta la Cyclette/Bici",
+      setBonusEffects: [{"type": "xpMult", "activity": "cyclette", "value": 0.15}],
+      items: [
+        {id: "f151", name: "Pavimento a Soffice Nuvola", bonusText: "+0.5% XP Cyclette", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "cyclette", "value": 0.005}], price: {"gold": 102, "wood": 32, "stone": 28}, img: null},
+        {id: "f152", name: "Lanterna Acchiappa-Stelle", bonusText: "+1% XP Cyclette", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "cyclette", "value": 0.01}], price: {"gold": 115, "wood": 37, "stone": 31}, img: null},
+        {id: "f153", name: "Tavolo Levitante", bonusText: "+1% XP Cyclette", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "cyclette", "value": 0.01}], price: {"gold": 128, "wood": 41, "stone": 35}, img: null},
+        {id: "f154", name: "Cuscino d'Aria (Seduta)", bonusText: "+0.5% XP Cyclette", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "cyclette", "value": 0.005}], price: {"gold": 141, "wood": 45, "stone": 39}, img: null},
+        {id: "f155", name: "Ali d'Angelo di Pietra", bonusText: "+1% Danni Arena", epic: false, wall: true, effects: [{"type": "arenaDmgMult", "value": 0.01}], price: {"gold": 155, "wood": 70, "stone": 91}, img: null},
+        {id: "f156", name: "Mappa Astrale", bonusText: "+2% Drop Rari", epic: false, wall: true, effects: [{"type": "dropRareChance", "value": 0.02}], price: {"gold": 168, "wood": 76, "stone": 99}, img: null},
+        {id: "f157", name: "Statua del Pegaso Rampante", bonusText: "+1% XP Cyclette", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "cyclette", "value": 0.01}], price: {"gold": 181, "wood": 58, "stone": 49}, img: null},
+        {id: "f158", name: "Cannocchiale in Ottone", bonusText: "+1% Drop Rari", epic: false, wall: false, effects: [{"type": "dropRareChance", "value": 0.01}], price: {"gold": 194, "wood": 62, "stone": 53}, img: null},
+        {id: "f159", name: "Forziere dei Cieli", bonusText: "+1% Monete", epic: false, wall: false, effects: [{"type": "goldMult", "value": 0.01}], price: {"gold": 208, "wood": 66, "stone": 57}, img: null},
+        {id: "f160", name: "La Stella Caduta Prigioniera", bonusText: "+3% XP Cyclette", epic: true, wall: false, effects: [{"type": "xpMult", "activity": "cyclette", "value": 0.03}], price: {"gold": 661, "wood": 210, "stone": 180}, img: null},
+      ],
+    },
+    {
+      id: "set17", num: 17, name: "Il Cimitero dei Draghi",
+      biomeIdx: 15, fallbackIcon: "🐉",
+      setBonusDesc: "L'Eroe ottiene una \"Vita Extra\" in Arena",
+      setBonusEffects: [{"type": "flag", "key": "arenaExtraLife"}],
+      items: [
+        {id: "f161", name: "Tappeto di Scaglie Pietrificate", bonusText: "+1% Difesa Arena", epic: false, wall: false, effects: [{"type": "arenaDefMult", "value": 0.01}], price: {"gold": 108, "wood": 34, "stone": 29}, img: "assets/ui/rifugio/furniture/set17/01.png"},
+        {id: "f162", name: "Teschio di Drago Infiammato", bonusText: "+1% Danni Arena", epic: false, wall: false, effects: [{"type": "arenaDmgMult", "value": 0.01}], price: {"gold": 122, "wood": 39, "stone": 33}, img: "assets/ui/rifugio/furniture/set17/02.png"},
+        {id: "f163", name: "Cassa Toracica Gigante (Tavolo)", bonusText: "+1% HP Arena", epic: false, wall: false, effects: [{"type": "arenaHpMult", "value": 0.01}], price: {"gold": 136, "wood": 43, "stone": 37}, img: "assets/ui/rifugio/furniture/set17/03.png"},
+        {id: "f164", name: "Vertebra Antica (Sgabello)", bonusText: "+0.5% HP Arena", epic: false, wall: false, effects: [{"type": "arenaHpMult", "value": 0.005}], price: {"gold": 150, "wood": 48, "stone": 41}, img: "assets/ui/rifugio/furniture/set17/04.png"},
+        {id: "f165", name: "Artiglio di Drago", bonusText: "+2% Danni Critici", epic: false, wall: true, effects: [{"type": "arenaCritDmgMult", "value": 0.02}], price: {"gold": 164, "wood": 74, "stone": 97}, img: "assets/ui/rifugio/furniture/set17/05.png"},
+        {id: "f166", name: "Fossile Incastonato", bonusText: "+1% Pietra", epic: false, wall: true, effects: [{"type": "stoneMult", "value": 0.01}], price: {"gold": 178, "wood": 81, "stone": 105}, img: "assets/ui/rifugio/furniture/set17/06.png"},
+        {id: "f167", name: "Cucciolo di Drago d'Ossa (Statua)", bonusText: "+1% XP Globale", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "global", "value": 0.01}], price: {"gold": 192, "wood": 61, "stone": 52}, img: "assets/ui/rifugio/furniture/set17/07.png"},
+        {id: "f168", name: "Kit di Scavo del Paleontologo", bonusText: "+2% Drop Progetti", epic: false, wall: false, effects: [{"type": "dropProjectChance", "value": 0.02}], price: {"gold": 206, "wood": 66, "stone": 56}, img: "assets/ui/rifugio/furniture/set17/08.png"},
+        {id: "f169", name: "Forziere d'Avorio", bonusText: "+1% Monete", epic: false, wall: false, effects: [{"type": "goldMult", "value": 0.01}], price: {"gold": 220, "wood": 70, "stone": 60}, img: "assets/ui/rifugio/furniture/set17/09.png"},
+        {id: "f170", name: "L'Anima di Drago Cristallizzata", bonusText: "+4% Danni in Arena", epic: true, wall: false, effects: [{"type": "arenaDmgMult", "value": 0.04}], price: {"gold": 701, "wood": 223, "stone": 191}, img: "assets/ui/rifugio/furniture/set17/10.png"},
+      ],
+    },
+    {
+      id: "set18", num: 18, name: "Il Vulcano Infernale",
+      biomeIdx: 9, fallbackIcon: "🌋",
+      setBonusDesc: "Furia del Magma (+15% Danni fissi in Arena)",
+      setBonusEffects: [{"type": "arenaDmgMult", "value": 0.15}],
+      items: [
+        {id: "f171", name: "Pavimento in Cenere Compattata", bonusText: "+0.5% Danni Arena", epic: false, wall: false, effects: [{"type": "arenaDmgMult", "value": 0.005}], price: {"gold": 114, "wood": 36, "stone": 31}, img: "assets/ui/rifugio/furniture/set18/01.png"},
+        {id: "f172", name: "Fessura di Magma (Lampada)", bonusText: "+1% Danni Arena", epic: false, wall: false, effects: [{"type": "arenaDmgMult", "value": 0.01}], price: {"gold": 129, "wood": 41, "stone": 35}, img: "assets/ui/rifugio/furniture/set18/02.png"},
+        {id: "f173", name: "Blocco di Basalto (Tavolo)", bonusText: "+1% Danni Arena", epic: false, wall: false, effects: [{"type": "arenaDmgMult", "value": 0.01}], price: {"gold": 143, "wood": 46, "stone": 39}, img: "assets/ui/rifugio/furniture/set18/03.png"},
+        {id: "f174", name: "Seduta in Pietra Pomice", bonusText: "+0.5% Danni Arena", epic: false, wall: false, effects: [{"type": "arenaDmgMult", "value": 0.005}], price: {"gold": 158, "wood": 50, "stone": 43}, img: "assets/ui/rifugio/furniture/set18/04.png"},
+        {id: "f175", name: "Spadone di Ossidiana", bonusText: "+2% Danni Arena", epic: false, wall: true, effects: [{"type": "arenaDmgMult", "value": 0.02}], price: {"gold": 173, "wood": 79, "stone": 102}, img: "assets/ui/rifugio/furniture/set18/05.png"},
+        {id: "f176", name: "Mappa delle Faglie", bonusText: "+1% Pietra", epic: false, wall: true, effects: [{"type": "stoneMult", "value": 0.01}], price: {"gold": 188, "wood": 85, "stone": 111}, img: "assets/ui/rifugio/furniture/set18/06.png"},
+        {id: "f177", name: "Statua della Fenice", bonusText: "+1% XP Corsa", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "corsa", "value": 0.01}], price: {"gold": 203, "wood": 64, "stone": 55}, img: "assets/ui/rifugio/furniture/set18/07.png"},
+        {id: "f178", name: "Mantice Gigante", bonusText: "+1% Danni Arena", epic: false, wall: false, effects: [{"type": "arenaDmgMult", "value": 0.01}], price: {"gold": 217, "wood": 69, "stone": 59}, img: "assets/ui/rifugio/furniture/set18/08.png"},
+        {id: "f179", name: "Forziere Forgiato nel Fuoco", bonusText: "+1% Monete", epic: false, wall: false, effects: [{"type": "goldMult", "value": 0.01}], price: {"gold": 232, "wood": 74, "stone": 63}, img: "assets/ui/rifugio/furniture/set18/09.png"},
+        {id: "f180", name: "La Fiamma Eterna", bonusText: "+3% Danni Arena e +1% XP Globale", epic: true, wall: false, effects: [{"type": "arenaDmgMult", "value": 0.03}, {"type": "xpMult", "activity": "global", "value": 0.01}], price: {"gold": 740, "wood": 235, "stone": 202}, img: "assets/ui/rifugio/furniture/set18/10.png"},
+      ],
+    },
+    {
+      id: "set19", num: 19, name: "La Cittadella dell'Eclissi",
+      biomeIdx: 4, fallbackIcon: "🌒",
+      setBonusDesc: "Dualità (+20% risorse bonus se allenamento post 18:00)",
+      setBonusEffects: [{"type": "flag", "key": "dualityBonus", "value": 0.2}],
+      items: [
+        {id: "f181", name: "Tappeto del Crepuscolo", bonusText: "+1% XP Globale", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "global", "value": 0.01}], price: {"gold": 120, "wood": 38, "stone": 33}, img: null},
+        {id: "f182", name: "Lampada Sole/Luna", bonusText: "+1% Monete", epic: false, wall: false, effects: [{"type": "goldMult", "value": 0.01}], price: {"gold": 135, "wood": 43, "stone": 37}, img: null},
+        {id: "f183", name: "Tavolo dell'Equinozio", bonusText: "+1% Legna e Pietra", epic: false, wall: false, effects: [{"type": "woodMult", "value": 0.01}, {"type": "stoneMult", "value": 0.01}], price: {"gold": 151, "wood": 48, "stone": 41}, img: null},
+        {id: "f184", name: "Sedia dell'Alba", bonusText: "+1% XP Globale", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "global", "value": 0.01}], price: {"gold": 167, "wood": 53, "stone": 45}, img: null},
+        {id: "f185", name: "Scudo dell'Ombra", bonusText: "+1% Difesa Arena", epic: false, wall: true, effects: [{"type": "arenaDefMult", "value": 0.01}], price: {"gold": 182, "wood": 83, "stone": 108}, img: null},
+        {id: "f186", name: "Astrolabio Gigante", bonusText: "+2% Drop Rari", epic: false, wall: true, effects: [{"type": "dropRareChance", "value": 0.02}], price: {"gold": 198, "wood": 90, "stone": 117}, img: null},
+        {id: "f187", name: "Gargoyle Guardiano", bonusText: "+1% HP Arena", epic: false, wall: false, effects: [{"type": "arenaHpMult", "value": 0.01}], price: {"gold": 213, "wood": 68, "stone": 58}, img: null},
+        {id: "f188", name: "Lente del Veggente", bonusText: "+1% Drop Progetti", epic: false, wall: false, effects: [{"type": "dropProjectChance", "value": 0.01}], price: {"gold": 229, "wood": 73, "stone": 62}, img: null},
+        {id: "f189", name: "Cassa della Mezzanotte", bonusText: "+1% Monete", epic: false, wall: false, effects: [{"type": "goldMult", "value": 0.01}], price: {"gold": 245, "wood": 78, "stone": 67}, img: null},
+        {id: "f190", name: "Il Medaglione dell'Eclissi Perfetta", bonusText: "+3% Drop Rari e +1 Stamina", epic: true, wall: false, effects: [{"type": "dropRareChance", "value": 0.03}, {"type": "staminaMax", "value": 1}], price: {"gold": 779, "wood": 248, "stone": 213}, img: null},
+      ],
+    },
+    {
+      id: "set20", num: 20, name: "Il Cuore del Vuoto",
+      biomeIdx: 18, fallbackIcon: "🌑",
+      setBonusDesc: "Ascensione (+20% a tutte le statistiche del gioco)",
+      setBonusEffects: [{"type": "xpMult", "activity": "global", "value": 0.2}, {"type": "goldMult", "value": 0.2}, {"type": "woodMult", "value": 0.2}, {"type": "stoneMult", "value": 0.2}, {"type": "arenaDmgMult", "value": 0.2}],
+      items: [
+        {id: "f191", name: "Pavimento a Materia Oscura", bonusText: "+1% XP Globale", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "global", "value": 0.01}], price: {"gold": 126, "wood": 40, "stone": 34}, img: "assets/ui/rifugio/furniture/set20/01.png"},
+        {id: "f192", name: "Lampada a Singolarità", bonusText: "+1% Drop Rari", epic: false, wall: false, effects: [{"type": "dropRareChance", "value": 0.01}], price: {"gold": 142, "wood": 45, "stone": 39}, img: "assets/ui/rifugio/furniture/set20/02.png"},
+        {id: "f193", name: "Tavolo Anti-Gravità", bonusText: "+1% XP Globale", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "global", "value": 0.01}], price: {"gold": 159, "wood": 50, "stone": 43}, img: "assets/ui/rifugio/furniture/set20/03.png"},
+        {id: "f194", name: "Sedia di Luce Solida", bonusText: "+1% XP Globale", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "global", "value": 0.01}], price: {"gold": 175, "wood": 56, "stone": 48}, img: "assets/ui/rifugio/furniture/set20/04.png"},
+        {id: "f195", name: "Portale Dimensionale", bonusText: "Riduce costi Mercato del 2%", epic: false, wall: true, effects: [{"type": "marketDiscount", "value": 0.02}], price: {"gold": 191, "wood": 87, "stone": 113}, img: "assets/ui/rifugio/furniture/set20/05.png"},
+        {id: "f196", name: "Mappa del Cosmo", bonusText: "+2% Drop Progetti", epic: false, wall: true, effects: [{"type": "dropProjectChance", "value": 0.02}], price: {"gold": 208, "wood": 94, "stone": 123}, img: "assets/ui/rifugio/furniture/set20/06.png"},
+        {id: "f197", name: "Statua del Viaggiatore del Tempo", bonusText: "+1% XP Globale", epic: false, wall: false, effects: [{"type": "xpMult", "activity": "global", "value": 0.01}], price: {"gold": 224, "wood": 71, "stone": 61}, img: "assets/ui/rifugio/furniture/set20/07.png"},
+        {id: "f198", name: "Distorsore Spazio-Temporale", bonusText: "+2% Danni in Arena", epic: false, wall: false, effects: [{"type": "arenaDmgMult", "value": 0.02}], price: {"gold": 241, "wood": 77, "stone": 66}, img: "assets/ui/rifugio/furniture/set20/08.png"},
+        {id: "f199", name: "Forziere del Buco Nero", bonusText: "+2% Monete", epic: false, wall: false, effects: [{"type": "goldMult", "value": 0.02}], price: {"gold": 257, "wood": 82, "stone": 70}, img: "assets/ui/rifugio/furniture/set20/09.png"},
+        {id: "f200", name: "Il Frammento della Genesi", bonusText: "+5% XP, +5% Danni, +5% Risorse", epic: true, wall: false, effects: [{"type": "xpMult", "activity": "global", "value": 0.05}, {"type": "arenaDmgMult", "value": 0.05}, {"type": "goldMult", "value": 0.05}, {"type": "woodMult", "value": 0.05}, {"type": "stoneMult", "value": 0.05}], price: {"gold": 819, "wood": 260, "stone": 223}, img: "assets/ui/rifugio/furniture/set20/10.png"},
+      ],
+    },
+  ];
+  function furnitureSetById(setId) { return FURNITURE_SETS.find(s => s.id === setId); }
+
+  function furnitureSetOwnedCount(hero, setId) {
+    const owned = (hero.furniture && hero.furniture.owned) || [];
+    const s = furnitureSetById(setId);
+    if (!s) return 0;
+    return s.items.filter(it => owned.includes(it.id)).length;
+  }
+
+  function furnitureSetComplete(hero, setId) {
+    return furnitureSetOwnedCount(hero, setId) === 10;
+  }
+
+  function furnitureUnlockedSets(hero) {
+    return FURNITURE_SETS.filter(s => hero.level >= (BIOMES[s.biomeIdx] ? BIOMES[s.biomeIdx].min : 999));
+  }
+
+  // Somma tutti gli effetti degli oggetti posseduti + i bonus set completi.
+  function furnitureAggregate(hero) {
+    const totals = {
+      xpMult: { camminata: 0, corsa: 0, cyclette: 0, global: 0 },
+      goldMult: 0, woodMult: 0, stoneMult: 0,
+      arenaDmgMult: 0, arenaHpMult: 0, arenaCritDmgMult: 0, arenaCritChance: 0, arenaDefMult: 0,
+      bossDmgMult: 0, dropRareChance: 0, dropProjectChance: 0, doubleDropChance: 0,
+      marketDiscount: 0, staminaMaxBonus: 0,
+      flags: {},
+    };
+    const owned = (hero.furniture && hero.furniture.owned) || [];
+    if (!owned.length) return totals;
+
+    const applyEffect = e => {
+      switch (e.type) {
+        case 'xpMult': totals.xpMult[e.activity] += e.value; break;
+        case 'goldMult': totals.goldMult += e.value; break;
+        case 'woodMult': totals.woodMult += e.value; break;
+        case 'stoneMult': totals.stoneMult += e.value; break;
+        case 'arenaDmgMult': totals.arenaDmgMult += e.value; break;
+        case 'arenaHpMult': totals.arenaHpMult += e.value; break;
+        case 'arenaCritDmgMult': totals.arenaCritDmgMult += e.value; break;
+        case 'arenaCritChance': totals.arenaCritChance += e.value; break;
+        case 'arenaDefMult': totals.arenaDefMult += e.value; break;
+        case 'bossDmgMult': totals.bossDmgMult += e.value; break;
+        case 'dropRareChance': totals.dropRareChance += e.value; break;
+        case 'dropProjectChance': totals.dropProjectChance += e.value; break;
+        case 'doubleDropChance': totals.doubleDropChance += e.value; break;
+        case 'marketDiscount': totals.marketDiscount += e.value; break;
+        case 'staminaMax': totals.staminaMaxBonus += e.value; break;
+        case 'flag': totals.flags[e.key] = e.value !== undefined ? e.value : true; break;
+      }
+    };
+
+    FURNITURE_SETS.forEach(s => {
+      s.items.forEach(it => { if (owned.includes(it.id)) it.effects.forEach(applyEffect); });
+      if (furnitureSetComplete(hero, s.id)) s.setBonusEffects.forEach(applyEffect);
+    });
+    return totals;
+  }
+
+  function buyFurniture(hero, setId, itemId) {
+    const s = furnitureSetById(setId);
+    if (!s) return 'Set sconosciuto.';
+    const it = s.items.find(i => i.id === itemId);
+    if (!it) return 'Oggetto sconosciuto.';
+    hero.furniture = hero.furniture || { owned: [] };
+    if (hero.furniture.owned.includes(itemId)) return 'Lo possiedi già.';
+    if (hero.level < (BIOMES[s.biomeIdx] ? BIOMES[s.biomeIdx].min : 999)) return 'Non hai ancora raggiunto questo bioma.';
+    const p = it.price;
+    if (hero.gold < p.gold || hero.wood < p.wood || hero.stone < p.stone) {
+      return `Risorse insufficienti (servono 🪙${p.gold} 🪵${p.wood} 🪨${p.stone}).`;
+    }
+    hero.gold -= p.gold; hero.wood -= p.wood; hero.stone -= p.stone;
+    hero.furniture.owned.push(itemId);
+    return { ok: true, setComplete: furnitureSetComplete(hero, setId) };
+  }
+
+
   // Aura del Branco: entrambi i famigli felici contemporaneamente
   // (funziona solo tra eroi presenti sullo STESSO dispositivo, come le
   // "Visite al Rifugio" — richiederebbe un backend per il multi-device).
@@ -1359,5 +1839,7 @@ const RPG = (() => {
     buyAccessory, addPetXp,
     startExpedition, expeditionStatus, collectExpedition,
     packAuraActive,
+    FURNITURE_SETS, furnitureSetById, furnitureSetOwnedCount, furnitureSetComplete,
+    furnitureUnlockedSets, furnitureAggregate, buyFurniture,
   };
 })();

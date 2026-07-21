@@ -1409,3 +1409,17 @@ body {
 .pet-stage-tag { text-align: center; color: #c9b48f; margin-bottom: 4px; }
 .pet-thumb { display: block; max-width: 100px; max-height: 100px; object-fit: contain; margin: 4px auto; filter: drop-shadow(0 4px 8px rgba(0,0,0,.4)); }
 .santuario-teaser { text-align: center; }
+
+/* Bottega dell'Arredamento */
+.furniture-set-row { padding: 10px; }
+.furniture-set-row.pickable { cursor: pointer; }
+.furniture-set-row.pickable:active { transform: scale(.98); }
+.furniture-set-row.locked { opacity: .6; }
+.furniture-set-row.complete { border-left: 4px solid var(--gold-bright); box-shadow: 0 0 10px rgba(232,182,76,.3); }
+.furniture-set-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.furniture-set-icon { width: 48px; height: 48px; object-fit: contain; flex-shrink: 0; }
+.furniture-set-icon.locked-icon { display: flex; align-items: center; justify-content: center; font-size: 1.6rem; }
+.furniture-set-mid { flex: 1; min-width: 0; }
+.set-bonus-active { color: var(--gold-bright); font-weight: 700; }
+.furniture-item-row.equipped { opacity: .75; }
+.furniture-fallback-icon { font-size: 2rem; display: flex; align-items: center; justify-content: center; width: 56px; height: 56px; }

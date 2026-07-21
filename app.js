@@ -394,6 +394,7 @@ let CAMP_VIEW = 'main';
 
 function renderCamp(c) {
   if (CAMP_VIEW === 'santuario') { renderSantuarioView(c); return; }
+  if (CAMP_VIEW === 'arredamento') { renderArredamentoView(c); return; }
 
   const scene = el('div', 'camp-scene');
   const hasHouse = HERO.buildings.includes('fondamenta');
@@ -430,6 +431,20 @@ function renderCamp(c) {
     enterBtn.addEventListener('click', () => { CAMP_VIEW = 'santuario'; setTab('camp'); });
     sp.appendChild(enterBtn);
     c.appendChild(sp);
+  }
+
+  // Bottega dell'Arredamento (Espansione del Rifugio)
+  {
+    const totalOwned = (HERO.furniture && HERO.furniture.owned.length) || 0;
+    const setsComplete = RPG.FURNITURE_SETS.filter(s => RPG.furnitureSetComplete(HERO, s.id)).length;
+    const ap = el('div', 'panel');
+    ap.appendChild(el('h3', 'panel-title', '🏛️ Bottega dell\'Arredamento'));
+    ap.appendChild(el('p', 'muted small',
+      `${totalOwned} / 200 cimeli raccolti · ${setsComplete} / 20 set completi. Arreda il Rifugio e sblocca bonus permanenti!`));
+    const enterBtn2 = el('button', 'btn btn-primary wide', 'Sfoglia la Bottega');
+    enterBtn2.addEventListener('click', () => { CAMP_VIEW = 'arredamento'; setTab('camp'); });
+    ap.appendChild(enterBtn2);
+    c.appendChild(ap);
   }
 
   // Costruzione
@@ -726,6 +741,91 @@ function openFeedPicker() {
       else toast(r);
       setTab('camp');
     });
+    list.appendChild(row);
+  });
+}
+
+function renderArredamentoView(c) {
+  const backBtn = el('button', 'btn btn-small', '↩ Torna al Rifugio');
+  backBtn.addEventListener('click', () => { CAMP_VIEW = 'main'; setTab('camp'); });
+  c.appendChild(backBtn);
+
+  c.appendChild(el('h2', 'section-title', '🏛️ Bottega dell\'Arredamento'));
+  const totalOwned = (HERO.furniture && HERO.furniture.owned.length) || 0;
+  c.appendChild(el('p', 'muted small center', `${totalOwned} / 200 cimeli raccolti in tutto il regno`));
+
+  RPG.FURNITURE_SETS.slice().sort((a, b) => a.num - b.num).forEach(s => {
+    const biome = RPG.BIOMES[s.biomeIdx];
+    const unlocked = HERO.level >= biome.min;
+    const owned = RPG.furnitureSetOwnedCount(HERO, s.id);
+    const complete = owned === 10;
+    const row = el('div', 'panel furniture-set-row' + (complete ? ' complete' : '') + (!unlocked ? ' locked' : ''));
+    const thumbSrc = s.items.find(it => it.img)?.img;
+    const thumbHtml = (!unlocked)
+      ? `<div class="furniture-set-icon locked-icon">🔒</div>`
+      : (thumbSrc
+        ? `<img class="furniture-set-icon" src="${thumbSrc}" onerror="this.outerHTML='<div class=&quot;furniture-set-icon&quot;>${s.fallbackIcon}</div>'">`
+        : `<div class="furniture-set-icon">${s.fallbackIcon}</div>`);
+    row.innerHTML = `
+      <div class="furniture-set-head">
+        ${thumbHtml}
+        <div class="furniture-set-mid">
+          <b>${esc(s.name)}</b>
+          <div class="small muted">${esc(biome.name)} · Liv. ${biome.min}+</div>
+          ${unlocked
+            ? `<div class="small">${owned} / 10 pezzi${complete ? ' ✅ <b>Set completo!</b>' : ''}</div>`
+            : `<div class="small muted">Sbloccato al Livello ${biome.min}</div>`}
+        </div>
+      </div>
+      <div class="small ${complete ? 'set-bonus-active' : 'muted'}">🎁 Bonus Set: ${esc(s.setBonusDesc)}</div>`;
+    if (unlocked) {
+      row.classList.add('pickable');
+      row.addEventListener('click', () => openFurnitureSetModal(s.id));
+    }
+    c.appendChild(row);
+  });
+}
+
+function openFurnitureSetModal(setId) {
+  const s = RPG.furnitureSetById(setId);
+  const biome = RPG.BIOMES[s.biomeIdx];
+  const owned = RPG.furnitureSetOwnedCount(HERO, s.id);
+  const complete = owned === 10;
+  let html = `<h3 class="panel-title">${s.fallbackIcon} ${esc(s.name)}</h3>
+    <p class="small muted center">${esc(biome.name)} · ${owned}/10 pezzi</p>
+    <p class="small center ${complete ? 'set-bonus-active' : ''}">🎁 Bonus Set: ${esc(s.setBonusDesc)}${complete ? ' — ATTIVO!' : ''}</p>
+    <div class="loot-list" id="furniture-item-list"></div>
+    <button class="btn wide" onclick="closeModal()">Chiudi</button>`;
+  modal(html);
+  const list = $('#furniture-item-list');
+  const ownedIds = (HERO.furniture && HERO.furniture.owned) || [];
+  s.items.forEach(it => {
+    const has = ownedIds.includes(it.id);
+    const row = el('div', 'loot loot-with-img furniture-item-row' + (has ? ' equipped' : '') + (it.epic ? ' rar-leggendario' : ''));
+    const imgHtml = it.img
+      ? `<img class="item-icon-big" src="${it.img}" onerror="this.style.visibility='hidden'">`
+      : `<span class="item-icon-big furniture-fallback-icon">${s.fallbackIcon}</span>`;
+    row.innerHTML = `${imgHtml}<div class="loot-body">
+      <div class="loot-head"><b>${esc(it.name)}</b>${it.epic ? ' <span class="tag">EPICO</span>' : ''}${has ? ' ✅' : ''}</div>
+      <div class="small muted">${esc(it.bonusText)}</div>
+      <div class="small">${has ? 'Posseduto' : `🪙 ${it.price.gold} · 🪵 ${it.price.wood} · 🪨 ${it.price.stone}`}</div>
+    </div>`;
+    if (!has) {
+      row.classList.add('pickable');
+      row.addEventListener('click', () => {
+        const r = RPG.buyFurniture(HERO, setId, it.id);
+        persist();
+        if (r && r.ok) {
+          toast(r.setComplete ? `🎉 ${it.name} acquisito — SET COMPLETO! Bonus attivo!` : `${it.name} acquisito!`);
+          sfx('coin');
+          renderHUD();
+          closeModal();
+          openFurnitureSetModal(setId);
+        } else {
+          toast(r);
+        }
+      });
+    }
     list.appendChild(row);
   });
 }
@@ -1784,8 +1884,22 @@ function beginBattle(villainId) {
     if (!HERO.bestiary.includes(v.id)) HERO.bestiary.push(v.id);
     persist();
     const petBonus = RPG.petArenaBonus(HERO);
-    const maxHP = 100 + petBonus.hpBonus;
-    BATTLE = { v, heroHP: maxHP, heroMaxHP: maxHP, vHP: 100, dmg: 34, hw: 0, vw: 0, round: 1, busy: false, done: false, petBonus };
+    const furn = RPG.furnitureAggregate(HERO);
+    const furnHpBonus = Math.round(100 * furn.arenaHpMult);
+    const furnDmgBonus = Math.round(34 * (furn.arenaDmgMult + (v.boss ? furn.bossDmgMult : 0)));
+    const maxHP = 100 + petBonus.hpBonus + furnHpBonus;
+    BATTLE = {
+      v, heroHP: maxHP, heroMaxHP: maxHP, vHP: 100, dmg: 34, hw: 0, vw: 0, round: 1, busy: false, done: false,
+      petBonus, furnBonus: {
+        dmgBonus: furnDmgBonus,
+        critChance: furn.arenaCritChance,
+        critDmgMult: 1 + furn.arenaCritDmgMult,
+        defMult: 1 - Math.min(0.8, furn.arenaDefMult),
+        regenPct: (furn.flags.arenaRegen) || 0,
+        extraLife: !!furn.flags.arenaExtraLife,
+      },
+      extraLifeUsed: false,
+    };
     closeModal();
     battleEl().classList.remove('hidden');
     drawBattle();
@@ -1887,26 +2001,40 @@ function chooseMove(move) {
     else result = 'lose';
 
     const pb = b.petBonus || { dmgBonus: 0, dodgeChance: 0, critMult: 1 };
+    const fb = b.furnBonus || { dmgBonus: 0, critChance: 0, critDmgMult: 1, defMult: 1, regenPct: 0, extraLife: false };
     let msg;
     if (result === 'win') {
-      let dealt = b.dmg + (pb.dmgBonus || 0);
-      let isCrit = pb.critMult > 1 && Math.random() < 0.25;
-      if (isCrit) dealt = Math.round(dealt * pb.critMult);
+      let dealt = b.dmg + (pb.dmgBonus || 0) + (fb.dmgBonus || 0);
+      const critChance = (pb.critMult > 1 ? 0.25 : 0) + fb.critChance;
+      const critMult = (pb.critMult > 1 ? pb.critMult : 1) * fb.critDmgMult;
+      let isCrit = critMult > 1 && Math.random() < critChance;
+      if (isCrit) dealt = Math.round(dealt * critMult);
       b.vHP = Math.max(0, b.vHP - dealt); b.hw++;
       hitEffect('villain', dealt); sfx('hit');
-      msg = `<div class="res-txt win">${hm.label}! ${hm.flavor}${isCrit ? ' 🐾 COLPO CRITICO del tuo famiglio!' : ''}</div>`;
+      msg = `<div class="res-txt win">${hm.label}! ${hm.flavor}${isCrit ? ' ✨ COLPO CRITICO!' : ''}</div>`;
     } else if (result === 'lose') {
       if (pb.dodgeChance > 0 && Math.random() < pb.dodgeChance) {
         sfx('block');
         msg = `<div class="res-txt tie">🐾 Il tuo famiglio ti aiuta a schivare il colpo!</div>`;
       } else {
-        b.heroHP = Math.max(0, b.heroHP - b.dmg); b.vw++;
-        hitEffect('hero', b.dmg); sfx('lose');
-        msg = `<div class="res-txt lose">${vm.label} nemico! Sei stato colpito!</div>`;
+        const incoming = Math.max(1, Math.round(b.dmg * fb.defMult));
+        if (incoming >= b.heroHP && fb.extraLife && !b.extraLifeUsed) {
+          b.extraLifeUsed = true;
+          b.heroHP = 1;
+          hitEffect('hero', incoming); sfx('lose');
+          msg = `<div class="res-txt lose">${vm.label} nemico! 💫 Un cimelio del Cimitero dei Draghi ti dona una VITA EXTRA!</div>`;
+        } else {
+          b.heroHP = Math.max(0, b.heroHP - incoming); b.vw++;
+          hitEffect('hero', incoming); sfx('lose');
+          msg = `<div class="res-txt lose">${vm.label} nemico! Sei stato colpito!</div>`;
+        }
       }
     } else {
       sfx('block');
       msg = `<div class="res-txt tie">Colpi che si annullano!</div>`;
+    }
+    if (fb.regenPct > 0 && b.heroHP > 0) {
+      b.heroHP = Math.min(b.heroMaxHP, Math.round(b.heroHP + b.heroMaxHP * fb.regenPct));
     }
     center.innerHTML += msg;
     updateBars();
