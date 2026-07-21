@@ -754,7 +754,9 @@ function renderArredamentoView(c) {
   const totalOwned = (HERO.furniture && HERO.furniture.owned.length) || 0;
   c.appendChild(el('p', 'muted small center', `${totalOwned} / 200 cimeli raccolti in tutto il regno`));
 
-  RPG.FURNITURE_SETS.slice().sort((a, b) => a.num - b.num).forEach(s => {
+  RPG.FURNITURE_SETS.slice()
+    .sort((a, b) => RPG.BIOMES[a.biomeIdx].min - RPG.BIOMES[b.biomeIdx].min)
+    .forEach(s => {
     const biome = RPG.BIOMES[s.biomeIdx];
     const unlocked = HERO.level >= biome.min;
     const owned = RPG.furnitureSetOwnedCount(HERO, s.id);
