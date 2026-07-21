@@ -162,6 +162,12 @@ const RPG = (() => {
       desc: '+15% probabilità di un bottino extra dai forzieri delle missioni' },
     fata:       { name: 'Polvere di Fata',         icon: '🧚',
       desc: 'Un Giorno di Riposo extra a settimana (3 invece di 2)' },
+    principe:   { name: 'Ali dell\'Aquila',         icon: '🦅',
+      desc: '+15% XP da ogni sessione in Cyclette' },
+    principessa:{ name: 'Grazia della Farfalla',    icon: '🦋',
+      desc: '+15% probabilità di trovare oggetti rari' },
+    regina:     { name: 'Sguardo della Regina Oscura', icon: '🦉',
+      desc: '+15% Danni contro i Boss in Arena' },
   };
   function talentOf(hero) { return CLASS_TALENTS[hero.storyId] || null; }
   function isClass(hero, id) { return hero.storyId === id; }
@@ -273,7 +279,8 @@ const RPG = (() => {
     let item = genItem(hero.level, minRarity, forcedSlot);
     const alchProc = isClass(hero, 'alchimista') && Math.random() < 0.10;
     const furn = furnitureAggregate(hero);
-    const furnProc = Math.random() < furn.dropRareChance;
+    const classDropRareChance = isClass(hero, 'principessa') ? 0.15 : 0;
+    const furnProc = Math.random() < furn.dropRareChance + classDropRareChance;
     if (alchProc || furnProc) {
       const avail = availableRarities(hero.level);
       const idx = avail.indexOf(item.rarity);
@@ -665,6 +672,7 @@ const RPG = (() => {
     if (isClass(hero, 'furfante')) goldMult += 0.20;
     if (isClass(hero, 'eroe2')) resMult += 0.25;
     if (isClass(hero, 'maga')) { resMult += 0.15; xpMult += 0.05; }
+    if (isClass(hero, 'principe') && type === 'cyclette') xpMult += 0.15;
 
     // Cimeli del Rifugio (Espansione)
     const furn = furnitureAggregate(hero);
@@ -1249,9 +1257,10 @@ const RPG = (() => {
     return out;
   }
 
-  function classArenaBonus(hero) {
+  function classArenaBonus(hero, villain) {
     const out = { dmgBonus: 0, hpBonus: 0 };
     if (isClass(hero, 'paladino')) { out.dmgBonus = Math.round(34 * 0.12); out.hpBonus = Math.round(100 * 0.12); }
+    if (isClass(hero, 'regina') && villain && villain.boss) { out.dmgBonus += Math.round(34 * 0.15); }
     return out;
   }
 

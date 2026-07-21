@@ -27,6 +27,9 @@ const AVATARS = [
   { path: 'assets/avatars/paladino.png',          storyId: 'paladino',         label: 'Il Paladino' },
   { path: 'assets/avatars/ranger.png',            storyId: 'ranger',           label: 'Il Ranger' },
   { path: 'assets/avatars/fata.png',              storyId: 'fata',             label: 'La Fata Elfica' },
+  { path: 'assets/avatars/principe.png',          storyId: 'principe',         label: 'Il Principe delle Aquile' },
+  { path: 'assets/avatars/principessa.png',       storyId: 'principessa',      label: 'La Principessa Farfallosa' },
+  { path: 'assets/avatars/regina.png',            storyId: 'regina',           label: 'La Regina Oscura' },
 ];
 
 /* ── Le storie dei protagonisti ── */
@@ -205,6 +208,63 @@ Ti sei risvegliata tra le ceneri, sola: i bambini erano salvi, ma il villaggio
 no. Ora voli — o meglio, corri, pedali, cammini, perché la magia da sola non
 basta più — in cerca del Cavaliere che ha osato portare l'oscurità nel tuo bosco.
 Le fate non dimenticano. E questa fata, in particolare, non perdona.`,
+  },
+  principe: {
+    title: 'Il Principe del Nido degli Aquilotti',
+    text: `Sei l'ultimo erede del Regno delle Vette, un trono minuscolo arroccato tra le
+montagne oltre Oakhaven, alleato da sempre con i grifoni imperiali che nidificano
+sulle guglie di pietra. Da quando eri in fasce un'aquila ti veglia dall'alto —
+prima Corvenna, la tua balia alata, poi i suoi figli — e lo scudo con l'aquila
+a due teste che porti sempre con te è stato forgiato il giorno della tua nascita,
+un giuramento di protezione reciproca tra il tuo popolo e il cielo.
+Eri in visita a Oakhaven per un trattato di pace quando l'Orda ha oscurato il
+sole. Le tue guardie ti hanno issato in sella a un'aquila per metterti in salvo,
+ma hai ordinato di virare INDIETRO, verso le fiamme, per portare in salvo chi
+non aveva ali. Hai volato basso tra i tetti che crollavano finché le ali della
+tua aquila non hanno preso fuoco — sei precipitato con lei, sopravvivendo entrambi
+per miracolo, ma il cielo di quel giorno non l'hai più dimenticato.
+Ora ti alleni ogni giorno, in sella o a piedi, per essere di nuovo abbastanza
+veloce e forte da meritare il cielo: perché il Cavaliere del Drago vola, e un
+principe che si rispetti non lascia che un usurpatore tenga il volo tutto per sé.`,
+  },
+  principessa: {
+    title: 'La Principessa del Giardino Sussurrante',
+    text: `Nel cuore della Foresta Sussurrante, ben oltre i sentieri che i cacciatori
+osano percorrere, si nasconde un giardino che nessuna mappa segna: il tuo regno,
+governato non con la spada ma con un patto antico stretto tra la tua famiglia e
+le migliaia di farfalle che popolano quei fiori. La tua armatura è tessuta con le
+loro ali cadute, donate per amore e non per caccia, e la lancia che porti è stata
+intagliata da un ramo di melo caduto durante la prima fioritura del tuo regno.
+Le farfalle sono le tue spie: volano ovunque, vedono ogni cosa, e la notte in
+cui Oakhaven bruciò furono loro a portarti la notizia, migliaia di ali che
+oscurarono per un istante persino il fumo. Sei corsa in aiuto insieme al tuo
+sciame, ma il fuoco dell'Orda non conosce pietà per le ali sottili: ne hai perse
+troppe quella notte, disperse per proteggere famiglie che nemmeno conoscevano
+il tuo nome.
+Ogni chilometro che percorri onora quelle ali perdute, e ogni tesoro che trovi
+lungo il cammino — un dono che le farfalle superstiti continuano a scovare per
+te, ovunque tu vada — è un passo più vicino al giorno in cui il tuo giardino e
+il Cavaliere del Drago si troveranno faccia a faccia.`,
+  },
+  regina: {
+    title: 'La Regina del Crepuscolo Perduto',
+    text: `Governavi di notte un piccolo regno ai margini della Valle dei Cristalli
+Oscuri, dove il sole non arriva mai del tutto e le farfalle notturne brillano
+come stelle cadute. Il tuo scettro di cristallo viola è stato intagliato dalla
+tua stessa magia, e Nyx, la civetta che non lascia mai la tua spalla, vede nel
+buio più lontano di quanto chiunque altro veda alla luce del giorno.
+Molti ti temevano prima ancora di conoscerti — "la Regina Oscura" — ma erano i
+piccoli villaggi ai confini del tuo regno, incluso un tratto di Oakhaven, a
+dormire più sereni sapendo che la tua magia teneva lontani gli incubi peggiori.
+Quando l'Orda calò dal cielo, fosti tu a riconoscere per prima cosa fosse
+davvero: non un semplice drago, ma un frammento di oscurità corrotta, la stessa
+sostanza che governavi e domavi da una vita intera — sfuggita al controllo di
+chi l'aveva risvegliata. Hai combattuto un'intera notte per contenerla, e hai
+perso: la corruzione si è diffusa comunque, e Oakhaven è caduta.
+Da allora ti alleni senza sosta, perché conosci un segreto che nessun altro
+eroe possiede: sai ESATTAMENTE cosa serve per fermare un mostro fatto della tua
+stessa magia. Il Cavaliere del Drago ha rubato qualcosa che ti appartiene.
+Vuoi indietro l'oscurità — e vuoi indietro Oakhaven.`,
   },
 };
 
@@ -2005,7 +2065,7 @@ function beginBattle(villainId) {
     persist();
     const petBonus = RPG.petArenaBonus(HERO);
     const furn = RPG.furnitureAggregate(HERO);
-    const classBonus = RPG.classArenaBonus(HERO);
+    const classBonus = RPG.classArenaBonus(HERO, v);
     const furnHpBonus = Math.round(100 * furn.arenaHpMult);
     const furnDmgBonus = Math.round(34 * (furn.arenaDmgMult + (v.boss ? furn.bossDmgMult : 0)));
     const maxHP = 100 + petBonus.hpBonus + furnHpBonus + classBonus.hpBonus;
