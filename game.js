@@ -471,6 +471,8 @@ const RPG = (() => {
       missionsDone: [],
       activeMission: null,
       companion: false,
+      pet: null,
+      stamina: 0,
       ascended: false,
       restBonus: false,
       restDaysThisWeek: 0,
@@ -495,6 +497,8 @@ const RPG = (() => {
     h.eventNotified = h.eventNotified || null; // settimana della Taglia già notificata
     h.battles = h.battles || { date: null, count: 0 }; // sfide dell'Arena usate oggi
     h.healthSync = h.healthSync || { date: null, applied: {} }; // sincronizzazione da Apple Salute
+    h.pet = h.pet || null;
+    h.stamina = h.stamina || 0;
     // vecchio inventario a stringhe → convertito in oro
     if (Array.isArray(h.inventory) && h.inventory.length) {
       h.gold += h.inventory.length * 10;
@@ -656,6 +660,7 @@ const RPG = (() => {
 
     hero.totalKm += km;
     hero.kmByType[type] = (hero.kmByType[type] || 0) + km;
+    if (type === 'corsa') hero.stamina = (hero.stamina || 0) + km * 5;
     hero.log.unshift({ date: Date.now(), type, km, xp: report.xp });
     if (hero.log.length > 100) hero.log.pop();
 
@@ -813,7 +818,8 @@ const RPG = (() => {
     report.chest = chest;
     if (r.unlocks === 'companion' && !hero.companion) {
       hero.companion = true;
-      report.unlocks.push('🐺 EVENTO DEL RISVEGLIO! Il Lupo Astrale ti ha scelto: è la tua cavalcatura in missione (+10% km) e il tuo compagno al Rifugio.');
+      hero.pet = createPet();
+      report.unlocks.push('🐺 EVENTO DEL RISVEGLIO! Il Lupo Astrale ti ha scelto: è la tua cavalcatura in missione (+10% km) e il tuo compagno al Rifugio. Visita il Santuario dei Famigli per prendertene cura!');
     }
     if (r.unlocks === 'ascension') {
       hero.ascended = true;
@@ -1041,6 +1047,269 @@ const RPG = (() => {
     return chest;
   }
 
+  /* ═══════════════════════════════════════════════════════════
+     IL SANTUARIO DEI FAMIGLI — meccaniche stile Tamagotchi
+     ═══════════════════════════════════════════════════════════ */
+
+  const PET_PERSONALITIES = {
+    goloso: { name: 'Golosone', icon: '🍖',
+      desc: 'La fame scende il 30% più in fretta, ma regala +5% XP extra all\'eroe.',
+      hungerRateMult: 1.3, moodRateMult: 1, xpBonus: 0.05 },
+    iperattivo: { name: 'Iperattivo', icon: '⚡',
+      desc: 'L\'umore cala rapidamente se non gioca, ma se felice raddoppia i danni critici in Arena.',
+      hungerRateMult: 1, moodRateMult: 1.5, critMult: 2 },
+    dormiglione: { name: 'Dormiglione', icon: '💤',
+      desc: 'Si ammala più difficilmente, ma va messo a nanna rigorosamente prima delle 21:30.',
+      hungerRateMult: 1, moodRateMult: 0.8, sickResist: true, sleepDeadlineHour: 21.5 },
+  };
+
+  const PET_FOODS = {
+    mela:    { name: 'Mela', icon: '🍎', price: 5,  restoreHunger: 20 },
+    pesce:   { name: 'Pesce Fresco', icon: '🐟', price: 15, restoreHunger: 45 },
+    bistecca:{ name: 'Bistecca Epica', icon: '🥩', price: 50, restoreHunger: 100 },
+  };
+
+  const PET_ACCESSORIES = {
+    cappello: { name: 'Cappellino da Pirata', icon: '🏴‍☠️', price: 80 },
+    collare:  { name: 'Collare Magico', icon: '🔮', price: 60 },
+    occhiali: { name: 'Occhiali Steampunk', icon: '🥽', price: 100 },
+  };
+
+  const PHOENIX_POTION_PRICE = 500;
+  const EXPEDITION_HOURS = 2;
+  const WISH_WINDOW_MINUTES = 60;
+
+  function clamp01to100(n) { return Math.max(0, Math.min(100, n)); }
+
+  function createPet() {
+    const keys = Object.keys(PET_PERSONALITIES);
+    const personality = keys[Math.floor(Math.random() * keys.length)];
+    const now = Date.now();
+    return {
+      name: 'Ignis',
+      level: 1, xp: 0,
+      personality,
+      hunger: 100, mood: 100, hygiene: 100, energy: 100,
+      lastTick: now,
+      kmAtLastClean: 0,
+      sick: false, sickDays: 0, sickCheckedDate: null,
+      sleptToday: false, energyDate: null, restedBonusActive: false,
+      wish: null, wishCooldownUntil: now + 3 * 3600000,
+      accessory: null, accessoriesOwned: [],
+      expedition: null,
+    };
+  }
+
+  function petXpForLevel(level) { return 40 + level * 20; }
+
+  // Ricalcola le barre in base al tempo reale trascorso. Va chiamata
+  // prima di leggere/mostrare lo stato del pet.
+  function tickPet(hero) {
+    if (!hero.pet) return;
+    const p = hero.pet;
+    const pers = PET_PERSONALITIES[p.personality] || PET_PERSONALITIES.goloso;
+    const now = Date.now();
+    const hoursElapsed = Math.max(0, (now - p.lastTick) / 3600000);
+    if (hoursElapsed > 0) {
+      const hungerRate = (20 / 6) * pers.hungerRateMult;
+      const moodRate = (25 / 24) * pers.moodRateMult;
+      p.hunger = clamp01to100(p.hunger - hungerRate * hoursElapsed);
+      p.mood = clamp01to100(p.mood - moodRate * hoursElapsed);
+      p.lastTick = now;
+    }
+    // Igiene: legata ai km percorsi dall'ultimo bagno, non al tempo
+    const kmDirty = Math.max(0, hero.totalKm - (p.kmAtLastClean || 0));
+    p.hygiene = clamp01to100(100 - Math.floor(kmDirty / 3.5) * 20);
+
+    // Rollover giornaliero: energia (sonno) + malattia
+    const today = todayStamp();
+    if (p.energyDate !== today) {
+      const wasGoodSleep = !!p.sleptToday;
+      p.energy = wasGoodSleep ? 100 : 60;
+      p.restedBonusActive = wasGoodSleep;
+      p.sleptToday = false;
+      p.energyDate = today;
+    }
+    if (p.sickCheckedDate !== today) {
+      p.sickCheckedDate = today;
+      if (p.hunger <= 0 && p.mood <= 0) {
+        p.sickDays = (p.sickDays || 0) + (pers.sickResist ? 0.5 : 1);
+      } else {
+        p.sickDays = 0;
+      }
+      if (p.sickDays >= 2) p.sick = true;
+    }
+    // Scadenza della richiesta improvvisa
+    if (p.wish && now > p.wish.deadline) p.wish = null;
+    // Genera una nuova richiesta ogni tanto (se non ce n'è già una attiva)
+    if (!p.wish && now > (p.wishCooldownUntil || 0) && Math.random() < 0.15) {
+      const foodKeys = Object.keys(PET_FOODS);
+      const item = foodKeys[Math.floor(Math.random() * foodKeys.length)];
+      p.wish = { item, deadline: now + WISH_WINDOW_MINUTES * 60000 };
+      p.wishCooldownUntil = now + 6 * 3600000;
+    }
+    // Risoluzione automatica della spedizione se il tempo è scaduto
+    // (rimane "da riscuotere" finché non si preme il pulsante apposito)
+  }
+
+  function petArenaBonus(hero) {
+    const out = { dmgBonus: 0, hpBonus: 0, dodgeChance: 0, critMult: 1 };
+    if (!hero.companion || !hero.pet) return out;
+    const p = hero.pet;
+    if (p.sick) return out;
+    const moodFactor = p.mood >= 80 ? 1 : (p.mood >= 50 ? 0.5 : 0);
+    if (p.hunger <= 0 || moodFactor === 0) return out;
+    const pers = PET_PERSONALITIES[p.personality];
+    if (pers && pers.critMult && p.mood >= 80) out.critMult = pers.critMult;
+
+    // Dieta motoria: l'attività prevalente dell'eroe plasma il bonus
+    const km = hero.kmByType || {};
+    const best = Object.entries({ corsa: km.corsa || 0, cyclette: km.cyclette || 0, camminata: km.camminata || 0 })
+      .sort((a, b) => b[1] - a[1])[0];
+    if (best && best[1] > 0) {
+      if (best[0] === 'corsa') out.dodgeChance = 0.10 * moodFactor;
+      if (best[0] === 'cyclette') out.hpBonus = Math.round(20 * moodFactor);
+      if (best[0] === 'camminata') out.dmgBonus = Math.round(6 * moodFactor);
+    }
+    return out;
+  }
+
+  function feedPet(hero, foodKey) {
+    if (!hero.pet) return 'Non hai ancora un famiglio.';
+    const food = PET_FOODS[foodKey];
+    if (!food) return 'Cibo sconosciuto.';
+    if (hero.gold < food.price) return 'Oro insufficiente!';
+    tickPet(hero);
+    hero.gold -= food.price;
+    hero.pet.hunger = clamp01to100(hero.pet.hunger + food.restoreHunger);
+    let wishFulfilled = false;
+    if (hero.pet.wish && hero.pet.wish.item === foodKey) {
+      hero.pet.mood = 100;
+      hero.pet.wish = null;
+      wishFulfilled = true;
+    }
+    addPetXp(hero, 5);
+    return { ok: true, wishFulfilled };
+  }
+
+  function playWithPet(hero) {
+    if (!hero.pet) return 'Non hai ancora un famiglio.';
+    const STAMINA_COST = 5;
+    if ((hero.stamina || 0) < STAMINA_COST) return `Serve più Stamina! Corri per generarne (hai ${(hero.stamina || 0).toFixed(1)}/${STAMINA_COST}).`;
+    tickPet(hero);
+    hero.stamina -= STAMINA_COST;
+    hero.pet.mood = clamp01to100(hero.pet.mood + 25);
+    addPetXp(hero, 8);
+    return { ok: true };
+  }
+
+  function cleanPet(hero) {
+    if (!hero.pet) return 'Non hai ancora un famiglio.';
+    const WOOD_COST = 10, STONE_COST = 10;
+    if (hero.wood < WOOD_COST || hero.stone < STONE_COST) return `Serve più legna/pietra (hai 🪵${hero.wood}/🪨${hero.stone}, servono ${WOOD_COST}/${STONE_COST}).`;
+    tickPet(hero);
+    hero.wood -= WOOD_COST; hero.stone -= STONE_COST;
+    hero.pet.kmAtLastClean = hero.totalKm;
+    hero.pet.hygiene = 100;
+    addPetXp(hero, 4);
+    return { ok: true };
+  }
+
+  function sleepPet(hero) {
+    if (!hero.pet) return 'Non hai ancora un famiglio.';
+    tickPet(hero);
+    const pers = PET_PERSONALITIES[hero.pet.personality];
+    const deadline = (pers && pers.sleepDeadlineHour) || 22;
+    const hourNow = new Date().getHours() + new Date().getMinutes() / 60;
+    if (hourNow >= deadline) {
+      hero.pet.sleptToday = false;
+      return `Sono già le ${Math.floor(hourNow)}:${String(new Date().getMinutes()).padStart(2, '0')}... troppo tardi per un sonno perfetto (limite ore ${deadline}). Ci riproverai domani!`;
+    }
+    hero.pet.sleptToday = true;
+    return { ok: true };
+  }
+
+  function curePet(hero) {
+    if (!hero.pet) return 'Non hai ancora un famiglio.';
+    if (!hero.pet.sick) return 'Il tuo famiglio non è malato.';
+    if (hero.gold < PHOENIX_POTION_PRICE) return `Serve la Pozione della Fenice: ${PHOENIX_POTION_PRICE} monete (hai ${hero.gold}).`;
+    hero.gold -= PHOENIX_POTION_PRICE;
+    hero.pet.sick = false; hero.pet.sickDays = 0;
+    hero.pet.hunger = 50; hero.pet.mood = 50;
+    return { ok: true };
+  }
+
+  function buyAccessory(hero, key) {
+    if (!hero.pet) return 'Non hai ancora un famiglio.';
+    const acc = PET_ACCESSORIES[key];
+    if (!acc) return 'Accessorio sconosciuto.';
+    const owned = hero.pet.accessoriesOwned.includes(key);
+    if (!owned) {
+      if (hero.gold < acc.price) return 'Oro insufficiente!';
+      hero.gold -= acc.price;
+      hero.pet.accessoriesOwned.push(key);
+    }
+    hero.pet.accessory = hero.pet.accessory === key ? null : key;
+    return { ok: true };
+  }
+
+  function addPetXp(hero, amount) {
+    if (!hero.pet || hero.pet.hunger <= 0) return; // affamato: non cresce
+    hero.pet.xp += amount;
+    while (hero.pet.xp >= petXpForLevel(hero.pet.level)) {
+      hero.pet.xp -= petXpForLevel(hero.pet.level);
+      hero.pet.level++;
+    }
+  }
+
+  function startExpedition(hero) {
+    if (!hero.pet) return 'Non hai ancora un famiglio.';
+    if (hero.pet.expedition) return 'Il tuo famiglio è già in spedizione.';
+    if (hero.pet.sick) return 'Il tuo famiglio è malato: deve prima guarire.';
+    hero.pet.expedition = { startedAt: Date.now(), kmAtStart: hero.totalKm };
+    return { ok: true };
+  }
+
+  function expeditionStatus(hero) {
+    if (!hero.pet || !hero.pet.expedition) return null;
+    const elapsedH = (Date.now() - hero.pet.expedition.startedAt) / 3600000;
+    return { ready: elapsedH >= EXPEDITION_HOURS, pctDone: Math.min(100, Math.round(elapsedH / EXPEDITION_HOURS * 100)) };
+  }
+
+  function collectExpedition(hero) {
+    if (!hero.pet || !hero.pet.expedition) return null;
+    const status = expeditionStatus(hero);
+    if (!status.ready) return null;
+    const kmDuring = Math.max(0, hero.totalKm - hero.pet.expedition.kmAtStart);
+    hero.pet.expedition = null;
+    // Più km durante la spedizione -> più probabile un bottino epico
+    const chance = Math.min(0.85, 0.10 + kmDuring * 0.12);
+    const result = { wood: 0, stone: 0, gold: 0, epic: false };
+    if (Math.random() < chance) {
+      result.epic = true;
+      result.wood = 20 + Math.round(Math.random() * 20);
+      result.stone = 20 + Math.round(Math.random() * 20);
+      result.gold = 30 + Math.round(Math.random() * 30);
+    } else {
+      result.wood = 3 + Math.round(Math.random() * 5);
+      result.stone = 1 + Math.round(Math.random() * 3);
+    }
+    hero.wood += result.wood; hero.stone += result.stone; hero.gold += result.gold;
+    addPetXp(hero, 10);
+    return result;
+  }
+
+  // Aura del Branco: entrambi i famigli felici contemporaneamente
+  // (funziona solo tra eroi presenti sullo STESSO dispositivo, come le
+  // "Visite al Rifugio" — richiederebbe un backend per il multi-device).
+  function packAuraActive(state, hero) {
+    const others = (state.heroes || []).filter(h => h.id !== hero.id && h.companion && h.pet);
+    if (!hero.companion || !hero.pet) return false;
+    const isHappy = p => p && p.hunger >= 80 && p.mood >= 80 && !p.sick;
+    if (!isHappy(hero.pet)) return false;
+    return others.some(o => { tickPet(o); return isHappy(o.pet); });
+  }
+
   return {
     ACTIVITIES, MISSIONS, CARDS, BUILDINGS, BESTIARY,
     BIOMES, MOUNTS, RARITIES, SLOTS,
@@ -1058,5 +1327,12 @@ const RPG = (() => {
     logHealthSync,
     equipItem, unequipSlot,
     dailyLogin, rolloverIncursion,
+    PET_PERSONALITIES, PET_FOODS, PET_ACCESSORIES,
+    PHOENIX_POTION_PRICE, EXPEDITION_HOURS, WISH_WINDOW_MINUTES,
+    createPet, petXpForLevel, tickPet, petArenaBonus,
+    feedPet, playWithPet, cleanPet, sleepPet, curePet,
+    buyAccessory, addPetXp,
+    startExpedition, expeditionStatus, collectExpedition,
+    packAuraActive,
   };
 })();

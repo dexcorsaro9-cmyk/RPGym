@@ -1393,3 +1393,7 @@ body {
   padding: 6px 10px; border-radius: 8px; cursor: pointer;
 }
 .battle-flee:active { background: rgba(0,0,0,.8); }
+
+/* Il Santuario dei Famigli */
+.pet-portrait { font-size: 4rem; text-align: center; filter: drop-shadow(0 4px 8px rgba(0,0,0,.5)); }
+.loot.equipped { border-color: var(--gold-bright); box-shadow: 0 0 8px rgba(232,182,76,.5); }
