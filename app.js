@@ -1847,6 +1847,28 @@ function renderSettingsView(c) {
   c.appendChild(back);
   c.appendChild(el('h2', 'section-title', '⚙️ Impostazioni'));
   c.appendChild(renderShortcutPanel());
+
+  const refreshPanel = el('div', 'panel shortcut-panel');
+  refreshPanel.appendChild(el('h3', 'panel-title', '🔄 Aggiornamenti'));
+  refreshPanel.appendChild(el('p', 'guide-text', 'Se il gioco non mostra le ultime novità, forza il refresh per scaricare la versione più recente.'));
+  const refreshBtn = el('button', 'btn btn-primary', '🔄 Forza aggiornamento');
+  refreshBtn.addEventListener('click', async () => {
+    refreshBtn.disabled = true;
+    refreshBtn.textContent = 'Aggiornamento in corso…';
+    try {
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (reg) await reg.update();
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      }
+      location.reload(true);
+    } catch (e) {
+      location.reload(true);
+    }
+  });
+  refreshPanel.appendChild(refreshBtn);
+  c.appendChild(refreshPanel);
 }
 
 function openSlotPicker(slotKey) {
