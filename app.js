@@ -2129,27 +2129,41 @@ function todayISO() { return new Date().toISOString().slice(0, 10); }
    Nessun server coinvolto: il numero arriva incollato nell'URL e il gioco
    lo applica all'eroe attualmente selezionato su QUESTO telefono. */
 function showClipboardSyncBanner() {
-  if (!navigator.clipboard?.readText) return;
-  const banner = el('button', 'clipboard-sync-banner');
-  banner.innerHTML = '⚡ Tocca per sincronizzare i passi da Comandi Rapidi';
-  banner.addEventListener('click', async () => {
-    banner.remove();
-    try {
-      const text = (await navigator.clipboard.readText() || '').trim();
-      if (!text.startsWith('rpgym:')) { toast('Nessun dato RPGym negli appunti.'); return; }
-      await navigator.clipboard.writeText('');
-      const raw = text.replace('rpgym:', '').replace(/[^\d]/g, '');
-      const steps = parseInt(raw, 10);
-      if (!HERO || isNaN(steps) || steps <= 0) { toast('Dati non validi.'); return; }
-      const km = Math.round(steps * 0.00075 * 100) / 100;
-      if (km < 0.05) { toast(`${steps} passi (${km} km) — troppo pochi per registrare.`); return; }
-      const report = RPG.logHealthSync(HERO, 'camminata', km);
-      if (report) { persist(); renderHUD(); showHealthSyncResult(report); }
-      else toast('Attività già sincronizzata per oggi.');
-    } catch (e) { toast('Errore lettura appunti: ' + e.message); }
-  });
+  // iOS non permette readText() nelle PWA — usiamo un campo paste
+  const banner = el('div', 'clipboard-sync-banner');
+  banner.innerHTML = `
+    <span class="csb-label">⚡ Incolla qui i dati del Comando Rapido:</span>
+    <div class="csb-row">
+      <input class="csb-input" id="csb-input" type="text" placeholder="Tieni premuto → Incolla" readonly>
+      <button class="csb-btn" id="csb-ok">Sync</button>
+    </div>`;
   document.body.appendChild(banner);
-  setTimeout(() => banner.remove(), 8000);
+
+  const inp = document.getElementById('csb-input');
+  const btn = document.getElementById('csb-ok');
+
+  // Permetti la modifica al tocco per poter incollare
+  inp.addEventListener('focus', () => inp.removeAttribute('readonly'));
+
+  inp.addEventListener('paste', e => {
+    setTimeout(() => applyClipboardText(inp.value.trim(), banner), 50);
+  });
+  btn.addEventListener('click', () => applyClipboardText(inp.value.trim(), banner));
+
+  setTimeout(() => { if (banner.parentNode) banner.remove(); }, 30000);
+}
+
+function applyClipboardText(text, banner) {
+  if (banner?.parentNode) banner.remove();
+  if (!text.startsWith('rpgym:')) { toast('Formato non valido. Il testo deve iniziare con "rpgym:"'); return; }
+  const raw = text.replace('rpgym:', '').replace(/[^\d]/g, '');
+  const steps = parseInt(raw, 10);
+  if (!HERO || isNaN(steps) || steps <= 0) { toast('Dati non validi.'); return; }
+  const km = Math.round(steps * 0.00075 * 100) / 100;
+  if (km < 0.05) { toast(`${steps} passi (${km} km) — troppo pochi.`); return; }
+  const report = RPG.logHealthSync(HERO, 'camminata', km);
+  if (report) { persist(); renderHUD(); showHealthSyncResult(report); }
+  else toast('Attività già sincronizzata per oggi.');
 }
 
 function applyHealthSyncFromURL(hero) {

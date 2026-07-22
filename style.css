@@ -1554,16 +1554,27 @@ body {
 }
 .shortcut-icon { font-size: 1.3rem; }
 .clipboard-sync-banner {
-  position: fixed; bottom: calc(80px + env(safe-area-inset-bottom)); left: 50%;
-  transform: translateX(-50%);
-  background: linear-gradient(135deg, #2d5a1b, #4a8c2a);
-  color: #fff; font-weight: 700; font-size: .85rem;
-  padding: 12px 20px; border-radius: 24px;
-  border: none; box-shadow: 0 4px 20px rgba(0,0,0,.5);
-  z-index: 500; white-space: nowrap;
+  position: fixed; bottom: calc(72px + env(safe-area-inset-bottom)); left: 12px; right: 12px;
+  background: linear-gradient(135deg, #1e3d12, #2d5a1b);
+  color: #fff; border-radius: 16px;
+  border: 1.5px solid rgba(100,200,60,.4);
+  box-shadow: 0 4px 20px rgba(0,0,0,.5);
+  z-index: 500; padding: 10px 12px;
   animation: bannerPop .3s cubic-bezier(.2,1.4,.4,1);
 }
-@keyframes bannerPop { from { transform: translateX(-50%) scale(.8); opacity:0; } to { transform: translateX(-50%) scale(1); opacity:1; } }
+@keyframes bannerPop { from { transform: translateY(20px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+.csb-label { font-size: .78rem; font-weight: 700; display: block; margin-bottom: 6px; }
+.csb-row { display: flex; gap: 8px; }
+.csb-input {
+  flex: 1; background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3);
+  border-radius: 8px; padding: 8px 10px; color: #fff; font-size: .85rem;
+  outline: none;
+}
+.csb-input::placeholder { color: rgba(255,255,255,.5); }
+.csb-btn {
+  background: #4a8c2a; color: #fff; border: none; border-radius: 8px;
+  padding: 8px 14px; font-weight: 700; font-size: .85rem;
+}
 .shortcut-open-app {
   color: #555ecc; background: rgba(85,94,204,.1);
   border: 1.5px solid rgba(85,94,204,.3);
