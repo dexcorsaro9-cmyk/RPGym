@@ -1,5 +1,5 @@
 /* RPGym service worker — cache base per uso offline */
-const CACHE = 'rpgym-v55';
+const CACHE = 'rpgym-v56';
 const ASSETS = [
   '.',
   'index.html',
@@ -7,6 +7,8 @@ const ASSETS = [
   'game.js',
   'app.js',
   'manifest.webmanifest',
+  'apple-touch-icon.png',
+  'apple-touch-icon-precomposed.png',
   'assets/rpgym-sync.shortcut',
 ];
 
