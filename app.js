@@ -1283,6 +1283,41 @@ function getMG(id) {
   return d;
 }
 const MG_MAX = { dice:1, cards:3, runes:3, forge:2, archery:3, wheel:1, memory:2, tap:3, wham:3 };
+// ── Bilanciamento economia ───────────────────────────────────────────────────
+// Allenamento base (5 km camminata): gold≈25  xp≈75  wood≈0  stone≈0
+// Target mini-giochi totale/die:     gold≈80  xp≈500 wood≈15 stone≈15
+//   → i giochi valgono ≈3× una sessione; chi si allena accumula molto di più
+//
+// Earning stimato per gioco (avg, tutte le giocate al cap):
+//   dado     ×1  → gold≈16  xp≈18   wood≈2   stone≈2
+//   carte    ×3  → gold≈18  xp≈42   wood≈12  stone≈12
+//   rune     ×3  → gold≈0   xp≈120
+//   forgia   ×2  → sink risorse, rende xp 50-100 a giocata
+//   balestra ×3  → gold≈30  xp≈0    (formula: totalScore×0.5, max 90pt)
+//   ruota    ×1  → gold≈16  xp≈14   wood≈2   stone≈4
+//   memory   ×2  → gold≈20  xp≈120
+//   fulmine  ×3  → gold≈20  xp≈168
+//   caccia   ×3  → gold≈18  xp≈189
+//   TOTALE       → gold≈138 xp≈671  wood≈16  stone≈18
+//
+// Costanti usate dai giochi (modifica qui, non nei singoli giochi):
+const MG_B = {
+  archery: { goldPerPt: 0.5 },          // max totalScore=90 → max 45 gold/tiro
+  memory:  { xpBase: 80, xpPenalty: 10, goldBase: 18, goldPenalty: 2 },
+  tap:     { xpMult: 0.80, goldMult: 0.12 }, // power 0-100 × mult
+  wham:    { xpPerHit: 7,  goldPerHit: 2 },   // cap naturale ~12 anime
+  wheel: [
+    { reward:{ gold:25 },          label:'🪙 25',  color:'#5a3db0' },
+    { reward:{ xp:40  },           label:'⭐ 40',  color:'#c0831a' },
+    { reward:{ wood:20, stone:20 },label:'🪵🪨',  color:'#2d6a2d' },
+    { reward:{ gold:60, xp:60 },   label:'🏆 JAK', color:'#b53020' },
+    { reward:{ stone:25 },         label:'🪨 25',  color:'#1a5a8a' },
+    { reward:{ xp:25  },           label:'⭐ 25',  color:'#5a3db0' },
+    { reward:{ gold:35 },          label:'🪙 35',  color:'#c0831a' },
+    { reward:{ gold:0  },          label:'💀',     color:'#2a2a2a' },
+  ],
+};
+// ────────────────────────────────────────────────────────────────────────────
 function mgCanPlay(id) { return getMG(id).n < MG_MAX[id]; }
 function mgRecord(id) { const m = getMG(id); m.n++; m.last = todayISO(); persist(); }
 function mgGiveReward(r) {
@@ -1431,11 +1466,11 @@ function openDiceGame() {
 function openCardsGame() {
   if (!mgCanPlay('cards')) return;
   const POOL = [
-    { title:'Premio Piccolo',  reward:{ gold:15 },          trap:false },
-    { title:'Premio Grande',   reward:{ gold:40, xp:20 },   trap:false },
+    { title:'Premio Piccolo',  reward:{ gold:10 },          trap:false },
+    { title:'Premio Grande',   reward:{ gold:30, xp:20 },   trap:false },
     { title:'Bonus Mistico',   reward:{ xp:50 },            trap:false },
     { title:'Dono del Bosco',  reward:{ wood:20, stone:20 },trap:false },
-    { title:'Maledizione!',    reward:{ gold:-15 },         trap:true  },
+    { title:'Maledizione!',    reward:{ gold:-10 },         trap:true  },
   ];
   const cards = [...POOL].sort(()=>Math.random()-.5).slice(0,3);
   const wrap = document.createElement('div');
@@ -1693,7 +1728,7 @@ function openArcheryGame() {
         canShoot = true;
         _mgRAF = requestAnimationFrame(tick);
       } else {
-        const gold = Math.round(totalScore * 1.2);
+        const gold = Math.round(totalScore * MG_B.archery.goldPerPt);
         mgGiveReward({ gold });
         mgRecord('archery');
         resEl.innerHTML = mgRewardHTML({ gold }, `Punteggio: ${totalScore} / 90`, totalScore >= 70 ? '🏆 Leggendario!' : totalScore >= 40 ? '⭐ Buona mira!' : 'Continua ad allenarti');
@@ -1713,16 +1748,7 @@ function openArcheryGame() {
 function openWheelGame() {
   if (!mgCanPlay('wheel')) return;
   const N = 8, DEG = 360 / N;
-  const SECTORS = [
-    { reward:{ gold:25 },          label:'🪙 25',  color:'#5a3db0' },
-    { reward:{ xp:40 },            label:'⭐ 40',  color:'#c0831a' },
-    { reward:{ wood:20, stone:20 },label:'🪵🪨',  color:'#2d6a2d' },
-    { reward:{ gold:80, xp:80 },   label:'🏆 JAK', color:'#b53020' },
-    { reward:{ stone:25 },         label:'🪨 25',  color:'#1a5a8a' },
-    { reward:{ xp:25 },            label:'⭐ 25',  color:'#5a3db0' },
-    { reward:{ gold:45 },          label:'🪙 45',  color:'#c0831a' },
-    { reward:{ gold:0 },           label:'💀',     color:'#2a2a2a' },
-  ];
+  const SECTORS = MG_B.wheel;
   const conic = SECTORS.map((s,i) => `${s.color} ${i*DEG}deg ${(i+1)*DEG}deg`).join(',');
   const idx = Math.floor(Math.random() * N);
   const wrap = document.createElement('div');
@@ -1798,7 +1824,7 @@ function openMemoryGame() {
         a.c.classList.add('mgm-ok'); b.c.classList.add('mgm-ok');
         matched++; mEl.textContent = matched; flipped = []; locked = false;
         if (matched === 6) {
-          const xp = Math.max(10, 90 - mistakes * 12), gold = Math.max(5, 35 - mistakes * 5);
+          const xp = Math.max(10, MG_B.memory.xpBase - mistakes * MG_B.memory.xpPenalty), gold = Math.max(3, MG_B.memory.goldBase - mistakes * MG_B.memory.goldPenalty);
           mgGiveReward({ xp, gold }); mgRecord('memory');
           resEl.innerHTML = mgRewardHTML({ xp, gold }, `Completato! ${mistakes} error${mistakes===1?'e':'i'}`, mistakes === 0 ? '🏆 Senza errori!' : '');
           resEl.classList.add('mg-res-in'); closeBtn.classList.remove('hidden');
@@ -1844,7 +1870,7 @@ function openTapGame() {
   function endGame() {
     if (finished) return; finished = true;
     clearInterval(cdTimer); tapBtn.disabled = true;
-    const xp = Math.round(power / 100 * 80), gold = Math.round(power / 100 * 30);
+    const xp = Math.round(power / 100 * 100 * MG_B.tap.xpMult), gold = Math.round(power / 100 * 100 * MG_B.tap.goldMult);
     mgGiveReward({ xp, gold }); mgRecord('tap');
     resEl.innerHTML = mgRewardHTML({ xp, gold }, `${taps} tap · ${Math.round(power)}% potere`, power >= 80 ? '⚡ Fulminante!' : power >= 50 ? 'Ottimo!' : 'Puoi fare meglio!');
     resEl.classList.add('mg-res-in'); closeBtn.classList.remove('hidden');
@@ -1913,7 +1939,7 @@ function openWhamGame() {
   function endGame() {
     clearTimeout(gameTimer); clearInterval(spawnTimer);
     startBtn.style.display = 'none';
-    const xp = score * 7, gold = score * 3;
+    const xp = score * MG_B.wham.xpPerHit, gold = score * MG_B.wham.goldPerHit;
     mgGiveReward({ xp, gold }); mgRecord('wham');
     resEl.innerHTML = mgRewardHTML({ xp, gold }, `${score} anime catturate!`, score >= 12 ? '🌟 Leggendario!' : score >= 7 ? '⭐ Ottimo!' : 'Allenati ancora!');
     resEl.classList.add('mg-res-in'); closeBtn.classList.remove('hidden'); cdEl.style.display = 'none';
