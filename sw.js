@@ -1,5 +1,5 @@
 /* RPGym service worker — cache base per uso offline */
-const CACHE = 'rpgym-v34';
+const CACHE = 'rpgym-v35';
 const ASSETS = [
   '.',
   'index.html',
@@ -7,6 +7,7 @@ const ASSETS = [
   'game.js',
   'app.js',
   'manifest.webmanifest',
+  'assets/rpgym-sync.shortcut',
 ];
 
 self.addEventListener('install', e => {

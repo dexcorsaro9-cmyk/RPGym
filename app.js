@@ -1333,9 +1333,18 @@ function renderShortcutPanel() {
   });
   p.appendChild(launchBtn);
 
+  // Pulsante importa: scarica e installa il Comando Rapido con un tap
+  const importBtn = el('button', 'btn shortcut-import-btn wide');
+  importBtn.innerHTML = `<span class="shortcut-icon">📥</span> Importa Comando Rapido`;
+  importBtn.addEventListener('click', () => {
+    const fileUrl = `${APP_BASE_URL}assets/rpgym-sync.shortcut`;
+    window.location.href = `shortcuts://import-shortcut?url=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(SHORTCUT_NAME)}`;
+  });
+  p.appendChild(importBtn);
+
   // Apertura app Comandi Rapidi (se il comando non è ancora configurato)
   const openApp = el('button', 'btn btn-small wide shortcut-open-app');
-  openApp.textContent = '📱 Apri Comandi Rapidi per configurare';
+  openApp.textContent = '📱 Apri Comandi Rapidi';
   openApp.addEventListener('click', () => { window.location.href = 'shortcuts://'; });
   p.appendChild(openApp);
 
