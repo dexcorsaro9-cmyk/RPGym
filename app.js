@@ -1359,35 +1359,82 @@ function mgClose() {
 }
 
 /* Hub */
+const MG_CATEGORIES = [
+  { id:'fortuna',    icon:'✨', label:'Fortuna',    games:[
+    { id:'dice',    emoji:'🎲', name:'Dado',         open: openDiceGame },
+    { id:'cards',   emoji:'🃏', name:'Carte',        open: openCardsGame },
+    { id:'wheel',   emoji:'🎡', name:'Ruota',        open: openWheelGame },
+  ]},
+  { id:'abilita',    icon:'⚔️', label:'Abilità',    games:[
+    { id:'archery', emoji:'🏹', name:'Balestra',     open: openArcheryGame },
+    { id:'tap',     emoji:'⚡', name:'Fulmine',      open: openTapGame },
+    { id:'wham',    emoji:'🌀', name:'Caccia Anime', open: openWhamGame },
+  ]},
+  { id:'intelletto', icon:'🧩', label:'Intelletto', games:[
+    { id:'runes',   emoji:'🔮', name:'Rune Magiche', open: openRunesGame },
+    { id:'memory',  emoji:'🧠', name:'Memory',       open: openMemoryGame },
+    { id:'forge',   emoji:'🔥', name:'Forgia',       open: openForgeGame },
+  ]},
+];
+
 function renderMiniGamesHub(c) {
   const hub = document.createElement('div');
   hub.className = 'panel mg-hub';
-  hub.innerHTML = `<h3 class="panel-title">🎮 Taverna delle Sfide</h3>
-    <p class="muted small center" style="margin-bottom:14px">Sfide quotidiane · ricompense reali</p>`;
-  const grid = document.createElement('div');
-  grid.className = 'mg-grid';
-  [
-    { id:'dice',    emoji:'🎲', name:'Dado',          open: openDiceGame },
-    { id:'cards',   emoji:'🃏', name:'Carte',         open: openCardsGame },
-    { id:'runes',   emoji:'🔮', name:'Rune Magiche',  open: openRunesGame },
-    { id:'forge',   emoji:'🔥', name:'Forgia',        open: openForgeGame },
-    { id:'archery', emoji:'🏹', name:'Balestra',      open: openArcheryGame },
-    { id:'wheel',   emoji:'🎡', name:'Ruota',         open: openWheelGame },
-    { id:'memory',  emoji:'🧠', name:'Memory',        open: openMemoryGame },
-    { id:'tap',     emoji:'⚡', name:'Fulmine',       open: openTapGame },
-    { id:'wham',    emoji:'🌀', name:'Caccia Anime',  open: openWhamGame },
-  ].forEach(g => {
-    const m = getMG(g.id), max = MG_MAX[g.id], rem = max - m.n, done = rem <= 0;
-    const card = document.createElement('div');
-    card.className = 'mg-card' + (done ? ' mg-done' : '');
-    card.innerHTML = `<div class="mg-card-shine"></div>
-      <div class="mg-emoji">${g.emoji}</div>
-      <div class="mg-name">${g.name}</div>
-      <div class="mg-pips">${Array.from({length:max},(_,i)=>`<span class="mg-pip${i<m.n?' used':''}"></span>`).join('')}</div>`;
-    if (!done) card.addEventListener('click', g.open);
-    grid.appendChild(card);
+
+  const hdrRow = document.createElement('div');
+  hdrRow.className = 'mg-hub-hdr';
+  hdrRow.innerHTML = `<h3 class="panel-title" style="margin:0">🎮 Taverna delle Sfide</h3>`;
+  // badge totale giocate disponibili
+  const totalRem = MG_CATEGORIES.flatMap(cat => cat.games).reduce((s, g) => {
+    const m = getMG(g.id);
+    return s + Math.max(0, MG_MAX[g.id] - m.n);
+  }, 0);
+  const totalMax = Object.values(MG_MAX).reduce((a, b) => a + b, 0);
+  if (totalRem > 0) {
+    const badge = document.createElement('span');
+    badge.className = 'mg-total-badge';
+    badge.textContent = `${totalRem} disponibili`;
+    hdrRow.appendChild(badge);
+  }
+  hub.appendChild(hdrRow);
+
+  MG_CATEGORIES.forEach(cat => {
+    const avail = cat.games.reduce((s, g) => s + Math.max(0, MG_MAX[g.id] - getMG(g.id).n), 0);
+    const maxCat = cat.games.reduce((s, g) => s + MG_MAX[g.id], 0);
+    const allDone = avail === 0;
+
+    const section = document.createElement('div');
+    section.className = 'mg-category' + (allDone ? ' mg-cat-done' : '');
+
+    // Header categoria con barra progresso
+    const catHdr = document.createElement('div');
+    catHdr.className = 'mg-cat-hdr';
+    const pct = Math.round((maxCat - avail) / maxCat * 100);
+    catHdr.innerHTML = `
+      <span class="mg-cat-icon">${cat.icon}</span>
+      <span class="mg-cat-label">${cat.label}</span>
+      <div class="mg-cat-bar"><div class="mg-cat-bar-fill" style="width:${pct}%"></div></div>
+      <span class="mg-cat-count">${allDone ? '✓' : avail}</span>`;
+    section.appendChild(catHdr);
+
+    const grid = document.createElement('div');
+    grid.className = 'mg-grid';
+    cat.games.forEach(g => {
+      const m = getMG(g.id), max = MG_MAX[g.id], rem = max - m.n, done = rem <= 0;
+      const card = document.createElement('div');
+      card.className = 'mg-card' + (done ? ' mg-done' : ' mg-avail');
+      card.innerHTML = `<div class="mg-card-shine"></div>
+        ${!done ? `<span class="mg-card-badge">×${rem}</span>` : ''}
+        <div class="mg-emoji">${g.emoji}</div>
+        <div class="mg-name">${g.name}</div>
+        <div class="mg-pips">${Array.from({length:max},(_,i)=>`<span class="mg-pip${i<m.n?' used':''}"></span>`).join('')}</div>`;
+      if (!done) card.addEventListener('click', g.open);
+      grid.appendChild(card);
+    });
+    section.appendChild(grid);
+    hub.appendChild(section);
   });
-  hub.appendChild(grid);
+
   c.appendChild(hub);
 }
 

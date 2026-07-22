@@ -1660,7 +1660,49 @@ body {
    ═══════════════════════════════════════════════════════════ */
 
 /* Hub */
-.mg-hub { padding: 16px; }
+.mg-hub { padding: 14px; }
+.mg-hub-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.mg-total-badge {
+  font-size:.65rem; font-family:'Cinzel',serif;
+  background: linear-gradient(135deg,#7c3d00,#c07020);
+  color:#ffe8a0; padding:3px 8px; border-radius:12px;
+  animation: mgBadgePulse 2.4s ease infinite;
+}
+@keyframes mgBadgePulse {
+  0%,100% { box-shadow:0 0 0 0 rgba(210,140,20,.5); }
+  50%      { box-shadow:0 0 0 5px rgba(210,140,20,0); }
+}
+
+/* Categorie */
+.mg-category { margin-bottom:16px; }
+.mg-category:last-child { margin-bottom:0; }
+.mg-cat-hdr {
+  display:flex; align-items:center; gap:6px;
+  margin-bottom:8px; padding-bottom:6px;
+  border-bottom:1px solid rgba(255,210,80,.12);
+}
+.mg-cat-icon { font-size:.9rem; }
+.mg-cat-label {
+  font-size:.62rem; font-family:'Cinzel',serif;
+  color:var(--gold-mid); letter-spacing:.04em;
+  text-transform:uppercase; flex:none;
+}
+.mg-cat-bar {
+  flex:1; height:3px; background:rgba(255,210,80,.15);
+  border-radius:2px; overflow:hidden;
+}
+.mg-cat-bar-fill {
+  height:100%;
+  background:linear-gradient(90deg,#c07020,#f0c040);
+  border-radius:2px; transition:width .4s ease;
+}
+.mg-cat-count {
+  font-size:.65rem; font-family:'Cinzel',serif;
+  color:var(--gold-bright); min-width:14px; text-align:right;
+}
+.mg-cat-done .mg-cat-label { color:rgba(255,210,80,.4); }
+.mg-cat-done .mg-cat-count { color:rgba(120,200,80,.7); }
+
 .mg-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
 
 .mg-card {
@@ -1680,6 +1722,21 @@ body {
 }
 .mg-card.mg-done { opacity: .45; filter: grayscale(.6); cursor: default; }
 .mg-card.mg-done:hover { transform: none; box-shadow: 0 2px 8px rgba(0,0,0,.5); }
+.mg-card.mg-avail {
+  border-color: rgba(212,167,65,.55);
+  animation: mgCardPulse 2.8s ease infinite;
+}
+@keyframes mgCardPulse {
+  0%,100% { box-shadow:0 2px 8px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,210,80,.15); }
+  50%      { box-shadow:0 2px 8px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,210,80,.15), 0 0 10px rgba(212,167,65,.3); }
+}
+.mg-card-badge {
+  position:absolute; top:5px; right:6px;
+  font-size:.5rem; font-family:'Cinzel',serif;
+  background:rgba(180,120,10,.85); color:#ffe8a0;
+  padding:1px 5px; border-radius:8px;
+  border:1px solid rgba(255,210,80,.4);
+}
 .mg-emoji { font-size: 2rem; line-height: 1.1; }
 .mg-name  { font-size: .6rem; color: var(--gold-bright); margin: 4px 0 6px; font-family: 'Cinzel',serif; line-height: 1.2; }
 .mg-pips  { display: flex; justify-content: center; gap: 3px; }
