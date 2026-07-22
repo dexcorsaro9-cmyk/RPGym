@@ -333,25 +333,78 @@ function isImageAvatar(hero) {
   return hero.avatar && (hero.avatar.startsWith('data:') || hero.avatar.startsWith('assets/'));
 }
 
-/* ── Creazione eroe (i protagonisti creati con l'IA) ── */
+/* ── Creazione eroe — Card Cinematografica ── */
+const AVATAR_COLORS = {
+  eroe1:       { bg: '#0d2215', glow: '#2e8b57' },
+  eroe2:       { bg: '#1a0d22', glow: '#7b3fbf' },
+  fabbro:      { bg: '#221508', glow: '#b07030' },
+  stregone:    { bg: '#080d22', glow: '#3b5fcf' },
+  alchimista:  { bg: '#062218', glow: '#2e8a6a' },
+  furfante:    { bg: '#220808', glow: '#b03030' },
+  maga:        { bg: '#1a082a', glow: '#af5fcf' },
+  paladino:    { bg: '#1e1800', glow: '#c9b030' },
+  ranger:      { bg: '#081a0a', glow: '#4aae5a' },
+  fata:        { bg: '#100828', glow: '#7055cf' },
+  principe:    { bg: '#1a1008', glow: '#c9882e' },
+  principessa: { bg: '#22081a', glow: '#cf5aaf' },
+  regina:      { bg: '#0d0218', glow: '#8a30cf' },
+};
 let pickedAvatar = AVATARS[0];
+let createIdx = 0;
+let _createReady = false;
+let _createTouchX = 0;
 
 function renderCreate() {
-  const picker = $('#avatar-picker');
-  picker.innerHTML = '';
-  AVATARS.forEach(a => {
-    const box = el('div', 'avatar-box' + (a === pickedAvatar ? ' selected' : ''));
-    const img = el('img', 'avatar-choice avatar-choice-big');
-    img.src = a.path;
-    img.addEventListener('error', () => box.remove());
-    box.appendChild(img);
-    box.appendChild(el('div', 'avatar-label', a.label));
-    const t = RPG.CLASS_TALENTS[a.storyId];
-    if (t) box.appendChild(el('div', 'avatar-talent', `${t.icon} ${t.desc}`));
-    box.addEventListener('click', () => { pickedAvatar = a; renderCreate(); });
-    picker.appendChild(box);
-  });
+  createIdx = Math.max(0, AVATARS.indexOf(pickedAvatar));
+  if (!_createReady) {
+    _createReady = true;
+    const dotsEl = $('#create-dots');
+    AVATARS.forEach(() => dotsEl.appendChild(el('span', 'create-dot')));
+    $('#create-prev').addEventListener('click', () => {
+      createIdx = (createIdx - 1 + AVATARS.length) % AVATARS.length;
+      _updateCreate();
+    });
+    $('#create-next').addEventListener('click', () => {
+      createIdx = (createIdx + 1) % AVATARS.length;
+      _updateCreate();
+    });
+    const zone = $('#create-card-zone');
+    zone.addEventListener('touchstart', e => { _createTouchX = e.touches[0].clientX; }, { passive: true });
+    zone.addEventListener('touchend', e => {
+      const dx = e.changedTouches[0].clientX - _createTouchX;
+      if (Math.abs(dx) > 40) {
+        createIdx = (createIdx + (dx < 0 ? 1 : -1) + AVATARS.length) % AVATARS.length;
+        _updateCreate();
+      }
+    }, { passive: true });
+  }
+  _updateCreate();
   show('screen-create');
+}
+
+function _updateCreate() {
+  pickedAvatar = AVATARS[createIdx];
+  const a = pickedAvatar;
+  const col = AVATAR_COLORS[a.storyId] || { bg: '#0e0804', glow: '#c9932e' };
+  $('#create-card-zone').style.background =
+    `radial-gradient(ellipse at 50% 30%, ${col.glow}44 0%, ${col.bg} 58%, #060402 100%)`;
+  const portrait = $('#create-portrait');
+  portrait.style.opacity = '0';
+  clearTimeout(portrait._t);
+  portrait._t = setTimeout(() => {
+    portrait.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = a.path;
+    img.className = 'create-portrait-img';
+    img.onerror = () => { portrait.innerHTML = '<span style="font-size:5rem">⚔️</span>'; };
+    portrait.appendChild(img);
+    portrait.style.opacity = '1';
+  }, 150);
+  $('#create-class-name').textContent = a.label;
+  const t = RPG.CLASS_TALENTS[a.storyId];
+  $('#create-talent-name').textContent = t ? `${t.icon} ${t.name}` : '';
+  $('#create-talent-desc').textContent = t ? t.desc : '';
+  document.querySelectorAll('.create-dot').forEach((d, i) => d.classList.toggle('active', i === createIdx));
 }
 
 $('#btn-new-hero').addEventListener('click', () => { $('#create-name').value = ''; renderCreate(); });
