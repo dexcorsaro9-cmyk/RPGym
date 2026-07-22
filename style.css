@@ -1695,6 +1695,16 @@ body {
   animation: mgFadeIn .25s ease;
 }
 .mg-overlay.mg-out { animation: mgFadeOut .28s ease forwards; }
+.mg-overlay.mg-has-bg {
+  background-color: rgba(5,2,0,.55);
+  background-size: cover;
+  background-position: center;
+}
+.mg-overlay.mg-has-bg .mg-box {
+  background: rgba(5,2,0,.55);
+  border-radius: 12px;
+  backdrop-filter: blur(2px);
+}
 @keyframes mgFadeIn  { from{opacity:0;transform:scale(.97)} to{opacity:1;transform:scale(1)} }
 @keyframes mgFadeOut { to{opacity:0;transform:scale(.97)} }
 .mg-box {

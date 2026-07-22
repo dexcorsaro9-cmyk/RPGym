@@ -1305,10 +1305,11 @@ function mgRewardHTML(r, title, sub) {
 
 let _mgRAF = null;
 
-function mgOverlay(inner) {
+function mgOverlay(inner, bgUrl) {
   let ov = document.getElementById('mg-ov');
   if (!ov) { ov = document.createElement('div'); ov.id = 'mg-ov'; document.body.appendChild(ov); }
-  ov.className = 'mg-overlay';
+  ov.className = 'mg-overlay' + (bgUrl ? ' mg-has-bg' : '');
+  ov.style.backgroundImage = bgUrl ? `url('${bgUrl}')` : '';
   ov.innerHTML = '';
   const box = document.createElement('div');
   box.className = 'mg-box';
@@ -1447,7 +1448,7 @@ function openCardsGame() {
     <div class="mg-cards-row" id="mgc-row"></div>
     <div class="mg-result-area" id="mgc-res"></div>
     <button class="btn mg-close-btn hidden" id="mgc-close">Continua ›</button>`;
-  mgOverlay(wrap);
+  mgOverlay(wrap, 'assets/backgrounds/carte del mercante.jpg');
   const row = document.getElementById('mgc-row');
   const hint = document.getElementById('mgc-hint');
   const resEl = document.getElementById('mgc-res');
@@ -1588,7 +1589,7 @@ function openForgeGame() {
     </div>
     <div class="mg-result-area" id="mgf-res"></div>
     <button class="btn mg-close-btn hidden" id="mgf-close">Continua ›</button>`;
-  mgOverlay(wrap);
+  mgOverlay(wrap, 'assets/backgrounds/forgia eroica.jpg');
   const list = document.getElementById('mgf-list');
   const fireEl = document.getElementById('mgf-fire');
   const resEl = document.getElementById('mgf-res');
@@ -1645,7 +1646,7 @@ function openArcheryGame() {
     <div class="mga-total">Punteggio: <span id="mga-score">0</span>/90</div>
     <div class="mg-result-area" id="mga-res"></div>
     <button class="btn mg-close-btn hidden" id="mga-close">Continua ›</button>`;
-  mgOverlay(wrap);
+  mgOverlay(wrap, 'assets/backgrounds/tiro alla balestra.jpg');
   const bar = document.getElementById('mga-bar');
   const hint = document.getElementById('mga-hint');
   const scoreEl = document.getElementById('mga-score');
