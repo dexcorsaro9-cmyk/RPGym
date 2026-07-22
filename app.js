@@ -1253,6 +1253,9 @@ function renderTrain(c) {
   form.appendChild(go);
   c.appendChild(form);
 
+  // ── Comandi Rapidi / Apple Salute ──
+  c.appendChild(renderShortcutPanel());
+
   // ── L'Arena dei Guerrieri ──
   const left = RPG.battlesLeft(HERO);
   const ap = el('div', 'panel arena-panel');
@@ -1306,6 +1309,90 @@ function renderTrain(c) {
     });
     c.appendChild(lp);
   }
+}
+
+/* ── Pannello Comandi Rapidi / Apple Salute ── */
+const SHORTCUT_NAME = 'RPGym';
+const APP_BASE_URL   = 'https://dexcorsaro9-cmyk.github.io/RPGym/';
+
+function renderShortcutPanel() {
+  const p = el('div', 'panel shortcut-panel');
+
+  // Titolo
+  const titleRow = el('div', 'shortcut-title-row');
+  titleRow.innerHTML = `<span class="shortcut-apple-icon">🍎</span>
+    <div><b>Comandi Rapidi & Salute</b>
+    <div class="small muted">Sincronizza automaticamente i km dal tuo iPhone</div></div>`;
+  p.appendChild(titleRow);
+
+  // Pulsante principale: lancia il Comando Rapido
+  const launchBtn = el('button', 'btn shortcut-launch-btn wide');
+  launchBtn.innerHTML = `<span class="shortcut-icon">⚡</span> Lancia "RPGym" in Comandi Rapidi`;
+  launchBtn.addEventListener('click', () => {
+    window.location.href = `shortcuts://run-shortcut?name=${encodeURIComponent(SHORTCUT_NAME)}`;
+  });
+  p.appendChild(launchBtn);
+
+  // Apertura app Comandi Rapidi (se il comando non è ancora configurato)
+  const openApp = el('button', 'btn btn-small wide shortcut-open-app');
+  openApp.textContent = '📱 Apri Comandi Rapidi per configurare';
+  openApp.addEventListener('click', () => { window.location.href = 'shortcuts://'; });
+  p.appendChild(openApp);
+
+  // Accordion: inserimento manuale con logHealthSync (delta-aware)
+  const toggleBtn = el('button', 'shortcut-manual-toggle');
+  toggleBtn.innerHTML = '📥 Inserisci km totali di oggi manualmente <span>▼</span>';
+  p.appendChild(toggleBtn);
+
+  const manualBody = el('div', 'shortcut-manual-body collapsed');
+
+  // Selettore tipo
+  manualBody.appendChild(el('p', 'small muted', 'Inserisci i km TOTALI dell\'attività di oggi (il gioco calcola solo il delta rispetto all\'ultima sincronizzazione).'));
+  const typeRow = el('div', 'shortcut-type-row');
+  let syncType = 'camminata';
+  [['camminata','🚶','Camminata'],['corsa','🏃','Corsa'],['cyclette','🚴','Cyclette']].forEach(([k, ic, lb]) => {
+    const b = el('button', 'shortcut-type-btn' + (k === syncType ? ' selected' : ''));
+    b.innerHTML = `${ic}<br><span class="tiny">${lb}</span>`;
+    b.addEventListener('click', () => {
+      syncType = k;
+      typeRow.querySelectorAll('.shortcut-type-btn').forEach(x => x.classList.toggle('selected', x === b));
+    });
+    typeRow.appendChild(b);
+  });
+  manualBody.appendChild(typeRow);
+
+  const kmInput2 = el('input', 'input');
+  kmInput2.type = 'number'; kmInput2.step = '0.1'; kmInput2.min = '0'; kmInput2.placeholder = 'Es. 8.4 km totali oggi';
+  manualBody.appendChild(kmInput2);
+
+  const syncBtn = el('button', 'btn btn-primary wide', '🏥 Sincronizza da Salute');
+  syncBtn.addEventListener('click', () => {
+    const km = parseFloat(kmInput2.value);
+    if (!(km > 0)) { toast('Inserisci i km totali di oggi.'); return; }
+    const report = RPG.logHealthSync(HERO, syncType, km);
+    if (!report)   { toast('Nessun km nuovo da sincronizzare (già aggiornato per oggi).'); return; }
+    if (report.error) { toast(report.error); return; }
+    persist(); renderHUD();
+    sfx(report.levelsGained.length ? 'level' : 'coin');
+    showHealthSyncResult(report);
+  });
+  manualBody.appendChild(syncBtn);
+
+  // Sezione info URL shortcut
+  const urlBox = el('div', 'shortcut-url-box');
+  urlBox.innerHTML = `<div class="small muted" style="margin-bottom:4px">URL del tuo Comando Rapido:</div>
+    <code class="shortcut-url-code">${APP_BASE_URL}?sync_km=[KM]&sync_type=[TIPO]</code>
+    <div class="small muted" style="margin-top:4px">Tipi: <b>camminata</b> · <b>corsa</b> · <b>cyclette</b></div>`;
+  manualBody.appendChild(urlBox);
+
+  toggleBtn.addEventListener('click', () => {
+    const open = !manualBody.classList.contains('collapsed');
+    manualBody.classList.toggle('collapsed', open);
+    toggleBtn.querySelector('span').textContent = open ? '▼' : '▲';
+  });
+
+  p.appendChild(manualBody);
+  return p;
 }
 
 /* ── Report post-allenamento (con scrigno per le missioni) ── */

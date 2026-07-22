@@ -1496,6 +1496,54 @@ body {
 .stats-diary-val { font-size: 1.2rem; font-weight: 700; color: var(--leather); }
 .stats-diary-lbl { font-size: .7rem; color: var(--ink-light); text-align: center; }
 
+/* ── Pannello Comandi Rapidi ── */
+.shortcut-panel { border: 2px solid #555ecc; background: rgba(85,94,204,.06); }
+.shortcut-title-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.shortcut-apple-icon { font-size: 2rem; flex-shrink: 0; }
+.shortcut-launch-btn {
+  background: linear-gradient(135deg, #555ecc, #7b61ff);
+  color: #fff; border: none; font-weight: 700;
+  font-family: 'Cinzel', serif; font-size: .9rem;
+  padding: 13px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  box-shadow: 0 4px 14px rgba(85,94,204,.4);
+  margin-bottom: 8px;
+}
+.shortcut-launch-btn:active { transform: scale(.97); }
+.shortcut-icon { font-size: 1.3rem; }
+.shortcut-open-app {
+  color: #555ecc; background: rgba(85,94,204,.1);
+  border: 1.5px solid rgba(85,94,204,.3);
+  font-size: .8rem; margin-bottom: 12px;
+}
+.shortcut-manual-toggle {
+  width: 100%; background: rgba(90,61,36,.08); border: 1.5px solid var(--leather);
+  border-radius: 8px; padding: 9px 12px; cursor: pointer;
+  font-family: 'Crimson Pro', serif; font-size: .9rem;
+  color: var(--ink); text-align: left; display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 0;
+}
+.shortcut-manual-body { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.shortcut-manual-body.collapsed { display: none; }
+.shortcut-type-row { display: flex; gap: 8px; }
+.shortcut-type-btn {
+  flex: 1; background: rgba(255,255,255,.5); border: 2px solid var(--leather);
+  border-radius: 10px; padding: 10px 6px; cursor: pointer;
+  font-size: 1.3rem; text-align: center; line-height: 1.4;
+}
+.shortcut-type-btn.selected { border-color: #555ecc; background: rgba(85,94,204,.15); }
+.shortcut-type-btn:active { transform: scale(.95); }
+.tiny { font-size: .65rem; font-family: 'Crimson Pro', serif; }
+.shortcut-url-box {
+  background: rgba(0,0,0,.06); border-radius: 8px; padding: 10px 12px;
+  border: 1px solid rgba(0,0,0,.1);
+}
+.shortcut-url-code {
+  display: block; font-size: .72rem; word-break: break-all;
+  background: rgba(0,0,0,.08); padding: 6px 8px; border-radius: 6px;
+  font-family: monospace; color: var(--leather);
+}
+
 /* ── Splash Screen ── */
 .splash-screen {
   background: url('assets/icons/watermarked_img_6703389115759478461.png') center / cover no-repeat;
