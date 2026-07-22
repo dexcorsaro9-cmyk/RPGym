@@ -1477,3 +1477,23 @@ body {
   color: var(--gold-bright); text-shadow: 0 2px 4px rgba(0,0,0,.8); letter-spacing: 1px;
 }
 .game-logo { max-width: 78%; margin: 0 auto 4px; display: block; filter: drop-shadow(0 6px 14px rgba(0,0,0,.5)); }
+
+/* ── Uovo del Famiglio: incubazione e schiusa ── */
+.egg-shake { animation: eggShake .5s ease-in-out infinite; }
+@keyframes eggShake {
+  0%, 100% { transform: rotate(0deg) translateX(0); }
+  20% { transform: rotate(-6deg) translateX(-3px); }
+  40% { transform: rotate(5deg) translateX(3px); }
+  60% { transform: rotate(-4deg) translateX(-2px); }
+  80% { transform: rotate(3deg) translateX(2px); }
+}
+.hatch-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: #000;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.hatch-video { width: 100%; height: 100%; object-fit: contain; }
+.hatch-skip {
+  position: absolute; bottom: calc(20px + env(safe-area-inset-bottom)); right: 16px;
+  width: auto; background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.3);
+}

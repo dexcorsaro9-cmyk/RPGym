@@ -520,6 +520,8 @@ const RPG = (() => {
       h.pet.species = PET_SPECIES_KEYS[Math.floor(Math.random() * PET_SPECIES_KEYS.length)];
       if (!h.pet.name || h.pet.name === 'Ignis') h.pet.name = PET_SPECIES[h.pet.species].name;
     }
+    // Compatibilità: i famigli creati prima del sistema Uovo sono già "nati".
+    if (h.pet && h.pet.hatched === undefined) h.pet.hatched = true;
     h.stamina = h.stamina || 0;
     h.furniture = h.furniture || { owned: [] };
     h.achievementsClaimed = h.achievementsClaimed || [];
@@ -877,7 +879,7 @@ const RPG = (() => {
     report.chest = chest;
     if (r.unlocks === 'companion' && !hero.companion) {
       hero.companion = true;
-      hero.pet = createPet();
+      hero.pet = createPet(hero);
       const sp = PET_SPECIES[hero.pet.species];
       report.unlocks.push(`🐺 EVENTO DEL RISVEGLIO! Il Lupo Astrale ti ha scelto: è la tua cavalcatura in missione (+10% km). Nello stesso istante, un misterioso uovo di ${sp.name} ${sp.icon} è apparso al Rifugio: visita il Santuario dei Famigli per prendertene cura e vederlo evolvere!`);
     }
@@ -1129,6 +1131,7 @@ const RPG = (() => {
   const PET_LEVELS_PER_STAGE = 4;
 
   function petStage(level) {
+    if (level <= 1) return 1;
     return Math.min(PET_EVOLUTION_STAGES, Math.floor((level - 1) / PET_LEVELS_PER_STAGE) + 1);
   }
 
@@ -1162,7 +1165,9 @@ const RPG = (() => {
 
   function clamp01to100(n) { return Math.max(0, Math.min(100, n)); }
 
-  function createPet() {
+  const EGG_KM_NEEDED = 30;
+
+  function createPet(hero) {
     const keys = Object.keys(PET_PERSONALITIES);
     const personality = keys[Math.floor(Math.random() * keys.length)];
     const species = PET_SPECIES_KEYS[Math.floor(Math.random() * PET_SPECIES_KEYS.length)];
@@ -1170,7 +1175,9 @@ const RPG = (() => {
     return {
       name: PET_SPECIES[species].name,
       species,
-      level: 1, xp: 0,
+      level: 0, xp: 0,
+      hatched: false,
+      eggKmStart: hero ? hero.totalKm : 0,
       personality,
       hunger: 100, mood: 100, hygiene: 100, energy: 100,
       lastTick: now,
@@ -1185,10 +1192,33 @@ const RPG = (() => {
 
   function petXpForLevel(level) { return 40 + level * 20; }
 
+  // L'Incubatrice: prima della schiusa il famiglio è solo un uovo che
+  // si scalda con i km reali percorsi. Nessun'altra meccanica esiste
+  // finché non viene rotto il guscio.
+  function eggProgress(hero) {
+    const p = hero.pet;
+    if (!p || p.hatched) return null;
+    const km = Math.max(0, hero.totalKm - (p.eggKmStart || 0));
+    const pct = Math.min(100, Math.round(km / EGG_KM_NEEDED * 100));
+    return { km, needed: EGG_KM_NEEDED, pct, ready: pct >= 100 };
+  }
+
+  function hatchPet(hero) {
+    const p = hero.pet;
+    if (!p) return 'Non hai ancora un famiglio.';
+    if (p.hatched) return 'Il tuo famiglio è già nato.';
+    const prog = eggProgress(hero);
+    if (!prog || !prog.ready) return 'Il tuo famiglio non è ancora pronto per schiudersi.';
+    p.hatched = true;
+    p.level = 1;
+    p.lastTick = Date.now();
+    return { ok: true };
+  }
+
   // Ricalcola le barre in base al tempo reale trascorso. Va chiamata
   // prima di leggere/mostrare lo stato del pet.
   function tickPet(hero) {
-    if (!hero.pet) return;
+    if (!hero.pet || !hero.pet.hatched) return;
     const p = hero.pet;
     const pers = PET_PERSONALITIES[p.personality] || PET_PERSONALITIES.goloso;
     const now = Date.now();
@@ -1237,7 +1267,7 @@ const RPG = (() => {
 
   function petArenaBonus(hero) {
     const out = { dmgBonus: 0, hpBonus: 0, dodgeChance: 0, critMult: 1 };
-    if (!hero.companion || !hero.pet) return out;
+    if (!hero.companion || !hero.pet || !hero.pet.hatched) return out;
     const p = hero.pet;
     if (p.sick) return out;
     const moodFactor = p.mood >= 80 ? 1 : (p.mood >= 50 ? 0.5 : 0);
@@ -1265,7 +1295,7 @@ const RPG = (() => {
   }
 
   function feedPet(hero, foodKey) {
-    if (!hero.pet) return 'Non hai ancora un famiglio.';
+    if (!hero.pet || !hero.pet.hatched) return 'Il tuo famiglio è ancora un uovo: non ha bisogno di cibo, solo di km per schiudersi.';
     const food = PET_FOODS[foodKey];
     if (!food) return 'Cibo sconosciuto.';
     if (hero.gold < food.price) return 'Oro insufficiente!';
@@ -1283,7 +1313,7 @@ const RPG = (() => {
   }
 
   function playWithPet(hero) {
-    if (!hero.pet) return 'Non hai ancora un famiglio.';
+    if (!hero.pet || !hero.pet.hatched) return 'Il tuo famiglio è ancora un uovo: aspetta la schiusa!';
     const STAMINA_COST = 5;
     if ((hero.stamina || 0) < STAMINA_COST) return `Serve più Stamina! Corri per generarne (hai ${(hero.stamina || 0).toFixed(1)}/${STAMINA_COST}).`;
     tickPet(hero);
@@ -1294,7 +1324,7 @@ const RPG = (() => {
   }
 
   function cleanPet(hero) {
-    if (!hero.pet) return 'Non hai ancora un famiglio.';
+    if (!hero.pet || !hero.pet.hatched) return 'Il tuo famiglio è ancora un uovo: aspetta la schiusa!';
     const WOOD_COST = 10, STONE_COST = 10;
     if (hero.wood < WOOD_COST || hero.stone < STONE_COST) return `Serve più legna/pietra (hai 🪵${hero.wood}/🪨${hero.stone}, servono ${WOOD_COST}/${STONE_COST}).`;
     tickPet(hero);
@@ -1306,7 +1336,7 @@ const RPG = (() => {
   }
 
   function sleepPet(hero) {
-    if (!hero.pet) return 'Non hai ancora un famiglio.';
+    if (!hero.pet || !hero.pet.hatched) return 'Il tuo famiglio è ancora un uovo: aspetta la schiusa!';
     tickPet(hero);
     const pers = PET_PERSONALITIES[hero.pet.personality];
     const deadline = (pers && pers.sleepDeadlineHour) || 22;
@@ -1320,7 +1350,7 @@ const RPG = (() => {
   }
 
   function curePet(hero) {
-    if (!hero.pet) return 'Non hai ancora un famiglio.';
+    if (!hero.pet || !hero.pet.hatched) return 'Il tuo famiglio è ancora un uovo: non può ammalarsi.';
     if (!hero.pet.sick) return 'Il tuo famiglio non è malato.';
     if (hero.gold < PHOENIX_POTION_PRICE) return `Serve la Pozione della Fenice: ${PHOENIX_POTION_PRICE} monete (hai ${hero.gold}).`;
     hero.gold -= PHOENIX_POTION_PRICE;
@@ -1330,7 +1360,7 @@ const RPG = (() => {
   }
 
   function buyAccessory(hero, key) {
-    if (!hero.pet) return 'Non hai ancora un famiglio.';
+    if (!hero.pet || !hero.pet.hatched) return 'Il tuo famiglio è ancora un uovo: aspetta la schiusa!';
     const acc = PET_ACCESSORIES[key];
     if (!acc) return 'Accessorio sconosciuto.';
     const owned = hero.pet.accessoriesOwned.includes(key);
@@ -1353,7 +1383,7 @@ const RPG = (() => {
   }
 
   function startExpedition(hero) {
-    if (!hero.pet) return 'Non hai ancora un famiglio.';
+    if (!hero.pet || !hero.pet.hatched) return 'Il tuo famiglio è ancora un uovo: aspetta la schiusa!';
     if (hero.pet.expedition) return 'Il tuo famiglio è già in spedizione.';
     if (hero.pet.sick) return 'Il tuo famiglio è malato: deve prima guarire.';
     hero.pet.expedition = { startedAt: Date.now(), kmAtStart: hero.totalKm };
@@ -1986,6 +2016,7 @@ const RPG = (() => {
     PET_PERSONALITIES, PET_FOODS, PET_ACCESSORIES, PET_SPECIES,
     PHOENIX_POTION_PRICE, EXPEDITION_HOURS, WISH_WINDOW_MINUTES,
     createPet, petXpForLevel, petStage, tickPet, petArenaBonus, classArenaBonus,
+    EGG_KM_NEEDED, eggProgress, hatchPet,
     feedPet, playWithPet, cleanPet, sleepPet, curePet,
     buyAccessory, addPetXp,
     startExpedition, expeditionStatus, collectExpedition,

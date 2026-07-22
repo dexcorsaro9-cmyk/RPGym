@@ -537,12 +537,28 @@ function renderCamp(c) {
     scene.appendChild(mountThumb);
   }
   scene.appendChild(el('p', 'camp-desc', sceneDesc +
-    (HERO.companion && petSpeciesInfo ? `<br>${esc(HERO.pet.name)} ${petSpeciesInfo.icon} sonnecchia accanto a te.` : '') +
+    (HERO.companion && petSpeciesInfo && HERO.pet.hatched ? `<br>${esc(HERO.pet.name)} ${petSpeciesInfo.icon} sonnecchia accanto a te.` : '') +
+    (HERO.companion && petSpeciesInfo && !HERO.pet.hatched ? `<br>Un uovo di ${petSpeciesInfo.name} si scalda accanto al fuoco.` : '') +
     (mount ? `<br>${mount.name} riposa nella stalla.` : '')));
   c.appendChild(scene);
 
   // Santuario dei Famigli
-  if (HERO.companion && HERO.pet) {
+  if (HERO.companion && HERO.pet && !HERO.pet.hatched) {
+    const egg = RPG.eggProgress(HERO);
+    const sp = el('div', 'panel santuario-teaser');
+    sp.appendChild(el('h3', 'panel-title', '🥚 Uovo Misterioso'));
+    const thumb = el('img', 'pet-thumb' + (egg.ready ? ' egg-shake' : ''));
+    thumb.src = petImageSrc(HERO.pet);
+    thumb.onerror = () => { thumb.style.display = 'none'; };
+    sp.appendChild(thumb);
+    sp.appendChild(el('div', 'membar slim', `<div class="membar-fill gold" style="width:${egg.pct}%"></div><span>${egg.km.toFixed(1)} / ${egg.needed} km</span>`));
+    sp.appendChild(el('p', 'muted small center',
+      egg.ready ? '✨ È pronto per schiudersi!' : 'Si scalda un passo alla volta...'));
+    const enterBtn = el('button', 'btn btn-primary wide', egg.ready ? '🥚 Guarda l\'uovo' : 'Osserva l\'uovo');
+    enterBtn.addEventListener('click', () => { CAMP_VIEW = 'santuario'; setTab('camp'); });
+    sp.appendChild(enterBtn);
+    c.appendChild(sp);
+  } else if (HERO.companion && HERO.pet) {
     RPG.tickPet(HERO); persist();
     const p = HERO.pet;
     const sp = el('div', 'panel santuario-teaser');
@@ -677,9 +693,71 @@ function petImageSrc(pet) {
   return `assets/pet/${pet.species}/${stage}.png`;
 }
 
-function renderSantuarioView(c) {
-  RPG.tickPet(HERO); persist();
+function renderEggView(c) {
   const pet = HERO.pet;
+  const speciesInfo = RPG.PET_SPECIES[pet.species];
+  const egg = RPG.eggProgress(HERO);
+
+  const backBtn = el('button', 'btn btn-small', '↩ Torna al Rifugio');
+  backBtn.addEventListener('click', () => { CAMP_VIEW = 'main'; setTab('camp'); });
+  c.appendChild(backBtn);
+
+  c.appendChild(el('h2', 'section-title', '🥚 Uovo Misterioso'));
+
+  const head = el('div', 'panel center');
+  const img = el('img', 'pet-portrait-img' + (egg.ready ? ' egg-shake' : ''));
+  img.src = petImageSrc(pet);
+  img.onerror = () => { img.outerHTML = `<div class="pet-portrait">🥚</div>`; };
+  head.appendChild(img);
+  head.appendChild(el('h3', 'hero-name-plate center', `Uovo di ${esc(speciesInfo.name)}`));
+  head.appendChild(el('p', 'small muted center',
+    'Finché l\'uovo non si schiude non ha bisogno di nulla: si scalda un passo alla volta con i chilometri che percorri. Il mistero si svelerà alla schiusa.'));
+  c.appendChild(head);
+
+  const progPanel = el('div', 'panel');
+  progPanel.appendChild(el('h3', 'panel-title', '🔥 Incubazione'));
+  progPanel.appendChild(el('div', 'membar', `<div class="membar-fill gold" style="width:${egg.pct}%"></div><span>${egg.km.toFixed(1)} / ${egg.needed} km</span>`));
+  c.appendChild(progPanel);
+
+  if (egg.ready) {
+    const hatchPanel = el('div', 'panel incursion-panel center');
+    hatchPanel.appendChild(el('p', 'center big-news', '✨ L\'uovo trema... è pronto!'));
+    const hatchBtn = el('button', 'btn btn-primary wide big', '🥚 Tocca per rompere il guscio!');
+    hatchBtn.addEventListener('click', () => playHatchSequence(pet));
+    hatchPanel.appendChild(hatchBtn);
+    c.appendChild(hatchPanel);
+  } else {
+    c.appendChild(el('p', 'muted small center', 'Continua ad allenarti: ogni chilometro scalda l\'uovo un po\' di più.'));
+  }
+}
+
+function playHatchSequence(pet) {
+  const videoSrc = `assets/pet/${pet.species}/hatch.mp4`;
+  const overlay = el('div', 'hatch-overlay');
+  overlay.innerHTML = `
+    <video class="hatch-video" autoplay playsinline muted></video>
+    <button class="btn wide hatch-skip">Salta ➜</button>`;
+  document.body.appendChild(overlay);
+  const video = overlay.querySelector('video');
+  const finish = () => {
+    overlay.remove();
+    const r = RPG.hatchPet(HERO);
+    persist(); renderHUD();
+    if (r && r.ok) { toast(`🎉 ${esc(HERO.pet.name)} è nato!`); sfx('level'); vibrate([80, 40, 80, 40, 120]); }
+    else toast(r);
+    setTab('camp');
+  };
+  video.addEventListener('ended', finish);
+  video.addEventListener('error', finish);
+  overlay.querySelector('.hatch-skip').addEventListener('click', finish);
+  video.src = videoSrc;
+  video.play().catch(() => finish());
+}
+
+function renderSantuarioView(c) {
+  const pet = HERO.pet;
+  if (!pet.hatched) { renderEggView(c); return; }
+  RPG.tickPet(HERO); persist();
   const pers = RPG.PET_PERSONALITIES[pet.personality];
 
   const backBtn = el('button', 'btn btn-small', '↩ Torna al Rifugio');
