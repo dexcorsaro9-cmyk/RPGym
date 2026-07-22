@@ -1340,8 +1340,6 @@ function renderShortcutPanel() {
 
   const guideBody = el('div', 'shortcut-manual-body collapsed');
 
-  const syncUrl = `${APP_BASE_URL}?sync_km=[KM]&sync_type=[TIPO]`;
-
   guideBody.innerHTML = `
     <div class="shortcut-steps">
       <div class="shortcut-step">
@@ -1350,15 +1348,15 @@ function renderShortcutPanel() {
       </div>
       <div class="shortcut-step">
         <span class="step-num">2</span>
-        <div>Cerca l'azione <b>"Chiedi input"</b>. Impostala su tipo <b>Numero</b>, messaggio: <i>Quanti km totali hai fatto oggi?</i></div>
+        <div>Aggiungi l'azione <b>"Trova campioni di salute"</b>. Impostala su tipo <b>Distanza camminata e corsa</b>, periodo <b>Oggi</b>, aggrega su <b>Somma</b>.</div>
       </div>
       <div class="shortcut-step">
         <span class="step-num">3</span>
-        <div>Aggiungi un'azione <b>"URL"</b> e incolla questo indirizzo (poi sostituisci <b>[KM]</b> con la variabile <i>Input fornito</i> e <b>[TIPO]</b> con <i>camminata</i>, <i>corsa</i> o <i>cyclette</i>):</div>
+        <div>Aggiungi l'azione <b>"URL"</b> e incolla questo indirizzo, poi subito dopo <code>sync_km=</code> inserisci la variabile <i>Campioni di salute</i> del passo precedente:</div>
       </div>
     </div>
     <div class="shortcut-url-box" style="margin:8px 0">
-      <code class="shortcut-url-code" id="sc-url-code">${APP_BASE_URL}?sync_km=[KM]&amp;sync_type=camminata</code>
+      <code class="shortcut-url-code" id="sc-url-code">${APP_BASE_URL}?sync_km=</code>
     </div>
     <div class="shortcut-steps">
       <div class="shortcut-step">
@@ -1367,7 +1365,7 @@ function renderShortcutPanel() {
       </div>
       <div class="shortcut-step">
         <span class="step-num">5</span>
-        <div>Dai un nome al comando (es. <b>RPGym</b>) e salvalo. Da quel momento usa il pulsante ⚡ qui sopra per lanciarlo ogni volta che finisci l'allenamento.</div>
+        <div>Dai un nome al comando (es. <b>RPGym</b>) e salvalo. Da ora si lancia con il pulsante ⚡ qui sopra e legge i km dal tuo iPhone <b>senza che tu inserisca nulla</b>.</div>
       </div>
     </div>`;
 
