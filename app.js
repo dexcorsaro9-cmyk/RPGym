@@ -2129,6 +2129,7 @@ function todayISO() { return new Date().toISOString().slice(0, 10); }
    Nessun server coinvolto: il numero arriva incollato nell'URL e il gioco
    lo applica all'eroe attualmente selezionato su QUESTO telefono. */
 async function checkClipboardSync() {
+  toast('🔍 clipboard check...');
   try {
     if (!navigator.clipboard?.readText) { toast('📋 Clipboard API non disponibile'); return; }
     const text = (await navigator.clipboard.readText() || '').trim();
