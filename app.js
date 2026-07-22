@@ -1277,7 +1277,6 @@ function renderTrain(c) {
    ═══════════════════════════════════════════════════════════ */
 
 function getMG(id) {
-  if (!HERO.miniGames) HERO.miniGames = {};
   const d = HERO.miniGames[id] || { last: null, n: 0 };
   if (d.last !== todayISO()) d.n = 0;
   HERO.miniGames[id] = d;

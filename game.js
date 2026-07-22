@@ -898,36 +898,56 @@ const RPG = (() => {
     });
   }
 
-  // Migrazione: aggiunge i campi v2 ai salvataggi esistenti
+  const SCHEMA_VERSION = 4;
+
   function migrateHero(h) {
-    h.items = h.items || [];
-    h.equipment = h.equipment || { arma: null, scudo: null, elmo: null, armatura: null, anello: null, amuleto: null };
-    h.mountsOwned = h.mountsOwned || [];
-    h.mount = h.mount || null;
-    h.streak = h.streak || { count: 0, last: null };
-    h.incursion = h.incursion || null;
-    h.bestiary = h.bestiary || [];
-    h.storyId = h.storyId || (h.avatar && String(h.avatar).includes('eroe2') ? 'eroe2' : 'eroe1');
-    h.forgeSeen = h.forgeSeen || null;      // ultima data in cui ha visto la vetrina
-    h.summarySeen = h.summarySeen || null;  // ultima data del riepilogo giornaliero
-    h.eventNotified = h.eventNotified || null; // settimana della Taglia già notificata
-    h.battles = h.battles || { date: null, count: 0 }; // sfide dell'Arena usate oggi
-    h.healthSync = h.healthSync || { date: null, applied: {} }; // sincronizzazione da Apple Salute
-    h.pet = h.pet || null;
-    if (h.pet && !h.pet.species) {
-      h.pet.species = PET_SPECIES_KEYS[Math.floor(Math.random() * PET_SPECIES_KEYS.length)];
-      if (!h.pet.name || h.pet.name === 'Ignis') h.pet.name = PET_SPECIES[h.pet.species].name;
-    }
-    // Compatibilità: i famigli creati prima del sistema Uovo sono già "nati".
-    if (h.pet && h.pet.hatched === undefined) h.pet.hatched = true;
-    h.stamina = h.stamina || 0;
-    h.furniture = h.furniture || { owned: [] };
+    // ── v1: campi base RPG ────────────────────────────────────
+    h.items        = h.items        || [];
+    h.equipment    = h.equipment    || { arma: null, scudo: null, elmo: null, armatura: null, anello: null, amuleto: null };
+    h.mountsOwned  = h.mountsOwned  || [];
+    h.mount        = h.mount        || null;
+    h.streak       = h.streak       || { count: 0, last: null };
+    h.incursion    = h.incursion    || null;
+    h.bestiary     = h.bestiary     || [];
+    h.storyId      = h.storyId      || (h.avatar && String(h.avatar).includes('eroe2') ? 'eroe2' : 'eroe1');
+    h.forgeSeen    = h.forgeSeen    || null;
+    h.summarySeen  = h.summarySeen  || null;
+    h.eventNotified= h.eventNotified|| null;
+    h.battles      = h.battles      || { date: null, count: 0 };
+    h.healthSync   = h.healthSync   || { date: null, applied: {} };
+    h.stamina      = h.stamina      || 0;
+    h.furniture    = h.furniture    || { owned: [] };
     h.achievementsClaimed = h.achievementsClaimed || [];
     // vecchio inventario a stringhe → convertito in oro
     if (Array.isArray(h.inventory) && h.inventory.length) {
       h.gold += h.inventory.length * 10;
       h.inventory = [];
     }
+
+    // ── v2: famiglio ─────────────────────────────────────────
+    h.pet = h.pet || null;
+    if (h.pet && !h.pet.species) {
+      h.pet.species = PET_SPECIES_KEYS[Math.floor(Math.random() * PET_SPECIES_KEYS.length)];
+      if (!h.pet.name || h.pet.name === 'Ignis') h.pet.name = PET_SPECIES[h.pet.species].name;
+    }
+    if (h.pet && h.pet.hatched === undefined) h.pet.hatched = true;
+
+    // ── v3: statistiche e log allenamenti ────────────────────
+    h.log            = h.log            || [];
+    h.totalKm        = h.totalKm        || 0;
+    h.kmByType       = h.kmByType       || { camminata: 0, corsa: 0, cyclette: 0 };
+    h.missionsDone   = h.missionsDone   || [];
+    h.lootBagsOpened = h.lootBagsOpened || 0;
+    h.fragmentsFound = h.fragmentsFound || 0;
+    h.cards          = h.cards          || [];
+    h.activeMission  = h.activeMission  || null;
+    h.restBonus      = h.restBonus      || null;
+    h.companion      = h.companion      || null;
+
+    // ── v4: mini-giochi ───────────────────────────────────────
+    h.miniGames = h.miniGames || {};
+
+    h.schemaVersion = SCHEMA_VERSION;
     return h;
   }
 
@@ -942,13 +962,20 @@ const RPG = (() => {
     return d.toISOString().slice(0, 10);
   }
 
+  function migrateState(s) {
+    s.heroes        = s.heroes        || [];
+    s.current       = s.current       || null;
+    s.claimedEvents = s.claimedEvents || [];
+    return s;
+  }
+
   function load() {
     try {
-      const s = JSON.parse(localStorage.getItem(SAVE_KEY)) || { heroes: [], current: null, claimedEvents: [] };
-      (s.heroes || []).forEach(migrateHero);
+      const s = migrateState(JSON.parse(localStorage.getItem(SAVE_KEY)) || {});
+      s.heroes.forEach(migrateHero);
       return s;
     }
-    catch { return { heroes: [], current: null, claimedEvents: [] }; }
+    catch { return migrateState({}); }
   }
   function save(state) { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }
 
