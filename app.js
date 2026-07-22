@@ -1847,14 +1847,20 @@ function renderSettingsView(c) {
   c.appendChild(back);
   c.appendChild(el('h2', 'section-title', '⚙️ Impostazioni'));
   c.appendChild(renderShortcutPanel());
+  c.appendChild(_settingsRefreshPanel());
+  c.appendChild(_settingsBackupPanel());
+  c.appendChild(_settingsFullscreenPanel());
+  c.appendChild(_settingsDangerPanel());
+}
 
-  const refreshPanel = el('div', 'panel shortcut-panel');
-  refreshPanel.appendChild(el('h3', 'panel-title', '🔄 Aggiornamenti'));
-  refreshPanel.appendChild(el('p', 'guide-text', 'Se il gioco non mostra le ultime novità, forza il refresh per scaricare la versione più recente.'));
-  const refreshBtn = el('button', 'btn btn-primary', '🔄 Forza aggiornamento');
-  refreshBtn.addEventListener('click', async () => {
-    refreshBtn.disabled = true;
-    refreshBtn.textContent = 'Aggiornamento in corso…';
+function _settingsRefreshPanel() {
+  const p = el('div', 'panel shortcut-panel');
+  p.appendChild(el('h3', 'panel-title', '🔄 Aggiornamenti'));
+  p.appendChild(el('p', 'guide-text', 'Se il gioco non mostra le ultime novità, forza il refresh per scaricare la versione più recente.'));
+  const btn = el('button', 'btn btn-primary', '🔄 Forza aggiornamento');
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    btn.textContent = 'Aggiornamento in corso…';
     try {
       if ('serviceWorker' in navigator) {
         const reg = await navigator.serviceWorker.getRegistration();
@@ -1863,12 +1869,137 @@ function renderSettingsView(c) {
         await Promise.all(keys.map(k => caches.delete(k)));
       }
       location.reload(true);
-    } catch (e) {
-      location.reload(true);
-    }
+    } catch { location.reload(true); }
   });
-  refreshPanel.appendChild(refreshBtn);
-  c.appendChild(refreshPanel);
+  p.appendChild(btn);
+  return p;
+}
+
+function _settingsBackupPanel() {
+  const p = el('div', 'panel shortcut-panel');
+  p.appendChild(el('h3', 'panel-title', '💾 Backup salvataggio'));
+  p.appendChild(el('p', 'guide-text', 'Esporta tutti i tuoi eroi su file JSON. Potrai reimportarli in qualsiasi momento.'));
+
+  const exportBtn = el('button', 'btn btn-primary', '📤 Esporta salvataggio');
+  exportBtn.addEventListener('click', () => {
+    const data = localStorage.getItem('rpgym_save_v1');
+    if (!data) { toast('Nessun salvataggio trovato.'); return; }
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `rpgym_backup_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('📤 Backup esportato!');
+  });
+
+  const importBtn = el('button', 'btn', '📥 Importa salvataggio');
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = '.json,application/json';
+  fileInput.style.display = 'none';
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        if (!parsed.heroes || !Array.isArray(parsed.heroes)) throw new Error('formato non valido');
+        modal(`
+          <h3 class="panel-title">📥 Importa backup</h3>
+          <p>Vuoi sovrascrivere il salvataggio attuale con il backup? I dati correnti andranno persi.</p>
+          <div class="row gap" style="margin-top:1rem">
+            <button id="btn-import-cancel" class="btn">Annulla</button>
+            <button id="btn-import-confirm" class="btn btn-primary">Conferma</button>
+          </div>`);
+        document.getElementById('btn-import-cancel').addEventListener('click', closeModal);
+        document.getElementById('btn-import-confirm').addEventListener('click', () => {
+          localStorage.setItem('rpgym_save_v1', e.target.result);
+          closeModal();
+          toast('✅ Salvataggio importato! Riavvio…');
+          setTimeout(() => location.reload(), 1200);
+        });
+      } catch { toast('❌ File non valido o corrotto.'); }
+    };
+    reader.readAsText(file);
+    fileInput.value = '';
+  });
+  importBtn.addEventListener('click', () => fileInput.click());
+
+  p.appendChild(exportBtn);
+  p.appendChild(importBtn);
+  p.appendChild(fileInput);
+  return p;
+}
+
+function _settingsFullscreenPanel() {
+  if (!document.fullscreenEnabled && !document.webkitFullscreenEnabled) return el('div');
+  const p = el('div', 'panel shortcut-panel');
+  p.appendChild(el('h3', 'panel-title', '📱 Schermo intero'));
+  p.appendChild(el('p', 'guide-text', 'Espandi il gioco a tutto schermo per un\'esperienza più immersiva.'));
+  const btn = el('button', 'btn btn-primary', '⛶ Attiva schermo intero');
+  btn.addEventListener('click', async () => {
+    try {
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        await (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+        btn.textContent = '⛶ Attiva schermo intero';
+      } else {
+        await (document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen).call(document.documentElement);
+        btn.textContent = '✕ Esci da schermo intero';
+      }
+    } catch { toast('Schermo intero non disponibile su questo dispositivo.'); }
+  });
+  p.appendChild(btn);
+  return p;
+}
+
+function _settingsDangerPanel() {
+  const p = el('div', 'panel shortcut-panel');
+  p.appendChild(el('h3', 'panel-title', '⚠️ Zona pericolosa'));
+
+  const resetBtn = el('button', 'btn btn-danger', '🗑️ Elimina eroe corrente');
+  resetBtn.addEventListener('click', () => {
+    if (!HERO) { toast('Nessun eroe attivo.'); return; }
+    modal(`
+      <h3 class="panel-title">🗑️ Elimina ${HERO.name}?</h3>
+      <p>Questa azione è <strong>irreversibile</strong>. L'eroe e tutti i suoi progressi saranno persi per sempre.</p>
+      <div class="row gap" style="margin-top:1rem">
+        <button id="btn-del-cancel" class="btn">Annulla</button>
+        <button id="btn-del-confirm" class="btn btn-danger">Elimina</button>
+      </div>`);
+    document.getElementById('btn-del-cancel').addEventListener('click', closeModal);
+    document.getElementById('btn-del-confirm').addEventListener('click', () => {
+      RPG.deleteHero(STATE, HERO.id);
+      persist();
+      closeModal();
+      toast('Eroe eliminato.');
+      setTimeout(() => { HERO = null; showScreen('screen-profiles'); renderProfiles(); }, 800);
+    });
+  });
+
+  const nukeBtn = el('button', 'btn btn-danger', '💀 Cancella tutti i dati');
+  nukeBtn.addEventListener('click', () => {
+    modal(`
+      <h3 class="panel-title">💀 Cancella tutto?</h3>
+      <p>Tutti gli eroi, i progressi e le impostazioni saranno cancellati. <strong>Non si può tornare indietro.</strong></p>
+      <div class="row gap" style="margin-top:1rem">
+        <button id="btn-nuke-cancel" class="btn">Annulla</button>
+        <button id="btn-nuke-confirm" class="btn btn-danger">Cancella tutto</button>
+      </div>`);
+    document.getElementById('btn-nuke-cancel').addEventListener('click', closeModal);
+    document.getElementById('btn-nuke-confirm').addEventListener('click', () => {
+      localStorage.removeItem('rpgym_save_v1');
+      closeModal();
+      toast('Dati cancellati. Riavvio…');
+      setTimeout(() => location.reload(), 1200);
+    });
+  });
+
+  p.appendChild(resetBtn);
+  p.appendChild(nukeBtn);
+  return p;
 }
 
 function openSlotPicker(slotKey) {
