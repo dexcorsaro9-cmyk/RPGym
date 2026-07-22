@@ -1731,9 +1731,10 @@ function renderHero(c) {
   if (HERO_VIEW === 'story') { renderStoryView(c); return; }
   if (HERO_VIEW === 'settings') { renderSettingsView(c); return; }
 
-  const titleH2 = el('h2', 'section-title on-parchment-title', '🛡️ Scheda dell\'Eroe');
+  const titleH2 = el('h2', 'section-title on-parchment-title hero-title-row');
   const titleIcon = new Image();
-  titleIcon.onload = () => { titleH2.innerHTML = `<img class="title-icon" src="assets/ui/eroe/eroe.png"> Scheda dell'Eroe`; };
+  titleIcon.onload = () => { titleH2.innerHTML = `<img class="title-icon" src="assets/ui/eroe/eroe.png"> Scheda dell'Eroe <button class="hero-settings-btn" title="Impostazioni">⚙️</button>`; titleH2.querySelector('.hero-settings-btn').addEventListener('click', () => { HERO_VIEW = 'settings'; setTab('hero'); }); };
+  titleIcon.onerror = () => { titleH2.innerHTML = `🛡️ Scheda dell'Eroe <button class="hero-settings-btn" title="Impostazioni">⚙️</button>`; titleH2.querySelector('.hero-settings-btn').addEventListener('click', () => { HERO_VIEW = 'settings'; setTab('hero'); }); };
   titleIcon.src = 'assets/ui/eroe/eroe.png';
   c.appendChild(titleH2);
 
@@ -1807,10 +1808,6 @@ function renderHero(c) {
     b.addEventListener('click', () => { HERO_VIEW = k; setTab('hero'); });
     sub.appendChild(b);
   });
-  const settBtn = el('button', 'btn submenu-btn');
-  settBtn.innerHTML = `<span class="submenu-emoji">⚙️</span><span>Impostazioni</span>`;
-  settBtn.addEventListener('click', () => { HERO_VIEW = 'settings'; setTab('hero'); });
-  sub.appendChild(settBtn);
   c.appendChild(sub);
 
   // Statistiche
