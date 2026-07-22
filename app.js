@@ -1348,36 +1348,31 @@ function renderShortcutPanel() {
       </div>
       <div class="shortcut-step">
         <span class="step-num">2</span>
-        <div>Aggiungi <b>"Trova campioni di salute"</b> → tipo: <b>Distanza camminata e corsa</b> → filtra per data: <b>oggi</b>.</div>
+        <div>Aggiungi <b>"Trova campioni di salute"</b> → tipo: <b>Passi</b> → Data di inizio: <b>è oggi</b>.</div>
       </div>
       <div class="shortcut-step">
         <span class="step-num">3</span>
-        <div>Aggiungi <b>"Calcola statistiche"</b> → input: <i>Campioni di salute</i> → funzione: <b>Somma</b>. Questo somma tutti i segmenti del giorno.</div>
+        <div>Aggiungi <b>"Calcola statistiche"</b> → <i>Campioni di dati sanitari</i> → funzione: <b>Somma</b>.</div>
       </div>
       <div class="shortcut-step">
         <span class="step-num">4</span>
-        <div>Aggiungi <b>"URL"</b> → incolla l'indirizzo qui sotto, poi dopo <code>sync_km=</code> inserisci la variabile <i>Statistica</i> del passo 3:</div>
+        <div>Aggiungi <b>"Testo"</b> (l'azione gialla con le righe) e scrivi nel campo:<br><code>${APP_BASE_URL}?sync_steps=</code><br>poi tocca <b>Inserisci variabile</b> → <b>Somma</b>.</div>
       </div>
-    </div>
-    <div class="shortcut-url-box" style="margin:8px 0">
-      <code class="shortcut-url-code" id="sc-url-code">${APP_BASE_URL}?sync_km=</code>
-    </div>
-    <div class="shortcut-steps">
       <div class="shortcut-step">
         <span class="step-num">5</span>
-        <div>Aggiungi <b>"Apri URL"</b> collegata all'URL del passo 4.</div>
+        <div>Aggiungi <b>"Apri URL"</b> → tocca il campo URL → inserisci la variabile <b>Testo</b> del passo 4.</div>
       </div>
       <div class="shortcut-step">
         <span class="step-num">6</span>
-        <div>Salva con nome <b>RPGym</b>. Da ora il comando legge i km da Salute <b>in automatico</b> e li registra nel gioco.</div>
+        <div>Salva con nome <b>RPGym</b>. Il gioco convertirà i passi in km automaticamente.</div>
       </div>
     </div>`;
 
   const copyUrlBtn = el('button', 'btn shortcut-import-btn wide');
   copyUrlBtn.innerHTML = '📋 Copia URL base';
   copyUrlBtn.addEventListener('click', () => {
-    const base = `${APP_BASE_URL}?sync_km=`;
-    navigator.clipboard.writeText(base).then(() => toast('URL copiato! Incollalo nell\'azione URL dei Comandi Rapidi.')).catch(() => toast('Copia manuale: ' + base));
+    const base = `${APP_BASE_URL}?sync_steps=`;
+    navigator.clipboard.writeText(base).then(() => toast('URL copiato! Usalo nell\'azione Testo dei Comandi Rapidi.')).catch(() => toast('Copia manuale: ' + base));
   });
   guideBody.appendChild(copyUrlBtn);
 
@@ -2141,13 +2136,19 @@ function todayISO() { return new Date().toISOString().slice(0, 10); }
 function applyHealthSyncFromURL(hero) {
   try {
     const params = new URLSearchParams(location.search);
-    const km = parseFloat((params.get('sync_km') || '').replace(',', '.'));
+    // Accetta sync_steps (passi interi da HealthKit) oppure sync_km (km con virgola o punto)
+    let km;
+    if (params.has('sync_steps')) {
+      const steps = parseInt(params.get('sync_steps'), 10);
+      km = steps * 0.00075; // ~0.75 m per passo
+    } else {
+      km = parseFloat((params.get('sync_km') || '').replace(',', '.'));
+    }
     const type = params.get('sync_type') || 'camminata';
-    // ripulisce l'URL subito, così un refresh non ripropone lo stesso valore
-    if (params.has('sync_km') || params.has('sync_type')) {
+    if (params.has('sync_km') || params.has('sync_type') || params.has('sync_steps')) {
       history.replaceState({}, '', location.pathname + location.hash);
     }
-    if (!hero || !(km >= 0) || !type || !RPG.ACTIVITIES[type]) return null;
+    if (!hero || !(km > 0) || !RPG.ACTIVITIES[type]) return null;
     return RPG.logHealthSync(hero, type, km);
   } catch (err) {
     console.error('Errore sincronizzazione Salute:', err);
