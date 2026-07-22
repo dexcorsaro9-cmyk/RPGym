@@ -1269,46 +1269,6 @@ function renderTrain(c) {
   ap.appendChild(abtn);
   c.appendChild(ap);
 
-  // Statistiche totali
-  {
-    const sp = el('div', 'panel');
-    sp.appendChild(el('h3', 'panel-title', '📊 Statistiche Totali'));
-    const sd = el('div', 'stats-diary-grid');
-    const sessions = HERO.log.length;
-    const kmTot = HERO.totalKm.toFixed(1);
-    const kmCyc = (HERO.kmByType.cyclette || 0).toFixed(1);
-    const kmWalk = (HERO.kmByType.camminata || 0).toFixed(1);
-    const kmRun = (HERO.kmByType.corsa || 0).toFixed(1);
-    const rows = [
-      ['🏃', sessions, 'Sessioni'],
-      ['📍', kmTot + ' km', 'Totale'],
-      ['🚴', kmCyc + ' km', 'Cyclette'],
-      ['🚶', kmWalk + ' km', 'Cammino'],
-      ['🏅', HERO.missionsDone.length, 'Missioni'],
-      ['🎒', HERO.lootBagsOpened || 0, 'Sacchi aperti'],
-      ['🔍', HERO.fragmentsFound || 0, 'Frammenti'],
-      ['🏆', (HERO.achievementsClaimed || []).length, 'Imprese'],
-    ];
-    rows.forEach(([ico, val, lbl]) => {
-      const it = el('div', 'stats-diary-item');
-      it.innerHTML = `<div class="stats-diary-val">${ico} ${val}</div><div class="stats-diary-lbl">${lbl}</div>`;
-      sd.appendChild(it);
-    });
-    sp.appendChild(sd);
-    c.appendChild(sp);
-  }
-
-  if (HERO.log.length) {
-    const lp = el('div', 'panel');
-    lp.appendChild(el('h3', 'panel-title', '📜 Diario delle Imprese'));
-    HERO.log.slice(0, 10).forEach(l => {
-      const a = RPG.ACTIVITIES[l.type];
-      const d = new Date(l.date);
-      lp.appendChild(el('div', 'log-row',
-        `${a.icon} <b>${l.km} km</b> di ${a.label.toLowerCase()} — +${l.xp} XP <span class="muted small">(${d.toLocaleDateString('it-IT')})</span>`));
-    });
-    c.appendChild(lp);
-  }
 }
 
 /* ── Pannello Comandi Rapidi / Apple Salute ── */
@@ -1730,6 +1690,7 @@ function renderHero(c) {
   if (HERO_VIEW === 'bestiary') { renderBestiaryView(c); return; }
   if (HERO_VIEW === 'story') { renderStoryView(c); return; }
   if (HERO_VIEW === 'settings') { renderSettingsView(c); return; }
+  if (HERO_VIEW === 'diary')    { renderDiaryView(c);    return; }
 
   const titleH2 = el('h2', 'section-title on-parchment-title hero-title-row');
   const titleIcon = new Image();
@@ -1799,7 +1760,7 @@ function renderHero(c) {
 
   // Sottomenù
   const sub = el('div', 'hero-submenu');
-  [['story', 'storia', '📜', 'La tua Storia'], ['cards', 'carte', '🎴', 'Carte & Imprese'], ['bestiary', 'bestiario', '🐉', 'Bestiario']].forEach(([k, file, emoji, label]) => {
+  [['story', 'storia', '📜', 'La tua Storia'], ['cards', 'carte', '🎴', 'Carte & Imprese'], ['bestiary', 'bestiario', '🐉', 'Bestiario'], ['diary', 'imprese_stivale', '📊', 'Diario']].forEach(([k, file, emoji, label]) => {
     const b = el('button', 'btn submenu-btn');
     b.innerHTML = `<span class="submenu-emoji">${emoji}</span><span>${label}</span>`;
     const img = new Image();
@@ -1836,6 +1797,47 @@ function renderHero(c) {
   const sw = el('button', 'btn wide', '↩ Cambia Eroe');
   sw.addEventListener('click', () => { STATE.current = null; persist(); renderProfiles(); });
   c.appendChild(sw);
+}
+
+function renderDiaryView(c) {
+  backBar(c);
+  c.appendChild(el('h2', 'section-title', '📊 Diario del Viandante'));
+
+  // Statistiche totali
+  const sp = el('div', 'panel');
+  sp.appendChild(el('h3', 'panel-title', '📈 Statistiche Totali'));
+  const sd = el('div', 'stats-diary-grid');
+  [
+    ['🏃', HERO.log.length,                                    'Sessioni'],
+    ['📍', HERO.totalKm.toFixed(1) + ' km',                   'Totale'],
+    ['🚶', (HERO.kmByType.camminata || 0).toFixed(1) + ' km', 'Cammino'],
+    ['🏅', (HERO.kmByType.corsa     || 0).toFixed(1) + ' km', 'Corsa'],
+    ['🚴', (HERO.kmByType.cyclette  || 0).toFixed(1) + ' km', 'Cyclette'],
+    ['🏆', (HERO.achievementsClaimed || []).length,            'Imprese'],
+    ['🎒', HERO.lootBagsOpened || 0,                          'Sacchi'],
+    ['🔍', HERO.fragmentsFound || 0,                          'Frammenti'],
+  ].forEach(([ico, val, lbl]) => {
+    const it = el('div', 'stats-diary-item');
+    it.innerHTML = `<div class="stats-diary-val">${ico} ${val}</div><div class="stats-diary-lbl">${lbl}</div>`;
+    sd.appendChild(it);
+  });
+  sp.appendChild(sd);
+  c.appendChild(sp);
+
+  // Diario attività
+  const lp = el('div', 'panel');
+  lp.appendChild(el('h3', 'panel-title', '📜 Diario delle Attività'));
+  if (!HERO.log.length) {
+    lp.appendChild(el('p', 'muted small center', 'Nessuna attività registrata ancora.'));
+  } else {
+    HERO.log.slice().reverse().forEach(l => {
+      const a = RPG.ACTIVITIES[l.type];
+      const d = new Date(l.date);
+      lp.appendChild(el('div', 'log-row',
+        `${a.icon} <b>${l.km} km</b> di ${a.label.toLowerCase()} — +${l.xp} XP <span class="muted small">(${d.toLocaleDateString('it-IT')})</span>`));
+    });
+  }
+  c.appendChild(lp);
 }
 
 function renderSettingsView(c) {
