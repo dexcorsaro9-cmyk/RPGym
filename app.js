@@ -2393,29 +2393,24 @@ function drawBattle() {
     const b = BATTLE;
     const isFinal = b.v.id === 'cavaliere-drago';
     const battleBiome = RPG.BIOMES.find(bi => bi.name === b.v.zone) || RPG.currentBiome(HERO.level);
-    const battleSlug = RPG.biomeSlug(battleBiome);
-    if (battleSlug) {
-      const bgImg = new Image();
-      bgImg.onload = () => {
-        battleEl().style.backgroundImage =
-          `linear-gradient(180deg, rgba(30,8,10,.35), rgba(15,6,8,.55) 50%, rgba(8,4,5,.85)), radial-gradient(ellipse at 50% 35%, rgba(120,20,20,.25), transparent 60%), url('assets/biomi/${battleSlug}.png')`;
-        battleEl().classList.add('has-diorama');
-      };
-      bgImg.src = `assets/biomi/${battleSlug}.png`;
-    }
     const vFig = isFinal ? '<div class="battle-emoji big">🐉</div>'
       : `<img class="battle-villain-img" id="battle-villain-img" src="assets/bestiario/${b.v.id}.png" onerror="this.outerHTML='<div class=&quot;battle-emoji&quot;>👹</div>'">`;
     const heroFig = isImageAvatar(HERO)
       ? `<img class="battle-hero-img" id="battle-hero-fig" src="${HERO.avatar}" onerror="this.outerHTML='<div class=&quot;battle-hero-img battle-hero-emoji&quot;>🧑</div>'">`
       : `<div class="battle-hero-img battle-hero-emoji" id="battle-hero-fig">${HERO.avatar || '🧑‍🌾'}</div>`;
+    battleEl().style.backgroundImage = '';
+    battleEl().classList.remove('has-diorama');
     battleEl().innerHTML = `
       <div class="battle-arena">
         <button class="battle-flee" id="battle-flee-btn" title="Fuggi dalla battaglia">✕ Fuggi</button>
-        <div class="battle-topbar">
-          <div class="battle-name">${b.v.name} ${b.v.boss ? '<span class="tag tag-boss">BOSS</span>' : ''}</div>
-          <div class="pips" id="pips-v"></div>
+
+        <div class="battle-header-frame">
+          <div class="battle-topbar">
+            <div class="battle-name">${b.v.name} ${b.v.boss ? '<span class="tag tag-boss">BOSS</span>' : ''}</div>
+            <div class="pips" id="pips-v"></div>
+          </div>
+          <div class="hpbar-lg"><div class="hpbar-fill v" id="hp-v" style="width:100%"></div><span id="hp-v-num">100</span></div>
         </div>
-        <div class="hpbar-lg"><div class="hpbar-fill v" id="hp-v" style="width:100%"></div><span id="hp-v-num">100</span></div>
 
         <div class="battle-stage">
           <div class="stage-slot villain" id="stage-villain">${vFig}</div>
@@ -2426,13 +2421,14 @@ function drawBattle() {
           <div class="stage-slot hero" id="stage-hero">${heroFig}</div>
         </div>
 
-        <div class="hpbar-lg hero"><div class="hpbar-fill h" id="hp-h" style="width:100%"></div><span id="hp-h-num">100</span></div>
-        <div class="battle-topbar">
-          <div class="pips" id="pips-h"></div>
-          <div class="battle-name right">${esc(HERO.name)}</div>
+        <div class="battle-footer-frame">
+          <div class="hpbar-lg hero"><div class="hpbar-fill h" id="hp-h" style="width:100%"></div><span id="hp-h-num">100</span></div>
+          <div class="battle-topbar">
+            <div class="pips" id="pips-h"></div>
+            <div class="battle-name right">${esc(HERO.name)}</div>
+          </div>
+          <div class="battle-moves" id="battle-moves"></div>
         </div>
-
-        <div class="battle-moves" id="battle-moves"></div>
       </div>`;
     const fleeBtn = document.getElementById('battle-flee-btn');
     if (fleeBtn) fleeBtn.addEventListener('click', () => {

@@ -1219,10 +1219,31 @@ body {
   padding: calc(10px + env(safe-area-inset-top)) 12px calc(10px + env(safe-area-inset-bottom));
   transition: background-image .4s ease;
 }
-.battle-screen.has-diorama { background-size: cover; background-position: center; }
 .battle-arena {
   width: 100%; max-width: 480px;
-  display: flex; flex-direction: column; gap: 8px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.battle-header-frame {
+  background:
+    linear-gradient(180deg, rgba(20,10,6,.72) 0%, rgba(10,5,3,.55) 100%),
+    url('assets/backgrounds/template-header.jpg');
+  background-size: cover; background-position: center top;
+  border-radius: 12px 12px 6px 6px;
+  border: 2px solid rgba(200,160,80,.45);
+  padding: 8px 10px;
+  display: flex; flex-direction: column; gap: 6px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.6);
+}
+.battle-footer-frame {
+  background:
+    linear-gradient(0deg, rgba(20,10,6,.78) 0%, rgba(10,5,3,.55) 100%),
+    url('assets/backgrounds/template-footer.jpg');
+  background-size: cover; background-position: center bottom;
+  border-radius: 6px 6px 12px 12px;
+  border: 2px solid rgba(200,160,80,.45);
+  padding: 8px 10px 10px;
+  display: flex; flex-direction: column; gap: 6px;
+  box-shadow: 0 -2px 12px rgba(0,0,0,.6);
 }
 .battle-arena.shake { animation: arenaShake .3s; }
 @keyframes arenaShake {
@@ -1354,7 +1375,7 @@ body {
 .pip.on { background: radial-gradient(circle at 35% 30%, #ffe08a, #d9a021); border-color: #ffe08a; box-shadow: 0 0 8px rgba(232,182,76,.7); }
 
 /* Pulsanti mossa */
-.battle-moves { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 6px; }
+.battle-moves { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .battle-moves.locked { pointer-events: none; opacity: .5; }
 .move-btn {
   display: flex; flex-direction: column; align-items: center; gap: 3px;
