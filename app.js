@@ -500,6 +500,7 @@ function setTab(tab) {
     t.classList.toggle('active', t.dataset.tab === tab));
   const c = $('#tab-content');
   c.classList.toggle('bg-parchment', tab === 'hero' && PARCHMENT_OK);
+  c.classList.toggle('bg-rifugio', tab === 'camp');
   c.innerHTML = '';
   ({ camp: renderCamp, map: renderMap, train: renderTrain, market: renderMarket, hero: renderHero }[tab])(c);
   c.scrollTop = 0;
@@ -1329,7 +1330,11 @@ function revealChest(title, chest) {
 let MARKET_VIEW = 'stalla';
 
 function renderMarket(c) {
-  c.appendChild(el('h2', 'section-title', '🏪 Il Mercato'));
+  const marketTitle = el('h2', 'section-title', '🏪 Il Mercato');
+  c.appendChild(marketTitle);
+  const marketIcon = new Image();
+  marketIcon.onload = () => { marketTitle.innerHTML = `<img class="title-icon" src="assets/ui/tab-mercato.png"> Il Mercato`; };
+  marketIcon.src = 'assets/ui/tab-mercato.png';
   const sw = el('div', 'coll-switch');
   [['stalla', 'stalla', '🐴', 'Stalla'], ['nero', 'contrabbando', '🕯️', 'Contrabbando'], ['fucina', 'fucina', '⚒️', 'Fucina']].forEach(([k, file, emoji, label]) => {
     const b = el('button', 'coll-btn' + (MARKET_VIEW === k ? ' active' : ''));
@@ -1511,8 +1516,12 @@ function renderHero(c) {
   const rightSlots = slotKeys.slice(3);
 
   const EMPTY_SLOT_IMG = {
-    elmo: 'assets/loot/comune/elmo-0.png',
-    armatura: 'assets/loot/comune/armatura-0.png',
+    elmo: 'assets/ui/eroe/slot_elmo.png',
+    armatura: 'assets/ui/eroe/slot_armatura.png',
+    arma: 'assets/ui/eroe/slot_arma.png',
+    scudo: 'assets/ui/eroe/slot_scudo.png',
+    anello: 'assets/ui/eroe/slot_anello.png',
+    amuleto: 'assets/ui/eroe/slot_amuleto.png',
   };
   const makeSlot = key => {
     const s = RPG.SLOTS[key];
@@ -1533,7 +1542,11 @@ function renderHero(c) {
   rightSlots.forEach(k => rightCol.appendChild(makeSlot(k)));
 
   const center = el('div', 'hero-center');
-  const av = avatarEl(HERO, isImageAvatar(HERO) ? 'hero-fullbody' : 'hero-avatar');
+  const BIG_CLASSES = { alchimista: 'hero-fullbody-big', maga: 'hero-fullbody-big', principe: 'hero-fullbody-big' };
+  const heroCls = isImageAvatar(HERO)
+    ? 'hero-fullbody' + (BIG_CLASSES[HERO.storyId] ? ' ' + BIG_CLASSES[HERO.storyId] : '')
+    : 'hero-avatar';
+  const av = avatarEl(HERO, heroCls);
   center.appendChild(av);
   rig.appendChild(leftCol);
   rig.appendChild(center);
@@ -2325,5 +2338,27 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 
-if (STATE.current && STATE.heroes.find(h => h.id === STATE.current)) enterGame();
-else renderProfiles();
+function runSplash(done) {
+  const fill = document.getElementById('splash-progress-fill');
+  const text = document.getElementById('splash-progress-text');
+  const splash = document.getElementById('screen-splash');
+  let pct = 0;
+  const timer = setInterval(() => {
+    pct += 2;
+    if (pct >= 100) {
+      pct = 100;
+      clearInterval(timer);
+      setTimeout(() => {
+        splash.classList.add('hidden');
+        done();
+      }, 250);
+    }
+    if (fill) fill.style.width = pct + '%';
+    if (text) text.textContent = pct + '%';
+  }, 30);
+}
+
+runSplash(() => {
+  if (STATE.current && STATE.heroes.find(h => h.id === STATE.current)) enterGame();
+  else renderProfiles();
+});
