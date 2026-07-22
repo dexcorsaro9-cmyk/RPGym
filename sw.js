@@ -1,11 +1,13 @@
 /* RPGym service worker — cache base per uso offline */
-const CACHE = 'rpgym-v65';
+const CACHE = 'rpgym-v66';
 const ASSETS = [
   '.',
   'index.html',
   'style.css',
   'game.js',
   'app.js',
+  'minigames.js',
+  'arena.js',
   'manifest.webmanifest',
   'apple-touch-icon.png',
   'apple-touch-icon-precomposed.png',
