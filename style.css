@@ -779,10 +779,12 @@ body {
 /* ── Scrigno ── */
 .chest-zone { text-align: center; margin: 14px 0; }
 .chest-btn {
-  font-size: 4.5rem; background: none; border: none; cursor: pointer;
+  width: 5rem; height: 5rem; background: none; border: none; cursor: pointer; padding: 0;
   filter: drop-shadow(0 6px 10px rgba(0,0,0,.4));
   animation: chestBounce 1.6s ease-in-out infinite;
+  display: inline-block;
 }
+.chest-btn img { width: 100%; height: 100%; display: block; }
 @keyframes chestBounce {
   0%, 100% { transform: translateY(0) rotate(0); }
   25%      { transform: translateY(-4px) rotate(-3deg); }
@@ -1455,6 +1457,44 @@ body {
 .achievement-icon { font-size: 1.6rem; width: 34px; text-align: center; flex-shrink: 0; }
 .achievement-mid { flex: 1; min-width: 0; }
 .achievement-side { flex-shrink: 0; }
+
+/* ── Categorie Imprese ── */
+.achiev-cat-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  background: linear-gradient(135deg, rgba(90,61,36,.18), rgba(90,61,36,.06));
+  border: 2px solid var(--leather); border-radius: 10px;
+  padding: 10px 12px; cursor: pointer; width: 100%;
+  font-family: 'Cinzel', serif; font-size: .85rem;
+  color: var(--ink); user-select: none;
+}
+.achiev-cat-header:active { transform: scale(.99); }
+.achiev-cat-left { display: flex; align-items: center; gap: 8px; }
+.achiev-cat-icon { font-size: 1.3rem; flex-shrink: 0; }
+.achiev-cat-name { font-weight: 700; }
+.achiev-cat-meta { font-size: .7rem; color: var(--ink-light); font-family: 'Crimson Pro', serif; }
+.achiev-cat-badge {
+  background: var(--gold); color: #fff;
+  font-size: .7rem; font-weight: 700;
+  border-radius: 999px; padding: 1px 7px;
+  font-family: 'Crimson Pro', serif;
+  white-space: nowrap;
+}
+.achiev-cat-badge.done { background: var(--emerald); }
+.achiev-cat-toggle { font-size: .8rem; color: var(--ink-light); flex-shrink: 0; }
+.achiev-cat-body { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.achiev-cat-body.collapsed { display: none; }
+.achiev-cat-section { display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px; }
+
+/* ── Statistiche Totali ── */
+.stats-diary {
+  background: rgba(255,255,255,.4); border: 2px solid var(--leather);
+  border-radius: 10px; padding: 12px 14px; margin-bottom: 10px;
+}
+.stats-diary-title { font-family: 'Cinzel', serif; font-size: .9rem; font-weight: 700; color: var(--leather); margin-bottom: 8px; }
+.stats-diary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.stats-diary-item { display: flex; flex-direction: column; align-items: center; background: rgba(255,255,255,.5); border-radius: 8px; padding: 7px; }
+.stats-diary-val { font-size: 1.2rem; font-weight: 700; color: var(--leather); }
+.stats-diary-lbl { font-size: .7rem; color: var(--ink-light); text-align: center; }
 
 /* ── Splash Screen ── */
 .splash-screen {

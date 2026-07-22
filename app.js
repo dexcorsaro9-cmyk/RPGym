@@ -488,8 +488,14 @@ function renderHUD() {
   updateBadges();
 }
 
+let _tabClickTs = 0;
 document.querySelectorAll('#tabbar .tab').forEach(t =>
-  t.addEventListener('click', () => setTab(t.dataset.tab)));
+  t.addEventListener('click', () => {
+    const now = Date.now();
+    if (now - _tabClickTs < 280) return;
+    _tabClickTs = now;
+    setTab(t.dataset.tab);
+  }));
 
 // Tocco sulle risorse dell'header → popup dettaglio
 document.querySelector('.hud-right').addEventListener('click', () => { if (HERO) showResources(); });
@@ -1260,10 +1266,39 @@ function renderTrain(c) {
   ap.appendChild(abtn);
   c.appendChild(ap);
 
+  // Statistiche totali
+  {
+    const sp = el('div', 'panel');
+    sp.appendChild(el('h3', 'panel-title', '📊 Statistiche Totali'));
+    const sd = el('div', 'stats-diary-grid');
+    const sessions = HERO.log.length;
+    const kmTot = HERO.totalKm.toFixed(1);
+    const kmCyc = (HERO.kmByType.cyclette || 0).toFixed(1);
+    const kmWalk = (HERO.kmByType.camminata || 0).toFixed(1);
+    const kmRun = (HERO.kmByType.corsa || 0).toFixed(1);
+    const rows = [
+      ['🏃', sessions, 'Sessioni'],
+      ['📍', kmTot + ' km', 'Totale'],
+      ['🚴', kmCyc + ' km', 'Cyclette'],
+      ['🚶', kmWalk + ' km', 'Cammino'],
+      ['🏅', HERO.missionsDone.length, 'Missioni'],
+      ['🎒', HERO.lootBagsOpened || 0, 'Sacchi aperti'],
+      ['🔍', HERO.fragmentsFound || 0, 'Frammenti'],
+      ['🏆', (HERO.achievementsClaimed || []).length, 'Imprese'],
+    ];
+    rows.forEach(([ico, val, lbl]) => {
+      const it = el('div', 'stats-diary-item');
+      it.innerHTML = `<div class="stats-diary-val">${ico} ${val}</div><div class="stats-diary-lbl">${lbl}</div>`;
+      sd.appendChild(it);
+    });
+    sp.appendChild(sd);
+    c.appendChild(sp);
+  }
+
   if (HERO.log.length) {
     const lp = el('div', 'panel');
     lp.appendChild(el('h3', 'panel-title', '📜 Diario delle Imprese'));
-    HERO.log.slice(0, 7).forEach(l => {
+    HERO.log.slice(0, 10).forEach(l => {
       const a = RPG.ACTIVITIES[l.type];
       const d = new Date(l.date);
       lp.appendChild(el('div', 'log-row',
@@ -1355,7 +1390,7 @@ function showReport(r) {
   if (PENDING_CHEST) {
     html += `<div class="chest-zone">
       <p class="center"><b>Un forziere ti attende!</b></p>
-      <button class="chest-btn" id="btn-open-chest">🧰</button>
+      <button class="chest-btn" id="btn-open-chest"><img src="assets/ui/chest.svg" alt="scrigno"></button>
       <p class="small muted center">Tocca lo scrigno per aprirlo</p>
     </div>`;
   }
@@ -1383,7 +1418,7 @@ function revealChest(title, chest) {
   vibrate(300);
   sfx('chest');
   let html = `<div class="chest-burst">✨</div>
-    <h3 class="panel-title center">🧰 Il Bottino di "${esc(title)}"</h3>`;
+    <h3 class="panel-title center"><img src="assets/ui/chest.svg" style="width:1.4rem;height:1.4rem;vertical-align:middle;margin-right:4px"> Il Bottino di "${esc(title)}"</h3>`;
   const parts = [];
   if (chest.gold) parts.push(`🪙 ${chest.gold}`);
   if (chest.wood) parts.push(`🪵 ${chest.wood}`);
@@ -1764,43 +1799,83 @@ function renderCardsView(c) {
   });
   c.appendChild(grid);
 
-  // Le Imprese — 100 traguardi, uno per livello
+  // Le Imprese — 100 traguardi raggruppati per bioma
   const claimed = HERO.achievementsClaimed || [];
   const unlockedCount = RPG.achievementsUnlocked(HERO).length;
+  const pendingClaim = RPG.ACHIEVEMENTS.filter(a => HERO.level >= a.level && !claimed.includes(a.id)).length;
   c.appendChild(el('h3', 'section-title on-parchment-title small-title', '🏆 Le Imprese del Viandante'));
   c.appendChild(el('p', 'muted small center',
-    `${unlockedCount} / 100 sbloccate · ${claimed.length} riscosse`));
-  const list = el('div', 'achievement-list');
-  RPG.ACHIEVEMENTS.forEach(a => {
-    const unlocked = HERO.level >= a.level;
-    const isClaimed = claimed.includes(a.id);
-    const row = el('div', 'achievement-row' + (unlocked ? '' : ' locked') + (a.epic ? ' epic' : ''));
-    row.innerHTML = `
-      <div class="achievement-icon">${unlocked ? a.icon : '🔒'}</div>
-      <div class="achievement-mid">
-        <b>${unlocked ? esc(a.name) : '???'}</b>
-        <div class="small muted">${unlocked ? esc(a.desc) : `Sblocca al Livello ${a.level}`}</div>
-      </div>
-      <div class="achievement-side"></div>`;
-    const side = row.querySelector('.achievement-side');
-    if (isClaimed) {
-      side.innerHTML = '<span class="tag">✅</span>';
-    } else if (unlocked) {
-      const btn = el('button', 'btn btn-small btn-primary', `🪙${a.reward.gold}`);
-      btn.addEventListener('click', () => {
-        const r = RPG.claimAchievement(HERO, a.id);
-        persist(); renderHUD();
-        if (r && r.ok) { toast(`${a.icon} Impresa riscossa! +${r.reward.gold} 🪙 +${r.reward.xp} XP`); sfx('coin'); }
-        else toast(r);
-        setTab('hero');
-      });
-      side.appendChild(btn);
-    } else {
-      side.innerHTML = `<span class="small muted">Liv. ${a.level}</span>`;
-    }
-    list.appendChild(row);
+    `${unlockedCount} / 100 sbloccate · ${claimed.length} riscosse${pendingClaim > 0 ? ` · <b>${pendingClaim} da riscuotere!</b>` : ''}`));
+
+  const catWrap = el('div', 'achievement-list');
+  RPG.BIOMES.forEach((biome, bi) => {
+    const bioAchievs = RPG.ACHIEVEMENTS.filter(a => a.level >= biome.min && a.level <= biome.max);
+    if (!bioAchievs.length) return;
+    const bioUnlocked = bioAchievs.filter(a => HERO.level >= a.level).length;
+    const bioClaimed  = bioAchievs.filter(a => claimed.includes(a.id)).length;
+    const bioPending  = bioAchievs.filter(a => HERO.level >= a.level && !claimed.includes(a.id)).length;
+    const allDone = bioClaimed === bioAchievs.length;
+    const isOpen = HERO.level >= biome.min;
+    // Default open only for the current biome section
+    const currentBiome = RPG.currentBiome(HERO.level);
+    const defaultOpen = biome === currentBiome || (bioPending > 0 && bioUnlocked > 0);
+
+    const section = el('div', 'achiev-cat-section');
+    const header = el('button', 'achiev-cat-header');
+    header.innerHTML = `
+      <span class="achiev-cat-left">
+        <span class="achiev-cat-icon">${isOpen ? biome.icon : '🔒'}</span>
+        <span>
+          <span class="achiev-cat-name">${isOpen ? biome.name : '???'}</span>
+          <span class="achiev-cat-meta"> · Lv ${biome.min}–${biome.max} · ${bioUnlocked}/${bioAchievs.length}</span>
+        </span>
+      </span>
+      <span>
+        ${bioPending > 0 ? `<span class="achiev-cat-badge">+${bioPending} 🪙</span>` : (allDone ? `<span class="achiev-cat-badge done">✅</span>` : '')}
+        <span class="achiev-cat-toggle">${defaultOpen ? '▲' : '▼'}</span>
+      </span>`;
+
+    const body = el('div', 'achiev-cat-body' + (defaultOpen ? '' : ' collapsed'));
+    bioAchievs.forEach(a => {
+      const unlocked = HERO.level >= a.level;
+      const isClaimed = claimed.includes(a.id);
+      const row = el('div', 'achievement-row' + (unlocked ? '' : ' locked') + (a.epic ? ' epic' : ''));
+      row.innerHTML = `
+        <div class="achievement-icon">${unlocked ? a.icon : '🔒'}</div>
+        <div class="achievement-mid">
+          <b>${unlocked ? esc(a.name) : '???'}</b>
+          <div class="small muted">${unlocked ? esc(a.desc) : `Sblocca al Livello ${a.level}`}</div>
+        </div>
+        <div class="achievement-side"></div>`;
+      const side = row.querySelector('.achievement-side');
+      if (isClaimed) {
+        side.innerHTML = '<span class="tag">✅</span>';
+      } else if (unlocked) {
+        const btn = el('button', 'btn btn-small btn-primary', `🪙${a.reward.gold}`);
+        btn.addEventListener('click', () => {
+          const r = RPG.claimAchievement(HERO, a.id);
+          persist(); renderHUD();
+          if (r && r.ok) { toast(`${a.icon} Impresa riscossa! +${r.reward.gold} 🪙 +${r.reward.xp} XP`); sfx('coin'); }
+          else toast(r);
+          setTab('hero');
+        });
+        side.appendChild(btn);
+      } else {
+        side.innerHTML = `<span class="small muted">Liv. ${a.level}</span>`;
+      }
+      body.appendChild(row);
+    });
+
+    header.addEventListener('click', () => {
+      const open = !body.classList.contains('collapsed');
+      body.classList.toggle('collapsed', open);
+      header.querySelector('.achiev-cat-toggle').textContent = open ? '▼' : '▲';
+    });
+    section.appendChild(header);
+    section.appendChild(body);
+    catWrap.appendChild(section);
   });
-  c.appendChild(list);
+  c.appendChild(catWrap);
 }
 
 function renderBestiaryView(c) {
@@ -2377,7 +2452,7 @@ function endBattle(heroWon) {
       PENDING_CHEST = { title: 'Vittoria su ' + b.v.name, chest };
       modal(`<div class="chest-zone">
         <p class="center big-news">⚔️ Hai sconfitto ${esc(b.v.name)}!</p>
-        <button class="chest-btn" id="btn-open-chest">🧰</button>
+        <button class="chest-btn" id="btn-open-chest"><img src="assets/ui/chest.svg" alt="scrigno"></button>
         <p class="small muted center">Tocca lo scrigno per aprirlo</p>
       </div>`);
       document.getElementById('btn-open-chest').addEventListener('click', openChest);

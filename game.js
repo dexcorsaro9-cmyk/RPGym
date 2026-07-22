@@ -359,6 +359,404 @@ const RPG = (() => {
     });
   });
 
+  // Missioni extra per Rovine di Oakhaven (bioma 0, lv 1-4)
+  MISSIONS.push(
+    { id:'rovine_a', zone:'Rovine di Oakhaven', name:'L\'Ultimo Rifugio', km:6, minLevel:1,
+      desc:'Trova un posto riparato dove passare la prima notte.', reward:{gold:20,wood:15} },
+    { id:'rovine_b', zone:'Rovine di Oakhaven', name:'I Sopravvissuti', km:8, minLevel:2,
+      desc:'Scorgi dei fuochi lontani: altri sopravvissuti ti hanno visto!', reward:{gold:30,stone:10,items:1} },
+    { id:'rovine_c', zone:'Rovine di Oakhaven', name:'Il Campanile Crollato', km:10, minLevel:2,
+      desc:'Il campanile era il cuore del villaggio. Nei detriti si nasconde qualcosa di prezioso.', reward:{gold:35,wood:20} },
+    { id:'rovine_d', zone:'Rovine di Oakhaven', name:'Le Catacombe Dimenticate', km:12, minLevel:3,
+      desc:'Sotto le pietre annerite dal fuoco scorre un labirinto sotterraneo.', reward:{gold:45,stone:20,items:1} },
+    { id:'rovine_e', zone:'Rovine di Oakhaven', name:'La Borsa del Viandante', km:8, minLevel:3,
+      desc:'Un vecchio mercante lasciò il suo bagaglio nella fuga. Recuperalo prima delle bestie.', reward:{gold:40,wood:10,items:1} },
+    { id:'rovine_f', zone:'Rovine di Oakhaven', name:'I Mercanti Fuggiaschi', km:10, minLevel:4,
+      desc:'Raggiungi la carovana di mercanti e scambia qualcosa prima che lascino la zona.', reward:{gold:55,stone:15,items:1} },
+    { id:'rovine_g', zone:'Rovine di Oakhaven', name:'Il Tribunale Dimenticato', km:14, minLevel:4,
+      desc:'L\'Orda non sa che il tribunale nasconde ancora i registri della città.', reward:{gold:65,wood:25,stone:10,items:1} },
+    { id:'rovine_h', zone:'Rovine di Oakhaven', name:'Il Pozzo Antico', km:7, minLevel:1,
+      desc:'Il pozzo al centro della piazza trabocca ancora di acqua pura. Ripulisci i dintorni.', reward:{gold:25,wood:10} },
+  );
+
+  // Missioni extra per Foresta Sussurrante (bioma 1, lv 5-10)
+  MISSIONS.push(
+    { id:'foresta_a', zone:'Foresta Sussurrante', name:'La Radura dei Cervi', km:8, minLevel:5,
+      desc:'Una radura silenziosa ospita creature magiche. Avvicinati con cura.', reward:{gold:55,wood:30,items:1} },
+    { id:'foresta_b', zone:'Foresta Sussurrante', name:'Le Bacche Magiche', km:10, minLevel:6,
+      desc:'La foresta produce bacche con proprietà curative. Raccoglile prima che marciscano.', reward:{gold:60,wood:35,items:1} },
+    { id:'foresta_c', zone:'Foresta Sussurrante', name:'Il Sentiero del Druido', km:12, minLevel:7,
+      desc:'Un druido errante ti ha lasciato un messaggio inciso su un albero. Seguine le istruzioni.', reward:{gold:75,stone:30,items:1} },
+    { id:'foresta_d', zone:'Foresta Sussurrante', name:'Il Rifugio del Cacciatore', km:14, minLevel:8,
+      desc:'Una capanna abbandonata custodisce armi e provviste. Non è completamente vuota.', reward:{gold:85,wood:40,items:2} },
+    { id:'foresta_e', zone:'Foresta Sussurrante', name:'Il Grande Querco', km:10, minLevel:7,
+      desc:'L\'albero più antico della foresta contiene un cristallo di memoria. Recuperalo.', reward:{gold:70,stone:25,items:1} },
+    { id:'foresta_f', zone:'Foresta Sussurrante', name:'Le Trappole dei Predatori', km:12, minLevel:8,
+      desc:'Qualcuno ha disseminato trappole nei sentieri. Neutralizzale prima che colpiscano innocenti.', reward:{gold:80,wood:35,stone:20,items:1} },
+    { id:'foresta_g', zone:'Foresta Sussurrante', name:'Il Patto con la Foresta', km:18, minLevel:9,
+      desc:'Per ottenere la fiducia degli spiriti del bosco devi dimostrare il tuo valore.', reward:{gold:110,wood:50,stone:30,items:2} },
+    { id:'foresta_h', zone:'Foresta Sussurrante', name:'La Runa dell\'Albero Madre', km:20, minLevel:10,
+      desc:'L\'albero più grande custodisce una runa che potenzia l\'armatura. Ma è sorvegliato.', reward:{gold:130,wood:60,items:2} },
+  );
+
+  // Missioni extra per Il Giardino Lastricato (bioma 2, lv 11-15)
+  MISSIONS.push(
+    { id:'giardino2', zone:'Il Giardino Lastricato', name:'Le Spine Malvagie', km:10, minLevel:11,
+      desc:'Rovi magici bloccano i viali del giardino. Trovane il germoglio radice.', reward:{gold:100,wood:35,items:1} },
+    { id:'giardino3', zone:'Il Giardino Lastricato', name:'Il Pozzetto Antico', km:12, minLevel:12,
+      desc:'Un pozzo nascosto sotto le pietre lastricate risuona di un canto antico.', reward:{gold:110,stone:40,items:1} },
+    { id:'giardino4', zone:'Il Giardino Lastricato', name:'Fiori del Male', km:15, minLevel:12,
+      desc:'Fiori luminescenti attirano i viaggiatori per poi prosciugarli. Strappali dalla radice.', reward:{gold:120,wood:45,items:1} },
+    { id:'giardino5', zone:'Il Giardino Lastricato', name:'Lo Gnomo Giardiniere', km:12, minLevel:13,
+      desc:'Uno gnomo corrotto ha preso il controllo delle serre del giardino. Liberale.', reward:{gold:115,stone:35,items:1} },
+    { id:'giardino6', zone:'Il Giardino Lastricato', name:'Il Cancello Arrugginito', km:18, minLevel:14,
+      desc:'Il cancello nord del giardino sblocca l\'ala proibita. Serve una chiave speciale.', reward:{gold:135,wood:50,stone:30,items:2} },
+    { id:'giardino7', zone:'Il Giardino Lastricato', name:'L\'Irrigatore Magico', km:15, minLevel:14, requires:'giardino6',
+      desc:'L\'irrigatore antico può curare le piante avvelenate, ma è nelle mani sbagliate.', reward:{gold:130,stone:45,items:1} },
+    { id:'giardino8', zone:'Il Giardino Lastricato', name:'La Fontana Avvelenata', km:20, minLevel:15, requires:'giardino7',
+      desc:'La fontana centrale del giardino è avvelenata dall\'Orda. Purificala.', reward:{gold:155,wood:55,stone:40,items:2} },
+    { id:'giardino9', zone:'Il Giardino Lastricato', name:'Il Guardiano Vegetale', km:22, minLevel:15,
+      desc:'Un colosso fatto di radici e pietra sorveglia l\'antico seme del giardino.', reward:{gold:175,wood:60,items:2} },
+  );
+
+  // Missioni extra per Le Pianure del Vento (bioma 3, lv 16-20)
+  MISSIONS.push(
+    { id:'pianure2', zone:'Le Pianure del Vento', name:'La Fattoria Abbandonata', km:12, minLevel:16,
+      desc:'Una fattoria svuotata dalla fuga ospita ancora risorse preziose.', reward:{gold:145,wood:50,stone:30,items:1} },
+    { id:'pianure3', zone:'Le Pianure del Vento', name:'Il Mulino a Vento', km:15, minLevel:17,
+      desc:'Il mulino gira ancora, azionato da qualcosa di oscuro. Scopri cosa.', reward:{gold:160,stone:50,items:1} },
+    { id:'pianure4', zone:'Le Pianure del Vento', name:'Banditi del Vento', km:15, minLevel:17,
+      desc:'Una banda di predatori cavalca tra le pianure saccheggiando i villaggi rimasti.', reward:{gold:165,wood:45,stone:35,items:2} },
+    { id:'pianure5', zone:'Le Pianure del Vento', name:'L\'Accampamento Nomade', km:18, minLevel:18,
+      desc:'I nomadi delle pianure conoscono segreti antichi. Guadagna la loro fiducia.', reward:{gold:175,wood:55,items:2} },
+    { id:'pianure6', zone:'Le Pianure del Vento', name:'Il Bestiame Smarrito', km:15, minLevel:18,
+      desc:'Le mandrie si sono disperse nel panico. Radunale prima che vengano catturate dall\'Orda.', reward:{gold:165,stone:45,items:1} },
+    { id:'pianure7', zone:'Le Pianure del Vento', name:'La Tempesta Imminente', km:20, minLevel:19,
+      desc:'Un temporale magico si addensa sulle pianure. Solo chi è veloce riesce a mettersi al riparo.', reward:{gold:195,wood:65,stone:50,items:2} },
+    { id:'pianure8', zone:'Le Pianure del Vento', name:'Lo Sperone Nero', km:22, minLevel:19,
+      desc:'Una roccia oscura al centro delle pianure emette un segnale malevolo verso l\'Orda.', reward:{gold:215,stone:60,items:2} },
+    { id:'pianure9', zone:'Le Pianure del Vento', name:'L\'Aquila del Vento', km:18, minLevel:16,
+      desc:'Un\'aquila ferita porta un messaggio legato alla zampa. Curala e leggi cosa dice.', reward:{gold:155,wood:55,items:1} },
+  );
+
+  // Missioni extra per L'Antico Archivio (bioma 4, lv 21-25)
+  MISSIONS.push(
+    { id:'archivio2', zone:'L\'Antico Archivio', name:'I Guardiani di Carta', km:12, minLevel:21,
+      desc:'Le pagine viventi dell\'archivio resistono agli intrusi con strane magie.', reward:{gold:175,stone:45,items:1} },
+    { id:'archivio3', zone:'L\'Antico Archivio', name:'La Sezione Proibita', km:15, minLevel:22,
+      desc:'Oltre la porta sigillata si celano tomi che l\'Orda vuole bruciare. Proteggili.', reward:{gold:195,wood:55,items:1} },
+    { id:'archivio4', zone:'L\'Antico Archivio', name:'I Golem Scribani', km:18, minLevel:23,
+      desc:'Golem creati per copiare libri ora assaltano chiunque entri nell\'archivio.', reward:{gold:215,stone:60,items:2} },
+    { id:'archivio5', zone:'L\'Antico Archivio', name:'Il Codice Perduto', km:20, minLevel:24,
+      desc:'Un antico codice cifrato svela la posizione del cuore dell\'Orda. Decifralo.', reward:{gold:235,wood:65,stone:50,items:2} },
+    { id:'archivio6', zone:'L\'Antico Archivio', name:'L\'Archivista Corrotto', km:22, minLevel:24,
+      desc:'Il custode dell\'archivio è stato corrotto dall\'Orda. Spezza il suo incantesimo.', reward:{gold:250,stone:70,items:2} },
+    { id:'archivio7', zone:'L\'Antico Archivio', name:'Il Registro dei Caduti', km:15, minLevel:22,
+      desc:'Un registro antico elenca tutti i caduti di Oakhaven. Trovalo e preservalo.', reward:{gold:190,wood:60,items:1} },
+    { id:'archivio8', zone:'L\'Antico Archivio', name:'Il Sigillo della Conoscenza', km:25, minLevel:25,
+      desc:'Un sigillo magico protegge la bibioteca segreta. Romperlo ti farà più potente.', reward:{gold:275,stone:75,items:2} },
+    { id:'archivio9', zone:'L\'Antico Archivio', name:'Le Mappe Segrete', km:13, minLevel:21,
+      desc:'Antiche mappe dei biomi ancora inesplorati giacciono dimenticate in fondo all\'archivio.', reward:{gold:180,wood:50,items:1} },
+  );
+
+  // Missioni extra per Le Fucine di Ruggine (bioma 5, lv 26-30)
+  MISSIONS.push(
+    { id:'fucine2', zone:'Le Fucine di Ruggine', name:'Il Martello Rovente', km:12, minLevel:26,
+      desc:'Un martello incantato vaga tra le fucine colpendo chiunque si avvicini. Domalo.', reward:{gold:215,stone:55,items:1} },
+    { id:'fucine3', zone:'Le Fucine di Ruggine', name:'L\'Operaio della Discordia', km:15, minLevel:27,
+      desc:'Un operaio corrotto sabota le macchine. Scopri per chi lavora davvero.', reward:{gold:230,wood:65,items:1} },
+    { id:'fucine4', zone:'Le Fucine di Ruggine', name:'I Tubi Incandescenti', km:18, minLevel:28,
+      desc:'I tubi del vapore sono stati manomessi. Un\'esplosione è imminente.', reward:{gold:250,stone:65,items:2} },
+    { id:'fucine5', zone:'Le Fucine di Ruggine', name:'La Locomotiva Infernale', km:20, minLevel:28,
+      desc:'Una locomotiva magica sfuggita al controllo demolisce tutto sul suo percorso.', reward:{gold:265,wood:70,stone:60,items:2} },
+    { id:'fucine6', zone:'Le Fucine di Ruggine', name:'Il Camino Eterno', km:15, minLevel:27,
+      desc:'Il camino principale non si spegne da anni: alimentato da un incantesimo oscuro.', reward:{gold:235,stone:60,items:1} },
+    { id:'fucine7', zone:'Le Fucine di Ruggine', name:'L\'Ingranaggio Mancante', km:20, minLevel:29,
+      desc:'Senza l\'ingranaggio principale le fucine si fermano. Trovalo nelle profondità.', reward:{gold:280,wood:75,items:2} },
+    { id:'fucine8', zone:'Le Fucine di Ruggine', name:'Il Mastro Fabbro Oscuro', km:25, minLevel:30,
+      desc:'Il mastro fabbro corrotto dall\'Orda forgia armi per l\'esercito nemico. Fermalo.', reward:{gold:315,stone:80,items:2} },
+    { id:'fucine9', zone:'Le Fucine di Ruggine', name:'Il Metallo Raro', km:13, minLevel:26,
+      desc:'Nelle fucine abbandonate giace un metallo di rarità sconosciuta. Recuperalo.', reward:{gold:220,wood:60,items:1} },
+  );
+
+  // Missioni extra per La Torre dell'Alchimista (bioma 6, lv 31-35)
+  MISSIONS.push(
+    { id:'torre2', zone:'La Torre dell\'Alchimista', name:'Il Primo Livello', km:12, minLevel:31,
+      desc:'Il primo piano della torre pullula di esperimenti sfuggiti al controllo.', reward:{gold:255,stone:65,items:1} },
+    { id:'torre3', zone:'La Torre dell\'Alchimista', name:'L\'Esperimento Sbagliato', km:15, minLevel:32,
+      desc:'Una pozione errata ha trasformato le piante in creature aggressive.', reward:{gold:275,wood:75,items:1} },
+    { id:'torre4', zone:'La Torre dell\'Alchimista', name:'Il Portale Instabile', km:18, minLevel:33,
+      desc:'Un portale aperto per errore inghiotte tutto ciò che si avvicina. Chiudilo.', reward:{gold:295,stone:75,items:2} },
+    { id:'torre5', zone:'La Torre dell\'Alchimista', name:'Le Pozioni Esplose', km:15, minLevel:32,
+      desc:'Le bottiglie nella cantina della torre esplodono casualmente. Metti in sicurezza la zona.', reward:{gold:270,wood:70,items:1} },
+    { id:'torre6', zone:'La Torre dell\'Alchimista', name:'La Strega Aiutante', km:20, minLevel:34,
+      desc:'Una strega alleata è rimasta intrappolata al terzo piano. Liberala.', reward:{gold:310,stone:80,items:2} },
+    { id:'torre7', zone:'La Torre dell\'Alchimista', name:'Il Catalizzatore Rubato', km:22, minLevel:34,
+      desc:'L\'Orda ha rubato il catalizzatore dell\'alchimista. Recuperalo prima che lo usi.', reward:{gold:330,wood:80,stone:70,items:2} },
+    { id:'torre8', zone:'La Torre dell\'Alchimista', name:'L\'Alchimista Immortale', km:25, minLevel:35,
+      desc:'L\'alchimista della torre è diventato immortale grazie a una pozione oscura. Spezza l\'incantesimo.', reward:{gold:360,stone:90,items:3} },
+    { id:'torre9', zone:'La Torre dell\'Alchimista', name:'Gli Appunti Segreti', km:13, minLevel:31,
+      desc:'In una stanza nascosta giacciono gli appunti dell\'alchimista su come sconfiggere l\'Orda.', reward:{gold:260,wood:70,items:1} },
+  );
+
+  // Missioni extra per La Cripta dell'Orologiaio (bioma 7, lv 36-40)
+  MISSIONS.push(
+    { id:'cripta2', zone:'La Cripta dell\'Orologiaio', name:'Il Ticchettio Infinito', km:12, minLevel:36,
+      desc:'Un ticchettio assordante proviene da ogni angolo della cripta. Trova la fonte.', reward:{gold:295,stone:75,items:1} },
+    { id:'cripta3', zone:'La Cripta dell\'Orologiaio', name:'L\'Orologio Rotto', km:15, minLevel:37,
+      desc:'L\'orologio principale si è fermato: senza di esso il tempo nella cripta è distorto.', reward:{gold:315,wood:80,items:1} },
+    { id:'cripta4', zone:'La Cripta dell\'Orologiaio', name:'I Soldatini di Corda', km:18, minLevel:38,
+      desc:'Soldatini meccanici animati da magia oscura pattugliano i corridoi della cripta.', reward:{gold:340,stone:85,items:2} },
+    { id:'cripta5', zone:'La Cripta dell\'Orologiaio', name:'Il Pendolo della Morte', km:20, minLevel:38,
+      desc:'Un pendolo gigante oscilla sui corridoi principali. Trovare il modo di bloccarlo.', reward:{gold:355,wood:85,stone:80,items:2} },
+    { id:'cripta6', zone:'La Cripta dell\'Orologiaio', name:'Il Genio Meccanico', km:15, minLevel:37,
+      desc:'Un genio meccanico autoriparantesi infesta la sala delle macchine.', reward:{gold:320,stone:80,items:1} },
+    { id:'cripta7', zone:'La Cripta dell\'Orologiaio', name:'Lo Scrigno del Tempo', km:22, minLevel:39,
+      desc:'Uno scrigno che avanza e retrocede nel tempo. Al suo interno, una reliquia leggendaria.', reward:{gold:375,wood:90,items:2} },
+    { id:'cripta8', zone:'La Cripta dell\'Orologiaio', name:'L\'Orologiaio Folle', km:25, minLevel:40,
+      desc:'L\'orologiaio che costruì la cripta è ancora vivo. E vuole che tutti si fermino con lui.', reward:{gold:400,stone:95,items:3} },
+    { id:'cripta9', zone:'La Cripta dell\'Orologiaio', name:'Il Congegno Segreto', km:13, minLevel:36,
+      desc:'Tra gli ingranaggi un piccolo congegno nasconde un\'incisione: la mappa della prossima zona.', reward:{gold:300,wood:80,items:1} },
+  );
+
+  // Missioni extra per La Baia del Corallo (bioma 8, lv 41-45)
+  MISSIONS.push(
+    { id:'baia2', zone:'La Baia del Corallo', name:'I Pescatori di Perle', km:12, minLevel:41,
+      desc:'I pescatori di perle della baia sono stati catturati dall\'Orda. Liberali.', reward:{gold:335,stone:80,items:1} },
+    { id:'baia3', zone:'La Baia del Corallo', name:'La Sirena Ostile', km:15, minLevel:42,
+      desc:'Una sirena corrotta attira le navi verso gli scogli con il suo canto maledetto.', reward:{gold:360,wood:85,items:1} },
+    { id:'baia4', zone:'La Baia del Corallo', name:'Il Relitto Subacqueo', km:18, minLevel:43,
+      desc:'Un antico relitto sul fondo della baia nasconde un tesoro leggendario dell\'Orda.', reward:{gold:385,stone:90,items:2} },
+    { id:'baia5', zone:'La Baia del Corallo', name:'I Pirati del Corallo', km:20, minLevel:43,
+      desc:'Una flotta di pirati al servizio dell\'Orda blocca i commerci nella baia.', reward:{gold:395,wood:90,stone:80,items:2} },
+    { id:'baia6', zone:'La Baia del Corallo', name:'La Grotta dei Molluschi', km:15, minLevel:42,
+      desc:'I molluschi giganti della grotta sono stati trasformati in guardiani dell\'Orda.', reward:{gold:355,stone:85,items:1} },
+    { id:'baia7', zone:'La Baia del Corallo', name:'Il Capitano Fantasma', km:22, minLevel:44,
+      desc:'Il capitano di una nave affondata vaga come spettro alla ricerca di vendetta.', reward:{gold:420,wood:95,items:2} },
+    { id:'baia8', zone:'La Baia del Corallo', name:'Il Re dei Fondali', km:25, minLevel:45,
+      desc:'Un mostruoso essere dei fondali sorveglia il cristallo di corallo. Sfidalo.', reward:{gold:455,stone:100,items:3} },
+    { id:'baia9', zone:'La Baia del Corallo', name:'Il Faro Dimenticato', km:13, minLevel:41,
+      desc:'Il faro della baia è spento da quando l\'Orda è arrivata. Riaccendilo.', reward:{gold:340,wood:85,items:1} },
+  );
+
+  // Missioni extra per Il Fossato Profondo (bioma 9, lv 46-50)
+  MISSIONS.push(
+    { id:'fossato2', zone:'Il Fossato Profondo', name:'Le Scale Rotte', km:12, minLevel:46,
+      desc:'Le scale che scendono nel fossato sono state sabotate. Trovane una via sicura.', reward:{gold:375,stone:85,items:1} },
+    { id:'fossato3', zone:'Il Fossato Profondo', name:'I Vermi Giganti', km:15, minLevel:47,
+      desc:'Vermi colossali si muovono tra le pareti del fossato, aprendo gallerie verso l\'ignoto.', reward:{gold:400,wood:90,items:1} },
+    { id:'fossato4', zone:'Il Fossato Profondo', name:'Il Pozzo Senza Fondo', km:18, minLevel:48,
+      desc:'Un pozzo al centro del fossato non ha fondo visibile. Qualcosa proviene di là sotto.', reward:{gold:425,stone:95,items:2} },
+    { id:'fossato5', zone:'Il Fossato Profondo', name:'L\'Eco Maledetto', km:20, minLevel:48,
+      desc:'Il fossato amplifica un grido antico che disoriente i viandanti. Trova la fonte.', reward:{gold:440,wood:95,stone:90,items:2} },
+    { id:'fossato6', zone:'Il Fossato Profondo', name:'La Radice Antica', km:15, minLevel:47,
+      desc:'Una radice millenaria penetra nel fossato. In essa dorme un incantesimo di protezione.', reward:{gold:405,stone:90,items:1} },
+    { id:'fossato7', zone:'Il Fossato Profondo', name:'Il Custode dell\'Abisso', km:22, minLevel:49,
+      desc:'Un guardiano creato per proteggere il fossato è stato corrotto. Purificalo.', reward:{gold:465,wood:100,items:2} },
+    { id:'fossato8', zone:'Il Fossato Profondo', name:'La Creatura del Fossato', km:25, minLevel:50,
+      desc:'Qualcosa di enorme si è svegliato nelle profondità del fossato. L\'Orda lo usa come arma.', reward:{gold:500,stone:105,items:3} },
+    { id:'fossato9', zone:'Il Fossato Profondo', name:'La Pietra Fluorescente', km:13, minLevel:46,
+      desc:'Pietre luminescenti nelle pareti del fossato guidano il cammino. Raccogliene per usarle.', reward:{gold:380,wood:90,items:1} },
+  );
+
+  // Missioni extra per Le Fognature del Reame (bioma 10, lv 51-55)
+  MISSIONS.push(
+    { id:'fogna2', zone:'Le Fognature del Reame', name:'I Topi Soldato', km:12, minLevel:51,
+      desc:'Topi addestrati dall\'Orda trasportano messaggi segreti tra le fognature.', reward:{gold:415,stone:95,items:1} },
+    { id:'fogna3', zone:'Le Fognature del Reame', name:'La Rete di Canali', km:15, minLevel:52,
+      desc:'Un labirinto di canali collegati avvolge l\'intero reame sottoterra. Trovane l\'uscita.', reward:{gold:440,wood:100,items:1} },
+    { id:'fogna4', zone:'Le Fognature del Reame', name:'I Funghi Tossici', km:18, minLevel:53,
+      desc:'I funghi delle fognature producono spore che avvelenano l\'aria del reame.', reward:{gold:465,stone:100,items:2} },
+    { id:'fogna5', zone:'Le Fognature del Reame', name:'Il Ribollire delle Acque', km:20, minLevel:53,
+      desc:'Le acque delle fognature ribollono di magia oscura. Qualcuno le sta contaminando.', reward:{gold:480,wood:105,stone:95,items:2} },
+    { id:'fogna6', zone:'Le Fognature del Reame', name:'La Gilda dei Fognaioli', km:15, minLevel:52,
+      desc:'Una gilda segreta di fognaioli ribelli resiste all\'Orda nelle profondità. Unisciti a loro.', reward:{gold:445,stone:100,items:1} },
+    { id:'fogna7', zone:'Le Fognature del Reame', name:'Il Signore dei Topi', km:22, minLevel:54,
+      desc:'Un enorme ratto mannaro comanda l\'esercito di roditori al servizio dell\'Orda.', reward:{gold:510,wood:110,items:2} },
+    { id:'fogna8', zone:'Le Fognature del Reame', name:'Il Drago Fognario', km:25, minLevel:55,
+      desc:'Una creatura draconica vive nelle fognature, nutrendosi dei rifiuti magici dell\'Orda.', reward:{gold:555,stone:115,items:3} },
+    { id:'fogna9', zone:'Le Fognature del Reame', name:'Il Tesoro Nascosto', km:13, minLevel:51,
+      desc:'Un vecchio tesoro di guerra è stato celato nelle fognature durante la prima invasione.', reward:{gold:420,wood:100,items:1} },
+  );
+
+  // Missioni extra per La Costa del Relitto (bioma 11, lv 56-60)
+  MISSIONS.push(
+    { id:'costa2', zone:'La Costa del Relitto', name:'I Naufraghi Sopravvissuti', km:12, minLevel:56,
+      desc:'Alcuni superstiti di una nave dell\'Orda si sono ribellati. Aiutali a fuggire.', reward:{gold:455,stone:105,items:1} },
+    { id:'costa3', zone:'La Costa del Relitto', name:'Il Faro Oscuro', km:15, minLevel:57,
+      desc:'Il faro della costa emette una luce nera che guida le navi nemiche verso di te.', reward:{gold:480,wood:110,items:1} },
+    { id:'costa4', zone:'La Costa del Relitto', name:'I Tesori della Tempesta', km:18, minLevel:58,
+      desc:'Una tempesta ha fatto arenare navi cariche di rifornimenti. Recuperali prima dell\'Orda.', reward:{gold:510,stone:110,items:2} },
+    { id:'costa5', zone:'La Costa del Relitto', name:'Il Cannone Spettrale', km:20, minLevel:58,
+      desc:'Un cannone fantasma sulle scogliere spara verso i viaggiatori. Disattivalo.', reward:{gold:525,wood:115,stone:105,items:2} },
+    { id:'costa6', zone:'La Costa del Relitto', name:'Le Ossa del Capitano', km:15, minLevel:57,
+      desc:'Lo scheletro di un antico capitano custodisce ancora il suo ciondolo di comando.', reward:{gold:485,stone:110,items:1} },
+    { id:'costa7', zone:'La Costa del Relitto', name:'La Flotta Fantasma', km:22, minLevel:59,
+      desc:'Navi spettrali al servizio dell\'Orda bloccano le rotte marine del reame.', reward:{gold:555,wood:120,items:2} },
+    { id:'costa8', zone:'La Costa del Relitto', name:'Il Guardiano del Relitto', km:25, minLevel:60,
+      desc:'Un\'entità marina protegge il relitto più grande della costa. Sconfiggila.', reward:{gold:600,stone:125,items:3} },
+    { id:'costa9', zone:'La Costa del Relitto', name:'Il Messaggio in Bottiglia', km:13, minLevel:56,
+      desc:'Una bottiglia con un messaggio urgente è stata gettata in mare da qualcuno oltre il confine.', reward:{gold:460,wood:110,items:1} },
+  );
+
+  // Missioni extra per Il Picco Innevato (bioma 12, lv 61-65)
+  MISSIONS.push(
+    { id:'picco2', zone:'Il Picco Innevato', name:'La Valanga Minacciosa', km:12, minLevel:61,
+      desc:'Una valanga artificiale creata dall\'Orda sta per coprire un villaggio di montagna.', reward:{gold:495,stone:115,items:1} },
+    { id:'picco3', zone:'Il Picco Innevato', name:'Il Rifugio di Montagna', km:15, minLevel:62,
+      desc:'Un rifugio abbandonato sull\'alto piano nasconde equipaggiamento da scalata raro.', reward:{gold:525,wood:120,items:1} },
+    { id:'picco4', zone:'Il Picco Innevato', name:'Gli Yeti della Tempesta', km:18, minLevel:63,
+      desc:'Gli yeti della montagna sono stati corrotti dalla magia dell\'Orda e ora attaccano i viandanti.', reward:{gold:555,stone:120,items:2} },
+    { id:'picco5', zone:'Il Picco Innevato', name:'La Cima Perduta', km:20, minLevel:63,
+      desc:'La cima del picco è avvolta da una nebbia magica che nasconde un cristallo di potere.', reward:{gold:570,wood:125,stone:115,items:2} },
+    { id:'picco6', zone:'Il Picco Innevato', name:'I Ghiacci Eterni', km:15, minLevel:62,
+      desc:'I ghiacci perenni del picco conservano antichi guerrieri congelati. L\'Orda li sta liberando.', reward:{gold:530,stone:120,items:1} },
+    { id:'picco7', zone:'Il Picco Innevato', name:'Il Guardiano della Neve', km:22, minLevel:64,
+      desc:'Un guardiano di ghiaccio antico sorveglia il sentiero verso la vetta.', reward:{gold:595,wood:130,items:2} },
+    { id:'picco8', zone:'Il Picco Innevato', name:'Il Signore del Picco', km:25, minLevel:65,
+      desc:'Un essere di vento e ghiaccio regna sulla cima del picco innevato. Sconfiggilo.', reward:{gold:640,stone:135,items:3} },
+    { id:'picco9', zone:'Il Picco Innevato', name:'Le Impronte Giganti', km:13, minLevel:61,
+      desc:'Enormi impronte nella neve portano verso una caverna nascosta tra le rocce.', reward:{gold:500,wood:120,items:1} },
+  );
+
+  // Missioni extra per Il Deserto di Cenere (bioma 13, lv 66-70)
+  MISSIONS.push(
+    { id:'deserto2', zone:'Il Deserto di Cenere', name:'Le Sabbie Bollenti', km:12, minLevel:66,
+      desc:'Le sabbie del deserto bruciano per l\'energia dell\'Orda. Trovane la sorgente.', reward:{gold:535,stone:125,items:1} },
+    { id:'deserto3', zone:'Il Deserto di Cenere', name:'I Guerrieri di Fuoco', km:15, minLevel:67,
+      desc:'Guerrieri di cenere animata pattugliano il deserto bruciando ogni cosa.', reward:{gold:565,wood:130,items:1} },
+    { id:'deserto4', zone:'Il Deserto di Cenere', name:'L\'Oasi Avvelenata', km:18, minLevel:68,
+      desc:'L\'unica oasi del deserto è stata avvelenata dall\'Orda. Purificala.', reward:{gold:595,stone:130,items:2} },
+    { id:'deserto5', zone:'Il Deserto di Cenere', name:'Il Vento di Fuoco', km:20, minLevel:68,
+      desc:'Un tornado di cenere infuocata si sposta verso le ultime città rimaste.', reward:{gold:610,wood:135,stone:125,items:2} },
+    { id:'deserto6', zone:'Il Deserto di Cenere', name:'La Duna Maledetta', km:15, minLevel:67,
+      desc:'Una duna si muove da sola verso il confine del deserto. Al suo interno qualcosa di oscuro.', reward:{gold:570,stone:130,items:1} },
+    { id:'deserto7', zone:'Il Deserto di Cenere', name:'Il Falco del Deserto', km:22, minLevel:69,
+      desc:'Un enorme falco di fuoco sorveglia le rovine di un\'antica città nel cuore del deserto.', reward:{gold:635,wood:140,items:2} },
+    { id:'deserto8', zone:'Il Deserto di Cenere', name:'Il Drago di Cenere', km:25, minLevel:70,
+      desc:'Il drago del deserto si è svegliato dopo millenni, controllato dalla magia dell\'Orda.', reward:{gold:680,stone:145,items:3} },
+    { id:'deserto9', zone:'Il Deserto di Cenere', name:'Il Tempio Sepolto', km:13, minLevel:66,
+      desc:'La sabbia ha inghiottito un antico tempio. Al suo interno, risorse dimenticate.', reward:{gold:540,wood:130,items:1} },
+  );
+
+  // Missioni extra per La Palude Nebbiosa (bioma 14, lv 71-75)
+  MISSIONS.push(
+    { id:'palude2', zone:'La Palude Nebbiosa', name:'La Nebbia Vivente', km:12, minLevel:71,
+      desc:'La nebbia della palude ha una coscienza propria: inganna e disoriente i viandanti.', reward:{gold:575,stone:135,items:1} },
+    { id:'palude3', zone:'La Palude Nebbiosa', name:'I Fuochi Fatui', km:15, minLevel:72,
+      desc:'I fuochi fatui della palude guidano i viandanti verso le trappole dell\'Orda.', reward:{gold:605,wood:140,items:1} },
+    { id:'palude4', zone:'La Palude Nebbiosa', name:'Il Villaggio Sommerso', km:18, minLevel:73,
+      desc:'Un villaggio affondato nella palude custodisce una reliquia fondamentale.', reward:{gold:635,stone:140,items:2} },
+    { id:'palude5', zone:'La Palude Nebbiosa', name:'La Strega della Palude', km:20, minLevel:73,
+      desc:'Una strega anziana custodisce i segreti della palude ma l\'Orda la minaccia.', reward:{gold:650,wood:145,stone:135,items:2} },
+    { id:'palude6', zone:'La Palude Nebbiosa', name:'Le Lucciole Demoniache', km:15, minLevel:72,
+      desc:'Lucciole malvagie hanno infestato la palude, succhiando la vita agli animali.', reward:{gold:610,stone:140,items:1} },
+    { id:'palude7', zone:'La Palude Nebbiosa', name:'Il Coccodrillo Antico', km:22, minLevel:74,
+      desc:'Un coccodrillo millenario si è svegliato. L\'Orda lo usa come guardia nel territorio.', reward:{gold:675,wood:150,items:2} },
+    { id:'palude8', zone:'La Palude Nebbiosa', name:'Il Re della Palude', km:25, minLevel:75,
+      desc:'Un\'entità maledetta regna sulla palude da secoli. Ora serve all\'Orda.', reward:{gold:720,stone:155,items:3} },
+    { id:'palude9', zone:'La Palude Nebbiosa', name:'Le Radici Velenose', km:13, minLevel:71,
+      desc:'Le radici sommerse della palude producono un veleno usato dall\'Orda per avvelenare i pozzi.', reward:{gold:580,wood:140,items:1} },
+  );
+
+  // Missioni extra per Il Cimitero dei Draghi (bioma 15, lv 76-80)
+  MISSIONS.push(
+    { id:'cimitero2', zone:'Il Cimitero dei Draghi', name:'Le Ossa Dracheniche', km:12, minLevel:76,
+      desc:'Le ossa dei draghi caduti possiedono ancora energia residua. L\'Orda le raccoglie.', reward:{gold:615,stone:145,items:1} },
+    { id:'cimitero3', zone:'Il Cimitero dei Draghi', name:'Il Dragone Risorgente', km:15, minLevel:77,
+      desc:'Un cadavere di drago sta riprendendo vita grazie alla magia dell\'Orda.', reward:{gold:645,wood:155,items:1} },
+    { id:'cimitero4', zone:'Il Cimitero dei Draghi', name:'Il Guardiano dei Caduti', km:18, minLevel:78,
+      desc:'Lo spirito che protegge le tombe dei draghi è stato corrotto dall\'Orda.', reward:{gold:675,stone:150,items:2} },
+    { id:'cimitero5', zone:'Il Cimitero dei Draghi', name:'La Tomba del Gran Drago', km:20, minLevel:78,
+      desc:'La tomba del drago più grande mai vissuto. Al suo interno, l\'arma definitiva.', reward:{gold:690,wood:160,stone:150,items:2} },
+    { id:'cimitero6', zone:'Il Cimitero dei Draghi', name:'Il Sigillo Proibito', km:15, minLevel:77,
+      desc:'Un sigillo proibito blocca la porta principale del cimitero. Infrangilo.', reward:{gold:650,stone:150,items:1} },
+    { id:'cimitero7', zone:'Il Cimitero dei Draghi', name:'Il Dragone Corrotto', km:22, minLevel:79,
+      desc:'Un drago ancora vivo è stato corrotto dall\'Orda. Purificalo o combattilo.', reward:{gold:715,wood:165,items:2} },
+    { id:'cimitero8', zone:'Il Cimitero dei Draghi', name:'Il Boss del Cimitero', km:25, minLevel:80,
+      desc:'Il custode supremo del cimitero è il più potente servitore dell\'Orda incontrato finora.', reward:{gold:760,stone:165,items:3} },
+    { id:'cimitero9', zone:'Il Cimitero dei Draghi', name:'Il Lamento del Drago', km:13, minLevel:76,
+      desc:'Un drago ferito è rimasto intrappolato tra le tombe. Aiutalo a fuggire.', reward:{gold:620,wood:155,items:1} },
+  );
+
+  // Missioni extra per Miniere del Corruttore (bioma 16, lv 81-85)
+  MISSIONS.push(
+    { id:'miniere2', zone:'Miniere del Corruttore', name:'Il Tunnel Infestato', km:12, minLevel:81,
+      desc:'Un tunnel bloccato da minerale corrotto nasconde una via verso il cuore dell\'Orda.', reward:{gold:655,stone:155,items:1} },
+    { id:'miniere3', zone:'Miniere del Corruttore', name:'I Cristalli Corrotti', km:15, minLevel:82,
+      desc:'I cristalli estratti qui alimentano i poteri oscuri dell\'Orda. Distruggili.', reward:{gold:685,wood:165,items:1} },
+    { id:'miniere4', zone:'Miniere del Corruttore', name:'Il Guardiano Minerario', km:18, minLevel:83,
+      desc:'Un golem di minerale corrotto sorveglia le gallerie principali.', reward:{gold:715,stone:160,items:2} },
+    { id:'miniere5', zone:'Miniere del Corruttore', name:'La Trappola Meccanica', km:20, minLevel:83,
+      desc:'Le trappole meccaniche delle miniere sono state riattivate dall\'Orda per bloccare il tuo avanzamento.', reward:{gold:730,wood:170,stone:160,items:2} },
+    { id:'miniere6', zone:'Miniere del Corruttore', name:'L\'Esplosivo Maledetto', km:15, minLevel:82,
+      desc:'L\'Orda ha piazzato esplosivi magici nelle miniere per sigillarne l\'accesso.', reward:{gold:690,stone:160,items:1} },
+    { id:'miniere7', zone:'Miniere del Corruttore', name:'Il Minatore Oscuro', km:22, minLevel:84,
+      desc:'Un essere di pura corruzione abita le profondità delle miniere. È pericolosissimo.', reward:{gold:755,wood:175,items:2} },
+    { id:'miniere8', zone:'Miniere del Corruttore', name:'Il Corruttore delle Miniere', km:25, minLevel:85,
+      desc:'Il custode supremo delle miniere oscure: un essere che ha corrotto il suolo stesso.', reward:{gold:800,stone:175,items:3} },
+    { id:'miniere9', zone:'Miniere del Corruttore', name:'Il Filone d\'Oro Nero', km:13, minLevel:81,
+      desc:'Un filone di minerale rarissimo e oscuro brilla nel fondo di una galleria.', reward:{gold:660,wood:165,items:1} },
+  );
+
+  // Missioni extra per Sala del Trono Corrotto (bioma 17, lv 86-90)
+  MISSIONS.push(
+    { id:'trono2', zone:'Sala del Trono Corrotto', name:'La Guardia Reale Caduta', km:12, minLevel:86,
+      desc:'Le guardie reali corrotte difendono l\'ingresso della sala. Spezzane l\'incantesimo.', reward:{gold:695,stone:165,items:1} },
+    { id:'trono3', zone:'Sala del Trono Corrotto', name:'Il Trono di Sangue', km:15, minLevel:87,
+      desc:'Il trono antico è stato trasformato in uno strumento di corruzione dall\'Orda.', reward:{gold:725,wood:175,items:1} },
+    { id:'trono4', zone:'Sala del Trono Corrotto', name:'Il Consiglio dei Corrotti', km:18, minLevel:88,
+      desc:'I consiglieri del vecchio re sono stati corrotti uno ad uno. Sconfiggili.', reward:{gold:755,stone:170,items:2} },
+    { id:'trono5', zone:'Sala del Trono Corrotto', name:'Il Palazzo Maledetto', km:20, minLevel:88,
+      desc:'L\'intero palazzo è avvolto da una maledizione che indebolisce chiunque vi entri.', reward:{gold:770,wood:180,stone:170,items:2} },
+    { id:'trono6', zone:'Sala del Trono Corrotto', name:'L\'Araldo del Re', km:15, minLevel:87,
+      desc:'L\'araldo del vecchio re porta ancora messaggi tra le rovine del palazzo.', reward:{gold:730,stone:170,items:1} },
+    { id:'trono7', zone:'Sala del Trono Corrotto', name:'Il Generale della Corona', km:22, minLevel:89,
+      desc:'Il generale più potente dell\'Orda sorveglia la sala del trono.', reward:{gold:795,wood:185,items:2} },
+    { id:'trono8', zone:'Sala del Trono Corrotto', name:'Il Re Corrotto', km:25, minLevel:90,
+      desc:'Il re del reame, corrotto dall\'Orda, siede ancora sul trono. È quasi ora di affrontarlo.', reward:{gold:840,stone:185,items:3} },
+    { id:'trono9', zone:'Sala del Trono Corrotto', name:'I Segreti del Palazzo', km:13, minLevel:86,
+      desc:'Nelle stanze segrete del palazzo si nascondono documenti sull\'Orda e i suoi piani.', reward:{gold:700,wood:175,items:1} },
+  );
+
+  // Missioni extra per L'Abisso del Vuoto (bioma 18, lv 91-94)
+  MISSIONS.push(
+    { id:'abisso2', zone:'L\'Abisso del Vuoto', name:'Il Bordo dell\'Abisso', km:12, minLevel:91,
+      desc:'Avvicinati al bordo dell\'abisso senza essere risucchiato. Qualcosa ti chiama da là dentro.', reward:{gold:735,stone:175,items:1} },
+    { id:'abisso3', zone:'L\'Abisso del Vuoto', name:'Le Creature del Nulla', km:15, minLevel:92,
+      desc:'Creature formate dal vuoto stesso emergono dall\'abisso. Respingile.', reward:{gold:765,wood:185,items:1} },
+    { id:'abisso4', zone:'L\'Abisso del Vuoto', name:'La Voce del Vuoto', km:18, minLevel:93,
+      desc:'Una voce dall\'abisso sussurra i tuoi segreti. Trova chi parla davvero.', reward:{gold:795,stone:180,items:2} },
+    { id:'abisso5', zone:'L\'Abisso del Vuoto', name:'Il Portale Oscuro', km:20, minLevel:93,
+      desc:'L\'Orda usa un portale nell\'abisso per portare rinforzi. Distruggilo.', reward:{gold:810,wood:190,stone:180,items:2} },
+    { id:'abisso6', zone:'L\'Abisso del Vuoto', name:'L\'Eco dell\'Eternità', km:15, minLevel:92,
+      desc:'L\'eco del vuoto amplifica il potere dell\'Orda. Interrupi il rituale.', reward:{gold:770,stone:180,items:1} },
+    { id:'abisso7', zone:'L\'Abisso del Vuoto', name:'Il Guardiano del Vuoto', km:22, minLevel:94,
+      desc:'Un essere eterno sorveglia il cuore dell\'abisso. È il penultimo ostacolo.', reward:{gold:835,wood:195,items:2} },
+    { id:'abisso8', zone:'L\'Abisso del Vuoto', name:'La Frattura del Reame', km:25, minLevel:94,
+      desc:'L\'abisso si sta espandendo. Sigilla la frattura prima che inghiotta tutto il reame.', reward:{gold:880,stone:195,items:3} },
+  );
+
+  // Missioni extra per La Valle dei Cristalli Oscuri (bioma 19, lv 95-100)
+  MISSIONS.push(
+    { id:'cristalli2', zone:'La Valle dei Cristalli Oscuri', name:'I Cristalli Rivelatori', km:12, minLevel:95,
+      desc:'I cristalli della valle rivelano la posizione del Cavaliere del Drago. Leggine i riflessi.', reward:{gold:775,stone:185,items:1} },
+    { id:'cristalli3', zone:'La Valle dei Cristalli Oscuri', name:'La Valle Nascosta', km:15, minLevel:96,
+      desc:'Un passaggio segreto tra i cristalli porta al cuore della valle dove si prepara la battaglia finale.', reward:{gold:805,wood:195,items:1} },
+    { id:'cristalli4', zone:'La Valle dei Cristalli Oscuri', name:'I Custodi Cristallini', km:18, minLevel:97,
+      desc:'Guardiani formati da cristallo oscuro proteggono il cammino verso la destinazione finale.', reward:{gold:835,stone:190,items:2} },
+    { id:'cristalli5', zone:'La Valle dei Cristalli Oscuri', name:'Il Cristallo Maestro', km:20, minLevel:97,
+      desc:'Un cristallo di potere immenso alimenta l\'armatura del Cavaliere. Indeboliscila.', reward:{gold:855,wood:200,stone:195,items:2} },
+    { id:'cristalli6', zone:'La Valle dei Cristalli Oscuri', name:'Il Riflesso del Drago', km:15, minLevel:98,
+      desc:'I cristalli riflettono l\'immagine del Drago Oscuro. Studia le sue debolezze.', reward:{gold:815,stone:195,items:1} },
+    { id:'cristalli7', zone:'La Valle dei Cristalli Oscuri', name:'La Profezia dei Cristalli', km:22, minLevel:98,
+      desc:'Una profezia antica incisa nei cristalli rivela il modo per sconfiggere il Cavaliere del Drago.', reward:{gold:875,wood:205,items:2} },
+    { id:'cristalli8', zone:'La Valle dei Cristalli Oscuri', name:'Il Sentiero del Cavaliere', km:25, minLevel:99,
+      desc:'Il percorso finale verso l\'ultimo scontro. Ogni passo ti avvicina al destino del reame.', reward:{gold:920,stone:210,items:3} },
+    { id:'cristalli9', zone:'La Valle dei Cristalli Oscuri', name:'L\'Ultima Porta', km:28, minLevel:100,
+      desc:'La porta finale. Oltre di essa il Cavaliere del Drago ti attende. Il destino di Oakhaven è nelle tue mani.', reward:{gold:999,wood:220,stone:220,items:3} },
+  );
+
   /* ── Carte collezionabili ─────────────────────────────────── */
   const CARDS = {
     card_inizio:  { name: 'Il Primo Passo',        icon: '👣', rarity: 'comune',
@@ -450,7 +848,7 @@ const RPG = (() => {
     { id: 'fondamenta', name: 'Capanna del Pioniere', icon: '🛖',
       cost: { wood: 30, stone: 10 }, minLevel: 5,
       desc: 'Le prime mura di casa tua. Addio, falò all\'aperto!' },
-    { id: 'baule',      name: 'Baule del Bottino',    icon: '🧰',
+    { id: 'baule',      name: 'Baule del Bottino',    icon: '📦',
       cost: { wood: 20, stone: 5 },  minLevel: 5, requires: 'fondamenta',
       desc: 'Uno spazio dove custodire il tuo loot.' },
     { id: 'letto',      name: 'Letto di Pelli',       icon: '🛏️',

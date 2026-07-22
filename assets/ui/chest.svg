@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 64">
+  <!-- Shadow -->
+  <ellipse cx="40" cy="62" rx="28" ry="2.5" fill="rgba(0,0,0,0.3)"/>
+  <!-- Chest body -->
+  <rect x="5" y="32" width="70" height="27" rx="3" fill="#6B3A1F"/>
+  <rect x="5" y="32" width="70" height="27" rx="3" fill="none" stroke="#3D1F0A" stroke-width="2"/>
+  <!-- Lid (arched) -->
+  <path d="M5,33 Q5,10 40,10 Q75,10 75,33 Z" fill="#8B4A2A"/>
+  <path d="M5,33 Q5,10 40,10 Q75,10 75,33" fill="none" stroke="#3D1F0A" stroke-width="2"/>
+  <!-- Wood grain on lid -->
+  <path d="M18,31 Q18,19 40,17 Q62,19 62,31" fill="none" stroke="#3D1F0A" stroke-width="0.8" opacity="0.35"/>
+  <path d="M28,32 Q28,22 40,20 Q52,22 52,32" fill="none" stroke="#3D1F0A" stroke-width="0.8" opacity="0.25"/>
+  <!-- Brass band across lid -->
+  <path d="M5,33 Q5,21 40,21 Q75,21 75,33" fill="none" stroke="#C9932E" stroke-width="3.5"/>
+  <!-- Brass band across body -->
+  <rect x="5" y="43" width="70" height="5" fill="#C9932E" stroke="#7A5800" stroke-width="1"/>
+  <!-- Corner reinforcements (left) -->
+  <rect x="5" y="32" width="9" height="27" rx="2" fill="#C9932E" stroke="#7A5800" stroke-width="1" opacity="0.8"/>
+  <!-- Corner reinforcements (right) -->
+  <rect x="66" y="32" width="9" height="27" rx="2" fill="#C9932E" stroke="#7A5800" stroke-width="1" opacity="0.8"/>
+  <!-- Wood grain on body -->
+  <line x1="5" y1="38" x2="75" y2="38" stroke="#3D1F0A" stroke-width="0.8" opacity="0.3"/>
+  <line x1="5" y1="52" x2="14" y2="52" stroke="#3D1F0A" stroke-width="0.8" opacity="0.3"/>
+  <line x1="66" y1="52" x2="75" y2="52" stroke="#3D1F0A" stroke-width="0.8" opacity="0.3"/>
+  <line x1="14" y1="52" x2="66" y2="52" stroke="#3D1F0A" stroke-width="0.8" opacity="0.25"/>
+  <!-- Lock plate -->
+  <rect x="31" y="37" width="18" height="16" rx="2.5" fill="#C9932E" stroke="#7A5800" stroke-width="1.5"/>
+  <!-- Keyhole circle -->
+  <circle cx="40" cy="43" r="3.5" fill="#3D1F0A"/>
+  <!-- Keyhole slot -->
+  <rect x="38.5" y="43" width="3" height="6" rx="1" fill="#3D1F0A"/>
+  <!-- Rivets (corners) -->
+  <circle cx="11" cy="35" r="2.2" fill="#E8B64C" stroke="#7A5800" stroke-width="0.8"/>
+  <circle cx="69" cy="35" r="2.2" fill="#E8B64C" stroke="#7A5800" stroke-width="0.8"/>
+  <circle cx="11" cy="56" r="2.2" fill="#E8B64C" stroke="#7A5800" stroke-width="0.8"/>
+  <circle cx="69" cy="56" r="2.2" fill="#E8B64C" stroke="#7A5800" stroke-width="0.8"/>
+  <!-- Side handles -->
+  <path d="M14,41 Q9,41 9,46 Q9,51 14,51" fill="none" stroke="#E8B64C" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M66,41 Q71,41 71,46 Q71,51 66,51" fill="none" stroke="#E8B64C" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Glint on lock plate -->
+  <line x1="33" y1="39" x2="36" y2="42" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-linecap="round"/>
+</svg>
