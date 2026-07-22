@@ -1359,15 +1359,11 @@ function renderShortcutPanel() {
       </div>
       <div class="shortcut-step">
         <span class="step-num">4</span>
-        <div>Aggiungi <b>"Testo"</b> e scrivi: <code>rpgym:</code> poi tocca <b>Inserisci variabile</b> → <b>Somma</b>. Risultato: <code>rpgym:5320</code></div>
+        <div>Aggiungi <b>"Copia negli appunti"</b> → input: variabile <b>Somma</b> del passo 3.</div>
       </div>
       <div class="shortcut-step">
         <span class="step-num">5</span>
-        <div>Aggiungi <b>"Copia negli appunti"</b> → input: variabile <b>Testo</b> del passo 4.</div>
-      </div>
-      <div class="shortcut-step">
-        <span class="step-num">6</span>
-        <div>Salva con nome <b>RPGym</b>. Dopo averlo lanciato, apri RPGym dal tasto home — rileverà i passi in automatico.</div>
+        <div>Salva con nome <b>RPGym</b>. Dopo averlo lanciato, apri RPGym: apparirà un campo verde — toccalo e incolla. Fatto.</div>
       </div>
     </div>`;
 
@@ -2129,36 +2125,30 @@ function todayISO() { return new Date().toISOString().slice(0, 10); }
    Nessun server coinvolto: il numero arriva incollato nell'URL e il gioco
    lo applica all'eroe attualmente selezionato su QUESTO telefono. */
 function showClipboardSyncBanner() {
-  // iOS non permette readText() nelle PWA — usiamo un campo paste
   const banner = el('div', 'clipboard-sync-banner');
   banner.innerHTML = `
-    <span class="csb-label">⚡ Incolla qui i dati del Comando Rapido:</span>
-    <div class="csb-row">
-      <input class="csb-input" id="csb-input" type="text" placeholder="Tieni premuto → Incolla" readonly>
-      <button class="csb-btn" id="csb-ok">Sync</button>
-    </div>`;
+    <span class="csb-label">⚡ Passi dal Comando Rapido — tocca e incolla</span>
+    <input class="csb-input" id="csb-input" type="number" inputmode="numeric" placeholder="Tocca qui → Incolla">`;
   document.body.appendChild(banner);
 
   const inp = document.getElementById('csb-input');
-  const btn = document.getElementById('csb-ok');
-
-  // Permetti la modifica al tocco per poter incollare
-  inp.addEventListener('focus', () => inp.removeAttribute('readonly'));
-
-  inp.addEventListener('paste', e => {
-    setTimeout(() => applyClipboardText(inp.value.trim(), banner), 50);
+  inp.focus();
+  inp.addEventListener('input', () => {
+    const steps = parseInt(inp.value, 10);
+    if (steps > 0) setTimeout(() => applyStepsSync(steps, banner), 300);
   });
-  btn.addEventListener('click', () => applyClipboardText(inp.value.trim(), banner));
-
-  setTimeout(() => { if (banner.parentNode) banner.remove(); }, 30000);
+  inp.addEventListener('paste', () => {
+    setTimeout(() => {
+      const steps = parseInt(inp.value, 10);
+      if (steps > 0) applyStepsSync(steps, banner);
+    }, 100);
+  });
+  setTimeout(() => { if (banner.parentNode) banner.remove(); }, 60000);
 }
 
-function applyClipboardText(text, banner) {
+function applyStepsSync(steps, banner) {
   if (banner?.parentNode) banner.remove();
-  if (!text.startsWith('rpgym:')) { toast('Formato non valido. Il testo deve iniziare con "rpgym:"'); return; }
-  const raw = text.replace('rpgym:', '').replace(/[^\d]/g, '');
-  const steps = parseInt(raw, 10);
-  if (!HERO || isNaN(steps) || steps <= 0) { toast('Dati non validi.'); return; }
+  if (!HERO || !(steps > 0)) return;
   const km = Math.round(steps * 0.00075 * 100) / 100;
   if (km < 0.05) { toast(`${steps} passi (${km} km) — troppo pochi.`); return; }
   const report = RPG.logHealthSync(HERO, 'camminata', km);

@@ -1564,17 +1564,13 @@ body {
 }
 @keyframes bannerPop { from { transform: translateY(20px); opacity:0; } to { transform: translateY(0); opacity:1; } }
 .csb-label { font-size: .78rem; font-weight: 700; display: block; margin-bottom: 6px; }
-.csb-row { display: flex; gap: 8px; }
 .csb-input {
-  flex: 1; background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3);
-  border-radius: 8px; padding: 8px 10px; color: #fff; font-size: .85rem;
+  width: 100%; box-sizing: border-box;
+  background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.35);
+  border-radius: 8px; padding: 10px 12px; color: #fff; font-size: 1rem;
   outline: none;
 }
-.csb-input::placeholder { color: rgba(255,255,255,.5); }
-.csb-btn {
-  background: #4a8c2a; color: #fff; border: none; border-radius: 8px;
-  padding: 8px 14px; font-weight: 700; font-size: .85rem;
-}
+.csb-input::placeholder { color: rgba(255,255,255,.55); }
 .shortcut-open-app {
   color: #555ecc; background: rgba(85,94,204,.1);
   border: 1.5px solid rgba(85,94,204,.3);
