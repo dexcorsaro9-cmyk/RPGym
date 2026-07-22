@@ -2479,6 +2479,24 @@ const RPG = (() => {
     return { ok: true, reward: ch.reward, bonus };
   }
 
+  function applyXp(hero, amount) {
+    hero.xp = (hero.xp || 0) + amount;
+    const cap = hero.ascended ? MAX_LEVEL : LEVEL_CAP_1;
+    const levelsGained = [];
+    while (hero.level < cap && hero.xp >= xpForLevel(hero.level)) {
+      hero.xp -= xpForLevel(hero.level);
+      hero.level++;
+      levelsGained.push(hero.level);
+      if (hero.level === 5 && !hero.cards.includes('card_casa')) {
+        hero.cards.push('card_casa');
+      }
+    }
+    if (hero.level >= cap && hero.xp > xpForLevel(hero.level)) {
+      hero.xp = xpForLevel(hero.level);
+    }
+    return levelsGained;
+  }
+
   function achievementsUnlocked(hero) {
     return ACHIEVEMENTS.filter(a => hero.level >= a.level);
   }
@@ -2523,6 +2541,7 @@ const RPG = (() => {
     FURNITURE_SETS, furnitureSetById, furnitureSetOwnedCount, furnitureSetComplete,
     furnitureUnlockedSets, furnitureAggregate, buyFurniture,
     ACHIEVEMENTS, achievementsUnlocked, claimAchievement,
+    applyXp,
     DAILY_CHALLENGES_BONUS, getDailyChallenges, updateChallengeProgress, claimChallenge,
   };
 })();
