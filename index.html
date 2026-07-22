@@ -46,17 +46,25 @@
   </div>
 
   <!-- ══════════════ CREAZIONE EROE ══════════════ -->
-  <div id="screen-create" class="screen hidden">
-    <div class="parchment center-col">
-      <h2 class="section-title">Nasce un Viandante</h2>
-      <label class="field-label">Nome dell'Eroe</label>
-      <input id="create-name" class="input input-medieval" type="text" maxlength="20" placeholder="Es. Leo il Viandante">
-      <label class="field-label">Scegli il tuo Viandante</label>
-      <div id="avatar-picker" class="avatar-picker"></div>
-      <div class="row gap">
-        <button id="btn-create-back" class="btn">↩ Indietro</button>
-        <button id="btn-create-confirm" class="btn btn-primary">🔥 Inizia l'Avventura</button>
+  <div id="screen-create" class="screen hidden create-cinematic">
+    <div id="create-card-zone" class="create-card-zone">
+      <div id="create-portrait" class="create-portrait"></div>
+      <button id="btn-create-back" class="create-back-btn">↩</button>
+      <button id="create-prev" class="create-arrow create-arrow-l">‹</button>
+      <button id="create-next" class="create-arrow create-arrow-r">›</button>
+    </div>
+    <div class="create-info">
+      <div id="create-class-name" class="create-class-name"></div>
+      <div id="create-dots" class="create-dots"></div>
+      <div class="create-talent-box">
+        <span id="create-talent-name" class="create-talent-tag"></span>
+        <span id="create-talent-desc" class="create-talent-text"></span>
       </div>
+    </div>
+    <div class="create-form">
+      <label class="create-input-label">Il tuo nome, Viandante</label>
+      <input id="create-name" class="create-name-input" type="text" maxlength="20" placeholder="Es. Leo il Viandante">
+      <button id="btn-create-confirm" class="btn btn-primary wide big">🔥 Inizia l'Avventura</button>
     </div>
   </div>
 
