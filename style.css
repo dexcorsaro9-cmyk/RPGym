@@ -1518,6 +1518,14 @@ body {
   box-shadow: 0 4px 14px rgba(42,122,42,.4);
 }
 .shortcut-import-btn:active { transform: scale(.97); }
+.shortcut-steps { display: flex; flex-direction: column; gap: 10px; margin: 10px 0; }
+.shortcut-step { display: flex; gap: 10px; align-items: flex-start; font-size: .85rem; }
+.step-num {
+  flex-shrink: 0; width: 24px; height: 24px;
+  background: #555ecc; color: #fff; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: .75rem; margin-top: 1px;
+}
 .shortcut-icon { font-size: 1.3rem; }
 .shortcut-open-app {
   color: #555ecc; background: rgba(85,94,204,.1);

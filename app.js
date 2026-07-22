@@ -1325,37 +1325,79 @@ function renderShortcutPanel() {
     <div class="small muted">Sincronizza automaticamente i km dal tuo iPhone</div></div>`;
   p.appendChild(titleRow);
 
-  // Pulsante principale: lancia il Comando Rapido
+  // Pulsante principale: lancia il Comando Rapido (se già configurato)
   const launchBtn = el('button', 'btn shortcut-launch-btn wide');
-  launchBtn.innerHTML = `<span class="shortcut-icon">⚡</span> Lancia "RPGym" in Comandi Rapidi`;
+  launchBtn.innerHTML = `<span class="shortcut-icon">⚡</span> Lancia "RPGym" (già configurato)`;
   launchBtn.addEventListener('click', () => {
     window.location.href = `shortcuts://run-shortcut?name=${encodeURIComponent(SHORTCUT_NAME)}`;
   });
   p.appendChild(launchBtn);
 
-  // Pulsante importa: scarica e installa il Comando Rapido con un tap
-  const importBtn = el('button', 'btn shortcut-import-btn wide');
-  importBtn.innerHTML = `<span class="shortcut-icon">📥</span> Importa Comando Rapido`;
-  importBtn.addEventListener('click', () => {
-    const fileUrl = `${APP_BASE_URL}assets/rpgym-sync.shortcut`;
-    window.location.href = `shortcuts://import-shortcut?url=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(SHORTCUT_NAME)}`;
+  // ── Guida passo-passo per creare il Comando Rapido ──
+  const guideToggle = el('button', 'shortcut-manual-toggle');
+  guideToggle.innerHTML = '📋 Come configurare il Comando Rapido <span>▼</span>';
+  p.appendChild(guideToggle);
+
+  const guideBody = el('div', 'shortcut-manual-body collapsed');
+
+  const syncUrl = `${APP_BASE_URL}?sync_km=[KM]&sync_type=[TIPO]`;
+
+  guideBody.innerHTML = `
+    <div class="shortcut-steps">
+      <div class="shortcut-step">
+        <span class="step-num">1</span>
+        <div>Apri l'app <b>Comandi Rapidi</b> e tocca <b>+</b> in alto a destra per creare un nuovo comando.</div>
+      </div>
+      <div class="shortcut-step">
+        <span class="step-num">2</span>
+        <div>Cerca l'azione <b>"Chiedi input"</b>. Impostala su tipo <b>Numero</b>, messaggio: <i>Quanti km totali hai fatto oggi?</i></div>
+      </div>
+      <div class="shortcut-step">
+        <span class="step-num">3</span>
+        <div>Aggiungi un'azione <b>"URL"</b> e incolla questo indirizzo (poi sostituisci <b>[KM]</b> con la variabile <i>Input fornito</i> e <b>[TIPO]</b> con <i>camminata</i>, <i>corsa</i> o <i>cyclette</i>):</div>
+      </div>
+    </div>
+    <div class="shortcut-url-box" style="margin:8px 0">
+      <code class="shortcut-url-code" id="sc-url-code">${APP_BASE_URL}?sync_km=[KM]&amp;sync_type=camminata</code>
+    </div>
+    <div class="shortcut-steps">
+      <div class="shortcut-step">
+        <span class="step-num">4</span>
+        <div>Aggiungi l'azione <b>"Apri URL"</b> collegata all'URL del passo precedente.</div>
+      </div>
+      <div class="shortcut-step">
+        <span class="step-num">5</span>
+        <div>Dai un nome al comando (es. <b>RPGym</b>) e salvalo. Da quel momento usa il pulsante ⚡ qui sopra per lanciarlo ogni volta che finisci l'allenamento.</div>
+      </div>
+    </div>`;
+
+  const copyUrlBtn = el('button', 'btn shortcut-import-btn wide');
+  copyUrlBtn.innerHTML = '📋 Copia URL base';
+  copyUrlBtn.addEventListener('click', () => {
+    const base = `${APP_BASE_URL}?sync_km=`;
+    navigator.clipboard.writeText(base).then(() => toast('URL copiato! Incollalo nell\'azione URL dei Comandi Rapidi.')).catch(() => toast('Copia manuale: ' + base));
   });
-  p.appendChild(importBtn);
+  guideBody.appendChild(copyUrlBtn);
 
-  // Apertura app Comandi Rapidi (se il comando non è ancora configurato)
-  const openApp = el('button', 'btn btn-small wide shortcut-open-app');
-  openApp.textContent = '📱 Apri Comandi Rapidi';
-  openApp.addEventListener('click', () => { window.location.href = 'shortcuts://'; });
-  p.appendChild(openApp);
+  const openShortcuts = el('button', 'btn btn-small wide shortcut-open-app');
+  openShortcuts.innerHTML = '📱 Apri Comandi Rapidi';
+  openShortcuts.addEventListener('click', () => { window.location.href = 'shortcuts://'; });
+  guideBody.appendChild(openShortcuts);
 
-  // Accordion: inserimento manuale con logHealthSync (delta-aware)
+  guideToggle.addEventListener('click', () => {
+    const open = !guideBody.classList.contains('collapsed');
+    guideBody.classList.toggle('collapsed', open);
+    guideToggle.querySelector('span').textContent = open ? '▼' : '▲';
+  });
+  p.appendChild(guideBody);
+
+  // ── Accordion: inserimento manuale ──
   const toggleBtn = el('button', 'shortcut-manual-toggle');
-  toggleBtn.innerHTML = '📥 Inserisci km totali di oggi manualmente <span>▼</span>';
+  toggleBtn.innerHTML = '📥 Inserisci km manualmente (senza Comandi Rapidi) <span>▼</span>';
   p.appendChild(toggleBtn);
 
   const manualBody = el('div', 'shortcut-manual-body collapsed');
 
-  // Selettore tipo
   manualBody.appendChild(el('p', 'small muted', 'Inserisci i km TOTALI dell\'attività di oggi (il gioco calcola solo il delta rispetto all\'ultima sincronizzazione).'));
   const typeRow = el('div', 'shortcut-type-row');
   let syncType = 'camminata';
@@ -1374,7 +1416,7 @@ function renderShortcutPanel() {
   kmInput2.type = 'number'; kmInput2.step = '0.1'; kmInput2.min = '0'; kmInput2.placeholder = 'Es. 8.4 km totali oggi';
   manualBody.appendChild(kmInput2);
 
-  const syncBtn = el('button', 'btn btn-primary wide', '🏥 Sincronizza da Salute');
+  const syncBtn = el('button', 'btn btn-primary wide', '🏥 Sincronizza');
   syncBtn.addEventListener('click', () => {
     const km = parseFloat(kmInput2.value);
     if (!(km > 0)) { toast('Inserisci i km totali di oggi.'); return; }
@@ -1386,13 +1428,6 @@ function renderShortcutPanel() {
     showHealthSyncResult(report);
   });
   manualBody.appendChild(syncBtn);
-
-  // Sezione info URL shortcut
-  const urlBox = el('div', 'shortcut-url-box');
-  urlBox.innerHTML = `<div class="small muted" style="margin-bottom:4px">URL del tuo Comando Rapido:</div>
-    <code class="shortcut-url-code">${APP_BASE_URL}?sync_km=[KM]&sync_type=[TIPO]</code>
-    <div class="small muted" style="margin-top:4px">Tipi: <b>camminata</b> · <b>corsa</b> · <b>cyclette</b></div>`;
-  manualBody.appendChild(urlBox);
 
   toggleBtn.addEventListener('click', () => {
     const open = !manualBody.classList.contains('collapsed');
