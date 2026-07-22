@@ -2141,8 +2141,8 @@ function todayISO() { return new Date().toISOString().slice(0, 10); }
 function applyHealthSyncFromURL(hero) {
   try {
     const params = new URLSearchParams(location.search);
-    const km = parseFloat(params.get('sync_km'));
-    const type = params.get('sync_type');
+    const km = parseFloat((params.get('sync_km') || '').replace(',', '.'));
+    const type = params.get('sync_type') || 'camminata';
     // ripulisce l'URL subito, così un refresh non ripropone lo stesso valore
     if (params.has('sync_km') || params.has('sync_type')) {
       history.replaceState({}, '', location.pathname + location.hash);
