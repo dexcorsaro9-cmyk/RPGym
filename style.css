@@ -1212,8 +1212,8 @@ body {
 .battle-screen {
   position: fixed; inset: 0; z-index: 100;
   background:
-    linear-gradient(180deg, rgba(10,6,8,.55), rgba(5,3,4,.8)),
-    url('assets/backgrounds/back per arena.png');
+    linear-gradient(180deg, rgba(10,6,8,.35), rgba(5,3,4,.7)),
+    url('assets/backgrounds/arena-bg.png');
   background-size: cover; background-position: center;
   display: flex; align-items: center; justify-content: center;
   padding: calc(10px + env(safe-area-inset-top)) 12px calc(10px + env(safe-area-inset-bottom));
