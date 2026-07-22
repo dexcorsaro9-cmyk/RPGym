@@ -1553,6 +1553,17 @@ body {
   font-weight: 700; font-size: .72rem; margin-top: 2px;
 }
 .shortcut-icon { font-size: 1.3rem; }
+.clipboard-sync-banner {
+  position: fixed; bottom: calc(80px + env(safe-area-inset-bottom)); left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #2d5a1b, #4a8c2a);
+  color: #fff; font-weight: 700; font-size: .85rem;
+  padding: 12px 20px; border-radius: 24px;
+  border: none; box-shadow: 0 4px 20px rgba(0,0,0,.5);
+  z-index: 500; white-space: nowrap;
+  animation: bannerPop .3s cubic-bezier(.2,1.4,.4,1);
+}
+@keyframes bannerPop { from { transform: translateX(-50%) scale(.8); opacity:0; } to { transform: translateX(-50%) scale(1); opacity:1; } }
 .shortcut-open-app {
   color: #555ecc; background: rgba(85,94,204,.1);
   border: 1.5px solid rgba(85,94,204,.3);

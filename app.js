@@ -391,8 +391,8 @@ function enterGame() {
   OPEN_QUEUE = [];
   if (healthReport) OPEN_QUEUE.push(() => showHealthSyncResult(healthReport));
 
-  // Lettura da clipboard (Comandi Rapidi → clipboard → PWA)
-  checkClipboardSync();
+  // Clipboard sync attivata da gesto utente (iOS richiede tocco esplicito)
+  showClipboardSyncBanner();
   if (missed) OPEN_QUEUE.push(() => modal(`
       <h3 class="panel-title">💨 Il Forziere Svanito…</h3>
       <div class="lost-chest">🎁</div>
@@ -2128,24 +2128,28 @@ function todayISO() { return new Date().toISOString().slice(0, 10); }
    Il Comando Rapido apre: https://.../?sync_km=5.2&sync_type=camminata
    Nessun server coinvolto: il numero arriva incollato nell'URL e il gioco
    lo applica all'eroe attualmente selezionato su QUESTO telefono. */
-async function checkClipboardSync() {
-  toast('🔍 clipboard check...');
-  try {
-    if (!navigator.clipboard?.readText) { toast('📋 Clipboard API non disponibile'); return; }
-    const text = (await navigator.clipboard.readText() || '').trim();
-    toast(`📋 Clipboard: "${text.slice(0, 40)}"`);
-    if (!text.startsWith('rpgym:')) return;
-    await navigator.clipboard.writeText('');
-    const raw = text.replace('rpgym:', '').replace(/[^\d]/g, '');
-    const steps = parseInt(raw, 10);
-    toast(`⚡ Passi letti: ${steps}`);
-    if (!HERO || isNaN(steps) || steps <= 0) return;
-    const km = Math.round(steps * 0.00075 * 100) / 100;
-    if (km < 0.05) { toast(`⚡ ${steps} passi (${km} km) — troppo pochi per registrare.`); return; }
-    const report = RPG.logHealthSync(HERO, 'camminata', km);
-    if (report) { persist(); renderHUD(); showHealthSyncResult(report); }
-    else toast('Attività già sincronizzata per oggi.');
-  } catch (e) { toast(`📋 Errore clipboard: ${e.message}`); }
+function showClipboardSyncBanner() {
+  if (!navigator.clipboard?.readText) return;
+  const banner = el('button', 'clipboard-sync-banner');
+  banner.innerHTML = '⚡ Tocca per sincronizzare i passi da Comandi Rapidi';
+  banner.addEventListener('click', async () => {
+    banner.remove();
+    try {
+      const text = (await navigator.clipboard.readText() || '').trim();
+      if (!text.startsWith('rpgym:')) { toast('Nessun dato RPGym negli appunti.'); return; }
+      await navigator.clipboard.writeText('');
+      const raw = text.replace('rpgym:', '').replace(/[^\d]/g, '');
+      const steps = parseInt(raw, 10);
+      if (!HERO || isNaN(steps) || steps <= 0) { toast('Dati non validi.'); return; }
+      const km = Math.round(steps * 0.00075 * 100) / 100;
+      if (km < 0.05) { toast(`${steps} passi (${km} km) — troppo pochi per registrare.`); return; }
+      const report = RPG.logHealthSync(HERO, 'camminata', km);
+      if (report) { persist(); renderHUD(); showHealthSyncResult(report); }
+      else toast('Attività già sincronizzata per oggi.');
+    } catch (e) { toast('Errore lettura appunti: ' + e.message); }
+  });
+  document.body.appendChild(banner);
+  setTimeout(() => banner.remove(), 8000);
 }
 
 function applyHealthSyncFromURL(hero) {
