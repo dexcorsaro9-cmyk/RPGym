@@ -944,8 +944,9 @@ const RPG = (() => {
     h.restBonus      = h.restBonus      || null;
     h.companion      = h.companion      || null;
 
-    // ── v4: mini-giochi ───────────────────────────────────────
-    h.miniGames = h.miniGames || {};
+    // ── v4: mini-giochi e sfide giornaliere ──────────────────
+    h.miniGames       = h.miniGames       || {};
+    h.dailyChallenges = h.dailyChallenges || null;
 
     h.schemaVersion = SCHEMA_VERSION;
     return h;
@@ -1126,6 +1127,7 @@ const RPG = (() => {
 
     hero.totalKm += km;
     hero.kmByType[type] = (hero.kmByType[type] || 0) + km;
+    updateChallengeProgress(hero, 'km', km);
     if (type === 'corsa') {
       let staminaGain = km * 5 + furn.staminaMaxBonus;
       if (furn.flags.doubleStamina) staminaGain *= 2;
@@ -2405,6 +2407,96 @@ const RPG = (() => {
     {id:"imp100", level:100, name:"Leggenda della Valle dei Cristalli Oscuri", icon:"\ud83d\udd2e", desc:"Cento livelli. Il Cavaliere del Drago ti attende.", epic:true, reward:{gold:475, xp:350}},
   ];
 
+  /* ── Sfide Giornaliere ──────────────────────────────────── */
+  const DAILY_CHALLENGES_POOL = [
+    { type:'km',       icon:'🥾', target:2,  label:'Percorri 2 km oggi',            reward:{gold:25, xp:50}  },
+    { type:'km',       icon:'🥾', target:3,  label:'Percorri 3 km oggi',            reward:{gold:35, xp:70}  },
+    { type:'km',       icon:'🥾', target:5,  label:'Percorri 5 km oggi',            reward:{gold:50, xp:100} },
+    { type:'km',       icon:'🥾', target:8,  label:'Percorri 8 km oggi',            reward:{gold:70, xp:140} },
+    { type:'km',       icon:'🥾', target:10, label:'Percorri 10 km oggi',           reward:{gold:85, xp:170} },
+    { type:'arena',    icon:'⚔️',  target:1,  label:'Vinci 1 battaglia nell\'Arena', reward:{gold:20, xp:40}  },
+    { type:'arena',    icon:'⚔️',  target:2,  label:'Vinci 2 battaglie nell\'Arena', reward:{gold:35, xp:70}  },
+    { type:'arena',    icon:'⚔️',  target:3,  label:'Vinci 3 battaglie nell\'Arena', reward:{gold:50, xp:100} },
+    { type:'minigame', icon:'🎲', target:2,  label:'Gioca 2 partite alla Taverna',  reward:{gold:15, xp:30}  },
+    { type:'minigame', icon:'🎲', target:3,  label:'Gioca 3 partite alla Taverna',  reward:{gold:25, xp:50}  },
+    { type:'minigame', icon:'🎲', target:5,  label:'Gioca 5 partite alla Taverna',  reward:{gold:40, xp:80}  },
+  ];
+  const DAILY_CHALLENGES_BONUS = { gold: 60, xp: 120 };
+
+  function _genDailyChallenges(hero, date) {
+    const lv = hero.level;
+    const tierKm    = lv <= 10 ? [0,1]  : lv <= 30 ? [1,2]  : lv <= 60 ? [2,3]  : [3,4];
+    const tierArena = lv <= 10 ? [0]    : lv <= 30 ? [0,1]  : [1,2];
+    const tierMg    = lv <= 10 ? [0,1]  : lv <= 30 ? [1,2]  : [2];
+    let seed = 0;
+    const key = date + (hero.id || '');
+    for (let i = 0; i < key.length; i++) seed = (seed * 31 + key.charCodeAt(i)) | 0;
+    const pick = arr => { seed = (seed * 1664525 + 1013904223) | 0; return arr[Math.abs(seed) % arr.length]; };
+    const kmPool    = DAILY_CHALLENGES_POOL.filter(c => c.type === 'km');
+    const arenaPool = DAILY_CHALLENGES_POOL.filter(c => c.type === 'arena');
+    const mgPool    = DAILY_CHALLENGES_POOL.filter(c => c.type === 'minigame');
+    const mk = t => ({ type:t.type, icon:t.icon, target:t.target, label:t.label, reward:{...t.reward}, progress:0, claimed:false });
+    return {
+      date,
+      list: [ mk(kmPool[pick(tierKm)]), mk(arenaPool[pick(tierArena)]), mk(mgPool[pick(tierMg)]) ],
+      bonusClaimed: false,
+    };
+  }
+
+  function getDailyChallenges(hero) {
+    const today = todayStamp();
+    if (!hero.dailyChallenges || hero.dailyChallenges.date !== today) {
+      hero.dailyChallenges = _genDailyChallenges(hero, today);
+    }
+    return hero.dailyChallenges;
+  }
+
+  function updateChallengeProgress(hero, type, amount) {
+    const dc = getDailyChallenges(hero);
+    dc.list.forEach(ch => {
+      if (ch.type === type && !ch.claimed && ch.progress < ch.target) {
+        ch.progress = Math.min(ch.target, ch.progress + amount);
+      }
+    });
+  }
+
+  function claimChallenge(hero, idx) {
+    const dc = getDailyChallenges(hero);
+    const ch = dc.list[idx];
+    if (!ch) return 'Sfida non trovata.';
+    if (ch.progress < ch.target) return 'Non ancora completata!';
+    if (ch.claimed) return 'Ricompensa già riscossa.';
+    ch.claimed = true;
+    hero.gold += ch.reward.gold;
+    hero.xp   += ch.reward.xp;
+    let bonus = null;
+    if (!dc.bonusClaimed && dc.list.every(c => c.claimed)) {
+      dc.bonusClaimed = true;
+      hero.gold += DAILY_CHALLENGES_BONUS.gold;
+      hero.xp   += DAILY_CHALLENGES_BONUS.xp;
+      bonus = DAILY_CHALLENGES_BONUS;
+    }
+    return { ok: true, reward: ch.reward, bonus };
+  }
+
+  function applyXp(hero, amount) {
+    hero.xp = (hero.xp || 0) + amount;
+    const cap = hero.ascended ? MAX_LEVEL : LEVEL_CAP_1;
+    const levelsGained = [];
+    while (hero.level < cap && hero.xp >= xpForLevel(hero.level)) {
+      hero.xp -= xpForLevel(hero.level);
+      hero.level++;
+      levelsGained.push(hero.level);
+      if (hero.level === 5 && !hero.cards.includes('card_casa')) {
+        hero.cards.push('card_casa');
+      }
+    }
+    if (hero.level >= cap && hero.xp > xpForLevel(hero.level)) {
+      hero.xp = xpForLevel(hero.level);
+    }
+    return levelsGained;
+  }
+
   function achievementsUnlocked(hero) {
     return ACHIEVEMENTS.filter(a => hero.level >= a.level);
   }
@@ -2449,5 +2541,7 @@ const RPG = (() => {
     FURNITURE_SETS, furnitureSetById, furnitureSetOwnedCount, furnitureSetComplete,
     furnitureUnlockedSets, furnitureAggregate, buyFurniture,
     ACHIEVEMENTS, achievementsUnlocked, claimAchievement,
+    applyXp,
+    DAILY_CHALLENGES_BONUS, getDailyChallenges, updateChallengeProgress, claimChallenge,
   };
 })();

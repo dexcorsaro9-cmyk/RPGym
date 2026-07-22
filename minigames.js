@@ -45,12 +45,19 @@ const MG_B = {
 };
 // ────────────────────────────────────────────────────────────────────────────
 function mgCanPlay(id) { return getMG(id).n < MG_MAX[id]; }
-function mgRecord(id) { const m = getMG(id); m.n++; m.last = todayISO(); persist(); }
+function mgRecord(id) {
+  const m = getMG(id); m.n++; m.last = todayISO();
+  RPG.updateChallengeProgress(HERO, 'minigame', 1);
+  persist();
+}
 function mgGiveReward(r) {
   if (r.gold)  HERO.gold  = Math.max(0, (HERO.gold  || 0) + r.gold);
   if (r.wood)  HERO.wood  = Math.max(0, (HERO.wood  || 0) + r.wood);
   if (r.stone) HERO.stone = Math.max(0, (HERO.stone || 0) + r.stone);
-  if (r.xp)   HERO.xp    = (HERO.xp || 0) + r.xp;
+  if (r.xp) {
+    const gained = RPG.applyXp(HERO, r.xp);
+    if (gained.length) { sfx('level'); toast(`⬆️ Livello ${HERO.level}!`); }
+  }
   persist(); renderHUD();
 }
 function mgRewardHTML(r, title, sub) {

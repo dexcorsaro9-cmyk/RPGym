@@ -55,7 +55,7 @@ const REQUIRED_FIELDS = [
   'log','totalKm','kmByType','missionsDone','lootBagsOpened','fragmentsFound',
   'cards','activeMission','restBonus','companion',
   // v4
-  'miniGames',
+  'miniGames','dailyChallenges',
 ];
 
 const bare = { id:'t1', name:'Test', avatar:'a', level:1, xp:0, gold:0, wood:0, stone:0 };
@@ -221,6 +221,55 @@ const emptyState = RPG.load();
 assert('load() con localStorage vuoto → heroes array', Array.isArray(emptyState.heroes));
 assert('load() con localStorage vuoto → current null', emptyState.current === null);
 assert('load() con localStorage vuoto → claimedEvents array', Array.isArray(emptyState.claimedEvents));
+
+/* ══ Test: Sfide Giornaliere ════════════════════════════════════════ */
+
+section('Sfide Giornaliere');
+
+const dcHero = RPG.newHero('Sfidante', 'a');
+const dc = RPG.getDailyChallenges(dcHero);
+assert('getDailyChallenges restituisce 3 sfide', dc.list.length === 3);
+assert('sfida km presente', dc.list.some(c => c.type === 'km'));
+assert('sfida arena presente', dc.list.some(c => c.type === 'arena'));
+assert('sfida minigame presente', dc.list.some(c => c.type === 'minigame'));
+assert('progress iniziale 0', dc.list.every(c => c.progress === 0));
+assert('bonusClaimed false', dc.bonusClaimed === false);
+
+// stesso giorno → stesso oggetto
+const dc2 = RPG.getDailyChallenges(dcHero);
+assert('getDailyChallenges idempotente', dc2 === dc);
+
+// progress km
+RPG.updateChallengeProgress(dcHero, 'km', 1.5);
+const kmCh = dc.list.find(c => c.type === 'km');
+assert('progress km aggiornato', kmCh.progress === 1.5);
+
+// claim prematura fallisce
+const earlyErr = RPG.claimChallenge(dcHero, dc.list.indexOf(kmCh));
+assert('claim prematura restituisce stringa', typeof earlyErr === 'string');
+
+// completa km e riscuoti
+RPG.updateChallengeProgress(dcHero, 'km', 100); // supera il target
+assert('progress cap al target', kmCh.progress === kmCh.target);
+const goldBefore = dcHero.gold;
+const r = RPG.claimChallenge(dcHero, dc.list.indexOf(kmCh));
+assert('claim ok', r && r.ok === true);
+assert('gold incrementato', dcHero.gold === goldBefore + r.reward.gold);
+assert('sfida marcata claimed', kmCh.claimed === true);
+
+// doppio claim fallisce
+const r2 = RPG.claimChallenge(dcHero, dc.list.indexOf(kmCh));
+assert('doppio claim restituisce stringa', typeof r2 === 'string');
+
+// bonus completo
+RPG.updateChallengeProgress(dcHero, 'arena',    100);
+RPG.updateChallengeProgress(dcHero, 'minigame', 100);
+RPG.claimChallenge(dcHero, dc.list.findIndex(c => c.type === 'arena'));
+const goldBef2 = dcHero.gold;
+const rBonus = RPG.claimChallenge(dcHero, dc.list.findIndex(c => c.type === 'minigame'));
+assert('bonus attivato all\'ultima sfida', rBonus && rBonus.bonus !== null);
+assert('gold bonus incluso', dcHero.gold === goldBef2 + rBonus.reward.gold + rBonus.bonus.gold);
+assert('bonusClaimed true', dc.bonusClaimed === true);
 
 /* ══ Rapporto finale ════════════════════════════════════════════════ */
 
