@@ -383,13 +383,16 @@ function enterGame() {
   persist();
   renderHUD();
 
-  // Sincronizzazione automatica da Apple Salute (Comandi Rapidi -> ?sync_km=&sync_type=)
+  // Sincronizzazione automatica da Apple Salute (URL params o clipboard)
   const healthReport = applyHealthSyncFromURL(HERO);
   if (healthReport) { persist(); renderHUD(); }
 
   // Coda dei popup di apertura
   OPEN_QUEUE = [];
   if (healthReport) OPEN_QUEUE.push(() => showHealthSyncResult(healthReport));
+
+  // Lettura da clipboard (Comandi Rapidi → clipboard → PWA)
+  checkClipboardSync();
   if (missed) OPEN_QUEUE.push(() => modal(`
       <h3 class="panel-title">💨 Il Forziere Svanito…</h3>
       <div class="lost-chest">🎁</div>
@@ -1356,25 +1359,17 @@ function renderShortcutPanel() {
       </div>
       <div class="shortcut-step">
         <span class="step-num">4</span>
-        <div>Aggiungi <b>"Testo"</b> (l'azione gialla con le righe) e scrivi nel campo:<br><code>${APP_BASE_URL}?sync_steps=</code><br>poi tocca <b>Inserisci variabile</b> → <b>Somma</b>.</div>
+        <div>Aggiungi <b>"Testo"</b> e scrivi: <code>rpgym:</code> poi tocca <b>Inserisci variabile</b> → <b>Somma</b>. Risultato: <code>rpgym:5320</code></div>
       </div>
       <div class="shortcut-step">
         <span class="step-num">5</span>
-        <div>Aggiungi <b>"Apri URL"</b> → tocca il campo URL → inserisci la variabile <b>Testo</b> del passo 4.</div>
+        <div>Aggiungi <b>"Copia negli appunti"</b> → input: variabile <b>Testo</b> del passo 4.</div>
       </div>
       <div class="shortcut-step">
         <span class="step-num">6</span>
-        <div>Salva con nome <b>RPGym</b>. Il gioco convertirà i passi in km automaticamente.</div>
+        <div>Salva con nome <b>RPGym</b>. Dopo averlo lanciato, apri RPGym dal tasto home — rileverà i passi in automatico.</div>
       </div>
     </div>`;
-
-  const copyUrlBtn = el('button', 'btn shortcut-import-btn wide');
-  copyUrlBtn.innerHTML = '📋 Copia URL base';
-  copyUrlBtn.addEventListener('click', () => {
-    const base = `${APP_BASE_URL}?sync_steps=`;
-    navigator.clipboard.writeText(base).then(() => toast('URL copiato! Usalo nell\'azione Testo dei Comandi Rapidi.')).catch(() => toast('Copia manuale: ' + base));
-  });
-  guideBody.appendChild(copyUrlBtn);
 
   const openShortcuts = el('button', 'btn btn-small wide shortcut-open-app');
   openShortcuts.innerHTML = '📱 Apri Comandi Rapidi';
@@ -2133,6 +2128,20 @@ function todayISO() { return new Date().toISOString().slice(0, 10); }
    Il Comando Rapido apre: https://.../?sync_km=5.2&sync_type=camminata
    Nessun server coinvolto: il numero arriva incollato nell'URL e il gioco
    lo applica all'eroe attualmente selezionato su QUESTO telefono. */
+async function checkClipboardSync() {
+  try {
+    if (!navigator.clipboard?.readText) return;
+    const text = await navigator.clipboard.readText();
+    if (!text || !text.startsWith('rpgym:')) return;
+    await navigator.clipboard.writeText(''); // consuma subito
+    const steps = parseInt(text.replace('rpgym:', ''), 10);
+    if (!HERO || isNaN(steps) || steps <= 0) return;
+    const km = Math.round(steps * 0.00075 * 100) / 100;
+    const report = RPG.logHealthSync(HERO, 'camminata', km);
+    if (report) { persist(); renderHUD(); showHealthSyncResult(report); }
+  } catch { /* permission negata o clipboard vuota */ }
+}
+
 function applyHealthSyncFromURL(hero) {
   try {
     const params = new URLSearchParams(location.search);
