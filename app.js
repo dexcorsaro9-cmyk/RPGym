@@ -1344,15 +1344,19 @@ function renderShortcutPanel() {
     <div class="shortcut-steps">
       <div class="shortcut-step">
         <span class="step-num">1</span>
-        <div>Apri l'app <b>Comandi Rapidi</b> e tocca <b>+</b> in alto a destra per creare un nuovo comando.</div>
+        <div>Apri <b>Comandi Rapidi</b> → tocca <b>+</b> per creare un nuovo comando.</div>
       </div>
       <div class="shortcut-step">
         <span class="step-num">2</span>
-        <div>Aggiungi l'azione <b>"Trova campioni di salute"</b>. Impostala su tipo <b>Distanza camminata e corsa</b>, periodo <b>Oggi</b>, aggrega su <b>Somma</b>.</div>
+        <div>Aggiungi <b>"Trova campioni di salute"</b> → tipo: <b>Distanza camminata e corsa</b> → filtra per data: <b>oggi</b>.</div>
       </div>
       <div class="shortcut-step">
         <span class="step-num">3</span>
-        <div>Aggiungi l'azione <b>"URL"</b> e incolla questo indirizzo, poi subito dopo <code>sync_km=</code> inserisci la variabile <i>Campioni di salute</i> del passo precedente:</div>
+        <div>Aggiungi <b>"Calcola statistiche"</b> → input: <i>Campioni di salute</i> → funzione: <b>Somma</b>. Questo somma tutti i segmenti del giorno.</div>
+      </div>
+      <div class="shortcut-step">
+        <span class="step-num">4</span>
+        <div>Aggiungi <b>"URL"</b> → incolla l'indirizzo qui sotto, poi dopo <code>sync_km=</code> inserisci la variabile <i>Statistica</i> del passo 3:</div>
       </div>
     </div>
     <div class="shortcut-url-box" style="margin:8px 0">
@@ -1360,12 +1364,12 @@ function renderShortcutPanel() {
     </div>
     <div class="shortcut-steps">
       <div class="shortcut-step">
-        <span class="step-num">4</span>
-        <div>Aggiungi l'azione <b>"Apri URL"</b> collegata all'URL del passo precedente.</div>
+        <span class="step-num">5</span>
+        <div>Aggiungi <b>"Apri URL"</b> collegata all'URL del passo 4.</div>
       </div>
       <div class="shortcut-step">
-        <span class="step-num">5</span>
-        <div>Dai un nome al comando (es. <b>RPGym</b>) e salvalo. Da ora si lancia con il pulsante ⚡ qui sopra e legge i km dal tuo iPhone <b>senza che tu inserisca nulla</b>.</div>
+        <span class="step-num">6</span>
+        <div>Salva con nome <b>RPGym</b>. Da ora il comando legge i km da Salute <b>in automatico</b> e li registra nel gioco.</div>
       </div>
     </div>`;
 
