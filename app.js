@@ -1283,7 +1283,7 @@ function getMG(id) {
   HERO.miniGames[id] = d;
   return d;
 }
-const MG_MAX = { dice: 1, cards: 3, runes: 3, forge: 2, archery: 3 };
+const MG_MAX = { dice:1, cards:3, runes:3, forge:2, archery:3, wheel:1, memory:2, tap:3, wham:3 };
 function mgCanPlay(id) { return getMG(id).n < MG_MAX[id]; }
 function mgRecord(id) { const m = getMG(id); m.n++; m.last = todayISO(); persist(); }
 function mgGiveReward(r) {
@@ -1332,11 +1332,15 @@ function renderMiniGamesHub(c) {
   const grid = document.createElement('div');
   grid.className = 'mg-grid';
   [
-    { id:'dice',    emoji:'🎲', name:'Dado del Destino',   open: openDiceGame },
-    { id:'cards',   emoji:'🃏', name:'Carte del Mercante', open: openCardsGame },
-    { id:'runes',   emoji:'🔮', name:'Rune Magiche',       open: openRunesGame },
-    { id:'forge',   emoji:'🔥', name:'Forgia Eroica',      open: openForgeGame },
-    { id:'archery', emoji:'🏹', name:'Balestra',           open: openArcheryGame },
+    { id:'dice',    emoji:'🎲', name:'Dado',          open: openDiceGame },
+    { id:'cards',   emoji:'🃏', name:'Carte',         open: openCardsGame },
+    { id:'runes',   emoji:'🔮', name:'Rune Magiche',  open: openRunesGame },
+    { id:'forge',   emoji:'🔥', name:'Forgia',        open: openForgeGame },
+    { id:'archery', emoji:'🏹', name:'Balestra',      open: openArcheryGame },
+    { id:'wheel',   emoji:'🎡', name:'Ruota',         open: openWheelGame },
+    { id:'memory',  emoji:'🧠', name:'Memory',        open: openMemoryGame },
+    { id:'tap',     emoji:'⚡', name:'Fulmine',       open: openTapGame },
+    { id:'wham',    emoji:'🌀', name:'Caccia Anime',  open: openWhamGame },
   ].forEach(g => {
     const m = getMG(g.id), max = MG_MAX[g.id], rem = max - m.n, done = rem <= 0;
     const card = document.createElement('div');
@@ -1703,6 +1707,232 @@ function openArcheryGame() {
   document.getElementById('mga-x').addEventListener('click', mgClose);
   closeBtn.addEventListener('click', mgClose);
   setTimeout(() => { _mgRAF = requestAnimationFrame(tick); }, 400);
+}
+
+/* ── 🎡 RUOTA DELLA FORTUNA ── */
+function openWheelGame() {
+  if (!mgCanPlay('wheel')) return;
+  const N = 8, DEG = 360 / N;
+  const SECTORS = [
+    { reward:{ gold:25 },          label:'🪙 25',  color:'#5a3db0' },
+    { reward:{ xp:40 },            label:'⭐ 40',  color:'#c0831a' },
+    { reward:{ wood:20, stone:20 },label:'🪵🪨',  color:'#2d6a2d' },
+    { reward:{ gold:80, xp:80 },   label:'🏆 JAK', color:'#b53020' },
+    { reward:{ stone:25 },         label:'🪨 25',  color:'#1a5a8a' },
+    { reward:{ xp:25 },            label:'⭐ 25',  color:'#5a3db0' },
+    { reward:{ gold:45 },          label:'🪙 45',  color:'#c0831a' },
+    { reward:{ gold:0 },           label:'💀',     color:'#2a2a2a' },
+  ];
+  const conic = SECTORS.map((s,i) => `${s.color} ${i*DEG}deg ${(i+1)*DEG}deg`).join(',');
+  const idx = Math.floor(Math.random() * N);
+  const wrap = document.createElement('div');
+  wrap.className = 'mg-wheel-wrap';
+  wrap.innerHTML = `
+    <button class="mg-x-btn" id="mgw-x">✕</button>
+    <div class="mg-game-title">🎡 Ruota della Fortuna</div>
+    <div class="mgw-scene">
+      <div class="mgw-pointer">▼</div>
+      <div class="mgw-wheel" id="mgw-wheel" style="background:conic-gradient(${conic})">
+        ${SECTORS.map((s,i)=>`<span class="mgw-lbl" style="--a:${i*DEG+DEG/2}deg">${s.label}</span>`).join('')}
+        <div class="mgw-hub"></div>
+      </div>
+    </div>
+    <button class="btn btn-primary wide mgw-spin-btn" id="mgw-spin">🎡 Gira la Ruota!</button>
+    <div class="mg-result-area" id="mgw-res"></div>
+    <button class="btn mg-close-btn hidden" id="mgw-close">Continua ›</button>`;
+  mgOverlay(wrap);
+  const wheel = document.getElementById('mgw-wheel');
+  const spinBtn = document.getElementById('mgw-spin');
+  const resEl = document.getElementById('mgw-res');
+  const closeBtn = document.getElementById('mgw-close');
+  let spun = false;
+  spinBtn.addEventListener('click', () => {
+    if (spun) return; spun = true; spinBtn.disabled = true; vibrate(30);
+    const totalRot = 5 * 360 + idx * DEG + DEG / 2;
+    wheel.style.transition = 'transform 3.5s cubic-bezier(.05,.9,.1,1)';
+    wheel.style.transform = `rotate(${totalRot}deg)`;
+    setTimeout(() => {
+      const s = SECTORS[idx];
+      if (s.reward.gold > 0 || s.reward.xp || s.reward.wood || s.reward.stone) mgGiveReward(s.reward);
+      mgRecord('wheel');
+      resEl.innerHTML = mgRewardHTML(s.reward, idx === 3 ? '🏆 JACKPOT!' : idx === 7 ? '💀 Sfiga!' : s.label, idx === 7 ? 'Nessuna ricompensa.' : '');
+      resEl.classList.add('mg-res-in'); closeBtn.classList.remove('hidden');
+    }, 3700);
+  });
+  document.getElementById('mgw-x').addEventListener('click', mgClose);
+  closeBtn.addEventListener('click', mgClose);
+}
+
+/* ── 🧠 MEMORY DELLE RUNE ── */
+function openMemoryGame() {
+  if (!mgCanPlay('memory')) return;
+  const SYMS = ['🌙','⚡','🔥','🌊','⚔️','🛡️'];
+  const pairs = [...SYMS,...SYMS].sort(()=>Math.random()-.5);
+  let flipped=[], matched=0, mistakes=0, locked=false;
+  const wrap = document.createElement('div');
+  wrap.className = 'mg-memory-wrap';
+  wrap.innerHTML = `
+    <button class="mg-x-btn" id="mgm-x">✕</button>
+    <div class="mg-game-title">🧠 Memory delle Rune</div>
+    <div class="mgm-hud">Coppie <span id="mgm-m">0</span>/6 · Errori <span id="mgm-e">0</span></div>
+    <div class="mgm-grid" id="mgm-grid"></div>
+    <div class="mg-result-area" id="mgm-res"></div>
+    <button class="btn mg-close-btn hidden" id="mgm-close">Continua ›</button>`;
+  mgOverlay(wrap);
+  const grid = document.getElementById('mgm-grid');
+  const mEl = document.getElementById('mgm-m');
+  const eEl = document.getElementById('mgm-e');
+  const resEl = document.getElementById('mgm-res');
+  const closeBtn = document.getElementById('mgm-close');
+  const cardEls = pairs.map((sym, i) => {
+    const c = document.createElement('div'); c.className = 'mgm-card';
+    c.innerHTML = `<div class="mgm-inner"><div class="mgm-back"><span>✦</span></div><div class="mgm-front">${sym}</div></div>`;
+    c.addEventListener('click', () => {
+      if (locked || c.classList.contains('mgm-flipped') || c.classList.contains('mgm-ok')) return;
+      c.classList.add('mgm-flipped'); vibrate(20);
+      flipped.push({ c, sym });
+      if (flipped.length < 2) return;
+      locked = true;
+      const [a, b] = flipped;
+      if (a.sym === b.sym) {
+        a.c.classList.add('mgm-ok'); b.c.classList.add('mgm-ok');
+        matched++; mEl.textContent = matched; flipped = []; locked = false;
+        if (matched === 6) {
+          const xp = Math.max(10, 90 - mistakes * 12), gold = Math.max(5, 35 - mistakes * 5);
+          mgGiveReward({ xp, gold }); mgRecord('memory');
+          resEl.innerHTML = mgRewardHTML({ xp, gold }, `Completato! ${mistakes} error${mistakes===1?'e':'i'}`, mistakes === 0 ? '🏆 Senza errori!' : '');
+          resEl.classList.add('mg-res-in'); closeBtn.classList.remove('hidden');
+        }
+      } else {
+        mistakes++; eEl.textContent = mistakes;
+        a.c.classList.add('mgm-wrong'); b.c.classList.add('mgm-wrong');
+        setTimeout(() => { a.c.classList.remove('mgm-flipped','mgm-wrong'); b.c.classList.remove('mgm-flipped','mgm-wrong'); flipped=[]; locked=false; }, 900);
+      }
+    });
+    grid.appendChild(c); return c;
+  });
+  document.getElementById('mgm-x').addEventListener('click', mgClose);
+  closeBtn.addEventListener('click', mgClose);
+}
+
+/* ── ⚡ FURIA DEL FULMINE ── */
+function openTapGame() {
+  if (!mgCanPlay('tap')) return;
+  let power=0, taps=0, running=false, cdTimer=null;
+  const DURATION = 6;
+  const wrap = document.createElement('div');
+  wrap.className = 'mg-tap-wrap';
+  wrap.innerHTML = `
+    <button class="mg-x-btn" id="mgt-x">✕</button>
+    <div class="mg-game-title">⚡ Furia del Fulmine</div>
+    <p class="mg-hint" id="mgt-hint">Tocca il più veloce possibile per 6 secondi!</p>
+    <div class="mgt-bar-wrap"><div class="mgt-bar-fill" id="mgt-fill"><div class="mgt-bar-glow"></div></div></div>
+    <div class="mgt-countdown" id="mgt-cd">6</div>
+    <button class="btn btn-primary mgt-btn" id="mgt-btn">⚡ TAP!</button>
+    <div class="mgt-taps">Tap: <span id="mgt-taps">0</span></div>
+    <div class="mg-result-area" id="mgt-res"></div>
+    <button class="btn mg-close-btn hidden" id="mgt-close">Continua ›</button>`;
+  mgOverlay(wrap);
+  const hint = document.getElementById('mgt-hint');
+  const fill = document.getElementById('mgt-fill');
+  const cdEl = document.getElementById('mgt-cd');
+  const tapBtn = document.getElementById('mgt-btn');
+  const tapsEl = document.getElementById('mgt-taps');
+  const resEl = document.getElementById('mgt-res');
+  const closeBtn = document.getElementById('mgt-close');
+  let endAt, finished = false;
+  function endGame() {
+    if (finished) return; finished = true;
+    clearInterval(cdTimer); tapBtn.disabled = true;
+    const xp = Math.round(power / 100 * 80), gold = Math.round(power / 100 * 30);
+    mgGiveReward({ xp, gold }); mgRecord('tap');
+    resEl.innerHTML = mgRewardHTML({ xp, gold }, `${taps} tap · ${Math.round(power)}% potere`, power >= 80 ? '⚡ Fulminante!' : power >= 50 ? 'Ottimo!' : 'Puoi fare meglio!');
+    resEl.classList.add('mg-res-in'); closeBtn.classList.remove('hidden');
+    hint.style.display = 'none'; cdEl.style.display = 'none';
+  }
+  tapBtn.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    if (finished) return;
+    if (!running) {
+      running = true; hint.textContent = 'FORZA!'; endAt = Date.now() + DURATION * 1000;
+      cdTimer = setInterval(() => {
+        const rem = Math.ceil((endAt - Date.now()) / 1000);
+        cdEl.textContent = rem > 0 ? rem : 0;
+        if (Date.now() >= endAt) endGame();
+      }, 80);
+    }
+    taps++; tapsEl.textContent = taps;
+    power = Math.min(100, power + 7 * (1 - power / 130));
+    fill.style.height = power + '%';
+    fill.style.background = `linear-gradient(to top,#ff4500,${power>60?'#ffd700':'#ff8c00'})`;
+    vibrate(8);
+  });
+  document.getElementById('mgt-x').addEventListener('click', () => { clearInterval(cdTimer); mgClose(); });
+  closeBtn.addEventListener('click', mgClose);
+}
+
+/* ── 🌀 CACCIA ALLE ANIME ── */
+function openWhamGame() {
+  if (!mgCanPlay('wham')) return;
+  let score=0, active=new Set(), gameTimer=null, spawnTimer=null;
+  const GAME_MS = 15000;
+  const wrap = document.createElement('div');
+  wrap.className = 'mg-wham-wrap';
+  wrap.innerHTML = `
+    <button class="mg-x-btn" id="mgwh-x">✕</button>
+    <div class="mg-game-title">🌀 Caccia alle Anime</div>
+    <div class="mgwh-hud">Anime: <b id="mgwh-s">0</b> · <span id="mgwh-cd">15s</span></div>
+    <div class="mgwh-grid" id="mgwh-grid"></div>
+    <button class="btn btn-primary wide" id="mgwh-start">🌀 Inizia!</button>
+    <div class="mg-result-area" id="mgwh-res"></div>
+    <button class="btn mg-close-btn hidden" id="mgwh-close">Continua ›</button>`;
+  mgOverlay(wrap);
+  const grid = document.getElementById('mgwh-grid');
+  const scoreEl = document.getElementById('mgwh-s');
+  const cdEl = document.getElementById('mgwh-cd');
+  const startBtn = document.getElementById('mgwh-start');
+  const resEl = document.getElementById('mgwh-res');
+  const closeBtn = document.getElementById('mgwh-close');
+  const orbs = Array.from({length:9},(_,i) => {
+    const cell = document.createElement('div'); cell.className = 'mgwh-cell';
+    const orb = document.createElement('div'); orb.className = 'mgwh-orb';
+    orb.addEventListener('click', () => {
+      if (!active.has(i)) return;
+      active.delete(i); orb.classList.remove('mgwh-active'); orb.classList.add('mgwh-caught');
+      vibrate(30); score++; scoreEl.textContent = score;
+      setTimeout(() => orb.classList.remove('mgwh-caught'), 300);
+    });
+    cell.appendChild(orb); grid.appendChild(cell); return orb;
+  });
+  function showOrb(i) {
+    if (active.has(i)) return;
+    active.add(i); orbs[i].classList.add('mgwh-active');
+    const ttl = 600 + Math.random() * 900;
+    setTimeout(() => { if (active.has(i)) { active.delete(i); orbs[i].classList.remove('mgwh-active'); } }, ttl);
+  }
+  function endGame() {
+    clearTimeout(gameTimer); clearInterval(spawnTimer);
+    startBtn.style.display = 'none';
+    const xp = score * 7, gold = score * 3;
+    mgGiveReward({ xp, gold }); mgRecord('wham');
+    resEl.innerHTML = mgRewardHTML({ xp, gold }, `${score} anime catturate!`, score >= 12 ? '🌟 Leggendario!' : score >= 7 ? '⭐ Ottimo!' : 'Allenati ancora!');
+    resEl.classList.add('mg-res-in'); closeBtn.classList.remove('hidden'); cdEl.style.display = 'none';
+  }
+  startBtn.addEventListener('click', () => {
+    startBtn.style.display = 'none';
+    const endAt = Date.now() + GAME_MS;
+    const cdInterval = setInterval(() => {
+      const r = Math.ceil((endAt - Date.now()) / 1000);
+      cdEl.textContent = r > 0 ? r + 's' : '0s';
+    }, 100);
+    spawnTimer = setInterval(() => {
+      const free = Array.from({length:9},(_,k)=>k).filter(k=>!active.has(k));
+      if (free.length) showOrb(free[Math.floor(Math.random()*free.length)]);
+    }, 350);
+    gameTimer = setTimeout(() => { clearInterval(cdInterval); clearInterval(spawnTimer); endGame(); }, GAME_MS);
+  });
+  document.getElementById('mgwh-x').addEventListener('click', () => { clearTimeout(gameTimer); clearInterval(spawnTimer); mgClose(); });
+  closeBtn.addEventListener('click', mgClose);
 }
 
 /* ── Pannello Comandi Rapidi / Apple Salute ── */

@@ -1661,8 +1661,7 @@ body {
 
 /* Hub */
 .mg-hub { padding: 16px; }
-.mg-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 8px; }
-@media (max-width:400px) { .mg-grid { grid-template-columns: repeat(3,1fr); } }
+.mg-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
 
 .mg-card {
   position: relative; overflow: hidden;
@@ -1933,3 +1932,141 @@ body {
 .mga-arrow-pip { transition:opacity .3s; }
 .mga-arrow-pip.mga-pip-used { opacity:.2; }
 .mga-total { text-align:center; color:var(--gold-bright); font-family:'Cinzel',serif; margin-top:4px; }
+
+/* ── 🎡 RUOTA ── */
+.mg-wheel-wrap { padding-top: 8px; }
+.mgw-scene { position: relative; display: flex; justify-content: center; margin: 10px 0 18px; }
+.mgw-pointer {
+  position: absolute; top: -14px; z-index: 2;
+  color: var(--gold-bright); font-size: 1.6rem;
+  filter: drop-shadow(0 2px 6px rgba(180,140,20,.5));
+}
+.mgw-wheel {
+  width: 200px; height: 200px; border-radius: 50%;
+  position: relative; overflow: hidden;
+  border: 3px solid var(--gold);
+  box-shadow: 0 0 30px rgba(180,140,20,.25), 0 4px 20px rgba(0,0,0,.5);
+  transition: none;
+}
+.mgw-lbl {
+  position: absolute; top: 50%; left: 50%; font-size: .55rem;
+  color: #fff; font-family: 'Cinzel', serif; font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0,0,0,.9);
+  transform: translate(-50%,-50%) rotate(var(--a)) translateY(-62px) rotate(calc(var(--a) * -1));
+  pointer-events: none; white-space: nowrap;
+}
+.mgw-hub {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  width: 28px; height: 28px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ffe080, #c9932e);
+  border: 2px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,.5);
+  z-index: 2;
+}
+.mgw-spin-btn { margin: 0 auto; display: block; }
+
+/* ── 🧠 MEMORY ── */
+.mg-memory-wrap { padding-top: 8px; }
+.mgm-hud { text-align:center; color:var(--gold-bright); font-size:.85rem; margin-bottom:14px; font-family:'Cinzel',serif; }
+.mgm-grid {
+  display: grid; grid-template-columns: repeat(4,1fr); gap: 8px;
+  max-width: 320px; margin: 0 auto;
+}
+.mgm-card {
+  aspect-ratio: 3/4; perspective: 500px; cursor: pointer;
+}
+.mgm-inner {
+  width:100%; height:100%; position:relative;
+  transform-style: preserve-3d;
+  transition: transform .45s cubic-bezier(.4,0,.2,1);
+  border-radius: 8px;
+}
+.mgm-card.mgm-flipped .mgm-inner { transform: rotateY(180deg); }
+.mgm-back, .mgm-front {
+  position: absolute; inset: 0; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  backface-visibility: hidden;
+  border: 1.5px solid rgba(180,140,20,.4);
+}
+.mgm-back {
+  background: linear-gradient(145deg,#2e1e0a,#140c02);
+  font-size: 1.1rem; color: rgba(255,210,80,.5);
+}
+.mgm-front {
+  background: linear-gradient(145deg,#3a2810,#1e1005);
+  font-size: 1.6rem;
+  transform: rotateY(180deg);
+  border-color: var(--gold);
+  box-shadow: 0 0 12px rgba(180,140,20,.2);
+}
+.mgm-card.mgm-ok .mgm-front {
+  background: linear-gradient(145deg,rgba(20,80,20,.8),rgba(10,40,10,.9));
+  border-color: #4caf50;
+  box-shadow: 0 0 16px rgba(76,175,80,.3);
+}
+.mgm-card.mgm-wrong .mgm-inner { animation: mgShake .4s ease; }
+
+/* ── ⚡ FURIA DEL FULMINE ── */
+.mg-tap-wrap { padding-top: 8px; }
+.mgt-bar-wrap {
+  width: 60px; height: 200px; margin: 0 auto 12px;
+  background: rgba(0,0,0,.5); border: 2px solid rgba(255,200,50,.3);
+  border-radius: 30px; overflow: hidden; position: relative;
+}
+.mgt-bar-fill {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 0%;
+  background: linear-gradient(to top, #ff4500, #ffd700);
+  border-radius: 0 0 28px 28px;
+  transition: height .08s ease;
+}
+.mgt-bar-glow {
+  position: absolute; inset: 0;
+  background: linear-gradient(to right, transparent, rgba(255,255,255,.15), transparent);
+}
+.mgt-countdown {
+  text-align: center; font-family: 'Cinzel', serif; font-size: 2.5rem;
+  color: var(--gold-bright); text-shadow: 0 0 20px rgba(255,200,50,.4);
+  margin: 4px 0;
+}
+.mgt-btn {
+  display: block; margin: 8px auto;
+  width: 120px; height: 120px; border-radius: 50% !important;
+  font-size: 2rem;
+  box-shadow: 0 4px 20px rgba(180,140,20,.4), 0 0 0 4px rgba(180,140,20,.2);
+  transition: transform .08s, box-shadow .08s;
+}
+.mgt-btn:active { transform: scale(.92); box-shadow: 0 2px 8px rgba(180,140,20,.3); }
+.mgt-taps { text-align:center; color:rgba(255,220,120,.6); font-size:.85rem; margin-top:4px; }
+
+/* ── 🌀 CACCIA ALLE ANIME ── */
+.mg-wham-wrap { padding-top: 8px; }
+.mgwh-hud { text-align:center; font-family:'Cinzel',serif; color:var(--gold-bright); margin-bottom:14px; font-size:.9rem; }
+.mgwh-grid {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 10px;
+  max-width: 280px; margin: 0 auto 16px;
+}
+.mgwh-cell {
+  aspect-ratio: 1; border-radius: 50%;
+  background: rgba(0,0,0,.4); border: 1.5px solid rgba(255,210,80,.1);
+  display: flex; align-items: center; justify-content: center;
+}
+.mgwh-orb {
+  width: 70%; height: 70%; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, rgba(200,120,255,.9), rgba(80,0,200,.6));
+  box-shadow: 0 0 0 0 rgba(160,80,255,.5);
+  opacity: 0; transform: scale(0);
+  transition: opacity .15s, transform .15s;
+  cursor: pointer;
+}
+.mgwh-orb.mgwh-active {
+  opacity: 1; transform: scale(1);
+  animation: mgwPulse 1s ease-in-out infinite;
+}
+.mgwh-orb.mgwh-caught {
+  background: radial-gradient(circle at 35% 30%, #fff, var(--gold-bright));
+  transform: scale(1.3); opacity: 0;
+  transition: all .3s ease;
+}
+@keyframes mgwPulse {
+  0%,100%{ box-shadow: 0 0 0 0 rgba(160,80,255,.5); }
+  50%     { box-shadow: 0 0 16px 6px rgba(160,80,255,.3); }
+}
