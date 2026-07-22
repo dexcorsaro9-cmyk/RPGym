@@ -1256,9 +1256,6 @@ function renderTrain(c) {
   form.appendChild(go);
   c.appendChild(form);
 
-  // ── Comandi Rapidi / Apple Salute ──
-  c.appendChild(renderShortcutPanel());
-
   // ── L'Arena dei Guerrieri ──
   const left = RPG.battlesLeft(HERO);
   const ap = el('div', 'panel arena-panel');
@@ -1732,6 +1729,7 @@ function renderHero(c) {
   if (HERO_VIEW === 'cards') { renderCardsView(c); return; }
   if (HERO_VIEW === 'bestiary') { renderBestiaryView(c); return; }
   if (HERO_VIEW === 'story') { renderStoryView(c); return; }
+  if (HERO_VIEW === 'settings') { renderSettingsView(c); return; }
 
   const titleH2 = el('h2', 'section-title on-parchment-title', '🛡️ Scheda dell\'Eroe');
   const titleIcon = new Image();
@@ -1809,6 +1807,10 @@ function renderHero(c) {
     b.addEventListener('click', () => { HERO_VIEW = k; setTab('hero'); });
     sub.appendChild(b);
   });
+  const settBtn = el('button', 'btn submenu-btn');
+  settBtn.innerHTML = `<span class="submenu-emoji">⚙️</span><span>Impostazioni</span>`;
+  settBtn.addEventListener('click', () => { HERO_VIEW = 'settings'; setTab('hero'); });
+  sub.appendChild(settBtn);
   c.appendChild(sub);
 
   // Statistiche
@@ -1837,6 +1839,14 @@ function renderHero(c) {
   const sw = el('button', 'btn wide', '↩ Cambia Eroe');
   sw.addEventListener('click', () => { STATE.current = null; persist(); renderProfiles(); });
   c.appendChild(sw);
+}
+
+function renderSettingsView(c) {
+  const back = el('button', 'btn btn-small', '← Eroe');
+  back.addEventListener('click', () => { HERO_VIEW = 'main'; setTab('hero'); });
+  c.appendChild(back);
+  c.appendChild(el('h2', 'section-title', '⚙️ Impostazioni'));
+  c.appendChild(renderShortcutPanel());
 }
 
 function openSlotPicker(slotKey) {
