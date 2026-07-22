@@ -2137,3 +2137,35 @@ body {
   0%,100%{ box-shadow: 0 0 0 0 rgba(160,80,255,.5); }
   50%     { box-shadow: 0 0 16px 6px rgba(160,80,255,.3); }
 }
+
+/* ── Sfide Giornaliere ── */
+.challenge-title-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+}
+.challenge-row {
+  margin-bottom: 10px; padding: 8px; border-radius: 8px;
+  background: rgba(0,0,0,.06);
+}
+.challenge-row.ch-completable {
+  background: rgba(201,147,46,.12);
+  border: 1px solid rgba(201,147,46,.35);
+}
+.challenge-row.ch-claimed {
+  opacity: .5;
+}
+.challenge-head {
+  display: flex; align-items: flex-start; gap: 8px; margin-bottom: 4px;
+}
+.challenge-icon { font-size: 1.2rem; flex-shrink: 0; }
+.challenge-mid  { flex: 1; display: flex; flex-direction: column; gap: 1px; }
+.challenge-label { font-weight: 600; font-size: .95rem; }
+.challenge-rew  { color: var(--ink-light); }
+.challenge-check { color: var(--emerald); font-weight: 700; font-size: 1.1rem; }
+.challenge-bonus-row {
+  margin-top: 8px; padding: 6px 8px; border-radius: 6px;
+  background: rgba(0,0,0,.06);
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: .88rem; font-weight: 600; color: var(--ink-light);
+}
+.challenge-bonus-row.ch-claimed { opacity: .5; }
+.membar-fill.blue { background: linear-gradient(90deg, #2e6fb0, #4a9fd4); }

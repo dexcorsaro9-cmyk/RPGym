@@ -247,6 +247,7 @@ function endBattle(heroWon) {
 
   if (heroWon) {
     const chest = RPG.battleReward(HERO, b.v);
+    RPG.updateChallengeProgress(HERO, 'arena', 1);
     persist(); renderHUD();
     sfx('level');
     if (center) center.innerHTML = `<div class="battle-result win">VITTORIA!</div>`;

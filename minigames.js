@@ -45,7 +45,11 @@ const MG_B = {
 };
 // ────────────────────────────────────────────────────────────────────────────
 function mgCanPlay(id) { return getMG(id).n < MG_MAX[id]; }
-function mgRecord(id) { const m = getMG(id); m.n++; m.last = todayISO(); persist(); }
+function mgRecord(id) {
+  const m = getMG(id); m.n++; m.last = todayISO();
+  RPG.updateChallengeProgress(HERO, 'minigame', 1);
+  persist();
+}
 function mgGiveReward(r) {
   if (r.gold)  HERO.gold  = Math.max(0, (HERO.gold  || 0) + r.gold);
   if (r.wood)  HERO.wood  = Math.max(0, (HERO.wood  || 0) + r.wood);

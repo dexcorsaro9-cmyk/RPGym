@@ -1196,6 +1196,61 @@ function zoneIcon(zone) {
 }
 
 /* ── TAB: Allenati ── */
+function renderDailyChallenges(c) {
+  const dc = RPG.getDailyChallenges(HERO);
+  const claimable = dc.list.filter(ch => ch.progress >= ch.target && !ch.claimed).length;
+  const panel = el('div', 'panel');
+  const titleRow = el('div', 'challenge-title-row');
+  titleRow.innerHTML = `<h3 class="panel-title" style="margin:0">🎯 Sfide del Giorno</h3>`;
+  if (claimable) titleRow.appendChild(el('span', 'mg-card-badge', String(claimable)));
+  panel.appendChild(titleRow);
+
+  dc.list.forEach((ch, i) => {
+    const done = ch.progress >= ch.target;
+    const row = el('div', 'challenge-row' + (ch.claimed ? ' ch-claimed' : done ? ' ch-completable' : ''));
+    const pct = Math.min(100, Math.round(ch.progress / ch.target * 100));
+    const progTxt = ch.type === 'km'
+      ? `${Math.min(ch.progress, ch.target).toFixed(1)} / ${ch.target} km`
+      : `${Math.min(Math.round(ch.progress), ch.target)} / ${ch.target}`;
+    row.innerHTML = `
+      <div class="challenge-head">
+        <span class="challenge-icon">${ch.icon}</span>
+        <div class="challenge-mid">
+          <span class="challenge-label">${esc(ch.label)}</span>
+          <span class="challenge-rew muted small">🪙 ${ch.reward.gold} &nbsp;⭐ ${ch.reward.xp} XP</span>
+        </div>
+        ${ch.claimed ? '<span class="challenge-check">✓</span>' : ''}
+      </div>
+      <div class="membar slim">
+        <div class="membar-fill ${done ? 'gold' : 'blue'}" style="width:${pct}%"></div>
+        <span>${progTxt}</span>
+      </div>`;
+    if (done && !ch.claimed) {
+      const btn = el('button', 'btn btn-primary btn-small wide', '✅ Riscuoti');
+      btn.addEventListener('click', () => {
+        const r = RPG.claimChallenge(HERO, i);
+        persist(); renderHUD();
+        if (r && r.ok) {
+          toast(r.bonus
+            ? `🌟 BONUS COMPLETO! +${r.bonus.gold + r.reward.gold}🪙 +${r.bonus.xp + r.reward.xp}⭐`
+            : `🎯 +${r.reward.gold}🪙 +${r.reward.xp}⭐`);
+          sfx('coin');
+        } else toast(r);
+        updateBadges(); setTab('train');
+      });
+      row.appendChild(btn);
+    }
+    panel.appendChild(row);
+  });
+
+  const bonusRow = el('div', 'challenge-bonus-row' + (dc.bonusClaimed ? ' ch-claimed' : ''));
+  bonusRow.innerHTML = `<span>🌟 Tutte e 3 — Bonus</span>
+    <span class="muted small">+${RPG.DAILY_CHALLENGES_BONUS.gold}🪙 +${RPG.DAILY_CHALLENGES_BONUS.xp}⭐
+    ${dc.bonusClaimed ? ' · ✓ riscosso' : ''}</span>`;
+  panel.appendChild(bonusRow);
+  c.appendChild(panel);
+}
+
 function renderTrain(c) {
   c.appendChild(el('h2', 'section-title', '⚔️ Registra l\'Impresa'));
   c.appendChild(el('p', 'muted small center',
@@ -1269,6 +1324,7 @@ function renderTrain(c) {
   ap.appendChild(abtn);
   c.appendChild(ap);
 
+  renderDailyChallenges(c);
   renderMiniGamesHub(c);
 }
 
@@ -2423,6 +2479,8 @@ function updateBadges() {
   set('market', HERO.forgeSeen !== todayISO());
   set('hero', Object.entries(HERO.equipment || {}).some(([s, id]) =>
     !id && (HERO.items || []).some(i => i.slot === s)));
+  const dc = RPG.getDailyChallenges(HERO);
+  set('train', dc.list.some(ch => ch.progress >= ch.target && !ch.claimed));
 }
 
 /* ── Countdown live (aggiornati ogni secondo) ── */
