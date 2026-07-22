@@ -2131,14 +2131,18 @@ function todayISO() { return new Date().toISOString().slice(0, 10); }
 async function checkClipboardSync() {
   try {
     if (!navigator.clipboard?.readText) return;
-    const text = await navigator.clipboard.readText();
-    if (!text || !text.startsWith('rpgym:')) return;
-    await navigator.clipboard.writeText(''); // consuma subito
-    const steps = parseInt(text.replace('rpgym:', ''), 10);
+    const text = (await navigator.clipboard.readText() || '').trim();
+    if (!text.startsWith('rpgym:')) return;
+    await navigator.clipboard.writeText('');
+    // rimuove separatori migliaia (iOS locale IT: "5.320" → "5320")
+    const raw = text.replace('rpgym:', '').replace(/[^\d]/g, '');
+    const steps = parseInt(raw, 10);
     if (!HERO || isNaN(steps) || steps <= 0) return;
     const km = Math.round(steps * 0.00075 * 100) / 100;
+    if (km < 0.05) { toast(`⚡ ${steps} passi rilevati (${km} km) — troppo pochi per registrare.`); return; }
     const report = RPG.logHealthSync(HERO, 'camminata', km);
     if (report) { persist(); renderHUD(); showHealthSyncResult(report); }
+    else toast('Attività già sincronizzata per oggi.');
   } catch { /* permission negata o clipboard vuota */ }
 }
 
