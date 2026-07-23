@@ -300,6 +300,8 @@ function show(id) {
     // Rimuovi dopo la fine dell'animazione: transform residuo rompe position:fixed
     setTimeout(() => s.classList.remove('screen-enter'), 400);
   });
+  const fab = $('#fab-km');
+  if (fab) fab.classList.toggle('hidden', id !== 'screen-game');
 }
 
 function emptyState(icon, text) {
@@ -655,6 +657,28 @@ document.querySelectorAll('#tabbar .tab').forEach(t =>
     _tabClickTs = now;
     setTab(t.dataset.tab);
   }));
+
+// Swipe orizzontale su #tab-content → cambia tab
+const _TAB_ORDER = ['camp', 'map', 'train', 'market', 'hero'];
+let _swX = null, _swY = null;
+document.addEventListener('touchstart', e => {
+  if ($('#screen-game').classList.contains('hidden')) return;
+  _swX = e.touches[0].clientX; _swY = e.touches[0].clientY;
+}, { passive: true });
+document.addEventListener('touchend', e => {
+  if (_swX === null) return;
+  const dx = e.changedTouches[0].clientX - _swX;
+  const dy = e.changedTouches[0].clientY - _swY;
+  _swX = null; _swY = null;
+  if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+  if (document.querySelector('.fab-sheet-overlay') || document.getElementById('modal').classList.contains('hidden') === false) return;
+  const idx = _TAB_ORDER.indexOf(CURRENT_TAB);
+  if (dx < 0 && idx < _TAB_ORDER.length - 1) setTab(_TAB_ORDER[idx + 1]);
+  if (dx > 0 && idx > 0) setTab(_TAB_ORDER[idx - 1]);
+}, { passive: true });
+
+// FAB → log rapido km
+document.getElementById('fab-km').addEventListener('click', () => { if (HERO) showFabKm(); });
 
 // Tocco sulle risorse dell'header → popup dettaglio
 document.querySelector('.hud-right').addEventListener('click', () => { if (HERO) showResources(); });
@@ -1892,6 +1916,69 @@ function showLevelUp(newLevel) {
   ov.addEventListener('click', () => { clearTimeout(tid); dismiss(); });
 }
 
+function showFabKm() {
+  const old = document.getElementById('fab-sheet-ov');
+  if (old) old.remove();
+  let chosen = 'camminata';
+
+  const ov = document.createElement('div');
+  ov.id = 'fab-sheet-ov';
+  ov.className = 'fab-sheet-overlay';
+
+  const backdrop = document.createElement('div');
+  backdrop.className = 'fab-sheet-backdrop';
+  ov.appendChild(backdrop);
+
+  const sheet = document.createElement('div');
+  sheet.className = 'fab-sheet';
+
+  sheet.appendChild(Object.assign(document.createElement('div'), { className: 'fab-sheet-title', textContent: '⚡ Log rapido' }));
+
+  const pills = document.createElement('div');
+  pills.className = 'fab-act-pills';
+  Object.entries(RPG.ACTIVITIES).forEach(([key, a]) => {
+    const b = document.createElement('button');
+    b.className = 'fab-act-pill' + (key === chosen ? ' active' : '');
+    b.dataset.key = key;
+    b.textContent = `${a.icon} ${a.label}`;
+    pills.appendChild(b);
+  });
+  pills.addEventListener('click', e => {
+    const btn = e.target.closest('[data-key]');
+    if (!btn) return;
+    chosen = btn.dataset.key;
+    pills.querySelectorAll('.fab-act-pill').forEach(b => b.classList.toggle('active', b.dataset.key === chosen));
+  });
+  sheet.appendChild(pills);
+
+  const input = document.createElement('input');
+  input.className = 'input';
+  input.type = 'number'; input.step = '0.1'; input.min = '0';
+  input.placeholder = 'Chilometri (es. 5.2)'; input.inputMode = 'decimal';
+  sheet.appendChild(input);
+
+  const go = document.createElement('button');
+  go.className = 'btn btn-primary wide';
+  go.textContent = '🔥 Sincronizza';
+  go.addEventListener('click', () => {
+    const km = parseFloat(input.value);
+    const report = RPG.logWorkout(HERO, chosen, km);
+    if (report.error) { toast(report.error); return; }
+    persist();
+    sfx(report.levelsGained.length ? 'level' : 'coin');
+    dismiss();
+    showReport(report);
+  });
+  sheet.appendChild(go);
+  ov.appendChild(sheet);
+  document.body.appendChild(ov);
+  requestAnimationFrame(() => ov.classList.add('fab-sheet-visible'));
+  setTimeout(() => input.focus(), 320);
+
+  const dismiss = () => { ov.classList.remove('fab-sheet-visible'); setTimeout(() => ov.remove(), 300); };
+  backdrop.addEventListener('click', dismiss);
+}
+
 function showReport(r) {
   const a = RPG.ACTIVITIES[r.type];
   const xpNeed = RPG.xpForLevel(HERO.level);
@@ -3070,6 +3157,9 @@ function updateBadges() {
   const wc = RPG.getWeeklyChallenges(HERO);
   set('train', dc.list.some(ch => ch.progress >= ch.target && !ch.claimed)
     || wc.list.some(ch => ch.progress >= ch.target && !ch.claimed));
+  const expReady = HERO.pet && HERO.pet.hatched && HERO.pet.expedition && RPG.expeditionStatus(HERO)?.ready;
+  const eggReady = HERO.pet && !HERO.pet.hatched && RPG.eggProgress(HERO)?.ready;
+  set('camp', !!(expReady || eggReady));
 }
 
 /* ── Countdown live (aggiornati ogni secondo) ── */
