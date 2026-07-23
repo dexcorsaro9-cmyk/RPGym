@@ -20,6 +20,34 @@ const RPG = (() => {
   const MEMORY_FRAGMENT_KM = 20;   // ogni 20 km → un Frammento di Memoria
   const LOOT_BAG_KM = 5;           // ogni 5 km → un Sacco del Viaggiatore
 
+  const WEEKLY_BOSSES = [
+    { id: 'troll',    name: 'Troll delle Paludi',     km: 30, icon: '👹', zone: 'Palude',  gold: 200 },
+    { id: 'wyvern',   name: 'Wyverna delle Nevi',     km: 40, icon: '🦎', zone: 'Tundra',  gold: 300 },
+    { id: 'golem',    name: 'Golem di Pietra',         km: 25, icon: '🗿', zone: 'Montagna',gold: 150 },
+    { id: 'banshee',  name: 'Banshee della Foresta',  km: 35, icon: '👻', zone: 'Foresta', gold: 250 },
+    { id: 'basilisk', name: 'Basilisco Antico',        km: 45, icon: '🐍', zone: 'Deserto', gold: 350 },
+    { id: 'harpy',    name: 'Arpia Crestata',          km: 20, icon: '🦅', zone: 'Prateria',gold: 120 },
+    { id: 'vampire',  name: 'Vampiro dei Pinnacoli',   km: 50, icon: '🧛', zone: 'Castello',gold: 400 },
+  ];
+
+  function rolloverWeeklyBoss(hero) {
+    const ws = weekStamp();
+    if (!hero.weeklyBoss || hero.weeklyBoss.weekStamp !== ws) {
+      const wsNum = parseInt(ws.split('-')[1]) || 0;
+      const boss = WEEKLY_BOSSES[wsNum % WEEKLY_BOSSES.length];
+      hero.weeklyBoss = { id: boss.id, weekStamp: ws, progressKm: 0, claimed: false };
+    }
+  }
+
+  function weeklyBossStatus(hero) {
+    if (!hero.weeklyBoss) return null;
+    const boss = WEEKLY_BOSSES.find(b => b.id === hero.weeklyBoss.id);
+    if (!boss) return null;
+    const prog = hero.weeklyBoss.progressKm;
+    const done = prog >= boss.km;
+    return { boss, progressKm: prog, done, claimed: hero.weeklyBoss.claimed };
+  }
+
   const TROPHIES = [
     { id: 't10',   km: 10,   icon: '🥉', name: 'Primi Passi',          desc: '10 km percorsi' },
     { id: 't25',   km: 25,   icon: '🎖️', name: 'Viandante',            desc: '25 km percorsi' },
@@ -960,6 +988,7 @@ const RPG = (() => {
     h.miniGames       = h.miniGames       || {};
     h.dailyChallenges = h.dailyChallenges || null;
     h.trophies        = h.trophies        || [];
+    h.weeklyBoss      = h.weeklyBoss      || null;
 
     h.schemaVersion = SCHEMA_VERSION;
     return h;
@@ -1145,6 +1174,17 @@ const RPG = (() => {
     hero.totalKm += km;
     hero.kmByType[type] = (hero.kmByType[type] || 0) + km;
     updateChallengeProgress(hero, 'km', km);
+
+    // Boss settimanale
+    if (hero.weeklyBoss && !hero.weeklyBoss.claimed) {
+      const bossData = WEEKLY_BOSSES.find(b => b.id === hero.weeklyBoss.id);
+      if (bossData && hero.weeklyBoss.progressKm < bossData.km) {
+        hero.weeklyBoss.progressKm = Math.min(bossData.km, hero.weeklyBoss.progressKm + km);
+        const wasDefeated = hero.weeklyBoss.progressKm >= bossData.km;
+        report.bossProgress = { boss: bossData, done: hero.weeklyBoss.progressKm, total: bossData.km };
+        if (wasDefeated) report.bossDefeatedWeekly = bossData;
+      }
+    }
 
     // Trofei km milestone
     hero.trophies = hero.trophies || [];
@@ -2800,8 +2840,19 @@ const RPG = (() => {
     return { ok: true, reward: a.reward };
   }
 
+  function claimWeeklyBoss(hero) {
+    const st = weeklyBossStatus(hero);
+    if (!st || !st.done || st.claimed) return null;
+    hero.weeklyBoss.claimed = true;
+    hero.gold += st.boss.gold;
+    const item = genItemFor(hero);
+    hero.items.push(item);
+    return { gold: st.boss.gold, item };
+  }
+
   return {
     ACTIVITIES, MISSIONS, CARDS, BUILDINGS, BESTIARY, TROPHIES,
+    WEEKLY_BOSSES, rolloverWeeklyBoss, weeklyBossStatus, claimWeeklyBoss,
     BIOMES, MOUNTS, RARITIES, SLOTS,
     MAX_LEVEL, LEVEL_CAP_1, GOLD_PER_KM,
     xpForLevel, dailyGoalKm, heroTitle,

@@ -3401,6 +3401,28 @@ body {
 }
 
 
+/* ── Hero idle animation ── */
+@keyframes hero-idle-breath {
+  0%, 100% { transform: translateY(0) scale(1); }
+  45%       { transform: translateY(-5px) scale(1, 0.985); }
+  55%       { transform: translateY(-5px) scale(1, 0.985); }
+}
+.hero-idle {
+  animation: hero-idle-breath 3.5s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+@media (prefers-reduced-motion: reduce) { .hero-idle { animation: none; } }
+
+/* ── Boss settimanale ── */
+.boss-weekly-panel { border-color: var(--danger) !important; }
+.boss-weekly-panel .panel-title { color: var(--danger); }
+.membar-fill.gold { background: linear-gradient(90deg, var(--gold), var(--gold-bright)); }
+.boss-progress-line {
+  font-size: .88rem; padding: 4px 0;
+  border-left: 3px solid var(--danger);
+  padding-left: 8px; margin: 4px 0;
+}
+
 /* ── Calendario mensile heatmap ── */
 .cal-grid {
   display: grid;
