@@ -1104,6 +1104,9 @@ const RPG = (() => {
     if (isClass(hero, 'eroe2')) resMult += 0.25;
     if (isClass(hero, 'maga')) { resMult += 0.15; xpMult += 0.05; }
     if (isClass(hero, 'principe') && type === 'cyclette') xpMult += 0.15;
+    // Streak bonus: +5% XP per giorno consecutivo (cap 30%)
+    const streakBonus = Math.min(0.30, Math.max(0, (hero.streak ? hero.streak.count - 1 : 0)) * 0.05);
+    if (streakBonus > 0) { xpMult += streakBonus; report.streakBonus = streakBonus; }
 
     // Cimeli del Rifugio (Espansione)
     const furn = furnitureAggregate(hero);

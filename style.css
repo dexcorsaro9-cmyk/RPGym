@@ -689,6 +689,41 @@ body {
   100% { transform: scale(1); }
 }
 .res-bump { animation: res-bump .38s cubic-bezier(0.34,1.4,0.64,1); }
+.res { position: relative; }
+.res-float {
+  position: absolute; top: -2px; right: 0;
+  font-size: .68rem; font-weight: 700; color: var(--gold-bright);
+  pointer-events: none; white-space: nowrap;
+  animation: res-float-up .95s ease-out forwards;
+}
+@keyframes res-float-up {
+  0%   { opacity: 1; transform: translateY(0); }
+  60%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* ── Report streak line ── */
+.report-streak-line {
+  text-align: center; font-size: .88rem; color: var(--ink);
+  background: rgba(232,182,76,.15); border: 1px solid rgba(232,182,76,.4);
+  border-radius: 8px; padding: 5px 10px; margin: 4px 0;
+}
+
+/* ── Weekly summary bars ── */
+.week-row {
+  display: flex; align-items: center; gap: 8px; padding: 4px 0;
+}
+.week-row-label { font-size: .85rem; color: var(--ink); width: 88px; flex-shrink: 0; }
+.week-bar-wrap {
+  flex: 1; height: 10px; border-radius: 6px;
+  background: rgba(59,42,26,.12);
+}
+.week-bar-fill {
+  height: 100%; border-radius: 6px;
+  transition: width .5s cubic-bezier(.2,.8,.4,1);
+  min-width: 3px;
+}
+.week-row-val { font-size: .82rem; font-weight: 700; color: var(--ink); min-width: 32px; text-align: right; }
 
 /* ═══════════════════════════════════════════════════════════════
    LIVELLO GRAFICO AVANZATO — texture, bagliori e animazioni
