@@ -1398,10 +1398,17 @@ body {
   cursor: pointer; transition: background .15s, color .15s;
 }
 .create-back-pill:active { background: rgba(232,182,76,.2); color: #e8c97c; }
-.create-logo {
-  font-family: 'Cinzel', serif; font-size: .85rem; font-weight: 900;
-  color: #e8c97c; letter-spacing: .18em;
-  text-shadow: 0 0 18px rgba(232,182,76,.4);
+.create-ornament {
+  display: flex; align-items: center; gap: 0;
+  width: 90px; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(232,182,76,.45) 30%, rgba(232,182,76,.45) 70%, transparent);
+  position: relative;
+}
+.create-ornament::before {
+  content: '◆';
+  position: absolute; left: 50%; transform: translateX(-50%);
+  font-size: .45rem; color: rgba(232,182,76,.55);
+  line-height: 1; top: 50%; margin-top: -.45em;
 }
 .create-topbar-spacer { width: 72px; }
 .create-card-zone {
