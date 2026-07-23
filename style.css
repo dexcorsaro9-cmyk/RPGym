@@ -181,13 +181,35 @@ body {
   position: sticky; top: 0; z-index: 10;
   display: flex; justify-content: space-between; align-items: center;
   gap: 8px;
-  padding: calc(8px + env(safe-area-inset-top)) 12px 8px;
+  padding: calc(13px + env(safe-area-inset-top)) 12px 20px;
   background:
-    linear-gradient(180deg, rgba(44,31,18,.55) 0%, rgba(59,42,26,.7) 100%),
-    url('assets/backgrounds/template-header.jpg');
-  background-size: cover; background-position: center;
-  border-bottom: 3px solid var(--gold);
+    /* vignette scuro ai bordi */
+    linear-gradient(180deg,
+      rgba(18,10,3,.75) 0%,
+      rgba(40,22,8,.25) 18%,
+      rgba(60,36,12,.08) 40%,
+      rgba(55,33,11,.12) 62%,
+      rgba(35,20,6,.35) 82%,
+      rgba(16,9,2,.65) 100%
+    ),
+    /* venatura orizzontale del legno */
+    repeating-linear-gradient(180deg,
+      transparent 0px, transparent 4px,
+      rgba(0,0,0,.045) 4px, rgba(0,0,0,.045) 5px,
+      transparent 5px, transparent 9px,
+      rgba(255,210,80,.025) 9px, rgba(255,210,80,.025) 10px
+    ),
+    /* alone caldo al centro */
+    radial-gradient(ellipse 70% 70% at 50% 55%, rgba(200,130,30,.18) 0%, transparent 75%),
+    /* base ambrata del legno */
+    linear-gradient(180deg,
+      #3a2008 0%, #6a3e18 10%,
+      #9a5c28 22%, #b07030 38%,
+      #a86828 54%, #8a5020 72%,
+      #683c18 88%, #3a2008 100%
+    );
   color: #f4e7cd;
+  position: relative;
 }
 .hud-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
 .hud-avatar { flex-shrink: 0; }
@@ -708,13 +730,26 @@ body {
   50%      { box-shadow: 0 3px 0 #6b4c12, inset 0 1px 0 rgba(255,255,230,.7), 0 0 26px rgba(232,182,76,.75); }
 }
 
-/* ── HUD: banner in legno con bordino dorato ── */
+/* ── HUD: tavola di legno con borchie e nodo celtico ── */
 #hud {
+  box-shadow: 0 4px 20px rgba(0,0,0,.75), 0 1px 0 rgba(220,170,60,.2);
+}
+/* Borchie metalliche in cima */
+#hud::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: calc(13px + env(safe-area-inset-top));
   background:
-    linear-gradient(180deg, rgba(51,36,19,.6) 0%, rgba(66,47,26,.75) 100%),
-    url('assets/backgrounds/template-header.jpg');
-  background-size: cover; background-position: center;
-  box-shadow: 0 3px 14px rgba(0,0,0,.6);
+    url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIxMyI+CiAgPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjEzIiBmaWxsPSIjMWExMjA4Ii8+CiAgPGRlZnM+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9InIiIGN4PSIzNSUiIGN5PSIzMCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjNmE1ODMwIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iNTAlIiBzdG9wLWNvbG9yPSIjMzAyODE4Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzE0MTAwOCIvPgogICAgPC9yYWRpYWxHcmFkaWVudD4KICA8L2RlZnM+CiAgPGNpcmNsZSBjeD0iMTYiIGN5PSI2LjUiIHI9IjUiIGZpbGw9IiMwZTBhMDYiLz4KICA8Y2lyY2xlIGN4PSIxNiIgY3k9IjYuNSIgcj0iNC41IiBmaWxsPSJ1cmwoI3IpIi8+CiAgPGVsbGlwc2UgY3g9IjE0LjUiIGN5PSI1IiByeD0iMS41IiByeT0iMSIgZmlsbD0icmdiYSgyMTAsMTc1LDg1LDAuMykiLz4KPC9zdmc+") repeat-x left bottom / 32px 13px;
+  pointer-events: none; z-index: 2;
+}
+/* Banda a nodo celtico in fondo */
+#hud::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0; height: 16px;
+  background:
+    url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSIxNiI+CiAgPHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjE2IiBmaWxsPSIjN2E1MDEwIi8+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZjBjMDUwIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMC4zNSIgc3RvcC1jb2xvcj0iI2M4ODAyMCIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM2YTQwMTAiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgPC9kZWZzPgogIDxwYXRoIGQ9Ik0wIDEyIEMxMiAxMiAyNCA0IDI0IDQgQzM2IDQgNDggMTIgNDggMTIiIHN0cm9rZT0iIzFlMGMwNCIgc3Ryb2tlLXdpZHRoPSI2IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8cGF0aCBkPSJNMCAxMiBDMTIgMTIgMjQgNCAyNCA0IEMzNiA0IDQ4IDEyIDQ4IDEyIiBzdHJva2U9InVybCgjZykiIHN0cm9rZS13aWR0aD0iNCIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPHJlY3QgeD0iOCIgeT0iMCIgd2lkdGg9IjEwIiBoZWlnaHQ9IjE2IiBmaWxsPSIjN2E1MDEwIi8+CiAgPHBhdGggZD0iTTAgNCBDMTIgNCAyNCAxMiAyNCAxMiBDMzYgMTIgNDggNCA0OCA0IiBzdHJva2U9IiMxZTBjMDQiIHN0cm9rZS13aWR0aD0iNiIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPHBhdGggZD0iTTAgNCBDMTIgNCAyNCAxMiAyNCAxMiBDMzYgMTIgNDggNCA0OCA0IiBzdHJva2U9InVybCgjZykiIHN0cm9rZS13aWR0aD0iNCIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPHJlY3QgeD0iMzAiIHk9IjAiIHdpZHRoPSIxMiIgaGVpZ2h0PSIxNiIgZmlsbD0iIzdhNTAxMCIvPgogIDxwYXRoIGQ9Ik0yNCA0IEMzNiA0IDQ4IDEyIDQ4IDEyIiBzdHJva2U9IiMxZTBjMDQiIHN0cm9rZS13aWR0aD0iNiIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPHBhdGggZD0iTTI0IDQgQzM2IDQgNDggMTIgNDggMTIiIHN0cm9rZT0idXJsKCNnKSIgc3Ryb2tlLXdpZHRoPSI0IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8cmVjdCB3aWR0aD0iNDgiIGhlaWdodD0iMS41IiBmaWxsPSIjZDRhMDQwIiBvcGFjaXR5PSIuNSIvPgogIDxyZWN0IHk9IjE0LjUiIHdpZHRoPSI0OCIgaGVpZ2h0PSIxLjUiIGZpbGw9IiMxZTBjMDQiIG9wYWNpdHk9Ii41NSIvPgo8L3N2Zz4=") repeat-x left top / 48px 16px;
+  pointer-events: none; z-index: 2;
 }
 .res {
   background: rgba(0,0,0,.35);
