@@ -278,17 +278,35 @@ function show(id) {
   $('#' + id).classList.remove('hidden');
 }
 
+function emptyState(icon, text) {
+  const d = el('div', 'empty-state');
+  d.innerHTML = `<div class="empty-state-icon">${icon}</div><p class="empty-state-text">${esc(text)}</p>`;
+  return d;
+}
+
 function renderProfiles() {
   const list = $('#profile-list');
   list.innerHTML = '';
   if (!STATE.heroes.length) {
-    list.appendChild(el('p', 'muted', 'Nessun eroe ancora. Creane uno!'));
+    list.appendChild(emptyState('⚔️', 'Nessun eroe ancora. Tocca + per crearne uno!'));
   }
   STATE.heroes.forEach(h => {
+    const storyId = (h.avatar || '').replace('assets/avatars/', '').replace('.png', '');
+    const col = AVATAR_COLORS[storyId] || { bg: '#0e0804', glow: '#c9932e' };
+    const avatarMeta = AVATARS.find(a => a.storyId === storyId);
+    const classLabel = avatarMeta ? avatarMeta.label : '';
     const card = el('div', 'profile-card');
+    card.style.setProperty('--phero-glow', col.glow + '30');
+    card.style.setProperty('--phero-accent', col.glow);
     card.appendChild(avatarEl(h, 'profile-avatar'));
-    const info = el('div', 'profile-info',
-      `<b>${esc(h.name)}</b><br><span class="muted">Liv. ${h.level} · ${RPG.heroTitle(h.level)} · ${h.totalKm.toFixed(1)} km</span>`);
+    const info = el('div', 'profile-info');
+    info.innerHTML = `<span class="profile-hero-name">${esc(h.name)}</span>
+      <span class="profile-hero-class">${esc(classLabel)}</span>
+      <div class="profile-chips">
+        <span class="profile-chip">Liv. ${h.level}</span>
+        <span class="profile-chip">🏃 ${h.totalKm.toFixed(1)} km</span>
+        <span class="profile-chip">🪙 ${h.gold}</span>
+      </div>`;
     card.appendChild(info);
     const del = el('button', 'btn-delete', '🗑️');
     del.addEventListener('click', e => {
@@ -1630,22 +1648,37 @@ function itemHtml(it) {
 }
 
 function showReport(r) {
-  let html = r.autoSync
-    ? `<h3 class="panel-title">🏥 Sincronizzato da Salute!</h3>`
-    : `<h3 class="panel-title">🎉 Impresa Registrata!</h3>`;
   const a = RPG.ACTIVITIES[r.type];
-  html += `<p>${a.icon} <b>${r.km} km</b> di ${a.label.toLowerCase()}${r.restBonusUsed ? ' <b>(x2 Bonus Riposo!)</b>' : ''}</p>`;
-  html += `<div class="reward-grid">
-    <div class="reward">⭐<br>+${r.xp} XP</div>
-    <div class="reward">🪙<br>+${r.gold}</div>
-    <div class="reward">🪵<br>+${r.wood}</div>
-    <div class="reward">🪨<br>+${r.stone}</div>
+  const xpNeed = RPG.xpForLevel(HERO.level);
+  const xpPct = Math.min(100, Math.round(HERO.xp / xpNeed * 100));
+  const leveled = r.levelsGained.length > 0;
+  const newLevel = leveled ? r.levelsGained[r.levelsGained.length - 1] : HERO.level;
+
+  let html = `<div class="report-header">
+    <div class="report-act-icon">${a.icon}</div>
+    <div class="report-km-big">${r.km} km</div>
+    <div class="report-act-label">${a.label}${r.restBonusUsed ? ' · <b class="report-bonus">x2 Riposo!</b>' : ''}</div>
   </div>`;
-  if (r.levelsGained.length)
-    html += `<p class="big-news">🆙 SEI SALITO AL LIVELLO ${r.levelsGained[r.levelsGained.length - 1]}!<br>
-      <span class="small">${RPG.heroTitle(r.levelsGained[r.levelsGained.length - 1])}</span></p>`;
+
+  html += `<div class="report-xp-wrap">
+    <div class="report-xp-label">⭐ Esperienza · Liv. ${newLevel} — ${RPG.heroTitle(newLevel)}</div>
+    <div class="report-xp-track">
+      <div class="report-xp-fill" id="rpt-xp-fill"></div>
+      <div class="report-xp-text"><span id="rpt-xp-num">0</span> / ${xpNeed} XP</div>
+    </div>
+  </div>`;
+
+  html += `<div class="report-rewards">
+    <div class="rpt-reward star"><span class="rpt-rew-val">+${r.xp}</span><span class="rpt-rew-label">XP</span></div>
+    <div class="rpt-reward gold"><span class="rpt-rew-val">+${r.gold}</span><span class="rpt-rew-label">🪙</span></div>
+    <div class="rpt-reward wood"><span class="rpt-rew-val">+${r.wood}</span><span class="rpt-rew-label">🪵</span></div>
+    <div class="rpt-reward stone"><span class="rpt-rew-val">+${r.stone}</span><span class="rpt-rew-label">🪨</span></div>
+  </div>`;
+
+  if (leveled)
+    html += `<div class="report-levelup">🆙 LIVELLO ${newLevel}!<br><span class="small">${RPG.heroTitle(newLevel)}</span></div>`;
   if (r.capReached)
-    html += `<p class="muted">🔒 Livello 20 raggiunto: per l'Ascensione serve l'<b>Amuleto del Viaggiatore Esperto</b> (guarda la Mappa).</p>`;
+    html += `<p class="muted small">🔒 Livello 20 raggiunto: per l'Ascensione serve l'<b>Amuleto del Viaggiatore Esperto</b> (guarda la Mappa).</p>`;
   if (r.loot.length) {
     html += `<h4>🎒 Sacchi del Viaggiatore:</h4><div class="loot-list">`;
     r.loot.forEach(it => { html += itemHtml(it); });
@@ -1696,6 +1729,28 @@ function showReport(r) {
   }
   html += `<button class="btn btn-primary wide" onclick="nextOpening(); setTab('camp')">Torna al Rifugio</button>`;
   modal(html);
+
+  // Animate XP bar
+  const fill = $('#rpt-xp-fill');
+  const numEl = $('#rpt-xp-num');
+  if (fill && numEl) {
+    const targetPct = xpPct;
+    const targetXp = HERO.xp;
+    setTimeout(() => {
+      fill.style.width = targetPct + '%';
+      const dur = 900;
+      const start = performance.now();
+      const tick = now => {
+        const t = Math.min(1, (now - start) / dur);
+        const ease = 1 - Math.pow(1 - t, 3);
+        numEl.textContent = Math.round(ease * targetXp);
+        if (t < 1) requestAnimationFrame(tick);
+        else numEl.textContent = targetXp;
+      };
+      requestAnimationFrame(tick);
+    }, 120);
+  }
+
   const chestBtn = $('#btn-open-chest');
   if (chestBtn) chestBtn.addEventListener('click', openChest);
 }

@@ -86,6 +86,12 @@ body {
 .center { text-align: center; }
 .row { display: flex; }
 .gap { gap: 10px; }
+.empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 8px; padding: 32px 16px; opacity: .7;
+}
+.empty-state-icon { font-size: 2.6rem; filter: grayscale(1); }
+.empty-state-text { font-size: .85rem; color: var(--ink-light); text-align: center; font-style: italic; }
 .wide { width: 100%; }
 
 /* ── Bottoni ── */
@@ -133,24 +139,33 @@ body {
 }
 
 /* ── Profili ── */
-#profile-list { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+#profile-list { width: 100%; display: flex; flex-direction: column; gap: 12px; }
 .profile-card {
-  display: flex; align-items: center; gap: 12px;
-  background: rgba(255,255,255,.4);
+  display: flex; align-items: center; gap: 14px;
+  background:
+    radial-gradient(ellipse at 0% 50%, var(--phero-glow, rgba(200,150,46,.12)) 0%, transparent 55%),
+    rgba(255,255,255,.38);
   border: 2px solid var(--leather);
-  border-radius: 12px;
-  padding: 10px 14px;
+  border-left: 4px solid var(--phero-accent, var(--leather));
+  border-radius: 14px;
+  padding: 12px 14px;
   cursor: pointer;
+  transition: transform .12s, box-shadow .12s;
 }
-.profile-card:active { background: rgba(255,255,255,.7); }
+.profile-card:active { transform: scale(.975); box-shadow: 0 2px 8px rgba(0,0,0,.3); }
 .profile-avatar, .avatar-emoji {
-  width: 56px; height: 56px; border-radius: 50%;
-  border: 2px solid var(--gold);
+  width: 72px; height: 72px; border-radius: 50%;
+  border: 2px solid var(--phero-accent, var(--gold));
   object-fit: cover;
   display: flex; align-items: center; justify-content: center;
   font-size: 2rem; background: #fff8ec;
   flex-shrink: 0;
 }
+.profile-info { flex: 1; min-width: 0; }
+.profile-hero-name { display: block; font-size: 1rem; }
+.profile-hero-class { display: block; font-size: .72rem; font-family: 'Cinzel', serif; letter-spacing: .5px; color: var(--phero-accent, var(--gold)); opacity: .85; margin-top: 1px; }
+.profile-chips { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+.profile-chip { font-family: 'Cinzel', serif; font-size: .65rem; padding: 2px 9px; border-radius: 20px; background: rgba(0,0,0,.28); color: #d9c39a; border: 1px solid rgba(180,140,60,.35); }
 
 .avatar-picker { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 .avatar-choice {
@@ -298,7 +313,74 @@ body {
 .stat-row-label { display: flex; align-items: center; gap: 8px; }
 .stat-row-icon { width: 26px; height: 26px; object-fit: contain; flex-shrink: 0; }
 
-/* ── Report ricompense ── */
+/* ── Report allenamento ── */
+.report-header {
+  text-align: center; padding: 8px 0 14px;
+  border-bottom: 1px solid rgba(200,150,60,.25); margin-bottom: 14px;
+}
+.report-act-icon { font-size: 2.6rem; line-height: 1; margin-bottom: 4px; }
+.report-km-big {
+  font-family: 'Cinzel', serif; font-size: 2rem; font-weight: 700;
+  color: var(--gold-bright); text-shadow: 0 0 12px rgba(232,182,76,.5);
+  line-height: 1.1;
+}
+.report-act-label { font-size: .82rem; color: #c9b48f; margin-top: 2px; }
+.report-bonus { color: var(--gold-bright); font-weight: 700; }
+.report-xp-wrap { margin: 0 0 14px; }
+.report-xp-label { font-family: 'Cinzel', serif; font-size: .72rem; color: #c9b48f; margin-bottom: 5px; }
+.report-xp-track {
+  position: relative; height: 24px;
+  background: rgba(0,0,0,.4); border: 1px solid rgba(200,150,60,.4);
+  border-radius: 12px; overflow: hidden;
+}
+.report-xp-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--emerald), #58c98b, #9af0b8);
+  border-radius: 12px;
+  transition: width 1s cubic-bezier(0.25,0.46,0.45,0.94);
+  position: relative; overflow: hidden;
+}
+.report-xp-fill::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.4), transparent);
+  animation: membar-shimmer 1.8s ease-in-out infinite;
+}
+.report-xp-text {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-size: .72rem; font-weight: 700; color: #fff; text-shadow: 0 1px 3px #000;
+}
+.report-xp-sub { font-size: .68rem; color: #9a8870; text-align: right; margin-top: 3px; }
+.report-rewards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
+.rpt-reward {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 10px 4px; border-radius: 12px;
+  background: rgba(0,0,0,.2); border: 1px solid rgba(200,150,60,.3);
+}
+.rpt-reward.star { background: rgba(60,120,60,.18); border-color: rgba(90,180,90,.4); }
+.rpt-reward.gold { background: rgba(140,100,10,.2); border-color: rgba(200,150,40,.4); }
+.rpt-reward.wood { background: rgba(80,50,10,.2); border-color: rgba(150,100,40,.4); }
+.rpt-reward.stone { background: rgba(60,60,70,.22); border-color: rgba(120,120,140,.4); }
+.rpt-rew-icon { font-size: 1.3rem; line-height: 1; }
+.rpt-rew-val { font-family: 'Cinzel', serif; font-size: .82rem; font-weight: 700; color: #f0ddb8; }
+.rpt-rew-label { font-size: .6rem; color: #9a8870; }
+.report-levelup {
+  position: relative; text-align: center;
+  padding: 14px 12px; margin: 8px 0 12px; border-radius: 14px;
+  background: radial-gradient(ellipse at 50% 50%, rgba(232,182,76,.22) 0%, rgba(140,100,10,.1) 100%);
+  border: 2px solid var(--gold); overflow: hidden;
+  animation: levelupPulse 1.6s ease-in-out infinite;
+}
+.report-levelup-text {
+  font-family: 'Cinzel', serif; font-size: 1.3rem; font-weight: 900;
+  color: var(--gold-bright); text-shadow: 0 0 16px rgba(232,182,76,.8);
+  letter-spacing: 1px;
+}
+.report-levelup-title { font-size: .82rem; color: #d9c39a; margin-top: 3px; font-style: italic; }
+@keyframes levelupPulse {
+  0%,100% { box-shadow: 0 0 8px rgba(232,182,76,.3); }
+  50%      { box-shadow: 0 0 22px rgba(232,182,76,.7), inset 0 0 12px rgba(232,182,76,.08); }
+}
+/* Legacy compat */
 .reward-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 10px 0; }
 .reward {
   text-align: center; font-weight: 700; padding: 8px 4px;
@@ -339,6 +421,15 @@ body {
 .tcard.rar-raro, .card-reveal.rar-raro { border-color: var(--rar-raro); }
 .tcard.rar-epico, .card-reveal.rar-epico { border-color: var(--rar-epico); box-shadow: 0 0 14px rgba(123,63,191,.4); }
 .tcard.rar-leggendario, .card-reveal.rar-leggendario { border-color: var(--rar-leggendario); box-shadow: 0 0 18px rgba(217,130,43,.6); }
+/* ── Banda di rarità a sinistra ── */
+.tcard::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 5px; border-radius: 11px 0 0 11px;
+}
+.tcard.rar-comune::before    { background: var(--rar-comune); }
+.tcard.rar-raro::before      { background: var(--rar-raro); box-shadow: 0 0 6px rgba(62,124,209,.5); }
+.tcard.rar-epico::before     { background: var(--rar-epico); box-shadow: 0 0 8px rgba(123,63,191,.7); }
+.tcard.rar-leggendario::before { background: linear-gradient(180deg, #f5d062, var(--rar-leggendario), #f5d062); box-shadow: 0 0 10px rgba(217,130,43,.8); }
 
 /* ── Font medievale per i nomi degli eroi ── */
 .font-medieval, .input-medieval, .hud-name, .hero-name-plate, .profile-info b {
