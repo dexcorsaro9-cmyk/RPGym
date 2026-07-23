@@ -1865,8 +1865,8 @@ body {
 .dungeon-strip.dungeon-done { opacity: .6; }
 .dungeon-strip-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
 .dungeon-strip-icon { font-size: 1.6rem; flex-shrink: 0; }
-.dungeon-strip-title { font-family: 'Cinzel', serif; font-size: .9rem; font-weight: 700; color: var(--gold-bright); }
-.dungeon-strip-sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dungeon-strip-title { font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 700; color: var(--gold-bright); text-shadow: 0 1px 4px rgba(0,0,0,.6); }
+.dungeon-strip-sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #c9b48f; }
 .dungeon-strip-btn { min-width: 72px; flex-shrink: 0; }
 
 .dungeon-intro { display: flex; flex-direction: column; align-items: center; gap: 10px; }
