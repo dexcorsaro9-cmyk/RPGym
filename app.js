@@ -579,6 +579,11 @@ function renderHUD() {
   const av = $('#hud-avatar');
   av.innerHTML = '';
   av.appendChild(avatarEl(HERO, 'hud-avatar-inner'));
+  // accent color from hero class
+  const _sid = (HERO.avatar || '').replace('assets/avatars/', '').replace('.png', '');
+  const _col = AVATAR_COLORS[_sid] || { glow: 'var(--gold)' };
+  av.style.boxShadow = `0 0 10px ${_col.glow}70, 0 0 0 2px ${_col.glow}`;
+  av.style.borderRadius = '50%';
   $('#hud-name').textContent = HERO.name;
   $('#hud-title').textContent = `Liv. ${HERO.level} — ${RPG.heroTitle(HERO.level)}`;
   const need = RPG.xpForLevel(HERO.level);
@@ -1279,10 +1284,28 @@ function renderMap(c) {
   if (HERO.activeMission) {
     const m = RPG.MISSIONS.find(x => x.id === HERO.activeMission.id);
     const p = el('div', 'panel panel-featured active-mission');
-    p.appendChild(el('h3', 'panel-title', `🐎 In viaggio: ${m.name}`));
+    p.appendChild(el('h3', 'panel-title', `🐎 In Viaggio: ${m.name}`));
     const done = HERO.activeMission.progressKm;
     const pct = Math.min(100, Math.round(done / m.km * 100));
-    p.appendChild(el('div', 'membar', `<div class="membar-fill gold" style="width:${pct}%"></div><span>${done.toFixed(1)} / ${m.km} km</span>`));
+    const remaining = Math.max(0, m.km - done);
+    // Boss image + cinematic progress
+    const boss = RPG.BESTIARY.find(b => b.mission === m.id);
+    const prog = el('div', 'active-mission-prog');
+    if (boss) {
+      const bossImg = el('img', 'mission-boss-img');
+      bossImg.src = `assets/bestiario/${boss.id}.png`;
+      bossImg.alt = boss.name;
+      bossImg.onerror = () => bossImg.remove();
+      prog.appendChild(bossImg);
+    }
+    const progWrap = el('div', 'mission-prog-wrap');
+    progWrap.innerHTML = `<div class="mission-prog-bar">
+      <div class="mission-prog-fill" style="width:${pct}%"></div>
+      <div class="mission-prog-label">${done.toFixed(1)} / ${m.km} km · ${pct}%</div>
+    </div>
+    <div class="mission-prog-remaining">⚔️ Mancano <b>${remaining.toFixed(1)} km</b> alla destinazione${boss ? ` · ${boss.name} ti aspetta` : ''}</div>`;
+    prog.appendChild(progWrap);
+    p.appendChild(prog);
     const abandon = el('button', 'btn btn-small', 'Abbandona');
     abandon.addEventListener('click', () => { HERO.activeMission = null; persist(); setTab('map'); });
     p.appendChild(abandon);
@@ -1297,9 +1320,13 @@ function renderMap(c) {
     avail.forEach(m => {
       const row = el('div', 'mission-row');
       row.appendChild(el('div', 'mission-zone-icon', zoneIcon(m.zone)));
+      const diffColor = m.km <= 10 ? 'var(--rar-comune)' : m.km <= 25 ? 'var(--rar-raro)' : m.km <= 50 ? 'var(--rar-epico)' : 'var(--rar-leggendario)';
+      const diffLabel = m.km <= 10 ? 'Breve' : m.km <= 25 ? 'Media' : m.km <= 50 ? 'Lunga' : 'Epica';
+      const diffPct = Math.min(100, Math.round(m.km / 60 * 100));
       row.appendChild(el('div', 'mission-mid',
         `<b>${m.name}</b> <span class="tag">${m.km} km</span><br>` +
-        `<span class="small muted">${zoneShort(m.zone)} — ${m.desc}</span>`));
+        `<span class="small muted">${zoneShort(m.zone)} — ${m.desc}</span>` +
+        `<div class="mission-difficulty"><span style="font-size:.6rem;color:${diffColor}">${diffLabel}</span><div style="flex:1;height:4px;background:rgba(0,0,0,.25);border-radius:2px;overflow:hidden"><div style="width:${diffPct}%;height:100%;background:${diffColor};border-radius:2px"></div></div></div>`));
       const btn = el('button', 'btn btn-small btn-primary', 'Parti');
       const vimg = new Image();
       vimg.onload = () => {
@@ -1439,15 +1466,25 @@ function renderDailyChallenges(c) {
 
 function renderTrain(c) {
   c.appendChild(el('h2', 'section-title', '⚔️ Registra l\'Impresa'));
-  c.appendChild(el('p', 'muted small center',
-    `Obiettivo del giorno per il tuo livello: <b>${RPG.dailyGoalKm(HERO.level)} km</b>` +
-    (HERO.restBonus ? ' · ✨ <b>Bonus Riposo x2 attivo!</b>' : '')));
+
+  // Daily goal progress bar
+  const goalKm = RPG.dailyGoalKm(HERO.level);
+  const todayKm = HERO.log.filter(l => {
+    const d = new Date(l.date); const t = new Date();
+    return d.getFullYear() === t.getFullYear() && d.getMonth() === t.getMonth() && d.getDate() === t.getDate();
+  }).reduce((s, l) => s + l.km, 0);
+  const goalPct = Math.min(100, Math.round(todayKm / goalKm * 100));
+  const goalEl = el('div', 'train-daily-goal');
+  goalEl.innerHTML = `<div class="train-goal-label">🎯 Obiettivo di oggi: <b>${todayKm.toFixed(1)} / ${goalKm} km</b>${HERO.restBonus ? ' · ✨ <b style="color:var(--gold-bright)">x2 Riposo attivo!</b>' : ''}</div>
+    <div class="train-goal-bar"><div class="train-goal-fill" style="width:${goalPct}%"></div></div>`;
+  c.appendChild(goalEl);
 
   const form = el('div', 'panel');
   form.appendChild(el('label', 'field-label', 'Tipo di attività'));
   const actRow = el('div', 'act-row');
   let chosen = 'camminata';
   const ACT_ICON_FILES = { cyclette: 'assets/ui/act-cyclette.png', camminata: 'assets/ui/act-camminata.png', corsa: 'assets/ui/act-corsa.png' };
+  const mount = HERO.mount ? RPG.mountById(HERO.mount) : null;
   Object.entries(RPG.ACTIVITIES).forEach(([key, a]) => {
     const b = el('button', 'act-choice' + (key === chosen ? ' selected' : ''));
     const iconHolder = el('div', 'act-icon-holder', a.icon);
@@ -1457,7 +1494,9 @@ function renderTrain(c) {
       img.addEventListener('load', () => { iconHolder.textContent = ''; iconHolder.appendChild(img); });
     }
     b.appendChild(iconHolder);
-    b.appendChild(el('div', '', `${a.label}<br><span class="small muted">${a.xpPerKm} XP/km</span>`));
+    b.appendChild(el('span', 'act-label', a.label));
+    b.appendChild(el('span', 'act-xp-badge', `${a.xpPerKm} XP/km`));
+    if (mount) b.appendChild(el('span', 'act-bonus-badge', `${mount.emoji} +${mount.bonus}% km`));
     b.dataset.key = key;
     b.addEventListener('click', () => {
       chosen = key;
@@ -2140,11 +2179,37 @@ function renderDiaryView(c) {
   sp.appendChild(sd);
   c.appendChild(sp);
 
+  // Heatmap km ultimi 84 giorni
+  if (HERO.log.length) {
+    const kmByDay = {};
+    HERO.log.forEach(l => {
+      const key = new Date(l.date).toISOString().slice(0, 10);
+      kmByDay[key] = (kmByDay[key] || 0) + l.km;
+    });
+    const today = new Date();
+    const hmWrap = el('div', 'panel km-heatmap-wrap');
+    hmWrap.appendChild(el('h3', 'panel-title', '📅 Attività degli Ultimi 3 Mesi'));
+    const hm = el('div', 'km-heatmap');
+    for (let i = 83; i >= 0; i--) {
+      const d = new Date(today); d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      const km = kmByDay[key] || 0;
+      const intensity = km === 0 ? 0 : km < 2 ? 1 : km < 5 ? 2 : km < 10 ? 3 : 4;
+      const cell = el('div', 'hm-cell');
+      cell.dataset.i = intensity;
+      cell.title = `${d.toLocaleDateString('it-IT')}: ${km > 0 ? km.toFixed(1) + ' km' : 'riposo'}`;
+      hm.appendChild(cell);
+    }
+    hmWrap.appendChild(hm);
+    hmWrap.innerHTML += `<div class="hm-legend">Meno <div class="hm-legend-cell" style="background:rgba(255,255,255,.08)"></div><div class="hm-legend-cell" data-i="1" style="background:rgba(46,139,87,.3)"></div><div class="hm-legend-cell" data-i="2" style="background:rgba(46,139,87,.55)"></div><div class="hm-legend-cell" data-i="3" style="background:rgba(46,139,87,.82)"></div><div class="hm-legend-cell" data-i="4" style="background:var(--gold-bright)"></div> Più</div>`;
+    c.appendChild(hmWrap);
+  }
+
   // Diario attività
   const lp = el('div', 'panel');
   lp.appendChild(el('h3', 'panel-title', '📜 Diario delle Attività'));
   if (!HERO.log.length) {
-    lp.appendChild(el('p', 'muted small center', 'Nessuna attività registrata ancora.'));
+    lp.appendChild(emptyState('📝', 'Nessuna attività registrata ancora.'));
   } else {
     HERO.log.slice().reverse().forEach(l => {
       const a = RPG.ACTIVITIES[l.type];
@@ -2386,11 +2451,22 @@ function renderCardsView(c) {
   Object.entries(RPG.CARDS).forEach(([id, card]) => {
     const owned = HERO.cards.includes(id);
     const cc = el('div', 'tcard rar-' + card.rarity + (owned ? '' : ' locked'));
+    const frontHtml = `<div class="card-icon">${owned ? card.icon : '❓'}</div><b>${owned ? esc(card.name) : '???'}</b><span class="tag">${card.rarity}</span>${owned ? '<span class="tcard-tap-hint">tocca per girare</span>' : ''}`;
+    const backHtml = `<div class="tcard-back-content"><div class="card-back-icon">${card.icon}</div><p class="small lore" style="text-align:center">${esc(card.lore)}</p><b class="card-back-name">${esc(card.name)}</b><span class="tag">${card.rarity}</span><span class="tcard-tap-hint">tocca per girare</span></div>`;
+    cc.innerHTML = frontHtml;
     if (owned) {
-      cc.innerHTML = `<div class="card-icon">${card.icon}</div><b>${card.name}</b>
-        <span class="tag">${card.rarity}</span><p class="small lore">${card.lore}</p>`;
-    } else {
-      cc.innerHTML = `<div class="card-icon">❓</div><b>???</b><span class="tag">${card.rarity}</span>`;
+      let face = 'front';
+      cc.addEventListener('click', () => {
+        if (cc.classList.contains('flip-out') || cc.classList.contains('flip-in')) return;
+        cc.classList.add('flip-out');
+        cc.addEventListener('animationend', () => {
+          face = face === 'front' ? 'back' : 'front';
+          cc.innerHTML = face === 'front' ? frontHtml : backHtml;
+          cc.classList.remove('flip-out');
+          cc.classList.add('flip-in');
+          cc.addEventListener('animationend', () => cc.classList.remove('flip-in'), { once: true });
+        }, { once: true });
+      });
     }
     grid.appendChild(cc);
   });
