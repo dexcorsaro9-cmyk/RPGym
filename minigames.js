@@ -563,6 +563,7 @@ function openWheelGame() {
       mgRecord('wheel');
       resEl.innerHTML = mgRewardHTML(s.reward, idx === 3 ? '🏆 JACKPOT!' : idx === 7 ? '💀 Sfiga!' : s.label, idx === 7 ? 'Nessuna ricompensa.' : '');
       resEl.classList.add('mg-res-in'); closeBtn.classList.remove('hidden');
+      setTimeout(() => resEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
     }, 3700);
   });
   document.getElementById('mgw-x').addEventListener('click', mgClose);
