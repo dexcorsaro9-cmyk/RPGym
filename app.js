@@ -30,6 +30,7 @@ const AVATARS = [
   { path: 'assets/avatars/principe.png',          storyId: 'principe',         label: 'Il Principe delle Aquile' },
   { path: 'assets/avatars/principessa.png',       storyId: 'principessa',      label: 'La Principessa Farfallosa' },
   { path: 'assets/avatars/regina.png',            storyId: 'regina',           label: 'La Regina Oscura' },
+  { path: 'assets/avatars/predone.png',           storyId: 'predone',          label: 'Il Re dei Predoni' },
 ];
 
 /* ── Le storie dei protagonisti ── */
@@ -372,6 +373,7 @@ const AVATAR_LORE = {
   principe:    'Il sangue nobile non basta. Serve il coraggio.',
   principessa: 'Una corona non si eredita. Si conquista.',
   regina:      'Ha visto crollare regni. Il suo è ancora in piedi.',
+  predone:     'Nessuna legge. Nessuna bandiera. Solo la strada e il bottino.',
 };
 const AVATAR_DIMS = {
   eroe1:{w:417,h:700}, eroe2:{w:535,h:535}, fabbro:{w:535,h:535},
@@ -394,6 +396,7 @@ const AVATAR_COLORS = {
   principe:    { bg: '#1a1008', glow: '#c9882e' },
   principessa: { bg: '#22081a', glow: '#cf5aaf' },
   regina:      { bg: '#0d0218', glow: '#8a30cf' },
+  predone:     { bg: '#1a0e00', glow: '#c97a2e' },
 };
 let pickedAvatar = AVATARS[0];
 let createIdx = 0;

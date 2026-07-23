@@ -168,6 +168,8 @@ const RPG = (() => {
       desc: '+15% probabilità di trovare oggetti rari' },
     regina:     { name: 'Sguardo della Regina Oscura', icon: '🦉',
       desc: '+15% Danni contro i Boss in Arena' },
+    predone:    { name: 'Bottino da Razzia',          icon: '💰',
+      desc: '+25% oro da missioni e forzieri' },
   };
   function talentOf(hero) { return CLASS_TALENTS[hero.storyId] || null; }
   function isClass(hero, id) { return hero.storyId === id; }
@@ -1098,6 +1100,7 @@ const RPG = (() => {
     if (isClass(hero, 'stregone')) xpMult += 0.10;
     if (isClass(hero, 'eroe1') && type !== 'cyclette') xpMult += 0.10;
     if (isClass(hero, 'furfante')) goldMult += 0.20;
+    if (isClass(hero, 'predone')) goldMult += 0.25;
     if (isClass(hero, 'eroe2')) resMult += 0.25;
     if (isClass(hero, 'maga')) { resMult += 0.15; xpMult += 0.05; }
     if (isClass(hero, 'principe') && type === 'cyclette') xpMult += 0.15;
@@ -1277,8 +1280,9 @@ const RPG = (() => {
     const doubleChest = Math.random() < furn.doubleDropChance;
     // Lo scrigno: le ricompense vengono consegnate subito allo stato,
     // ma l'interfaccia le rivela con l'apertura dello scrigno.
+    const predoneGold = isClass(hero, 'predone') ? 1.25 : 1;
     const chest = {
-      gold: (r.gold || 0) * (doubleChest ? 2 : 1),
+      gold: Math.round((r.gold || 0) * (doubleChest ? 2 : 1) * predoneGold),
       wood: (r.wood || 0) * (doubleChest ? 2 : 1),
       stone: (r.stone || 0) * (doubleChest ? 2 : 1),
       items: [], cards: [], doubled: doubleChest,
