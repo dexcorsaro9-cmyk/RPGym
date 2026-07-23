@@ -2933,8 +2933,9 @@ function _settingsRefreshPanel() {
 function _settingsBackupPanel() {
   const p = el('div', 'panel shortcut-panel');
   p.appendChild(el('h3', 'panel-title', '💾 Backup salvataggio'));
-  p.appendChild(el('p', 'guide-text', 'Esporta tutti i tuoi eroi su file JSON. Potrai reimportarli in qualsiasi momento.'));
+  p.appendChild(el('p', 'guide-text', 'Esporta i tuoi eroi su file JSON e reimportali su qualsiasi dispositivo.'));
 
+  // ── Export ───────────────────────────────────────────────────
   const exportBtn = el('button', 'btn btn-primary', '📤 Esporta salvataggio');
   exportBtn.addEventListener('click', () => {
     const data = localStorage.getItem('rpgym_save_v1');
@@ -2949,44 +2950,90 @@ function _settingsBackupPanel() {
     toast('📤 Backup esportato!');
   });
 
+  // ── Import ───────────────────────────────────────────────────
   const importBtn = el('button', 'btn', '📥 Importa salvataggio');
   const fileInput = document.createElement('input');
   fileInput.type = 'file';
   fileInput.accept = '.json,application/json';
   fileInput.style.display = 'none';
+
   fileInput.addEventListener('change', () => {
     const file = fileInput.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = e => {
       try {
-        const parsed = JSON.parse(e.target.result);
-        if (!parsed.heroes || !Array.isArray(parsed.heroes)) throw new Error('formato non valido');
+        const imported = RPG.parseBackup(e.target.result);
+        if (!imported.heroes || !imported.heroes.length) throw new Error('nessun eroe trovato');
+
+        const heroRows = imported.heroes.map(h =>
+          `<div class="backup-hero-row">
+             <span class="backup-hero-avatar">${avatarEmojiFor(h)}</span>
+             <span class="backup-hero-name">${esc(h.name)}</span>
+             <span class="backup-hero-level">Lv ${h.level}</span>
+             <span class="backup-hero-km">${(h.totalKm||0).toFixed(1)} km</span>
+           </div>`
+        ).join('');
+
+        const currentCount = STATE.heroes.length;
+        const importCount  = imported.heroes.length;
+
         modal(`
           <h3 class="panel-title">📥 Importa backup</h3>
-          <p>Vuoi sovrascrivere il salvataggio attuale con il backup? I dati correnti andranno persi.</p>
-          <div class="row gap" style="margin-top:1rem">
-            <button id="btn-import-cancel" class="btn">Annulla</button>
-            <button id="btn-import-confirm" class="btn btn-primary">Conferma</button>
-          </div>`);
+          <p class="guide-text" style="margin-bottom:.6rem">
+            Il backup contiene <strong>${importCount}</strong> ${importCount === 1 ? 'eroe' : 'eroi'}:
+          </p>
+          <div class="backup-hero-list">${heroRows}</div>
+          <p class="guide-text" style="margin-top:.8rem">Come vuoi procedere?</p>
+          <div class="backup-action-grid">
+            <button id="btn-import-merge" class="btn btn-primary">
+              🔀 Unisci<br><small>Aggiunge gli eroi mancanti senza cancellare i tuoi attuali</small>
+            </button>
+            <button id="btn-import-replace" class="btn btn-danger">
+              ♻️ Sostituisci<br><small>Cancella i ${currentCount} eroi attuali e usa solo quelli del backup</small>
+            </button>
+          </div>
+          <button id="btn-import-cancel" class="btn" style="margin-top:.6rem;width:100%">Annulla</button>
+        `);
+
         document.getElementById('btn-import-cancel').addEventListener('click', closeModal);
-        document.getElementById('btn-import-confirm').addEventListener('click', () => {
+
+        document.getElementById('btn-import-merge').addEventListener('click', () => {
+          const { added, skipped } = RPG.mergeImport(STATE, imported);
+          RPG.save(STATE);
+          closeModal();
+          toast(`✅ ${added} ${added === 1 ? 'eroe aggiunto' : 'eroi aggiunti'}${skipped ? `, ${skipped} già presenti` : ''}. Riavvio…`);
+          setTimeout(() => location.reload(), 1500);
+        });
+
+        document.getElementById('btn-import-replace').addEventListener('click', () => {
           localStorage.setItem('rpgym_save_v1', e.target.result);
           closeModal();
-          toast('✅ Salvataggio importato! Riavvio…');
+          toast('✅ Salvataggio sostituito! Riavvio…');
           setTimeout(() => location.reload(), 1200);
         });
+
       } catch { toast('❌ File non valido o corrotto.'); }
     };
     reader.readAsText(file);
     fileInput.value = '';
   });
+
   importBtn.addEventListener('click', () => fileInput.click());
 
   p.appendChild(exportBtn);
   p.appendChild(importBtn);
   p.appendChild(fileInput);
   return p;
+}
+
+function avatarEmojiFor(hero) {
+  const map = {
+    eroe1:'🧑',eroe2:'👩',fabbro:'⚒️',stregone:'🧙',alchimista:'⚗️',
+    furfante:'🗡️',maga:'🔮',paladino:'🛡️',ranger:'🏹',fata:'🧚',
+    principe:'🦅',principessa:'🦋',regina:'👑',predone:'💀',
+  };
+  return map[hero.storyId] || '🧑';
 }
 
 function _settingsFullscreenPanel() {
