@@ -503,9 +503,9 @@ body {
 /* ── Rifugio ── */
 #tab-content.bg-rifugio {
   background:
-    linear-gradient(180deg, rgba(5,3,2,.65) 0%, rgba(10,6,3,.42) 45%, rgba(5,3,2,.62) 100%),
-    url('assets/backgrounds/bg-camp.jpg');
-  background-size: cover; background-position: center top;
+    linear-gradient(180deg, rgba(5,3,2,.60) 0%, rgba(10,6,3,.35) 40%, rgba(5,3,2,.58) 100%),
+    url('assets/backgrounds/bg-camp-fire.jpg');
+  background-size: cover; background-position: center 30%;
 }
 /* ── Mappa ── */
 #tab-content.bg-map {
