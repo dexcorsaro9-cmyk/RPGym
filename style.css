@@ -83,6 +83,8 @@ body {
 
 .muted { color: var(--ink-light); }
 .small { font-size: .85rem; }
+.panel .muted { color: var(--ink); }
+.panel .small { font-size: .9rem; }
 .center { text-align: center; }
 .row { display: flex; }
 .gap { gap: 10px; }
@@ -259,7 +261,7 @@ body {
   margin-bottom: 14px;
   display: flex; flex-direction: column; gap: 8px;
 }
-.panel-title { font-family: 'Cinzel', serif; font-size: 1rem; color: var(--leather); }
+.panel-title { font-family: 'Cinzel', serif; font-size: 1.05rem; color: var(--ink); }
 .panel.panel-featured {
   background:
     radial-gradient(ellipse at 30% 15%, rgba(255,220,130,.25), transparent 55%),
@@ -1790,7 +1792,7 @@ body {
 .arena-panel { border-color: var(--danger); }
 .arena-tokens {
   text-align: center; font-family: 'Cinzel', serif;
-  color: var(--leather); padding: 4px;
+  color: var(--ink); font-weight: 700; padding: 4px;
 }
 
 /* ── Spedizione a Tappe ── */
