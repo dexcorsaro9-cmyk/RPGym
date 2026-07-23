@@ -1391,13 +1391,13 @@ body {
   border-bottom: 1px solid rgba(232,182,76,.15);
 }
 .create-back-pill, .hero-back-pill {
-  font-family: 'Cinzel', serif; font-size: .72rem; font-weight: 700;
-  color: rgba(232,182,76,.8); letter-spacing: .05em;
-  background: rgba(232,182,76,.08); border: 1px solid rgba(232,182,76,.25);
-  border-radius: 20px; padding: 5px 13px;
-  cursor: pointer; transition: background .15s, color .15s;
+  font-family: 'Cinzel', serif; font-size: .76rem; font-weight: 700;
+  color: #e8c97c; letter-spacing: .05em;
+  background: rgba(232,182,76,.15); border: 1px solid rgba(232,182,76,.5);
+  border-radius: 20px; padding: 6px 14px;
+  cursor: pointer; transition: background .15s;
 }
-.create-back-pill:active, .hero-back-pill:active { background: rgba(232,182,76,.2); color: #e8c97c; }
+.create-back-pill:active, .hero-back-pill:active { background: rgba(232,182,76,.28); }
 .hero-back-pill { margin-bottom: 12px; display: inline-block; }
 .create-ornament {
   display: flex; align-items: center; gap: 0;
