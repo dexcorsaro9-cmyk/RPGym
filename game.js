@@ -1364,6 +1364,7 @@ const RPG = (() => {
     });
     hero.gold += sellValue(hero, item);
     hero.items.splice(idx, 1);
+    updateWeeklyProgress(hero, 'sell', 1);
     return null;
   }
 
@@ -2462,6 +2463,7 @@ const RPG = (() => {
         ch.progress = Math.min(ch.target, ch.progress + amount);
       }
     });
+    updateWeeklyProgress(hero, type, amount);
   }
 
   function claimChallenge(hero, idx) {
@@ -2481,6 +2483,181 @@ const RPG = (() => {
       bonus = DAILY_CHALLENGES_BONUS;
     }
     return { ok: true, reward: ch.reward, bonus };
+  }
+
+  /* ── Sfide Settimanali ──────────────────────────────────── */
+  const WEEKLY_CHALLENGES_POOL = [
+    { type:'km',       icon:'🥾', target:15, label:'Percorri 15 km questa settimana',      reward:{gold:180, xp:300} },
+    { type:'km',       icon:'🥾', target:25, label:'Percorri 25 km questa settimana',      reward:{gold:280, xp:450} },
+    { type:'arena',    icon:'⚔️',  target:5,  label:"Vinci 5 battaglie nell'Arena",         reward:{gold:150, xp:250} },
+    { type:'arena',    icon:'⚔️',  target:10, label:"Vinci 10 battaglie nell'Arena",        reward:{gold:250, xp:400} },
+    { type:'sell',     icon:'💰', target:5,  label:'Vendi 5 oggetti al Contrabbando',      reward:{gold:120, xp:150} },
+    { type:'sell',     icon:'💰', target:10, label:'Vendi 10 oggetti al Contrabbando',     reward:{gold:200, xp:220} },
+    { type:'chest',    icon:'📦', target:3,  label:'Apri 3 scrigni di bottino',            reward:{gold:100, xp:200} },
+    { type:'chest',    icon:'📦', target:6,  label:'Apri 6 scrigni di bottino',            reward:{gold:180, xp:350} },
+    { type:'minigame', icon:'🎲', target:8,  label:'Gioca 8 partite alla Taverna',         reward:{gold:110, xp:200} },
+    { type:'minigame', icon:'🎲', target:15, label:'Gioca 15 partite alla Taverna',        reward:{gold:180, xp:320} },
+    { type:'dungeon',  icon:'🗡️', target:1,  label:'Completa una Spedizione',              reward:{gold:200, xp:400} },
+  ];
+  const WEEKLY_CHALLENGES_BONUS = { gold: 300, xp: 600 };
+
+  function _genWeeklyChallenges(hero, week) {
+    const lv = hero.level;
+    let seed = 0;
+    const key = week + (hero.id || '');
+    for (let i = 0; i < key.length; i++) seed = (seed * 31 + key.charCodeAt(i)) | 0;
+    const pick = arr => { seed = (seed * 1664525 + 1013904223) | 0; return arr[Math.abs(seed) % arr.length]; };
+    const mk = t => ({ type:t.type, icon:t.icon, target:t.target, label:t.label, reward:{...t.reward}, progress:0, claimed:false });
+    const kmPool    = WEEKLY_CHALLENGES_POOL.filter(c => c.type === 'km');
+    const arenaPool = WEEKLY_CHALLENGES_POOL.filter(c => c.type === 'arena');
+    const sellPool  = WEEKLY_CHALLENGES_POOL.filter(c => c.type === 'sell');
+    const chestPool = WEEKLY_CHALLENGES_POOL.filter(c => c.type === 'chest');
+    const mgPool    = WEEKLY_CHALLENGES_POOL.filter(c => c.type === 'minigame');
+    const dgPool    = WEEKLY_CHALLENGES_POOL.filter(c => c.type === 'dungeon');
+    const tierKm    = lv <= 15 ? [0] : [1];
+    const tierArena = lv <= 15 ? [0] : [1];
+    const extraPool = lv >= 10 ? [...sellPool, ...chestPool] : chestPool;
+    return {
+      week,
+      list: [
+        mk(kmPool[pick(tierKm)]),
+        mk(arenaPool[pick(tierArena)]),
+        mk(pick(extraPool)),
+        mk(lv >= 15 ? dgPool[0] : pick(mgPool)),
+      ],
+      bonusClaimed: false,
+    };
+  }
+
+  function getWeeklyChallenges(hero) {
+    const week = weekStamp();
+    if (!hero.weeklyChallenges || hero.weeklyChallenges.week !== week) {
+      hero.weeklyChallenges = _genWeeklyChallenges(hero, week);
+    }
+    return hero.weeklyChallenges;
+  }
+
+  function updateWeeklyProgress(hero, type, amount) {
+    const wc = getWeeklyChallenges(hero);
+    wc.list.forEach(ch => {
+      if (ch.type === type && !ch.claimed && ch.progress < ch.target) {
+        ch.progress = Math.min(ch.target, ch.progress + amount);
+      }
+    });
+  }
+
+  function claimWeeklyChallenge(hero, idx) {
+    const wc = getWeeklyChallenges(hero);
+    const ch = wc.list[idx];
+    if (!ch) return 'Sfida non trovata.';
+    if (ch.progress < ch.target) return 'Non ancora completata!';
+    if (ch.claimed) return 'Ricompensa già riscossa.';
+    ch.claimed = true;
+    hero.gold += ch.reward.gold;
+    hero.xp   += ch.reward.xp;
+    let bonus = null;
+    if (!wc.bonusClaimed && wc.list.every(c => c.claimed)) {
+      wc.bonusClaimed = true;
+      hero.gold += WEEKLY_CHALLENGES_BONUS.gold;
+      hero.xp   += WEEKLY_CHALLENGES_BONUS.xp;
+      bonus = WEEKLY_CHALLENGES_BONUS;
+    }
+    return { ok: true, reward: ch.reward, bonus };
+  }
+
+  /* ── Spedizione a Tappe (Dungeon) ───────────────────────── */
+  const DUNGEON_CHOICE_SETS = [
+    [{ id:'rest',    icon:'💊', label:'Curi le ferite',        desc:'Il prossimo nemico parte con −20 HP.', effect:'debuffEnemy', val:20 },
+     { id:'rush',    icon:'⚡', label:'Carichi di corsa',      desc:'+10 danni al prossimo scontro.',       effect:'buffDmg',    val:10 }],
+    [{ id:'scout',   icon:'🔍', label:'Esplori i dintorni',    desc:'Conosci in anticipo la debolezza.',    effect:'revealWeak', val:1  },
+     { id:'trap',    icon:'🪤', label:'Tendi una trappola',    desc:'Il nemico inizia con −30 HP.',         effect:'debuffEnemy', val:30 }],
+    [{ id:'meditate',icon:'🧘', label:'Mediti prima del duello', desc:'+20% danni al prossimo scontro.',   effect:'buffDmgPct', val:0.20 },
+     { id:'loot',    icon:'💰', label:'Rovisti tra le rovine', desc:'Trovi subito +40 monete.',             effect:'goldNow',    val:40 }],
+  ];
+
+  function startDungeon(hero) {
+    if (!canStartDungeon(hero)) return null;
+    const accessible = accessibleZones(hero);
+    const pool = BESTIARY.filter(b => !b.final && accessible.includes(b.zone));
+    const normals = pool.filter(b => !b.boss).sort(() => Math.random() - 0.5).slice(0, 3);
+    const fallbackNormals = BESTIARY.filter(b => !b.final && !b.boss);
+    while (normals.length < 3) normals.push(fallbackNormals[normals.length % fallbackNormals.length]);
+    const bossPool = pool.filter(b => b.boss);
+    const boss = bossPool.length ? bossPool[Math.floor(Math.random() * bossPool.length)]
+      : BESTIARY.find(b => b.id === 'guerriero-fantasma');
+    hero.activeDungeon = {
+      step: 0,
+      enemies: [...normals.map(e => e.id), boss.id],
+      pendingChoice: false,
+      buffs: { debuffEnemy:0, buffDmg:0, buffDmgPct:0, revealWeak:false },
+      log: [],
+      done: false,
+    };
+    return hero.activeDungeon;
+  }
+
+  function canStartDungeon(hero) {
+    if (hero.activeDungeon && !hero.activeDungeon.done) return false;
+    return hero.lastDungeon !== todayStamp();
+  }
+
+  function dungeonCurrentEnemy(hero) {
+    const d = hero.activeDungeon;
+    if (!d || d.done) return null;
+    return BESTIARY.find(b => b.id === d.enemies[d.step]) || null;
+  }
+
+  function dungeonMakeChoice(hero, choiceIdx) {
+    const d = hero.activeDungeon;
+    if (!d || !d.pendingChoice || d.done) return null;
+    const setIdx = Math.min(d.step - 1, DUNGEON_CHOICE_SETS.length - 1);
+    const option = DUNGEON_CHOICE_SETS[setIdx][choiceIdx];
+    if (!option) return null;
+    d.buffs = { debuffEnemy:0, buffDmg:0, buffDmgPct:0, revealWeak:false };
+    if (option.effect === 'debuffEnemy')  d.buffs.debuffEnemy = option.val;
+    else if (option.effect === 'buffDmg')     d.buffs.buffDmg = option.val;
+    else if (option.effect === 'buffDmgPct')  d.buffs.buffDmgPct = option.val;
+    else if (option.effect === 'revealWeak')  d.buffs.revealWeak = true;
+    else if (option.effect === 'goldNow')     { hero.gold += option.val; }
+    d.pendingChoice = false;
+    d.log.push({ type:'choice', label:option.label });
+    return { option };
+  }
+
+  function dungeonStepResult(hero, won) {
+    const d = hero.activeDungeon;
+    if (!d || d.done) return null;
+    d.log.push({ type:'fight', step:d.step, won });
+    d.buffs = { debuffEnemy:0, buffDmg:0, buffDmgPct:0, revealWeak:false };
+
+    if (!won) {
+      d.done = true;
+      hero.lastDungeon = todayStamp();
+      const gold = Math.max(10, Math.round(25 * d.step + Math.random() * 15));
+      const xp   = Math.max(20, Math.round(40 * d.step));
+      hero.gold += gold; hero.xp += xp;
+      return { done:true, won:false, reward:{ gold, xp, complete:false, stepsOk:d.step } };
+    }
+
+    d.step++;
+    updateWeeklyProgress(hero, 'arena', 1);
+
+    if (d.step >= d.enemies.length) {
+      d.done = true;
+      hero.lastDungeon = todayStamp();
+      const gold = Math.round(150 + hero.level * 8 + Math.random() * 50);
+      const xp   = Math.round(200 + hero.level * 10);
+      hero.gold += gold; hero.xp += xp;
+      const item = genItemFor(hero, 'epico');
+      hero.items.push(item);
+      updateWeeklyProgress(hero, 'dungeon', 1);
+      updateChallengeProgress(hero, 'arena', 1);
+      return { done:true, won:true, reward:{ gold, xp, item, complete:true } };
+    }
+
+    const isBossNext = d.step === d.enemies.length - 1;
+    if (!isBossNext) d.pendingChoice = true;
+    return { done:false, won:true, nextEnemyId:d.enemies[d.step], pendingChoice:d.pendingChoice };
   }
 
   function applyXp(hero, amount) {
@@ -2547,5 +2724,7 @@ const RPG = (() => {
     ACHIEVEMENTS, achievementsUnlocked, claimAchievement,
     applyXp,
     DAILY_CHALLENGES_BONUS, getDailyChallenges, updateChallengeProgress, claimChallenge,
+    WEEKLY_CHALLENGES_BONUS, getWeeklyChallenges, updateWeeklyProgress, claimWeeklyChallenge,
+    DUNGEON_CHOICE_SETS, startDungeon, canStartDungeon, dungeonCurrentEnemy, dungeonMakeChoice, dungeonStepResult,
   };
 })();

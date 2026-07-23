@@ -1016,44 +1016,72 @@ body {
   box-shadow: 0 0 10px rgba(232,182,76,.4);
 }
 
-.bestiary-zone {
-  font-family: 'Cinzel', serif; font-size: 1rem;
-  color: var(--gold-bright);
-  margin: 14px 0 8px; text-align: center;
+.bestiary-progress { margin-bottom: 14px; }
+.bestiary-prog-bar {
+  height: 6px; border-radius: 3px; background: rgba(201,147,46,.15); overflow: hidden; margin-bottom: 4px;
+}
+.bestiary-prog-fill {
+  height: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, var(--gold), var(--gold-bright));
+  transition: width .6s ease;
+}
+.bestiary-prog-label { text-align: center; }
+.bestiary-zone-header {
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: 'Cinzel', serif; font-size: .95rem;
+  color: var(--gold-bright); margin: 14px 0 8px;
   text-shadow: 0 1px 3px rgba(0,0,0,.7);
 }
-.bestiary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.bestiary-zone-count { font-family: inherit; }
+.bestiary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .beast {
-  border: 2px solid var(--leather); border-radius: 14px;
-  padding: 10px 8px 12px; text-align: center;
-  background-image:
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='2'/><feColorMatrix type='saturate' values='0'/></filter><rect width='180' height='180' filter='url(%23p)' opacity='0.05'/></svg>"),
-    linear-gradient(160deg, var(--parchment), var(--parchment-dark));
-  box-shadow: 0 4px 12px rgba(0,0,0,.4), inset 0 0 0 1px rgba(201,147,46,.35);
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  position: relative; overflow: hidden;
+  border: 2px solid var(--leather); border-radius: 12px;
+  padding: 8px 6px 10px; text-align: center;
+  background: linear-gradient(160deg, var(--parchment), var(--parchment-dark));
+  box-shadow: 0 3px 10px rgba(0,0,0,.4);
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  position: relative; overflow: hidden; cursor: pointer;
+  transition: transform .15s, box-shadow .15s;
 }
-.beast:not(.unknown) { border-color: rgba(201,147,46,.7); }
-.beast:not(.unknown)::after {
-  content: '✓'; position: absolute; top: 6px; right: 8px;
-  font-size: .6rem; font-weight: 700; background: rgba(46,139,87,.75); color: #9af0b8;
-  border-radius: 50%; width: 16px; height: 16px; line-height: 16px; text-align: center;
+.beast:active { transform: scale(.96); }
+.beast.known { border-color: rgba(201,147,46,.7); }
+.beast.known::after {
+  content: '✓'; position: absolute; top: 4px; right: 5px;
+  font-size: .55rem; font-weight: 700; background: rgba(46,139,87,.8); color: #9af0b8;
+  border-radius: 50%; width: 14px; height: 14px; line-height: 14px; text-align: center;
 }
-.beast.boss {
-  border-color: var(--danger);
-  box-shadow: 0 4px 14px rgba(0,0,0,.45), 0 0 14px rgba(163,51,39,.4), inset 0 0 0 1px rgba(163,51,39,.4);
-}
-.beast.boss:not(.unknown) { border-color: var(--gold); box-shadow: 0 4px 14px rgba(0,0,0,.5), 0 0 16px rgba(200,150,40,.35); }
-.beast.boss:not(.unknown)::after { background: rgba(180,130,20,.8); color: var(--gold-bright); }
-.beast-img-wrap { height: 130px; display: flex; align-items: flex-end; justify-content: center; }
-.beast-img { max-height: 130px; max-width: 100%; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,.35)); }
-.beast:not(.unknown) .beast-img { filter: drop-shadow(0 5px 12px rgba(0,0,0,.5)); }
-.beast-emoji { font-size: 3.4rem; }
-.beast.unknown .beast-img { filter: brightness(0) opacity(.4); }
-.beast.unknown .beast-emoji { filter: grayscale(1) opacity(.5); }
-.beast-name { font-family: 'Cinzel', serif; font-size: .82rem; font-weight: 700; }
+.beast.boss { border-color: var(--danger); box-shadow: 0 3px 10px rgba(0,0,0,.45), 0 0 10px rgba(163,51,39,.3); }
+.beast.boss.known { border-color: var(--gold); box-shadow: 0 3px 10px rgba(0,0,0,.5), 0 0 12px rgba(200,150,40,.3); }
+.beast.boss.known::after { background: rgba(180,130,20,.8); color: var(--gold-bright); }
+.beast-img-wrap { height: 90px; display: flex; align-items: flex-end; justify-content: center; }
+.beast-img { max-height: 90px; max-width: 100%; object-fit: contain; filter: drop-shadow(0 3px 5px rgba(0,0,0,.3)); }
+.beast-silhouette { filter: brightness(0) opacity(.35) !important; }
+.beast.known .beast-img { filter: drop-shadow(0 4px 10px rgba(0,0,0,.5)); }
+.beast-emoji { font-size: 2.8rem; }
+.beast.unknown .beast-emoji { filter: grayscale(1) opacity(.4); }
+.beast-name { font-family: 'Cinzel', serif; font-size: .72rem; font-weight: 700; line-height: 1.2; }
+.beast-weak-inline { color: var(--ink-light); font-size: .66rem; }
+.beast-boss-tag { margin-top: 2px; }
 .beast-weak { color: var(--ink-light); font-size: .72rem; }
 .tag-boss { background: var(--danger); }
+
+/* Beast detail modal */
+.beast-detail { text-align: center; padding: 4px 0; }
+.bd-fig { min-height: 160px; display: flex; align-items: flex-end; justify-content: center; margin-bottom: 8px; }
+.bd-img { max-height: 160px; max-width: 80%; object-fit: contain; filter: drop-shadow(0 6px 16px rgba(0,0,0,.6)); }
+.bd-unknown { filter: brightness(0) opacity(.3); }
+.bd-emoji { font-size: 5rem; line-height: 1; }
+.bd-boss-tag { margin-bottom: 4px; }
+.bd-name { font-family: 'Cinzel', serif; font-size: 1.4rem; font-weight: 900; margin: 6px 0 2px; }
+.bd-zone { margin-bottom: 10px; }
+.bd-weak {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(201,147,46,.12); border: 1px solid rgba(201,147,46,.35);
+  border-radius: 20px; padding: 4px 14px; margin: 6px 0;
+}
+.bd-weak-label { font-size: .72rem; color: var(--ink-light); }
+.bd-lore { color: var(--ink-light); line-height: 1.5; margin: 10px 0 14px; text-align: left; }
+.bd-locked { margin: 14px 0; font-style: italic; }
 
 /* Avvistamento nel report */
 .sighting {
@@ -1744,6 +1772,65 @@ body {
 .arena-tokens {
   text-align: center; font-family: 'Cinzel', serif;
   color: var(--leather); padding: 4px;
+}
+
+/* ── Spedizione a Tappe ── */
+.dungeon-strip {
+  margin-top: 10px; padding: 10px 12px;
+  border: 1px solid var(--leather); border-radius: 10px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: linear-gradient(135deg, rgba(100,50,10,.15), rgba(60,30,5,.08));
+  gap: 10px;
+}
+.dungeon-strip.dungeon-done { opacity: .6; }
+.dungeon-strip-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+.dungeon-strip-icon { font-size: 1.6rem; flex-shrink: 0; }
+.dungeon-strip-title { font-family: 'Cinzel', serif; font-size: .9rem; font-weight: 700; color: var(--gold-bright); }
+.dungeon-strip-sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dungeon-strip-btn { min-width: 72px; flex-shrink: 0; }
+
+.dungeon-intro { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.dungeon-intro-icon { font-size: 3.5rem; }
+.dungeon-intro-rules {
+  width: 100%; border: 1px solid rgba(201,147,46,.25); border-radius: 10px;
+  padding: 10px 14px; display: flex; flex-direction: column; gap: 6px;
+  font-size: .85rem; color: var(--ink-light);
+}
+.dungeon-step { position: relative; }
+.dungeon-step-badge {
+  font-family: 'Cinzel', serif; font-size: .72rem; font-weight: 700;
+  letter-spacing: .1em; color: var(--gold-bright); text-align: center;
+  padding: 3px 12px; border-radius: 20px; border: 1px solid rgba(201,147,46,.4);
+  background: rgba(201,147,46,.1); margin-bottom: 4px;
+}
+.dungeon-buffs {
+  width: 100%; background: rgba(0,100,50,.1); border: 1px solid rgba(46,139,87,.3);
+  border-radius: 8px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;
+}
+.dungeon-buff-line { font-size: .82rem; color: #6fcf97; }
+.dungeon-enemy-img { max-height: 160px; }
+
+.dungeon-choice { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.dungeon-choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
+.dungeon-choice-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  padding: 14px 8px; border-radius: 12px;
+  border: 2px solid var(--leather); background: linear-gradient(160deg, var(--parchment), var(--parchment-dark));
+  cursor: pointer; text-align: center; transition: border-color .15s, transform .1s;
+}
+.dungeon-choice-btn:active { transform: scale(.96); border-color: var(--gold); }
+.dc-icon { font-size: 2rem; }
+.dc-label { font-family: 'Cinzel', serif; font-size: .82rem; font-weight: 700; line-height: 1.2; }
+.dc-desc { line-height: 1.4; }
+
+.dungeon-reward, .dungeon-defeat { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+.dungeon-reward-star {
+  font-size: 3.5rem;
+  animation: lup-pop .5s cubic-bezier(.17,.67,.35,1.3) both;
+}
+.dungeon-epic-label {
+  font-family: 'Cinzel', serif; font-size: .72rem; letter-spacing: .1em;
+  color: var(--gold-bright); text-transform: uppercase; margin-top: 6px;
 }
 
 /* Intro sfidante */
@@ -2728,7 +2815,19 @@ body {
   50%     { box-shadow: 0 0 16px 6px rgba(160,80,255,.3); }
 }
 
-/* ── Sfide Giornaliere ── */
+/* ── Sfide (Daily + Weekly) ── */
+.ch-tab-row {
+  display: flex; gap: 6px; margin-bottom: 12px;
+}
+.ch-tab-pill {
+  flex: 1; padding: 5px 0; border-radius: 20px;
+  border: 1px solid var(--leather); background: transparent;
+  color: var(--ink-light); font-size: .82rem; cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.ch-tab-pill.active {
+  background: var(--gold); color: #1a0d00; border-color: var(--gold); font-weight: 700;
+}
 .challenge-title-row {
   display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
 }

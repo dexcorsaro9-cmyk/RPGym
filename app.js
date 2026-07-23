@@ -1470,16 +1470,10 @@ function zoneIcon(zone) {
 }
 
 /* ── TAB: Allenati ── */
-function renderDailyChallenges(c) {
-  const dc = RPG.getDailyChallenges(HERO);
-  const claimable = dc.list.filter(ch => ch.progress >= ch.target && !ch.claimed).length;
-  const panel = el('div', claimable ? 'panel panel-featured' : 'panel');
-  const titleRow = el('div', 'challenge-title-row');
-  titleRow.innerHTML = `<h3 class="panel-title" style="margin:0">🎯 Sfide del Giorno</h3>`;
-  if (claimable) titleRow.appendChild(el('span', 'mg-card-badge', String(claimable)));
-  panel.appendChild(titleRow);
+let CHALLENGE_TAB = 'daily';
 
-  dc.list.forEach((ch, i) => {
+function renderChallengeList(panel, list, claimFn, bonusObj, bonusClaimed) {
+  list.forEach((ch, i) => {
     const done = ch.progress >= ch.target;
     const row = el('div', 'challenge-row' + (ch.claimed ? ' ch-claimed' : done ? ' ch-completable' : ''));
     const pct = Math.min(100, Math.round(ch.progress / ch.target * 100));
@@ -1502,11 +1496,11 @@ function renderDailyChallenges(c) {
     if (done && !ch.claimed) {
       const btn = el('button', 'btn btn-primary btn-small wide', '✅ Riscuoti');
       btn.addEventListener('click', () => {
-        const r = RPG.claimChallenge(HERO, i);
+        const r = claimFn(HERO, i);
         persist(); renderHUD();
         if (r && r.ok) {
           toast(r.bonus
-            ? `🌟 BONUS COMPLETO! +${r.bonus.gold + r.reward.gold}🪙 +${r.bonus.xp + r.reward.xp}⭐`
+            ? `🌟 BONUS! +${r.bonus.gold + r.reward.gold}🪙 +${r.bonus.xp + r.reward.xp}⭐`
             : `🎯 +${r.reward.gold}🪙 +${r.reward.xp}⭐`);
           sfx('coin');
         } else toast(r);
@@ -1516,12 +1510,44 @@ function renderDailyChallenges(c) {
     }
     panel.appendChild(row);
   });
-
-  const bonusRow = el('div', 'challenge-bonus-row' + (dc.bonusClaimed ? ' ch-claimed' : ''));
-  bonusRow.innerHTML = `<span>🌟 Tutte e 3 — Bonus</span>
-    <span class="muted small">+${RPG.DAILY_CHALLENGES_BONUS.gold}🪙 +${RPG.DAILY_CHALLENGES_BONUS.xp}⭐
-    ${dc.bonusClaimed ? ' · ✓ riscosso' : ''}</span>`;
+  const bonusRow = el('div', 'challenge-bonus-row' + (bonusClaimed ? ' ch-claimed' : ''));
+  bonusRow.innerHTML = `<span>🌟 Tutte — Bonus</span>
+    <span class="muted small">+${bonusObj.gold}🪙 +${bonusObj.xp}⭐
+    ${bonusClaimed ? ' · ✓ riscosso' : ''}</span>`;
   panel.appendChild(bonusRow);
+}
+
+function renderDailyChallenges(c) {
+  const dc = RPG.getDailyChallenges(HERO);
+  const wc = RPG.getWeeklyChallenges(HERO);
+  const dailyClaimable = dc.list.filter(ch => ch.progress >= ch.target && !ch.claimed).length;
+  const weeklyClaimable = wc.list.filter(ch => ch.progress >= ch.target && !ch.claimed).length;
+  const totalClaimable = dailyClaimable + weeklyClaimable;
+
+  const panel = el('div', totalClaimable ? 'panel panel-featured' : 'panel');
+
+  /* header + badge */
+  const titleRow = el('div', 'challenge-title-row');
+  titleRow.innerHTML = `<h3 class="panel-title" style="margin:0">🎯 Sfide</h3>`;
+  if (totalClaimable) titleRow.appendChild(el('span', 'mg-card-badge', String(totalClaimable)));
+  panel.appendChild(titleRow);
+
+  /* tab pills */
+  const tabs = el('div', 'ch-tab-row');
+  [['daily', `Giornaliere${dailyClaimable ? ` (${dailyClaimable})` : ''}`],
+   ['weekly', `Settimanali${weeklyClaimable ? ` (${weeklyClaimable})` : ''}`]].forEach(([key, label]) => {
+    const t = el('button', 'ch-tab-pill' + (CHALLENGE_TAB === key ? ' active' : ''), label);
+    t.addEventListener('click', () => { CHALLENGE_TAB = key; setTab('train'); });
+    tabs.appendChild(t);
+  });
+  panel.appendChild(tabs);
+
+  if (CHALLENGE_TAB === 'daily') {
+    renderChallengeList(panel, dc.list, RPG.claimChallenge, RPG.DAILY_CHALLENGES_BONUS, dc.bonusClaimed);
+  } else {
+    renderChallengeList(panel, wc.list, RPG.claimWeeklyChallenge, RPG.WEEKLY_CHALLENGES_BONUS, wc.bonusClaimed);
+  }
+
   c.appendChild(panel);
 }
 
@@ -1626,6 +1652,22 @@ function renderTrain(c) {
   abtn.disabled = left < 1;
   abtn.addEventListener('click', openArena);
   ap.appendChild(abtn);
+
+  /* Spedizione a tappe */
+  const dungeonAvail = RPG.canStartDungeon(HERO);
+  const dp = el('div', 'dungeon-strip' + (dungeonAvail ? '' : ' dungeon-done'));
+  dp.innerHTML = `<div class="dungeon-strip-left">
+    <span class="dungeon-strip-icon">🗡️</span>
+    <div>
+      <div class="dungeon-strip-title">Spedizione a Tappe</div>
+      <div class="dungeon-strip-sub small muted">${dungeonAvail ? '3 nemici + Boss · Oggetto Epico garantito' : 'Completata per oggi · Torna domani'}</div>
+    </div>
+  </div>
+  <button class="btn${dungeonAvail ? ' btn-primary' : ''} dungeon-strip-btn" id="btn-dungeon-open" ${dungeonAvail ? '' : 'disabled'}>${dungeonAvail ? '▶ Parti' : '✓ Fatto'}</button>`;
+  ap.appendChild(dp);
+  if (dungeonAvail) {
+    dp.querySelector('#btn-dungeon-open').addEventListener('click', openDungeon);
+  }
   c.appendChild(ap);
 
   renderDailyChallenges(c);
@@ -1956,6 +1998,7 @@ function openChest() {
 function revealChest(title, chest) {
   vibrate(300);
   sfx('chest');
+  RPG.updateWeeklyProgress(HERO, 'chest', 1);
   const parts = [];
   if (chest.gold) parts.push(`<div class="chest-res-chip gold">🪙 ${chest.gold}</div>`);
   if (chest.wood) parts.push(`<div class="chest-res-chip wood">🪵 ${chest.wood}</div>`);
@@ -2700,44 +2743,69 @@ function renderCardsView(c) {
   c.appendChild(catWrap);
 }
 
+function showBeastDetail(b) {
+  const known = (HERO.bestiary || []).includes(b.id);
+  const fig = b.id === 'cavaliere-drago'
+    ? `<div class="bd-emoji">${known ? '🐉' : '❓'}</div>`
+    : `<img class="bd-img${known ? '' : ' bd-unknown'}" src="assets/bestiario/${b.id}.png" alt="${b.name}">`;
+  modal(`<div class="beast-detail">
+    <div class="bd-fig">${fig}</div>
+    ${b.boss ? `<div class="bd-boss-tag"><span class="tag tag-boss">${b.final ? 'NEMESI' : 'BOSS'}</span></div>` : ''}
+    <h3 class="bd-name">${known ? esc(b.name) : '???'}</h3>
+    <div class="bd-zone small muted">${zoneIcon(b.zone)} ${b.zone}</div>
+    ${known ? `
+      <div class="bd-weak"><span class="bd-weak-label">Debolezza</span><b>${esc(b.weakness)}</b></div>
+      <p class="bd-lore small">${esc(b.lore)}</p>
+    ` : `<p class="bd-locked muted small">${b.boss
+        ? (b.final ? 'Completa le 5 Memorie per svelarlo.' : 'Sconfiggilo nella sua missione per scoprirlo.')
+        : 'Allenati in questa zona per avvistarlo.'}</p>`}
+    <button class="btn wide" onclick="closeModal()">Chiudi</button>
+  </div>`);
+}
+
 function renderBestiaryView(c) {
   backBar(c);
   HERO.bestiary = HERO.bestiary || [];
+  const discovered = HERO.bestiary.length;
+  const total = RPG.BESTIARY.length;
   c.appendChild(el('h2', 'section-title on-parchment-title', '🐉 Il Bestiario dell\'Orda'));
-  c.appendChild(el('p', 'muted small center',
-    `${HERO.bestiary.length} / ${RPG.BESTIARY.length} creature scoperte`));
+
+  /* progress bar */
+  const pct = Math.round(discovered / total * 100);
+  const progWrap = el('div', 'bestiary-progress');
+  progWrap.innerHTML = `<div class="bestiary-prog-bar"><div class="bestiary-prog-fill" style="width:${pct}%"></div></div>
+    <div class="bestiary-prog-label small muted">${discovered} / ${total} creature scoperte · ${pct}%</div>`;
+  c.appendChild(progWrap);
+
   const zones = [...new Set(RPG.BESTIARY.map(b => b.zone))];
   const accessible = RPG.accessibleZones(HERO);
   zones.forEach(zone => {
     const inZone = RPG.BESTIARY.filter(b => b.zone === zone);
-    const isOpen = accessible.includes(zone) || inZone.some(b => HERO.bestiary.includes(b.id));
-    c.appendChild(el('h3', 'bestiary-zone', (isOpen ? zoneIcon(zone) + ' ' + zone : '🔒 ???')));
+    const knownInZone = inZone.filter(b => HERO.bestiary.includes(b.id)).length;
+    const isOpen = accessible.includes(zone) || knownInZone > 0;
+    const zoneTitleEl = el('div', 'bestiary-zone-header');
+    zoneTitleEl.innerHTML = isOpen
+      ? `<span>${zoneIcon(zone)} ${zone}</span><span class="bestiary-zone-count small muted">${knownInZone}/${inZone.length}</span>`
+      : `<span>🔒 Zona sconosciuta</span><span class="bestiary-zone-count small muted">0/${inZone.length}</span>`;
+    c.appendChild(zoneTitleEl);
     const grid = el('div', 'bestiary-grid');
     inZone.forEach(b => {
       const known = HERO.bestiary.includes(b.id);
-      const card = el('div', 'beast' + (known ? '' : ' unknown') + (b.boss ? ' boss' : ''));
+      const card = el('div', 'beast' + (known ? ' known' : ' unknown') + (b.boss ? ' boss' : ''));
       const imgWrap = el('div', 'beast-img-wrap');
       if (b.id === 'cavaliere-drago') {
         imgWrap.appendChild(el('div', 'beast-emoji', known ? '🐉' : '❓'));
       } else {
-        const img = el('img', 'beast-img');
+        const img = el('img', 'beast-img' + (known ? '' : ' beast-silhouette'));
         img.src = `assets/bestiario/${b.id}.png`;
         img.loading = 'lazy';
         imgWrap.appendChild(img);
       }
       card.appendChild(imgWrap);
-      if (known) {
-        card.appendChild(el('b', 'beast-name', b.name));
-        if (b.boss) card.appendChild(el('span', 'tag tag-boss', b.final ? 'NEMESI' : 'BOSS'));
-        card.appendChild(el('div', 'small beast-weak', `Debolezza: <b>${b.weakness}</b>`));
-        card.appendChild(el('p', 'small lore', b.lore));
-      } else {
-        card.appendChild(el('b', 'beast-name', '???'));
-        if (b.boss) card.appendChild(el('span', 'tag tag-boss', b.final ? 'NEMESI' : 'BOSS'));
-        card.appendChild(el('p', 'small lore muted', b.boss
-          ? (b.final ? 'Completa le 5 Memorie per svelarlo.' : 'Sconfiggilo nella sua missione.')
-          : 'Avvistalo allenandoti in questa zona.'));
-      }
+      card.appendChild(el('b', 'beast-name', known ? b.name : '???'));
+      if (b.boss) card.appendChild(el('span', 'tag tag-boss beast-boss-tag', b.final ? 'NEMESI' : 'BOSS'));
+      if (known) card.appendChild(el('div', 'beast-weak-inline small', `⚡ ${b.weakness}`));
+      card.addEventListener('click', () => showBeastDetail(b));
       grid.appendChild(card);
     });
     c.appendChild(grid);
@@ -2975,7 +3043,9 @@ function updateBadges() {
   set('hero', Object.entries(HERO.equipment || {}).some(([s, id]) =>
     !id && (HERO.items || []).some(i => i.slot === s)));
   const dc = RPG.getDailyChallenges(HERO);
-  set('train', dc.list.some(ch => ch.progress >= ch.target && !ch.claimed));
+  const wc = RPG.getWeeklyChallenges(HERO);
+  set('train', dc.list.some(ch => ch.progress >= ch.target && !ch.claimed)
+    || wc.list.some(ch => ch.progress >= ch.target && !ch.claimed));
 }
 
 /* ── Countdown live (aggiornati ogni secondo) ── */

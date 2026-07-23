@@ -258,6 +258,40 @@ function endBattle(heroWon) {
   if (moves) moves.innerHTML = '';
   const center = document.getElementById('battle-center');
 
+  /* ── Modalità Spedizione ── */
+  if (HERO.activeDungeon && !HERO.activeDungeon.done) {
+    if (heroWon) {
+      sfx('level');
+      if (center) center.innerHTML = `<div class="battle-result-overlay"><div class="battle-result-text win">VITTORIA!</div></div>`;
+      const vs = document.getElementById('stage-villain');
+      if (vs) vs.classList.add('defeated');
+      setTimeout(() => {
+        closeBattle();
+        const result = RPG.dungeonStepResult(HERO, true);
+        persist(); renderHUD();
+        if (result.done) {
+          showDungeonReward(result.reward);
+        } else if (result.pendingChoice) {
+          showDungeonChoice();
+        } else {
+          showDungeonFight();
+        }
+      }, 1500);
+    } else {
+      sfx('defeat');
+      if (center) center.innerHTML = `<div class="battle-result-overlay"><div class="battle-result-text lose">SCONFITTA…</div></div>`;
+      const hs = document.getElementById('stage-hero');
+      if (hs) hs.classList.add('defeated');
+      setTimeout(() => {
+        closeBattle();
+        const result = RPG.dungeonStepResult(HERO, false);
+        persist(); renderHUD();
+        showDungeonDefeat(result.reward);
+      }, 1500);
+    }
+    return;
+  }
+
   if (heroWon) {
     const chest = RPG.battleReward(HERO, b.v);
     RPG.updateChallengeProgress(HERO, 'arena', 1);
@@ -299,3 +333,177 @@ function closeBattle() {
   if (CURRENT_TAB === 'train') setTab('train'); // aggiorna il contatore sfide
 }
 
+
+/* ═══════════════════════════════════════════════════════════════
+   SPEDIZIONE A TAPPE
+   ═══════════════════════════════════════════════════════════════ */
+
+function openDungeon() {
+  if (!RPG.canStartDungeon(HERO)) {
+    modal(`<h3 class="panel-title center">🗡️ Spedizione</h3>
+      <p class="center muted">Hai già affrontato una Spedizione oggi.<br>Torna domani per la prossima.</p>
+      <button class="btn btn-primary wide" onclick="closeModal()">Ok</button>`);
+    return;
+  }
+  modal(`<div class="dungeon-intro">
+    <div class="dungeon-intro-icon">🗡️</div>
+    <h3 class="panel-title center">Spedizione a Tappe</h3>
+    <p class="center small">Affronta <b>3 nemici</b> + un <b>Boss</b> in sequenza.<br>
+    Tra gli scontri scegli come proseguire. Il boss lascia un oggetto <b>Epico</b> garantito.</p>
+    <div class="dungeon-intro-rules">
+      <div>⚔️ Vinci 3 su 5 round per avanzare</div>
+      <div>💀 Se perdi, ottieni ricompense parziali</div>
+      <div>🔒 Una Spedizione al giorno</div>
+    </div>
+    <button class="btn btn-primary wide big" id="btn-dungeon-start">🗡️ PARTI!</button>
+    <button class="btn wide" onclick="closeModal()">Forse dopo…</button>
+  </div>`);
+  document.getElementById('btn-dungeon-start').addEventListener('click', () => {
+    RPG.startDungeon(HERO);
+    persist();
+    closeModal();
+    showDungeonFight();
+  });
+}
+
+function showDungeonFight() {
+  const d = HERO.activeDungeon;
+  if (!d || d.done) return;
+  const enemy = RPG.dungeonCurrentEnemy(HERO);
+  if (!enemy) return;
+  const isBoss = !!enemy.boss;
+  const stepLabel = isBoss ? 'BOSS' : `Scontro ${d.step + 1} di ${d.enemies.length - 1}`;
+  const fig = enemy.id === 'cavaliere-drago' ? '<div class="battle-emoji">🐉</div>'
+    : `<img class="arena-intro-img dungeon-enemy-img" src="assets/bestiario/${enemy.id}.png" onerror="this.style.display='none'">`;
+  const buffLines = [];
+  if (d.buffs.debuffEnemy > 0) buffLines.push(`🛡️ Trappola attiva: nemico −${d.buffs.debuffEnemy} HP`);
+  if (d.buffs.buffDmg > 0) buffLines.push(`⚡ Bonus danni: +${d.buffs.buffDmg}`);
+  if (d.buffs.buffDmgPct > 0) buffLines.push(`💪 Bonus danni: +${Math.round(d.buffs.buffDmgPct * 100)}%`);
+  if (d.buffs.revealWeak) buffLines.push(`🔍 Debolezza: <b>${enemy.weakness}</b>`);
+  modal(`<div class="arena-intro dungeon-step">
+    <div class="dungeon-step-badge">${isBoss ? '👑 BOSS FINALE' : stepLabel}</div>
+    ${fig}
+    <h3 class="panel-title center">${esc(enemy.name)} ${isBoss ? '<span class="tag tag-boss">BOSS</span>' : ''}</h3>
+    <p class="center small muted">Debolezza: <b>${d.buffs.revealWeak ? enemy.weakness : (isBoss ? enemy.weakness : '???')}</b></p>
+    ${buffLines.length ? `<div class="dungeon-buffs">${buffLines.map(l => `<div class="dungeon-buff-line">${l}</div>`).join('')}</div>` : ''}
+    <p class="center small">Vinci <b>3 round su 5</b> per ${isBoss ? 'completare la Spedizione' : 'avanzare'}!</p>
+    <button class="btn btn-primary wide big" id="btn-dungeon-fight">🔥 COMBATTI!</button>
+    <button class="btn wide" id="btn-dungeon-flee">✕ Abbandona Spedizione</button>
+  </div>`);
+  document.getElementById('btn-dungeon-fight').addEventListener('click', () => {
+    beginDungeonBattle(enemy.id);
+  });
+  document.getElementById('btn-dungeon-flee').addEventListener('click', () => {
+    const r = RPG.dungeonStepResult(HERO, false);
+    persist(); renderHUD();
+    closeModal();
+    showDungeonDefeat(r ? r.reward : { gold:0, xp:0, complete:false, stepsOk:0 });
+  });
+}
+
+function beginDungeonBattle(villainId) {
+  const enemy = RPG.BESTIARY.find(b => b.id === villainId);
+  if (!enemy) return;
+  HERO.bestiary = HERO.bestiary || [];
+  if (!HERO.bestiary.includes(enemy.id)) HERO.bestiary.push(enemy.id);
+  const petBonus = RPG.petArenaBonus(HERO);
+  const furn = RPG.furnitureAggregate(HERO);
+  const classBonus = RPG.classArenaBonus(HERO, enemy);
+  const furnHpBonus = Math.round(100 * furn.arenaHpMult);
+  const furnDmgBonus = Math.round(34 * (furn.arenaDmgMult + (enemy.boss ? furn.bossDmgMult : 0)));
+  const maxHP = 100 + petBonus.hpBonus + furnHpBonus + classBonus.hpBonus;
+  const d = HERO.activeDungeon;
+  const dmgBuff = Math.round(d.buffs.buffDmg + 34 * d.buffs.buffDmgPct);
+  const enemyDebuff = d.buffs.debuffEnemy;
+  BATTLE = {
+    v: enemy,
+    heroHP: maxHP, heroMaxHP: maxHP,
+    vHP: Math.max(20, 100 - enemyDebuff), dmg: 34 + dmgBuff, hw: 0, vw: 0, round: 1, busy: false, done: false,
+    petBonus, furnBonus: {
+      dmgBonus: furnDmgBonus + classBonus.dmgBonus,
+      critChance: furn.arenaCritChance,
+      critDmgMult: 1 + furn.arenaCritDmgMult,
+      defMult: 1 - Math.min(0.8, furn.arenaDefMult),
+      regenPct: (furn.flags.arenaRegen) || 0,
+      extraLife: !!furn.flags.arenaExtraLife,
+    },
+    extraLifeUsed: false,
+  };
+  closeModal();
+  battleEl().classList.remove('hidden');
+  drawBattle();
+  try { if (_AC && _AC.state === 'suspended') _AC.resume(); } catch {}
+}
+
+function showDungeonChoice() {
+  const d = HERO.activeDungeon;
+  if (!d || !d.pendingChoice) return;
+  const setIdx = Math.min(d.step - 1, RPG.DUNGEON_CHOICE_SETS.length - 1);
+  const [optA, optB] = RPG.DUNGEON_CHOICE_SETS[setIdx];
+  const nextEnemy = RPG.BESTIARY.find(b => b.id === d.enemies[d.step]);
+  const isBossNext = d.step === d.enemies.length - 1;
+  modal(`<div class="dungeon-choice">
+    <h3 class="panel-title center">⚡ Un Bivio</h3>
+    <p class="center small muted">Prima del prossimo scontro${isBossNext ? ' (il Boss!)' : ''}:</p>
+    <div class="dungeon-choice-grid">
+      <button class="dungeon-choice-btn" id="dc-a">
+        <div class="dc-icon">${optA.icon}</div>
+        <div class="dc-label">${optA.label}</div>
+        <div class="dc-desc small muted">${optA.desc}</div>
+      </button>
+      <button class="dungeon-choice-btn" id="dc-b">
+        <div class="dc-icon">${optB.icon}</div>
+        <div class="dc-label">${optB.label}</div>
+        <div class="dc-desc small muted">${optB.desc}</div>
+      </button>
+    </div>
+    ${nextEnemy ? `<p class="center small muted" style="margin-top:12px">Prossimo: <b>${esc(nextEnemy.name)}</b></p>` : ''}
+  </div>`);
+  const apply = idx => {
+    const res = RPG.dungeonMakeChoice(HERO, idx);
+    if (res && res.option.effect === 'goldNow') {
+      persist(); renderHUD();
+      toast(`💰 +${res.option.val} monete trovate!`);
+    } else {
+      persist();
+    }
+    closeModal();
+    showDungeonFight();
+  };
+  document.getElementById('dc-a').addEventListener('click', () => apply(0));
+  document.getElementById('dc-b').addEventListener('click', () => apply(1));
+}
+
+function showDungeonReward(reward) {
+  sfx('level');
+  vibrate([100, 50, 100, 50, 200]);
+  let html = `<div class="dungeon-reward">
+    <div class="dungeon-reward-star">⭐</div>
+    <h3 class="panel-title center">SPEDIZIONE COMPLETATA!</h3>
+    <div class="chest-res-row">
+      <div class="chest-res-chip gold">🪙 ${reward.gold}</div>
+      <div class="chest-res-chip xp">⭐ ${reward.xp} XP</div>
+    </div>`;
+  if (reward.item) {
+    html += `<div class="dungeon-epic-label">Oggetto Epico Garantito</div>
+      ${itemHtml(reward.item)}`;
+  }
+  html += `<button class="btn btn-primary wide" onclick="closeModal(); setTab('train')">Fantastico!</button>
+  </div>`;
+  modal(html);
+}
+
+function showDungeonDefeat(reward) {
+  sfx('defeat');
+  modal(`<div class="dungeon-defeat">
+    <div style="font-size:3rem;text-align:center">💀</div>
+    <h3 class="panel-title center">Spedizione Fallita</h3>
+    <p class="center small">Hai combattuto bravamente ma la Spedizione è terminata.</p>
+    <div class="chest-res-row">
+      <div class="chest-res-chip gold">🪙 ${reward.gold}</div>
+      <div class="chest-res-chip xp">⭐ ${reward.xp} XP</div>
+    </div>
+    <p class="muted small center">Torna domani per una nuova Spedizione.</p>
+    <button class="btn btn-primary wide" onclick="closeModal(); setTab('train')">Tornerò più forte!</button>
+  </div>`);
+}
