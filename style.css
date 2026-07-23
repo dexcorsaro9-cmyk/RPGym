@@ -2059,8 +2059,8 @@ body {
 /* ── Splash Screen ── */
 .splash-screen {
   background: url('assets/icons/watermarked_img_6703389115759478461.png') center / cover no-repeat;
-  display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-  padding: 10dvh 0 9dvh;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+  padding: 0 0 9dvh;
 }
 .splash-logo-area { display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .splash-logo-img {
