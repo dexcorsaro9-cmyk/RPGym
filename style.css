@@ -1383,8 +1383,27 @@ body {
 .create-cinematic {
   display: flex; flex-direction: column;
   min-height: 100dvh; background: #060402; overflow: hidden;
-  padding-top: max(env(safe-area-inset-top, 0px), 12px);
+  padding-top: env(safe-area-inset-top, 0px);
 }
+.create-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px 8px;
+  border-bottom: 1px solid rgba(232,182,76,.15);
+}
+.create-back-pill {
+  font-family: 'Cinzel', serif; font-size: .72rem; font-weight: 700;
+  color: rgba(232,182,76,.8); letter-spacing: .05em;
+  background: rgba(232,182,76,.08); border: 1px solid rgba(232,182,76,.25);
+  border-radius: 20px; padding: 5px 13px;
+  cursor: pointer; transition: background .15s, color .15s;
+}
+.create-back-pill:active { background: rgba(232,182,76,.2); color: #e8c97c; }
+.create-logo {
+  font-family: 'Cinzel', serif; font-size: .85rem; font-weight: 900;
+  color: #e8c97c; letter-spacing: .18em;
+  text-shadow: 0 0 18px rgba(232,182,76,.4);
+}
+.create-topbar-spacer { width: 72px; }
 .create-card-zone {
   position: relative; flex: 1; min-height: 0;
   max-height: 54vh;
@@ -1413,14 +1432,6 @@ body {
   object-fit: contain; object-position: bottom center;
   display: block; user-select: none; pointer-events: none;
   animation: portrait-shimmer 3.5s ease-in-out infinite;
-}
-.create-back-btn {
-  position: absolute; top: env(safe-area-inset-top, 0px); left: 0;
-  margin: 12px 0 0 12px;
-  background: rgba(0,0,0,.45); border: 1px solid rgba(255,255,255,.15);
-  color: #e8c97c; font-size: 1.3rem; border-radius: 50%;
-  width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
-  cursor: pointer; z-index: 10;
 }
 .create-arrow {
   position: absolute; top: 50%; transform: translateY(-50%);
