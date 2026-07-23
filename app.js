@@ -1522,7 +1522,7 @@ function renderTrain(c) {
   // ── Strip incolla-passi: sempre visibile, nessun popup ──
   const syncStrip = el('div', 'step-sync-strip');
   syncStrip.innerHTML = `<span class="sss-label">⚡ Passi da Salute</span>
-    <input class="sss-input" type="number" inputmode="numeric" placeholder="Incolla o digita i passi…">`;
+    <input class="sss-input" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Incolla o digita i passi…">`;
   const sssInput = syncStrip.querySelector('.sss-input');
   const applySss = () => {
     const steps = parseInt(sssInput.value, 10);
@@ -1534,7 +1534,7 @@ function renderTrain(c) {
     if (report) { persist(); renderHUD(); showHealthSyncResult(report); }
     else toast('Attività già sincronizzata per oggi.');
   };
-  sssInput.addEventListener('paste', () => setTimeout(applySss, 80));
+  sssInput.addEventListener('paste', () => setTimeout(applySss, 150));
   sssInput.addEventListener('keydown', e => { if (e.key === 'Enter') applySss(); });
   c.appendChild(syncStrip);
 
