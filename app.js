@@ -509,8 +509,7 @@ function enterGame() {
   OPEN_QUEUE = [];
   if (healthReport) OPEN_QUEUE.push(() => showHealthSyncResult(healthReport));
 
-  // Clipboard sync attivata da gesto utente (iOS richiede tocco esplicito)
-  showClipboardSyncBanner();
+  // Sync passi: disponibile inline nel tab Allenati (non più popup automatico)
   if (missed) OPEN_QUEUE.push(() => modal(`
       <h3 class="panel-title">💨 Il Forziere Svanito…</h3>
       <div class="lost-chest">🎁</div>
@@ -1387,9 +1386,11 @@ function renderMap(c) {
   }
   c.appendChild(evp);
 
-  // ── Atlante: griglia illustrata dei 20 biomi ──
+  // ── Atlante: griglia illustrata dei 20 biomi (collassabile) ──
   const ap = el('div', 'panel');
-  ap.appendChild(el('h3', 'panel-title', '📖 L\'Atlante del Reame'));
+  const atlasTitle = el('div', 'atlas-title-row');
+  atlasTitle.innerHTML = `<h3 class="panel-title" style="margin:0">📖 L'Atlante del Reame</h3><button class="atlas-toggle-btn" aria-expanded="false">▼</button>`;
+  ap.appendChild(atlasTitle);
   const grid = el('div', 'biome-atlas');
   RPG.BIOMES.forEach(b => {
     const open = HERO.level >= b.min;
@@ -1423,8 +1424,16 @@ function renderMap(c) {
     if (open) card.addEventListener('click', () => showBiomePreview(b, open));
     grid.appendChild(card);
   });
+  grid.classList.add('biome-atlas-collapsed');
   ap.appendChild(grid);
   c.appendChild(ap);
+
+  const toggleBtn = atlasTitle.querySelector('.atlas-toggle-btn');
+  toggleBtn.addEventListener('click', () => {
+    const collapsed = grid.classList.toggle('biome-atlas-collapsed');
+    toggleBtn.textContent = collapsed ? '▼' : '▲';
+    toggleBtn.setAttribute('aria-expanded', String(!collapsed));
+  });
 }
 
 function zoneShort(zone) {
@@ -1493,6 +1502,25 @@ function renderDailyChallenges(c) {
 }
 
 function renderTrain(c) {
+  // ── Strip incolla-passi: sempre visibile, nessun popup ──
+  const syncStrip = el('div', 'step-sync-strip');
+  syncStrip.innerHTML = `<span class="sss-label">⚡ Passi da Salute</span>
+    <input class="sss-input" type="number" inputmode="numeric" placeholder="Incolla o digita i passi…">`;
+  const sssInput = syncStrip.querySelector('.sss-input');
+  const applySss = () => {
+    const steps = parseInt(sssInput.value, 10);
+    if (!(steps > 0)) return;
+    const km = Math.round(steps * 0.00075 * 100) / 100;
+    if (km < 0.05) { toast(`${steps} passi (${km} km) — troppo pochi.`); sssInput.value = ''; return; }
+    const report = RPG.logHealthSync(HERO, 'camminata', km);
+    sssInput.value = '';
+    if (report) { persist(); renderHUD(); showHealthSyncResult(report); }
+    else toast('Attività già sincronizzata per oggi.');
+  };
+  sssInput.addEventListener('paste', () => setTimeout(applySss, 80));
+  sssInput.addEventListener('keydown', e => { if (e.key === 'Enter') applySss(); });
+  c.appendChild(syncStrip);
+
   c.appendChild(el('h2', 'section-title', '⚔️ Registra l\'Impresa'));
 
   // Daily goal progress bar
@@ -2030,7 +2058,7 @@ function renderNero(c) {
       `${itemIconHtml(it, 'item-icon')} <b>${esc(it.name)}</b> <span class="tag">${RPG.RARITIES[it.rarity].label}</span><br>
        <span class="small muted">+${it.xp}% XP</span>`));
     const sv = RPG.sellValue(HERO, it);
-    const btn = el('button', 'btn btn-small btn-primary', `🔍 ${sv} 🪙`);
+    const btn = el('button', 'btn btn-small btn-primary', `🏷️ ${sv} 🪙`);
     btn.addEventListener('click', () => showItemPreview(it));
     row.appendChild(btn);
     c.appendChild(row);

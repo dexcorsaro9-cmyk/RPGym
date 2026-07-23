@@ -215,8 +215,8 @@ body {
 .hud-avatar { flex-shrink: 0; }
 .hud-avatar-inner, .hud-avatar .avatar-emoji {
   width: 46px; height: 46px; border-radius: 50%;
-  border: 2px solid var(--gold); object-fit: cover; object-position: 50% 0%;
-  transform: scale(2.6); transform-origin: 50% 0%;
+  border: 2px solid var(--gold); object-fit: cover; object-position: 50% 10%;
+  transform: scale(1.9); transform-origin: 50% 12%;
   font-size: 1.6rem; display: flex; align-items: center; justify-content: center;
   background: #fff8ec;
 }
@@ -627,10 +627,10 @@ body {
 }
 .tab span {
   font-family: 'Cinzel', serif; font-size: .55rem; font-weight: 700;
-  letter-spacing: .04em; opacity: .65; transition: opacity .2s;
+  letter-spacing: .04em; color: #c4956a; opacity: .92; transition: opacity .2s, color .2s;
 }
 .tab.active { color: var(--gold-bright); text-shadow: 0 0 12px rgba(232,182,76,.8); }
-.tab.active span { opacity: 1; }
+.tab.active span { opacity: 1; color: var(--gold-bright); }
 .tab-main { font-size: 2rem; }
 
 /* ── Modal ── */
@@ -1651,11 +1651,12 @@ body {
 /* Badge rossi sulla tab bar */
 .tab { position: relative; }
 .tab-badge {
-  position: absolute; top: 2px; right: 18%;
+  position: absolute; top: -5px; right: 16%;
   width: 12px; height: 12px; border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, #ff7a6e, #c62828);
   border: 2px solid #241809;
   animation: badgePulse 1.6s ease-in-out infinite;
+  z-index: 4;
 }
 @keyframes badgePulse {
   0%, 100% { transform: scale(1); }
@@ -2088,6 +2089,36 @@ body {
   font-weight: 700; font-size: .72rem; margin-top: 2px;
 }
 .shortcut-icon { font-size: 1.3rem; }
+/* ── Strip incolla-passi inline nel tab Allenati ── */
+.step-sync-strip {
+  display: flex; align-items: center; gap: 8px;
+  background: linear-gradient(90deg, rgba(30,15,5,.88), rgba(45,22,8,.82));
+  border: 1px solid rgba(201,147,46,.38);
+  border-radius: 12px; padding: 8px 12px; margin-bottom: 4px;
+}
+.sss-label {
+  font-family: 'Cinzel', serif; font-size: .65rem; font-weight: 700;
+  color: var(--gold-bright); white-space: nowrap; letter-spacing: .04em;
+  text-shadow: 0 0 8px rgba(232,182,76,.4);
+}
+.sss-input {
+  flex: 1; background: rgba(255,255,255,.08); border: 1px solid rgba(201,147,46,.3);
+  border-radius: 8px; padding: 7px 10px; color: #f4e7cd;
+  font-size: .9rem; outline: none;
+}
+.sss-input:focus { border-color: var(--gold-bright); background: rgba(255,255,255,.12); }
+.sss-input::placeholder { color: rgba(196,149,106,.55); font-size: .78rem; }
+
+/* ── Atlas: collassabile ── */
+.atlas-title-row {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;
+}
+.atlas-toggle-btn {
+  background: none; border: 1px solid rgba(201,147,46,.35); border-radius: 6px;
+  color: var(--gold-bright); font-size: .7rem; padding: 2px 7px; cursor: pointer;
+}
+.biome-atlas-collapsed { display: none; }
+
 .clipboard-sync-banner {
   position: fixed; bottom: calc(72px + env(safe-area-inset-bottom)); left: 12px; right: 12px;
   background: linear-gradient(135deg, #1e3d12, #2d5a1b);
