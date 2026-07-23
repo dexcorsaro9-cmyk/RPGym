@@ -216,6 +216,13 @@ body {
   display: flex; flex-direction: column; gap: 8px;
 }
 .panel-title { font-family: 'Cinzel', serif; font-size: 1rem; color: var(--leather); }
+.panel.panel-featured {
+  background:
+    radial-gradient(ellipse at 30% 15%, rgba(255,220,130,.25), transparent 55%),
+    linear-gradient(160deg, #f5e6c0 0%, #e8d099 100%);
+  border-color: var(--gold);
+  box-shadow: 0 4px 20px rgba(0,0,0,.45), 0 0 14px rgba(232,182,76,.25);
+}
 
 /* ── Rifugio ── */
 .camp-scene { text-align: center; margin-bottom: 14px; }
@@ -582,10 +589,37 @@ body {
     url('assets/backgrounds/template-footer.jpg');
   background-size: cover; background-position: center;
   box-shadow: 0 -3px 14px rgba(0,0,0,.55);
+  overflow: visible;
 }
 .tab.active {
-  background: radial-gradient(ellipse at 50% 100%, rgba(232,182,76,.22), transparent 70%);
+  background: radial-gradient(ellipse at 50% 100%, rgba(232,182,76,.28), transparent 70%);
 }
+.tab.active::after {
+  content: '';
+  position: absolute; top: -3px; left: 20%; right: 20%;
+  height: 3px; border-radius: 0 0 3px 3px;
+  background: linear-gradient(90deg, transparent, var(--gold-bright), transparent);
+  box-shadow: 0 0 8px rgba(232,182,76,.8);
+}
+.tab.tab-main {
+  transform: translateY(-8px);
+  filter: drop-shadow(0 -4px 10px rgba(232,182,76,.35));
+}
+.tab.tab-main.active::before {
+  content: '';
+  position: absolute; inset: -4px -8px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 70%, rgba(232,182,76,.22), transparent 65%);
+  pointer-events: none;
+}
+.tab.tab-main::after { left: 25%; right: 25%; }
+
+/* ── Tab content fade-in ── */
+@keyframes tab-content-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+#tab-content.tab-in { animation: tab-content-in .18s ease-out both; }
 .tab img.tab-icon {
   width: 34px; height: 34px; object-fit: contain;
   filter: drop-shadow(0 2px 3px rgba(0,0,0,.6));

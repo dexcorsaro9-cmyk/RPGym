@@ -608,9 +608,11 @@ function setTab(tab) {
   const c = $('#tab-content');
   c.classList.toggle('bg-parchment', tab === 'hero' && PARCHMENT_OK);
   c.classList.toggle('bg-rifugio', tab === 'camp');
+  c.classList.remove('tab-in');
   c.innerHTML = '';
   ({ camp: renderCamp, map: renderMap, train: renderTrain, market: renderMarket, hero: renderHero }[tab])(c);
   c.scrollTop = 0;
+  requestAnimationFrame(() => c.classList.add('tab-in'));
   updateBadges();
 }
 
@@ -764,7 +766,7 @@ function renderCamp(c) {
   }
 
   // Riposo
-  const rp = el('div', 'panel');
+  const rp = el('div', HERO.restBonus ? 'panel panel-featured' : 'panel');
   rp.appendChild(el('h3', 'panel-title', '😴 Falò Rigenerante'));
   rp.appendChild(el('p', 'muted small',
     'Dichiara un Giorno di Riposo (max 2 a settimana): il prossimo allenamento varrà il DOPPIO.' +
@@ -1169,7 +1171,7 @@ function renderMap(c) {
   // ── Incursione del giorno ──
   if (HERO.incursion && !HERO.incursion.done) {
     const inc = HERO.incursion;
-    const p = el('div', 'panel incursion-panel');
+    const p = el('div', 'panel panel-featured incursion-panel');
     p.appendChild(el('h3', 'panel-title', `⚡ INCURSIONE — solo oggi!`));
     if (inc.enemy !== 'cavaliere-drago') {
       const img = el('img', 'incursion-img');
@@ -1190,7 +1192,7 @@ function renderMap(c) {
   // ── Missione attiva ──
   if (HERO.activeMission) {
     const m = RPG.MISSIONS.find(x => x.id === HERO.activeMission.id);
-    const p = el('div', 'panel active-mission');
+    const p = el('div', 'panel panel-featured active-mission');
     p.appendChild(el('h3', 'panel-title', `🐎 In viaggio: ${m.name}`));
     const done = HERO.activeMission.progressKm;
     const pct = Math.min(100, Math.round(done / m.km * 100));
@@ -1297,7 +1299,7 @@ function zoneIcon(zone) {
 function renderDailyChallenges(c) {
   const dc = RPG.getDailyChallenges(HERO);
   const claimable = dc.list.filter(ch => ch.progress >= ch.target && !ch.claimed).length;
-  const panel = el('div', 'panel');
+  const panel = el('div', claimable ? 'panel panel-featured' : 'panel');
   const titleRow = el('div', 'challenge-title-row');
   titleRow.innerHTML = `<h3 class="panel-title" style="margin:0">🎯 Sfide del Giorno</h3>`;
   if (claimable) titleRow.appendChild(el('span', 'mg-card-badge', String(claimable)));
