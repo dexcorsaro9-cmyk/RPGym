@@ -334,6 +334,21 @@ function isImageAvatar(hero) {
 }
 
 /* ── Creazione eroe — Card Cinematografica ── */
+const AVATAR_LORE = {
+  eroe1:       'Nato dalla cenere di Oakhaven, cammina per trovare risposte.',
+  eroe2:       'Figlia dell\'erborista, conosce i segreti di ogni sentiero.',
+  fabbro:      'Dal fuoco della forgia nasce l\'acciaio dei campioni.',
+  stregone:    'Le stelle gli parlano. Lui risponde con fiamme.',
+  alchimista:  'Trasforma sudore in oro, fatica in trionfo.',
+  furfante:    'Veloce nel buio, invisibile alla luce.',
+  maga:        'Tesse incantesimi con ogni passo, ogni respiro.',
+  paladino:    'La fede è la sua armatura più pesante.',
+  ranger:      'I boschi lo conoscono. Lui li conosce meglio.',
+  fata:        'Dove cammina, fiorisce. Dove combatte, vince.',
+  principe:    'Il sangue nobile non basta. Serve il coraggio.',
+  principessa: 'Una corona non si eredita. Si conquista.',
+  regina:      'Ha visto crollare regni. Il suo è ancora in piedi.',
+};
 const AVATAR_DIMS = {
   eroe1:{w:417,h:700}, eroe2:{w:535,h:535}, fabbro:{w:535,h:535},
   stregone:{w:535,h:535}, alchimista:{w:535,h:535}, furfante:{w:535,h:535},
@@ -365,8 +380,6 @@ function renderCreate() {
   createIdx = Math.max(0, AVATARS.indexOf(pickedAvatar));
   if (!_createReady) {
     _createReady = true;
-    const dotsEl = $('#create-dots');
-    AVATARS.forEach(() => dotsEl.appendChild(el('span', 'create-dot')));
     $('#create-prev').addEventListener('click', () => {
       createIdx = (createIdx - 1 + AVATARS.length) % AVATARS.length;
       _updateCreate();
@@ -396,6 +409,7 @@ function _updateCreate() {
   $('#create-card-zone').style.background =
     `radial-gradient(ellipse at 50% 30%, ${col.glow}44 0%, ${col.bg} 58%, #060402 100%)`;
   const portrait = $('#create-portrait');
+  portrait.style.setProperty('--portrait-glow', col.glow);
   portrait.style.opacity = '0';
   clearTimeout(portrait._t);
   portrait._t = setTimeout(() => {
@@ -421,24 +435,35 @@ function _updateCreate() {
     portrait.style.opacity = '1';
   }, 150);
   $('#create-class-name').textContent = a.label;
+  $('#create-lore').textContent = AVATAR_LORE[a.storyId] || '';
+  $('#create-dots').textContent = `${createIdx + 1} / ${AVATARS.length}`;
   const t = RPG.CLASS_TALENTS[a.storyId];
   $('#create-talent-name').textContent = t ? `${t.icon} ${t.name}` : '';
   $('#create-talent-desc').textContent = t ? t.desc : '';
-  document.querySelectorAll('.create-dot').forEach((d, i) => d.classList.toggle('active', i === createIdx));
 }
 
-$('#btn-new-hero').addEventListener('click', () => { $('#create-name').value = ''; renderCreate(); });
-$('#btn-create-back').addEventListener('click', renderProfiles);
-$('#btn-create-confirm').addEventListener('click', () => {
+function _createNameError(msg) {
+  const e = $('#create-name-error');
+  e.textContent = msg;
+  e.classList.add('visible');
+  clearTimeout(e._t);
+  e._t = setTimeout(() => e.classList.remove('visible'), 3000);
+}
+function _doCreateConfirm() {
   const name = $('#create-name').value.trim();
-  if (!name) { alert('Ogni eroe ha bisogno di un nome!'); return; }
+  if (!name) { _createNameError('Ogni eroe ha bisogno di un nome!'); return; }
   const h = RPG.newHero(name, pickedAvatar.path);
   h.storyId = pickedAvatar.storyId;
   STATE.heroes.push(h);
   STATE.current = h.id;
   persist();
   enterGame();
-});
+}
+$('#btn-new-hero').addEventListener('click', () => { $('#create-name').value = ''; $('#create-name-error').classList.remove('visible'); renderCreate(); });
+$('#btn-create-back').addEventListener('click', renderProfiles);
+$('#btn-create-confirm').addEventListener('click', _doCreateConfirm);
+$('#create-name').addEventListener('keydown', e => { if (e.key === 'Enter') _doCreateConfirm(); });
+$('#create-name').addEventListener('input', () => $('#create-name-error').classList.remove('visible'));
 
 /* ══════════════ Gioco ══════════════ */
 
