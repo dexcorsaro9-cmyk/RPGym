@@ -2372,21 +2372,21 @@ function renderHero(c) {
 
 function renderDiaryView(c) {
   backBar(c);
-  c.appendChild(el('h2', 'section-title', '📊 Diario del Viandante'));
+  c.appendChild(el('h2', 'section-title', '📜 Diario del Viandante'));
 
   // Statistiche totali
   const sp = el('div', 'panel');
-  sp.appendChild(el('h3', 'panel-title', '📈 Statistiche Totali'));
+  sp.appendChild(el('h3', 'panel-title', '⚔️ Statistiche Totali'));
   const sd = el('div', 'stats-diary-grid');
   [
-    ['🏃', HERO.log.length,                                    'Sessioni'],
-    ['📍', HERO.totalKm.toFixed(1) + ' km',                   'Totale'],
+    ['🥾', HERO.log.length,                                    'Sessioni'],
+    ['🗺️', HERO.totalKm.toFixed(1) + ' km',                   'Totale'],
     ['🚶', (HERO.kmByType.camminata || 0).toFixed(1) + ' km', 'Cammino'],
-    ['🏅', (HERO.kmByType.corsa     || 0).toFixed(1) + ' km', 'Corsa'],
+    ['🏃', (HERO.kmByType.corsa     || 0).toFixed(1) + ' km', 'Corsa'],
     ['🚴', (HERO.kmByType.cyclette  || 0).toFixed(1) + ' km', 'Cyclette'],
-    ['🏆', (HERO.achievementsClaimed || []).length,            'Imprese'],
-    ['🎒', HERO.lootBagsOpened || 0,                          'Sacchi'],
-    ['🔍', HERO.fragmentsFound || 0,                          'Frammenti'],
+    ['⭐', (HERO.achievementsClaimed || []).length,            'Imprese'],
+    ['📦', HERO.lootBagsOpened || 0,                          'Sacchi'],
+    ['💎', HERO.fragmentsFound || 0,                          'Frammenti'],
   ].forEach(([ico, val, lbl]) => {
     const it = el('div', 'stats-diary-item');
     it.innerHTML = `<div class="stats-diary-val">${ico} ${val}</div><div class="stats-diary-lbl">${lbl}</div>`;
@@ -2404,7 +2404,7 @@ function renderDiaryView(c) {
     });
     const today = new Date();
     const hmWrap = el('div', 'panel km-heatmap-wrap');
-    hmWrap.appendChild(el('h3', 'panel-title', '📅 Attività degli Ultimi 3 Mesi'));
+    hmWrap.appendChild(el('h3', 'panel-title', '🌙 Attività degli Ultimi 3 Mesi'));
     const hm = el('div', 'km-heatmap');
     for (let i = 83; i >= 0; i--) {
       const d = new Date(today); d.setDate(d.getDate() - i);
@@ -2425,7 +2425,7 @@ function renderDiaryView(c) {
   const lp = el('div', 'panel');
   lp.appendChild(el('h3', 'panel-title', '📜 Diario delle Attività'));
   if (!HERO.log.length) {
-    lp.appendChild(emptyState('📝', 'Nessuna attività registrata ancora.'));
+    lp.appendChild(emptyState('📜', 'Nessuna attività registrata ancora.'));
   } else {
     HERO.log.slice().reverse().forEach(l => {
       const a = RPG.ACTIVITIES[l.type];
