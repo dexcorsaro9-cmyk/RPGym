@@ -1472,7 +1472,23 @@ function zoneIcon(zone) {
 /* ── TAB: Allenati ── */
 let CHALLENGE_TAB = 'daily';
 
-function renderChallengeList(panel, list, claimFn, bonusObj, bonusClaimed) {
+function _timeUntilMidnight() {
+  const now = new Date(), next = new Date(now);
+  next.setHours(24, 0, 0, 0);
+  const d = next - now;
+  const h = Math.floor(d / 3600000), m = Math.floor((d % 3600000) / 60000);
+  return `${h}h ${m}m`;
+}
+function _timeUntilMonday() {
+  const now = new Date();
+  const days = (8 - now.getDay()) % 7 || 7;
+  const mon = new Date(now); mon.setDate(now.getDate() + days); mon.setHours(0, 0, 0, 0);
+  const d = mon - now;
+  const dd = Math.floor(d / 86400000), h = Math.floor((d % 86400000) / 3600000);
+  return dd > 0 ? `${dd}g ${h}h` : `${h}h`;
+}
+
+function renderChallengeList(panel, list, claimFn, bonusObj, bonusClaimed, countdown) {
   list.forEach((ch, i) => {
     const done = ch.progress >= ch.target;
     const row = el('div', 'challenge-row' + (ch.claimed ? ' ch-claimed' : done ? ' ch-completable' : ''));
@@ -1515,6 +1531,14 @@ function renderChallengeList(panel, list, claimFn, bonusObj, bonusClaimed) {
     <span class="muted small">+${bonusObj.gold}🪙 +${bonusObj.xp}⭐
     ${bonusClaimed ? ' · ✓ riscosso' : ''}</span>`;
   panel.appendChild(bonusRow);
+
+  if (list.every(ch => ch.claimed) && bonusClaimed && countdown) {
+    const es = el('div', 'ch-empty-state');
+    es.innerHTML = `<div class="ch-empty-icon">🎉</div>
+      <div class="ch-empty-text">Tutte le sfide completate!</div>
+      <div class="ch-empty-countdown">Prossimo reset tra <b>${countdown}</b></div>`;
+    panel.appendChild(es);
+  }
 }
 
 function renderDailyChallenges(c) {
@@ -1543,9 +1567,9 @@ function renderDailyChallenges(c) {
   panel.appendChild(tabs);
 
   if (CHALLENGE_TAB === 'daily') {
-    renderChallengeList(panel, dc.list, RPG.claimChallenge, RPG.DAILY_CHALLENGES_BONUS, dc.bonusClaimed);
+    renderChallengeList(panel, dc.list, RPG.claimChallenge, RPG.DAILY_CHALLENGES_BONUS, dc.bonusClaimed, _timeUntilMidnight());
   } else {
-    renderChallengeList(panel, wc.list, RPG.claimWeeklyChallenge, RPG.WEEKLY_CHALLENGES_BONUS, wc.bonusClaimed);
+    renderChallengeList(panel, wc.list, RPG.claimWeeklyChallenge, RPG.WEEKLY_CHALLENGES_BONUS, wc.bonusClaimed, _timeUntilMonday());
   }
 
   c.appendChild(panel);
@@ -2414,7 +2438,7 @@ function renderDiaryView(c) {
 }
 
 function renderSettingsView(c) {
-  const back = el('button', 'btn btn-small', '← Eroe');
+  const back = el('button', 'hero-back-pill', '‹ Eroe');
   back.addEventListener('click', () => { HERO_VIEW = 'main'; setTab('hero'); });
   c.appendChild(back);
   c.appendChild(el('h2', 'section-title', '⚙️ Impostazioni'));
@@ -2625,7 +2649,7 @@ function renderStoryView(c) {
 }
 
 function backBar(c) {
-  const b = el('button', 'btn btn-small', '↩ Torna all\'Eroe');
+  const b = el('button', 'hero-back-pill', '‹ Eroe');
   b.addEventListener('click', () => { HERO_VIEW = 'main'; setTab('hero'); });
   c.appendChild(b);
 }

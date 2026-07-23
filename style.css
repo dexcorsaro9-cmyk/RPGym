@@ -943,10 +943,10 @@ body {
 
 /* ── Tab content fade-in ── */
 @keyframes tab-content-in {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(12px) scale(.985); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
 }
-#tab-content.tab-in { animation: tab-content-in .18s ease-out both; }
+#tab-content.tab-in { animation: tab-content-in .22s cubic-bezier(.2,.8,.4,1) both; }
 .tab img.tab-icon {
   width: 34px; height: 34px; object-fit: contain;
   filter: drop-shadow(0 2px 3px rgba(0,0,0,.6));
@@ -1390,14 +1390,15 @@ body {
   padding: 10px 14px 8px;
   border-bottom: 1px solid rgba(232,182,76,.15);
 }
-.create-back-pill {
+.create-back-pill, .hero-back-pill {
   font-family: 'Cinzel', serif; font-size: .72rem; font-weight: 700;
   color: rgba(232,182,76,.8); letter-spacing: .05em;
   background: rgba(232,182,76,.08); border: 1px solid rgba(232,182,76,.25);
   border-radius: 20px; padding: 5px 13px;
   cursor: pointer; transition: background .15s, color .15s;
 }
-.create-back-pill:active { background: rgba(232,182,76,.2); color: #e8c97c; }
+.create-back-pill:active, .hero-back-pill:active { background: rgba(232,182,76,.2); color: #e8c97c; }
+.hero-back-pill { margin-bottom: 12px; display: inline-block; }
 .create-ornament {
   display: flex; align-items: center; gap: 0;
   width: 90px; height: 1px;
@@ -2934,6 +2935,14 @@ body {
   font-size: .88rem; font-weight: 600; color: var(--ink-light);
 }
 .challenge-bonus-row.ch-claimed { opacity: .5; }
+.ch-empty-state {
+  margin-top: 14px; padding: 14px 10px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  border-top: 1px solid rgba(232,182,76,.15);
+}
+.ch-empty-icon { font-size: 1.8rem; }
+.ch-empty-text { font-family: 'Cinzel', serif; font-size: .82rem; font-weight: 700; color: var(--gold); letter-spacing: .04em; }
+.ch-empty-countdown { font-size: .76rem; color: rgba(255,255,255,.45); }
 .membar-fill.blue { background: linear-gradient(90deg, #2e6fb0, #4a9fd4); }
 
 /* ══════════════ v4.10: HUD, Allenamento, Heatmap, Carte, Missioni ══════════════ */
