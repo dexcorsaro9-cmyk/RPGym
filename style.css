@@ -176,9 +176,9 @@ body {
 .avatar-choice.selected { border: 3px solid var(--gold); box-shadow: 0 0 10px var(--gold-bright); }
 
 /* ── HUD ── */
-#screen-game { background: transparent; }
+#screen-game { background: transparent; height: 100dvh; overflow: hidden; }
 #hud {
-  position: sticky; top: 0; z-index: 10;
+  position: relative; z-index: 10;
   display: flex; justify-content: space-between; align-items: center;
   gap: 8px;
   padding: calc(13px + env(safe-area-inset-top)) 12px 20px;
@@ -209,7 +209,6 @@ body {
       #683c18 88%, #3a2008 100%
     );
   color: #f4e7cd;
-  position: relative;
 }
 .hud-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
 .hud-avatar { flex-shrink: 0; }
