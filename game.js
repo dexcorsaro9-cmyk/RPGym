@@ -20,6 +20,48 @@ const RPG = (() => {
   const MEMORY_FRAGMENT_KM = 20;   // ogni 20 km → un Frammento di Memoria
   const LOOT_BAG_KM = 5;           // ogni 5 km → un Sacco del Viaggiatore
 
+  /* ── Meteo dinamico ─────────────────────────────────────────── */
+  const WEATHER_TYPES = [
+    { type:'sun',   icon:'☀️', label:'Soleggiato', xpBonus: 0    },
+    { type:'rain',  icon:'🌧️', label:'Piovoso',    xpBonus: 0.15 },
+    { type:'storm', icon:'⛈️', label:'Tempesta',   xpBonus: 0.30 },
+  ];
+  function getDailyWeather() {
+    const d = new Date();
+    const seed = d.getFullYear() * 10000 + (d.getMonth()+1) * 100 + d.getDate();
+    const v = (((seed * 1664525 + 1013904223) & 0x7fffffff) >>> 0) % 100;
+    if (v < 50) return WEATHER_TYPES[0];
+    if (v < 80) return WEATHER_TYPES[1];
+    return WEATHER_TYPES[2];
+  }
+
+  /* ── Mappa del tesoro settimanale ───────────────────────────── */
+  const TREASURE_MAP_TIERS = [
+    { km: 8,  gold: 120, wood: 0,  stone: 0  },
+    { km: 22, gold: 280, wood: 80, stone: 0  },
+    { km: 45, gold: 550, wood: 0,  stone: 0, item: true },
+  ];
+  function rolloverTreasureMap(hero) {
+    const ws = weekStamp();
+    if (!hero.treasureMap || hero.treasureMap.weekStamp !== ws)
+      hero.treasureMap = { weekStamp: ws, progressKm: 0, claimed: [] };
+  }
+  function treasureMapStatus(hero) {
+    if (!hero.treasureMap) return null;
+    return { progressKm: hero.treasureMap.progressKm, claimed: hero.treasureMap.claimed };
+  }
+  function claimTreasureTier(hero, tierIdx) {
+    const t = TREASURE_MAP_TIERS[tierIdx];
+    if (!t || !hero.treasureMap) return null;
+    if (hero.treasureMap.progressKm < t.km) return null;
+    if (hero.treasureMap.claimed.includes(tierIdx)) return null;
+    hero.treasureMap.claimed.push(tierIdx);
+    hero.gold += t.gold; hero.wood += t.wood; hero.stone += t.stone;
+    const item = t.item ? genItemFor(hero) : null;
+    if (item) hero.items.push(item);
+    return { gold: t.gold, wood: t.wood, stone: t.stone, item };
+  }
+
   const WEEKLY_BOSSES = [
     { id: 'troll',    name: 'Troll delle Paludi',     km: 30, icon: '👹', zone: 'Palude',  gold: 200 },
     { id: 'wyvern',   name: 'Wyverna delle Nevi',     km: 40, icon: '🦎', zone: 'Tundra',  gold: 300 },
@@ -989,6 +1031,8 @@ const RPG = (() => {
     h.dailyChallenges = h.dailyChallenges || null;
     h.trophies        = h.trophies        || [];
     h.weeklyBoss      = h.weeklyBoss      || null;
+    h.treasureMap     = h.treasureMap     || null;
+    h.prestige        = h.prestige        || { count: 0 };
 
     h.schemaVersion = SCHEMA_VERSION;
     return h;
@@ -1147,6 +1191,12 @@ const RPG = (() => {
     // Streak bonus: +5% XP per giorno consecutivo (cap 30%)
     const streakBonus = Math.min(0.30, Math.max(0, (hero.streak ? hero.streak.count - 1 : 0)) * 0.05);
     if (streakBonus > 0) { xpMult += streakBonus; report.streakBonus = streakBonus; }
+    // Prestige bonus: +20% XP per ascensione
+    const prestigeBonus = (hero.prestige && hero.prestige.count > 0) ? Math.min(0.60, hero.prestige.count * 0.20) : 0;
+    if (prestigeBonus > 0) xpMult += prestigeBonus;
+    // Meteo dinamico
+    const weather = getDailyWeather();
+    if (weather.xpBonus > 0) { xpMult += weather.xpBonus; report.weatherBonus = weather; }
 
     // Cimeli del Rifugio (Espansione)
     const furn = furnitureAggregate(hero);
@@ -1184,6 +1234,15 @@ const RPG = (() => {
         report.bossProgress = { boss: bossData, done: hero.weeklyBoss.progressKm, total: bossData.km };
         if (wasDefeated) report.bossDefeatedWeekly = bossData;
       }
+    }
+
+    // Mappa del tesoro settimanale
+    if (hero.treasureMap) {
+      const prev = hero.treasureMap.progressKm;
+      hero.treasureMap.progressKm = Math.round((prev + km) * 10) / 10;
+      const newTiers = TREASURE_MAP_TIERS.map((t,i) => ({ ...t, idx:i }))
+        .filter(t => prev < t.km && hero.treasureMap.progressKm >= t.km);
+      if (newTiers.length) report.treasureUnlocked = newTiers;
     }
 
     // Trofei km milestone
@@ -2840,6 +2899,36 @@ const RPG = (() => {
     return { ok: true, reward: a.reward };
   }
 
+  function canPrestige(hero) { return hero.level >= MAX_LEVEL; }
+  function prestige(hero) {
+    if (!canPrestige(hero)) return false;
+    hero.prestige = hero.prestige || { count: 0 };
+    hero.prestige.count++;
+    hero.level = 1;
+    hero.xp = 0;
+    return true;
+  }
+
+  const MONTH_IT = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+  function getMonthlyRecap(hero) {
+    const now = new Date();
+    const lm = now.getMonth() === 0 ? 11 : now.getMonth() - 1;
+    const ly = now.getMonth() === 0 ? now.getFullYear()-1 : now.getFullYear();
+    const prefix = `${ly}-${String(lm+1).padStart(2,'0')}`;
+    const logs = hero.log.filter(l => new Date(l.date).toISOString().slice(0,7) === prefix);
+    if (!logs.length) return null;
+    return {
+      month: MONTH_IT[lm],
+      km: +logs.reduce((s,l)=>s+l.km,0).toFixed(1),
+      sessions: logs.length,
+      xp: logs.reduce((s,l)=>s+(l.xp||0),0),
+    };
+  }
+  function monthStamp() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  }
+
   function claimWeeklyBoss(hero) {
     const st = weeklyBossStatus(hero);
     if (!st || !st.done || st.claimed) return null;
@@ -2853,6 +2942,9 @@ const RPG = (() => {
   return {
     ACTIVITIES, MISSIONS, CARDS, BUILDINGS, BESTIARY, TROPHIES,
     WEEKLY_BOSSES, rolloverWeeklyBoss, weeklyBossStatus, claimWeeklyBoss,
+    getDailyWeather, WEATHER_TYPES,
+    TREASURE_MAP_TIERS, rolloverTreasureMap, treasureMapStatus, claimTreasureTier,
+    canPrestige, prestige, getMonthlyRecap, monthStamp,
     BIOMES, MOUNTS, RARITIES, SLOTS,
     MAX_LEVEL, LEVEL_CAP_1, GOLD_PER_KM,
     xpForLevel, dailyGoalKm, heroTitle,

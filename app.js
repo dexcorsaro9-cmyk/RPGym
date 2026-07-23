@@ -588,9 +588,10 @@ function enterGame() {
   setTab('camp');
   setupNotifications();
   AMBIENT.init();
-  // Rollover incursione + boss settimanale
+  // Rollover incursione + boss + mappa tesoro
   const missed = RPG.rolloverIncursion(HERO);
   RPG.rolloverWeeklyBoss(HERO);
+  RPG.rolloverTreasureMap(HERO);
   // Tesoro Giornaliero
   const login = RPG.dailyLogin(HERO);
   persist();
@@ -623,6 +624,14 @@ function enterGame() {
       <p class="center"><b>${esc(ev.claimedBy)}</b> ha reclamato <b>${ev.skin}</b> prima di te.</p>
       <p class="muted small center">La prossima Taglia arriva tra <span data-cd="week">…</span>. Stavolta non farti battere!</p>
       <button class="btn btn-primary wide" onclick="nextOpening()">La prossima è mia</button>`));
+  }
+  // Recap mensile (primo accesso del nuovo mese)
+  const curMonth = RPG.monthStamp();
+  if (HERO.lastRecapMonth !== curMonth) {
+    const recap = RPG.getMonthlyRecap(HERO);
+    HERO.lastRecapMonth = curMonth;
+    persist();
+    if (recap) OPEN_QUEUE.push(() => showMonthlyRecap(recap));
   }
   // Riepilogo "cosa ti aspetta oggi" (una volta al giorno)
   if (HERO.summarySeen !== todayISO()) {
@@ -869,6 +878,12 @@ function renderCamp(c) {
     mountThumb.onerror = () => { mountThumb.outerHTML = `<span class="camp-companion-emoji">${mount.emoji}</span>`; };
     scene.appendChild(mountThumb);
   }
+  // Meteo dinamico
+  const wx = RPG.getDailyWeather();
+  const wxEl = el('div', 'camp-weather');
+  wxEl.innerHTML = `${wx.icon} <span class="camp-weather-label">${wx.label}</span>${wx.xpBonus > 0 ? ` · <b class="camp-weather-bonus">+${Math.round(wx.xpBonus*100)}% XP</b>` : ''}`;
+  scene.appendChild(wxEl);
+
   scene.appendChild(el('p', 'camp-desc', sceneDesc +
     (HERO.companion && petSpeciesInfo && HERO.pet.hatched ? `<br>${esc(HERO.pet.name)} ${petSpeciesInfo.icon} sonnecchia accanto a te.` : '') +
     (HERO.companion && petSpeciesInfo && !HERO.pet.hatched ? `<br>Un uovo di ${petSpeciesInfo.name} si scalda accanto al fuoco.` : '') +
@@ -1442,6 +1457,46 @@ function renderMap(c) {
       bp.appendChild(el('p', 'muted small center', `Sconfiggilo entro domenica · mancano ${(boss.km - progressKm).toFixed(1)} km`));
     }
     c.appendChild(bp);
+  }
+
+  // ── Mappa del Tesoro settimanale ──
+  const tmStatus = RPG.treasureMapStatus(HERO);
+  if (tmStatus) {
+    const { progressKm, claimed } = tmStatus;
+    const allClaimed = claimed.length >= RPG.TREASURE_MAP_TIERS.length;
+    const tp = el('div', 'panel treasure-map-panel');
+    tp.appendChild(el('h3', 'panel-title', '🗺️ Mappa del Tesoro'));
+    RPG.TREASURE_MAP_TIERS.forEach((tier, i) => {
+      const done = progressKm >= tier.km;
+      const isClaimed = claimed.includes(i);
+      const row = el('div', 'treasure-tier-row' + (isClaimed ? ' claimed' : done ? ' ready' : ''));
+      const pct = Math.min(100, Math.round(progressKm / tier.km * 100));
+      const rewardTxt = `🪙${tier.gold}${tier.wood ? ` 🪵${tier.wood}` : ''}${tier.item ? ' + 🎒 item' : ''}`;
+      row.innerHTML = `<div class="treasure-tier-info"><span class="treasure-tier-km">${tier.km} km</span><span class="treasure-tier-reward muted small">${rewardTxt}</span></div>`;
+      if (isClaimed) {
+        row.innerHTML += `<span class="treasure-tier-state done-strip">✅</span>`;
+      } else if (done) {
+        const btn = el('button', 'btn btn-primary', '🎁 Riscuoti');
+        btn.addEventListener('click', () => {
+          const reward = RPG.claimTreasureTier(HERO, i);
+          if (!reward) return;
+          persist(); renderHUD();
+          vibrate([80,40,120]);
+          const itemEl = reward.item ? `<div class="loot-list" style="margin:.5rem 0">${itemHtml(reward.item)}</div>` : '';
+          modal(`<h3 class="center">🗺️ Tappa ${i+1} completata!</h3>
+            <p class="center">🪙 +${reward.gold}${reward.wood ? ` 🪵 +${reward.wood}` : ''}${itemEl}</p>
+            <button class="btn btn-primary wide" onclick="closeModal();setTab('camp')">Ottimo!</button>`);
+        });
+        row.appendChild(btn);
+      } else {
+        const bar = el('div', 'membar slim');
+        bar.innerHTML = `<div class="membar-fill" style="width:${pct}%"></div><span>${progressKm.toFixed(1)} / ${tier.km} km</span>`;
+        row.appendChild(bar);
+      }
+      tp.appendChild(row);
+    });
+    if (allClaimed) tp.appendChild(el('div', 'done-strip', '✅ <b>Mappa completata questa settimana!</b>'));
+    c.appendChild(tp);
   }
 
   // ── Missione attiva ──
@@ -2069,6 +2124,10 @@ function showReport(r) {
 
   if (r.streakBonus)
     html += `<p class="report-streak-line">🔥 Streak <b>${HERO.streak.count} giorni</b> · <b>+${Math.round(r.streakBonus * 100)}% XP</b></p>`;
+  if (r.weatherBonus)
+    html += `<p class="report-streak-line">${r.weatherBonus.icon} ${r.weatherBonus.label} · <b>+${Math.round(r.weatherBonus.xpBonus * 100)}% XP</b></p>`;
+  if (r.treasureUnlocked && r.treasureUnlocked.length)
+    html += r.treasureUnlocked.map(t => `<p class="big-news small">🗺️ Tappa ${t.idx+1} sbloccata! Riscuoti al Rifugio.</p>`).join('');
   if (r.trophies && r.trophies.length) {
     r.trophies.forEach(t => {
       html += `<div class="trophy-unlock"><span class="trophy-unlock-icon">${t.icon}</span><div><b>Trofeo sbloccato: ${t.name}</b><br><span class="small muted">${t.desc}</span></div></div>`;
@@ -2581,6 +2640,35 @@ function renderHero(c) {
     stats.appendChild(row);
   });
   c.appendChild(stats);
+
+  // Prestige (Rinascita)
+  if (RPG.canPrestige(HERO)) {
+    const pc = el('div', 'panel prestige-panel');
+    pc.appendChild(el('h3', 'panel-title', '✨ Rinascita'));
+    pc.appendChild(el('p', 'center', 'Hai raggiunto il livello massimo. Puoi rinascere: torni al livello 1, ma guadagni <b>+20% XP permanente</b> per sempre.'));
+    const pb = el('button', 'btn btn-primary wide', `✨ Rinasci (prestige ${(HERO.prestige?.count||0)+1})`);
+    pb.addEventListener('click', () => {
+      modal(`<h3 class="panel-title center">✨ Sei sicuro?</h3>
+        <p class="center muted">Torni al livello 1 ma ottieni <b>+20% XP permanente</b>.<br>Oggetti, km, trofei e oro rimangono.</p>
+        <button class="btn btn-primary wide" id="btn-prestige-confirm">✨ Rinasci!</button>
+        <button class="btn wide" onclick="closeModal()">Annulla</button>`);
+      setTimeout(() => {
+        const btn = $('#btn-prestige-confirm');
+        if (btn) btn.addEventListener('click', () => {
+          RPG.prestige(HERO); persist(); renderHUD();
+          vibrate([200,100,200,100,400]);
+          closeModal();
+          setTimeout(() => modal(`<h3 class="center" style="font-size:1.3rem">✨ Sei rinato!<br>+20% XP per sempre</h3>
+            <p class="center" style="font-size:2rem">⭐</p>
+            <button class="btn btn-primary wide" onclick="nextOpening();setTab('hero')">Ricomincia l'avventura!</button>`), 300);
+        });
+      }, 50);
+    });
+    pc.appendChild(pb);
+    c.appendChild(pc);
+  } else if (HERO.prestige && HERO.prestige.count > 0) {
+    c.appendChild(el('p', 'center small muted', `✨ Prestige ${HERO.prestige.count} · +${HERO.prestige.count*20}% XP permanente`));
+  }
 
   const sw = el('button', 'btn wide', '↩ Cambia Eroe');
   sw.addEventListener('click', () => { STATE.current = null; persist(); renderProfiles(); });
@@ -3401,6 +3489,21 @@ function checkAndNotify() {
 }
 
 /* ── Riepilogo "cosa ti aspetta oggi" ── */
+function showMonthlyRecap(recap) {
+  const stars = recap.sessions >= 20 ? '⭐⭐⭐' : recap.sessions >= 10 ? '⭐⭐' : '⭐';
+  modal(`
+    <h3 class="panel-title center">📜 Recap di ${esc(recap.month)}</h3>
+    <div class="monthly-recap-grid">
+      <div class="recap-cell"><span class="recap-val">${recap.km}</span><span class="recap-lbl">km percorsi</span></div>
+      <div class="recap-cell"><span class="recap-val">${recap.sessions}</span><span class="recap-lbl">sessioni</span></div>
+      <div class="recap-cell"><span class="recap-val">${recap.xp.toLocaleString('it-IT')}</span><span class="recap-lbl">XP guadagnati</span></div>
+    </div>
+    <p class="center" style="font-size:1.6rem;margin:.5rem 0">${stars}</p>
+    <p class="muted small center">${recap.sessions >= 20 ? 'Un mese leggendario! Il Viandante è fiero di te.' : recap.sessions >= 10 ? 'Ottimo lavoro — continua così!' : 'Ogni passo conta. Il prossimo mese andrà meglio!'}</p>
+    <button class="btn btn-primary wide" onclick="nextOpening()">Avanti!</button>
+  `);
+}
+
 function showDailySummary() {
   let rows = '';
   if (HERO.incursion && !HERO.incursion.done) {

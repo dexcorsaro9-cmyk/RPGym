@@ -3401,6 +3401,47 @@ body {
 }
 
 
+/* ── Meteo dinamico ── */
+.camp-weather {
+  display: flex; align-items: center; gap: 6px;
+  font-size: .9rem; padding: 5px 10px;
+  background: rgba(0,0,0,.18); border-radius: 20px;
+  margin: 6px auto 0; width: fit-content;
+  color: #e8dcc8;
+}
+.camp-weather-bonus { color: var(--gold-bright); }
+
+/* ── Mappa del Tesoro settimanale ── */
+.treasure-map-panel { border-color: #a0782a !important; }
+.treasure-map-panel .panel-title { color: #c9932e; }
+.treasure-tier-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 0; border-top: 1px solid rgba(255,255,255,.06);
+}
+.treasure-tier-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.treasure-tier-km { font-weight: 700; font-size: .9rem; }
+.treasure-tier-row.claimed .treasure-tier-km { text-decoration: line-through; opacity: .5; }
+.treasure-tier-state { font-size: .85rem; }
+
+/* ── Recap mensile ── */
+.monthly-recap-grid {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 8px;
+  margin: .8rem 0;
+}
+.recap-cell {
+  display: flex; flex-direction: column; align-items: center;
+  background: rgba(255,255,255,.06); border-radius: 8px; padding: 10px 4px;
+}
+.recap-val { font-size: 1.3rem; font-weight: 700; color: var(--gold-bright); }
+.recap-lbl { font-size: .65rem; color: var(--ink-light); margin-top: 2px; }
+
+/* ── Prestige ── */
+.prestige-panel {
+  border-color: #7c5cbf !important;
+  background: rgba(108,79,191,.08) !important;
+}
+.prestige-panel .panel-title { color: #a07eff; }
+
 /* ── Hero idle animation ── */
 @keyframes hero-idle-breath {
   0%, 100% { transform: translateY(0) scale(1); }
