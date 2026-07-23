@@ -32,7 +32,7 @@ const RPG = (() => {
 
   /* ── Curva di progressione ────────────────────────────────── */
   function xpForLevel(level) {
-    return Math.round(60 * Math.pow(level, 1.25));
+    return Math.round(60 * Math.pow(level, 1.12));
   }
   function dailyGoalKm(level) {
     if (level <= 5)  return 5;
