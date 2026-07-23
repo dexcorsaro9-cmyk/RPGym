@@ -895,8 +895,8 @@ body {
   border-radius: 0 0 2px 2px; z-index: 2;
 }
 
-/* Contenuto tab sopra all'alcova */
-.tab:not(.tab-main) > * { position: relative; z-index: 1; }
+/* Contenuto tab sopra all'alcova — escluso il badge che ha position: absolute proprio */
+.tab:not(.tab-main) > *:not(.tab-badge) { position: relative; z-index: 1; }
 
 /* ── Tab centrale ⚔️: medaglione di legno rialzato ── */
 .tab.tab-main {
