@@ -133,9 +133,15 @@ function drawPips() {
 function drawMoves() {
   const wrap = document.getElementById('battle-moves');
   if (!wrap) return;
+  wrap.className = 'battle-move-cards';
   wrap.innerHTML = '';
   Object.entries(RPG.BATTLE_MOVES).forEach(([key, m]) => {
-    const btn = el('button', 'move-btn', `<span class="move-icon">${m.icon}</span><span class="move-label">${m.label}</span>`);
+    const beats = m.beats ? RPG.BATTLE_MOVES[m.beats] : null;
+    const btn = el('button', 'move-card-btn');
+    btn.dataset.move = key;
+    btn.innerHTML = `<div class="mcb-icon">${m.icon}</div>
+      <div class="mcb-label">${m.label}</div>
+      ${beats ? `<div class="mcb-beats">batte ${beats.label}</div>` : ''}`;
     btn.addEventListener('click', () => chooseMove(key));
     wrap.appendChild(btn);
   });
@@ -150,12 +156,19 @@ function chooseMove(move) {
 
   // Fase 1: rivelazione delle mosse
   const center = document.getElementById('battle-center');
-  center.innerHTML = `<div class="reveal">
-    <span class="reveal-move hero-move">${hm.icon}</span>
-    <span class="reveal-vs">VS</span>
-    <span class="reveal-move villain-move">${vm.icon}</span>
+  center.innerHTML = `<div class="reveal-cards">
+    <div class="reveal-card hero">
+      <div class="reveal-card-icon">${hm.icon}</div>
+      <div class="reveal-card-who">Tu</div>
+    </div>
+    <div class="reveal-vs">VS</div>
+    <div class="reveal-card villain">
+      <div class="reveal-card-icon">${vm.icon}</div>
+      <div class="reveal-card-who">${esc(b.v.name.split(' ')[0])}</div>
+    </div>
   </div>`;
-  document.getElementById('battle-moves').classList.add('locked');
+  const movesEl = document.getElementById('battle-moves');
+  if (movesEl) movesEl.classList.add('locked');
 
   setTimeout(() => {
     let result;
@@ -250,7 +263,7 @@ function endBattle(heroWon) {
     RPG.updateChallengeProgress(HERO, 'arena', 1);
     persist(); renderHUD();
     sfx('level');
-    if (center) center.innerHTML = `<div class="battle-result win">VITTORIA!</div>`;
+    if (center) center.innerHTML = `<div class="battle-result-overlay"><div class="battle-result-text win">VITTORIA!</div></div>`;
     const vs = document.getElementById('stage-villain');
     if (vs) vs.classList.add('defeated');
     setTimeout(() => {
@@ -266,7 +279,7 @@ function endBattle(heroWon) {
   } else {
     persist();
     sfx('defeat');
-    if (center) center.innerHTML = `<div class="battle-result lose">SCONFITTA…</div>`;
+    if (center) center.innerHTML = `<div class="battle-result-overlay"><div class="battle-result-text lose">SCONFITTA…</div></div>`;
     const hs = document.getElementById('stage-hero');
     if (hs) hs.classList.add('defeated');
     setTimeout(() => {

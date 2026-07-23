@@ -543,22 +543,31 @@ function showDailyLogin() {
   const login = window._pendingLogin;
   if (!login) return;
   window._pendingLogin = null;
-  let html = `
-    <h3 class="panel-title">🗝️ Il Tesoro Giornaliero</h3>
-    <div class="streak-row">`;
+  const idx = ((login.day - 1) % 7) + 1;
+  let days = '';
   for (let d = 1; d <= 7; d++) {
-    const idx = ((login.day - 1) % 7) + 1;
-    html += `<div class="streak-day${d <= idx ? ' filled' : ''}${d === 7 ? ' special' : ''}">${d === 7 ? '🎁' : d}</div>`;
+    const filled = d < idx;
+    const today = d === idx;
+    const special = d === 7;
+    const cls = ['login-day-cell', filled ? 'filled' : '', today ? 'today' : '', special ? 'special' : ''].filter(Boolean).join(' ');
+    const icon = special ? '🎁' : today ? '✨' : filled ? '✓' : d;
+    days += `<div class="${cls}">
+      <div class="login-day-pip">${icon}</div>
+      <div class="login-day-label">Giorno ${d}</div>
+    </div>`;
   }
-  html += `</div>
-    <p class="center"><b>Giorno ${login.day} di fila!</b></p>
-    <p class="center">🪙 +${login.gold} monete</p>`;
+  let html = `<div class="login-modal-wrap">
+    <div class="lup-badge" style="font-size:.8rem;letter-spacing:.14em">Il Tesoro Giornaliero</div>
+    <div class="login-streak-label">Giorno <b>${login.day}</b> di fila!</div>
+    <div class="login-day-wrap">${days}</div>
+    <div class="login-gold-reward">🪙 +${login.gold} monete</div>`;
   if (login.item) {
-    html += `<div class="loot rar-${login.item.rarity}">${login.item.icon} ${login.item.name} <span class="tag">${RPG.RARITIES[login.item.rarity].label}</span></div>
+    html += `<div class="login-item-reveal">${itemHtml(login.item)}</div>
       <p class="small muted center">Bonus del 7° giorno!</p>`;
   }
-  html += `<p class="small muted center">Torna domani: il tesoro cresce ogni giorno. Se salti un giorno, riparte da capo!</p>
-    <button class="btn btn-primary wide" onclick="nextOpening()">Riscuoti</button>`;
+  html += `<p class="small muted center" style="margin-top:8px">Torna domani — il tesoro cresce ogni giorno.<br>Se salti un giorno, riparte da capo!</p>
+    <button class="btn btn-primary wide" onclick="nextOpening()">✨ Riscuoti il Tesoro</button>
+  </div>`;
   modal(html);
   sfx('coin');
   vibrate(80);
@@ -1378,22 +1387,41 @@ function renderMap(c) {
   }
   c.appendChild(evp);
 
-  // ── Atlante: griglia dei 20 biomi ──
+  // ── Atlante: griglia illustrata dei 20 biomi ──
   const ap = el('div', 'panel');
   ap.appendChild(el('h3', 'panel-title', '📖 L\'Atlante del Reame'));
-  const grid = el('div', 'biome-grid');
+  const grid = el('div', 'biome-atlas');
   RPG.BIOMES.forEach(b => {
     const open = HERO.level >= b.min;
-    const cell = el('div', 'biome-cell' + (open ? '' : ' locked') + (b === biome ? ' current' : ''));
+    const isCurrent = b === biome;
     const slug = RPG.biomeSlug(b);
-    const iconHtml = open && slug
-      ? `<img class="biome-cell-icon-img" src="assets/ui/biomi/${slug}.png" onerror="this.outerHTML='<div class=&quot;biome-cell-icon&quot;>${b.icon}</div>'">`
-      : `<div class="biome-cell-icon">${open ? b.icon : '🔒'}</div>`;
-    cell.innerHTML = `${iconHtml}
-      <div class="biome-cell-name">${open ? zoneShort(b.name) : '???'}</div>
-      <div class="biome-cell-lv">${b.min}–${b.max}</div>`;
-    cell.addEventListener('click', () => showBiomePreview(b, open));
-    grid.appendChild(cell);
+    const cls = ['biome-atlas-card', open ? '' : 'locked', isCurrent ? 'current' : ''].filter(Boolean).join(' ');
+    const card = el('div', cls);
+    if (open && slug) {
+      const bg = el('img', 'bac-bg');
+      bg.src = `assets/biomi/${slug}.png`;
+      bg.alt = '';
+      bg.loading = 'lazy';
+      card.appendChild(bg);
+    }
+    const info = el('div', 'bac-info');
+    if (open) {
+      info.innerHTML = `<div class="bac-icon">${b.icon}</div>
+        <div class="bac-name">${zoneShort(b.name)}</div>
+        <div class="bac-lv">Liv. ${b.min}–${b.max}</div>`;
+    } else {
+      info.innerHTML = `<div class="bac-lv">Liv. ${b.min}–${b.max}</div>`;
+      const lockDiv = el('div', 'bac-lock');
+      lockDiv.innerHTML = `<span class="bac-lock-icon">🔒</span><div class="bac-lock-lv">Sblocca al Liv. ${b.min}</div>`;
+      card.appendChild(lockDiv);
+    }
+    card.appendChild(info);
+    if (isCurrent) {
+      const badge = el('div', 'bac-current-badge', 'QUI');
+      card.appendChild(badge);
+    }
+    if (open) card.addEventListener('click', () => showBiomePreview(b, open));
+    grid.appendChild(card);
   });
   ap.appendChild(grid);
   c.appendChild(ap);
@@ -1688,6 +1716,39 @@ function itemHtml(it) {
   </div>`;
 }
 
+function showLevelUp(newLevel) {
+  const ov = document.createElement('div');
+  ov.className = 'lup-overlay';
+  // Rings
+  for (let i = 0; i < 3; i++) {
+    const r = document.createElement('div');
+    r.className = 'lup-ring';
+    ov.appendChild(r);
+  }
+  // Particles
+  const angles = [0,18,36,54,72,90,108,126,144,162,180,198,216,234,252,270,288,306,324,342];
+  angles.forEach((deg, i) => {
+    const p = document.createElement('div');
+    p.className = 'lup-particle';
+    const rad = deg * Math.PI / 180;
+    const dist = 120 + Math.random() * 80;
+    p.style.setProperty('--tx', Math.cos(rad) * dist + 'px');
+    p.style.setProperty('--ty', Math.sin(rad) * dist + 'px');
+    p.style.setProperty('--dur', (.9 + Math.random() * .6) + 's');
+    p.style.setProperty('--delay', (Math.random() * .25) + 's');
+    ov.appendChild(p);
+  });
+  ov.appendChild(Object.assign(document.createElement('div'), { className: 'lup-badge', textContent: 'Livello raggiunto' }));
+  ov.appendChild(Object.assign(document.createElement('div'), { className: 'lup-level', textContent: newLevel }));
+  ov.appendChild(Object.assign(document.createElement('div'), { className: 'lup-title-text', textContent: RPG.heroTitle(newLevel) }));
+  ov.appendChild(Object.assign(document.createElement('div'), { className: 'lup-tap', textContent: 'Tocca per continuare' }));
+  document.body.appendChild(ov);
+  requestAnimationFrame(() => ov.classList.add('lup-visible'));
+  const dismiss = () => { ov.classList.add('lup-exit'); setTimeout(() => ov.remove(), 500); };
+  const tid = setTimeout(dismiss, 2600);
+  ov.addEventListener('click', () => { clearTimeout(tid); dismiss(); });
+}
+
 function showReport(r) {
   const a = RPG.ACTIVITIES[r.type];
   const xpNeed = RPG.xpForLevel(HERO.level);
@@ -1716,8 +1777,10 @@ function showReport(r) {
     <div class="rpt-reward stone"><span class="rpt-rew-val">+${r.stone}</span><span class="rpt-rew-label">🪨</span></div>
   </div>`;
 
-  if (leveled)
+  if (leveled) {
     html += `<div class="report-levelup">🆙 LIVELLO ${newLevel}!<br><span class="small">${RPG.heroTitle(newLevel)}</span></div>`;
+    setTimeout(() => showLevelUp(newLevel), 350);
+  }
   if (r.capReached)
     html += `<p class="muted small">🔒 Livello 20 raggiunto: per l'Ascensione serve l'<b>Amuleto del Viaggiatore Esperto</b> (guarda la Mappa).</p>`;
   if (r.loot.length) {
@@ -1804,7 +1867,10 @@ function openChest() {
   const btn = $('#btn-open-chest');
   if (btn) {
     btn.classList.add('opening');
-    setTimeout(() => revealChest(title, chest), 900);
+    setTimeout(() => {
+      btn.classList.add('cracking');
+      setTimeout(() => revealChest(title, chest), 360);
+    }, 680);
   } else {
     revealChest(title, chest);
   }
@@ -1813,23 +1879,30 @@ function openChest() {
 function revealChest(title, chest) {
   vibrate(300);
   sfx('chest');
-  let html = `<div class="chest-burst">✨</div>
-    <h3 class="panel-title center"><img src="assets/ui/chest.svg" style="width:1.4rem;height:1.4rem;vertical-align:middle;margin-right:4px"> Il Bottino di "${esc(title)}"</h3>`;
   const parts = [];
-  if (chest.gold) parts.push(`🪙 ${chest.gold}`);
-  if (chest.wood) parts.push(`🪵 ${chest.wood}`);
-  if (chest.stone) parts.push(`🪨 ${chest.stone}`);
-  if (parts.length) html += `<p class="center big-news small">${parts.join(' · ')}</p>`;
-  (chest.items || []).forEach(it => { html += itemHtml(it); });
+  if (chest.gold) parts.push(`<div class="chest-res-chip gold">🪙 ${chest.gold}</div>`);
+  if (chest.wood) parts.push(`<div class="chest-res-chip wood">🪵 ${chest.wood}</div>`);
+  if (chest.stone) parts.push(`<div class="chest-res-chip stone">🪨 ${chest.stone}</div>`);
+  let html = `<div class="chest-reveal-header">
+    <div class="chest-burst-ring"></div>
+    <h3 class="chest-reveal-title">🎁 "${esc(title)}"</h3>
+  </div>`;
+  if (parts.length) html += `<div class="chest-res-row">${parts.join('')}</div>`;
+  html += `<div class="chest-loot-list">`;
+  (chest.items || []).forEach((it, i) => {
+    html += `<div class="loot-stagger" style="--di:${i}">${itemHtml(it)}</div>`;
+  });
+  let cardIdx = (chest.items || []).length;
   (chest.cards || []).forEach(cid => {
     const card = RPG.CARDS[cid];
-    html += `<div class="card-reveal rar-${card.rarity}">
+    html += `<div class="loot-stagger" style="--di:${cardIdx++}"><div class="card-reveal rar-${card.rarity}">
       <div class="card-icon">${card.icon}</div>
       <b>${card.name}</b><br><span class="tag">${card.rarity}</span>
       <p class="small lore">${card.lore}</p>
-    </div>`;
+    </div></div>`;
   });
-  html += `<p class="small muted center">Gli oggetti sono nel tuo zaino: equipaggiali dal menu Eroe o vendili al Mercato.</p>
+  html += `</div>`;
+  html += `<p class="small muted center" style="margin-top:12px">Gli oggetti sono nel tuo zaino: equipaggiali dal menu Eroe o vendili al Mercato.</p>
     <button class="btn btn-primary wide" onclick="closeModal(); setTab('hero')">Vai all'Equipaggiamento</button>
     <button class="btn wide" onclick="closeModal()">Chiudi</button>`;
   modal(html);
