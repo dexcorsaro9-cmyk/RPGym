@@ -2102,29 +2102,12 @@ function renderHero(c) {
   if (HERO_VIEW === 'settings') { renderSettingsView(c); return; }
   if (HERO_VIEW === 'diary')    { renderDiaryView(c);    return; }
 
-  // Hero banner
-  const heroStoryId = (HERO.avatar || '').replace('assets/avatars/', '').replace('.png', '');
-  const heroBannerCol = AVATAR_COLORS[heroStoryId] || { bg: '#0e0804', glow: '#c9932e' };
-  const heroBannerMeta = AVATARS.find(a => a.storyId === heroStoryId);
-  const banner = el('div', 'hero-banner');
-  banner.style.background = `radial-gradient(ellipse at 0% 50%, ${heroBannerCol.glow}22 0%, transparent 60%), linear-gradient(135deg, ${heroBannerCol.bg}cc, rgba(20,12,4,.85))`;
-  banner.style.setProperty('--hb-accent', heroBannerCol.glow);
-  const bannerAv = el('div', 'hero-banner-avatar');
-  bannerAv.appendChild(avatarEl(HERO, isImageAvatar(HERO) ? 'hero-banner-av-img' : 'hero-banner-av-emoji'));
-  banner.appendChild(bannerAv);
-  const bannerInfo = el('div', 'hero-banner-info');
-  bannerInfo.innerHTML = `<div class="hero-banner-name" style="color:${heroBannerCol.glow}">${esc(HERO.name)}</div>
-    <div class="hero-banner-class">${heroBannerMeta ? esc(heroBannerMeta.label) : ''}</div>
-    <div class="hero-banner-level">Liv. ${HERO.level} — ${RPG.heroTitle(HERO.level)}</div>`;
-  banner.appendChild(bannerInfo);
+  const titleH2 = el('h2', 'section-title on-parchment-title hero-title-row');
+  titleH2.innerHTML = '🛡️ Equipaggiamento';
   const settingsBtn = el('button', 'hero-settings-btn', '⚙️');
   settingsBtn.title = 'Impostazioni';
   settingsBtn.addEventListener('click', () => { HERO_VIEW = 'settings'; setTab('hero'); });
-  banner.appendChild(settingsBtn);
-  c.appendChild(banner);
-
-  const titleH2 = el('h2', 'section-title on-parchment-title hero-title-row');
-  titleH2.innerHTML = '🛡️ Equipaggiamento';
+  titleH2.appendChild(settingsBtn);
   c.appendChild(titleH2);
 
   // Eroe con i 6 slot: 3 a sinistra, 3 a destra
