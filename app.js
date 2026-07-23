@@ -1598,7 +1598,6 @@ function renderTrain(c) {
     if (report.error) { modal(`<h3 class="panel-title">⏳ Il Custode del Tempo</h3><p>${report.error}</p>
       <button class="btn btn-primary wide" onclick="closeModal()">Va bene…</button>`); return; }
     persist();
-    renderHUD();
     sfx(report.levelsGained.length ? 'level' : 'coin');
     showReport(report);
   });
@@ -1872,7 +1871,7 @@ function showReport(r) {
       <p class="small muted center">Tocca lo scrigno per aprirlo</p>
     </div>`;
   }
-  html += `<button class="btn btn-primary wide" onclick="nextOpening(); setTab('camp')">Torna al Rifugio</button>`;
+  html += `<button class="btn btn-primary wide" onclick="nextOpening(); renderHUD(); setTab('camp')">Torna al Rifugio</button>`;
   modal(html);
 
   // Animate XP bar
