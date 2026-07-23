@@ -1341,9 +1341,11 @@ body {
 .create-cinematic {
   display: flex; flex-direction: column;
   min-height: 100dvh; background: #060402; overflow: hidden;
+  padding-top: max(env(safe-area-inset-top, 0px), 12px);
 }
 .create-card-zone {
   position: relative; flex: 1; min-height: 0;
+  max-height: 54vh;
   display: flex; align-items: center; justify-content: center;
   transition: background 0.5s ease;
   overflow: hidden;
@@ -1365,7 +1367,7 @@ body {
                       drop-shadow(0 0 22px var(--portrait-glow, #c9932e)); }
 }
 .create-portrait-img {
-  max-height: 100%; max-width: 100%;
+  max-height: min(100%, 340px); max-width: 100%;
   object-fit: contain; object-position: bottom center;
   display: block; user-select: none; pointer-events: none;
   animation: portrait-shimmer 3.5s ease-in-out infinite;

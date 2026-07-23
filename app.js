@@ -441,19 +441,6 @@ function _updateCreate() {
     const img = document.createElement('img');
     img.src = a.path;
     img.className = 'create-portrait-img';
-    // Normalize all characters to the same visual height.
-    // Images whose aspect ratio is wider than the container are width-constrained
-    // and render shorter — scale them up so every portrait fills the card height.
-    const dims = AVATAR_DIMS[a.storyId];
-    if (dims) {
-      const zone = $('#create-card-zone');
-      const cH = zone.offsetHeight, cW = zone.offsetWidth;
-      if (cH > 0 && cW > 0 && (dims.h / dims.w) < (cH / cW)) {
-        const scale = (cH * dims.w) / (cW * dims.h);
-        img.style.transform = `scale(${scale.toFixed(3)})`;
-        img.style.transformOrigin = 'bottom center';
-      }
-    }
     img.onerror = () => { portrait.innerHTML = '<span style="font-size:5rem">⚔️</span>'; };
     portrait.appendChild(img);
     portrait.style.opacity = '1';
