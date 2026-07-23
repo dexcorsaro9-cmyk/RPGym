@@ -1249,6 +1249,7 @@ function openFurnitureSetModal(setId) {
 
 /* ── TAB: Mappa ── */
 function renderMap(c) {
+  if (MAP_VIEW === 'atlas') { renderAtlasView(c); return; }
   const biome = RPG.currentBiome(HERO.level);
 
   // ── Il bioma attuale, con progresso verso il prossimo ──
@@ -1386,11 +1387,32 @@ function renderMap(c) {
   }
   c.appendChild(evp);
 
-  // ── Atlante: griglia illustrata dei 20 biomi (collassabile) ──
-  const ap = el('div', 'panel');
-  const atlasTitle = el('div', 'atlas-title-row');
-  atlasTitle.innerHTML = `<h3 class="panel-title" style="margin:0">📖 L'Atlante del Reame</h3><button class="atlas-toggle-btn" aria-expanded="false">▼</button>`;
-  ap.appendChild(atlasTitle);
+  // ── Atlante: pulsante di accesso alla subview ──
+  const atlasEntry = el('div', 'panel atlas-entry-panel');
+  const unlockedCount = RPG.BIOMES.filter(b => HERO.level >= b.min).length;
+  atlasEntry.innerHTML = `
+    <div class="atlas-entry-row">
+      <div>
+        <div class="atlas-entry-title">📖 Atlante del Reame</div>
+        <div class="small muted">${unlockedCount} / ${RPG.BIOMES.length} biomi scoperti</div>
+      </div>
+      <button class="btn btn-small atlas-open-btn">Esplora →</button>
+    </div>`;
+  atlasEntry.querySelector('.atlas-open-btn').addEventListener('click', () => {
+    MAP_VIEW = 'atlas'; setTab('map');
+  });
+  c.appendChild(atlasEntry);
+}
+
+let MAP_VIEW = 'main';
+
+function renderAtlasView(c) {
+  const back = el('button', 'btn btn-small', '← Mappa');
+  back.addEventListener('click', () => { MAP_VIEW = 'main'; setTab('map'); });
+  c.appendChild(back);
+  c.appendChild(el('h2', 'section-title', '📖 Atlante del Reame'));
+
+  const biome = RPG.currentBiome(HERO.level);
   const grid = el('div', 'biome-atlas');
   RPG.BIOMES.forEach(b => {
     const open = HERO.level >= b.min;
@@ -1424,16 +1446,7 @@ function renderMap(c) {
     if (open) card.addEventListener('click', () => showBiomePreview(b, open));
     grid.appendChild(card);
   });
-  grid.classList.add('biome-atlas-collapsed');
-  ap.appendChild(grid);
-  c.appendChild(ap);
-
-  const toggleBtn = atlasTitle.querySelector('.atlas-toggle-btn');
-  toggleBtn.addEventListener('click', () => {
-    const collapsed = grid.classList.toggle('biome-atlas-collapsed');
-    toggleBtn.textContent = collapsed ? '▼' : '▲';
-    toggleBtn.setAttribute('aria-expanded', String(!collapsed));
-  });
+  c.appendChild(grid);
 }
 
 function zoneShort(zone) {
