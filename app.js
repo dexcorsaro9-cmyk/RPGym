@@ -277,7 +277,11 @@ function show(id) {
   document.querySelectorAll('.screen').forEach(s => { s.classList.add('hidden'); s.classList.remove('screen-enter'); });
   const s = $('#' + id);
   s.classList.remove('hidden');
-  requestAnimationFrame(() => s.classList.add('screen-enter'));
+  requestAnimationFrame(() => {
+    s.classList.add('screen-enter');
+    // Rimuovi dopo la fine dell'animazione: transform residuo rompe position:fixed
+    setTimeout(() => s.classList.remove('screen-enter'), 400);
+  });
 }
 
 function emptyState(icon, text) {
@@ -1598,7 +1602,6 @@ function renderTrain(c) {
     if (report.error) { modal(`<h3 class="panel-title">⏳ Il Custode del Tempo</h3><p>${report.error}</p>
       <button class="btn btn-primary wide" onclick="closeModal()">Va bene…</button>`); return; }
     persist();
-    renderHUD();
     sfx(report.levelsGained.length ? 'level' : 'coin');
     showReport(report);
   });
@@ -1872,7 +1875,7 @@ function showReport(r) {
       <p class="small muted center">Tocca lo scrigno per aprirlo</p>
     </div>`;
   }
-  html += `<button class="btn btn-primary wide" onclick="nextOpening(); setTab('camp')">Torna al Rifugio</button>`;
+  html += `<button class="btn btn-primary wide" onclick="nextOpening(); renderHUD(); setTab('camp')">Torna al Rifugio</button>`;
   modal(html);
 
   // Animate XP bar
