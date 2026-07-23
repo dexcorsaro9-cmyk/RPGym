@@ -1786,6 +1786,65 @@ body {
 }
 
 /* ── Spedizione a Tappe ── */
+/* ── Dungeon Encounter (text-adventure) ── */
+.denc-wrap { display:flex; flex-direction:column; gap:10px; padding:2px 0; }
+.denc-header { text-align:center; }
+.denc-step-badge {
+  font-family:'Cinzel',serif; font-size:.72rem; font-weight:700;
+  letter-spacing:.1em; color:rgba(232,182,76,.75);
+  border:1px solid rgba(232,182,76,.3); border-radius:20px; padding:3px 12px;
+}
+.denc-step-badge.boss { color:#ff9040; border-color:rgba(255,144,64,.45); background:rgba(255,144,64,.08); }
+.denc-enemy-zone { display:flex; flex-direction:column; align-items:center; gap:5px; }
+.denc-enemy-img { height:80px; max-width:100%; object-fit:contain; filter:drop-shadow(0 4px 12px rgba(0,0,0,.6)); }
+.denc-enemy-emoji { font-size:3.5rem; text-align:center; }
+.denc-enemy-name { font-family:'Cinzel',serif; font-weight:700; font-size:.92rem; color:var(--gold); }
+.denc-weak { font-size:.76rem; color:rgba(255,255,255,.6); }
+.denc-hpbar-wrap {
+  width:100%; height:8px; background:rgba(255,255,255,.1); border-radius:4px; overflow:hidden;
+}
+.denc-hpfill { height:100%; border-radius:4px; transition:width .45s ease; }
+.enemy-fill { background:linear-gradient(90deg,#c93030,#e84545); }
+.hero-fill  { background:linear-gradient(90deg,#2ea848,#50d468); }
+.denc-hp-num { font-size:.73rem; color:rgba(255,255,255,.45); }
+.denc-buffs {
+  font-size:.76rem; color:rgba(232,182,76,.85);
+  background:rgba(232,182,76,.08); border-radius:8px; padding:5px 10px; text-align:center;
+}
+.denc-scenario {
+  font-family:'Crimson Pro',serif; font-size:1.02rem; font-style:italic;
+  color:rgba(255,255,255,.88); text-align:center; line-height:1.5;
+  padding:4px 6px; min-height:2.6em;
+}
+.denc-result {
+  display:flex; justify-content:center; gap:18px;
+  font-family:'Cinzel',serif; font-size:.85rem; font-weight:700; text-align:center;
+}
+.denc-result.hidden { display:none; }
+.denc-hit-text { color:#e84545; }
+.denc-dmg-text { color:#c9932e; }
+@keyframes denc-flash { 0%,100%{opacity:0;transform:translateY(4px) scale(.9)} 15%,75%{opacity:1;transform:translateY(0) scale(1)} }
+.denc-result.denc-show .denc-hit-text { animation:denc-flash 1.2s ease both; }
+.denc-result.denc-show .denc-dmg-text { animation:denc-flash 1.2s ease .1s both; }
+.denc-hero-row { display:flex; align-items:center; gap:8px; }
+.denc-hero-row .denc-hpbar-wrap { flex:1; }
+.denc-hp-label { font-size:.95rem; }
+.hero-num { font-size:.73rem; color:rgba(255,255,255,.45); white-space:nowrap; }
+.denc-choices { display:flex; flex-direction:column; gap:7px; }
+.denc-choice {
+  display:flex; align-items:center; gap:10px;
+  width:100%; padding:10px 14px;
+  background:rgba(255,255,255,.05); border:1px solid rgba(232,182,76,.2);
+  border-radius:10px; cursor:pointer; text-align:left;
+  transition:background .15s, border-color .15s;
+  font-family:'Crimson Pro',serif; font-size:.95rem; color:rgba(255,255,255,.85);
+}
+.denc-choice:hover:not(:disabled) { background:rgba(232,182,76,.12); border-color:rgba(232,182,76,.5); }
+.denc-choice:active:not(:disabled) { background:rgba(232,182,76,.2); }
+.denc-choice:disabled { opacity:.4; cursor:default; }
+.denc-ch-icon { font-size:1.25rem; flex-shrink:0; }
+.denc-flee { width:100%; margin-top:2px; font-size:.8rem; opacity:.55; border-color:rgba(255,255,255,.12); }
+
 .dungeon-strip {
   margin-top: 10px; padding: 10px 12px;
   border: 1px solid var(--leather); border-radius: 10px;

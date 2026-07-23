@@ -2566,6 +2566,57 @@ const RPG = (() => {
   }
 
   /* ── Spedizione a Tappe (Dungeon) ───────────────────────── */
+  const DUNGEON_SCENARIOS = [
+    { text: 'Il nemico carica con furia cieca!',
+      choices: [
+        { icon:'⚔️', label:'Contrattacchi con forza',      hit:[22,38], dmg:[12,22] },
+        { icon:'🛡️', label:'Vi coprite e attendete',        hit:[8,16],  dmg:[4,10]  },
+        { icon:'💨', label:'Schivate di lato',              hit:[0,42],  dmg:[0,28]  },
+      ]},
+    { text: 'Il nemico cerca un varco nella tua guardia.',
+      choices: [
+        { icon:'🔒', label:'Chiudete la guardia',           hit:[10,18], dmg:[5,12]  },
+        { icon:'⚡', label:'Anticipate con un affondo',     hit:[20,35], dmg:[14,24] },
+        { icon:'🌀', label:'Contrastate con astuzia',       hit:[14,26], dmg:[8,16]  },
+      ]},
+    { text: 'Un momento di stallo — valutate la prossima mossa.',
+      choices: [
+        { icon:'🎯', label:'Colpo preciso al punto debole', hit:[18,30], dmg:[10,18] },
+        { icon:'🛡️', label:'Posizione difensiva ferma',     hit:[8,15],  dmg:[3,8]   },
+        { icon:'🌪️', label:'Attacco rotante a sorpresa',    hit:[0,45],  dmg:[0,30]  },
+      ]},
+    { text: 'Il nemico urla per intimidirvi.',
+      choices: [
+        { icon:'😤', label:'Reggete lo sguardo e colpite',  hit:[20,32], dmg:[10,20] },
+        { icon:'👣', label:'Arretrate per riorganizzarvi',  hit:[5,14],  dmg:[0,8]   },
+        { icon:'🗣️', label:'Lo distraete con le parole',    hit:[12,22], dmg:[5,14]  },
+      ]},
+    { text: 'Il terreno è scomodo — sassi e radici ovunque.',
+      choices: [
+        { icon:'🦵', label:'Sfruttate il terreno con una spinta', hit:[15,28], dmg:[12,20] },
+        { icon:'🧠', label:'Vi muovete con cautela',               hit:[10,20], dmg:[3,9]   },
+        { icon:'🪨', label:'Lanciate un sasso come diversivo',     hit:[8,18],  dmg:[5,12]  },
+      ]},
+    { text: 'Il nemico tenta un colpo basso!',
+      choices: [
+        { icon:'⬆️', label:"Saltate e colpite dall'alto",          hit:[25,40], dmg:[16,28] },
+        { icon:'🛡️', label:'Bloccate col braccio',                  hit:[6,14],  dmg:[0,8]   },
+        { icon:'↩️', label:'Girate e contrattaccate alle spalle',   hit:[15,30], dmg:[8,18]  },
+      ]},
+    { text: "Un'apertura — il nemico abbassa la guardia.",
+      choices: [
+        { icon:'🗡️', label:"Colpo rapido nell'apertura",           hit:[30,45], dmg:[8,18]  },
+        { icon:'🤜', label:'Pugno deciso al centro',               hit:[18,28], dmg:[12,20] },
+        { icon:'⏸️', label:'Aspettate una seconda apertura',       hit:[10,22], dmg:[2,8]   },
+      ]},
+    { text: 'Il nemico si carica per un attacco devastante.',
+      choices: [
+        { icon:'💥', label:'Intercettate il colpo',                 hit:[20,35], dmg:[20,35] },
+        { icon:'🏃', label:'Vi spostate rapidamente',               hit:[5,15],  dmg:[8,16]  },
+        { icon:'🌟', label:"Sfruttate l'apertura del carico",       hit:[15,28], dmg:[5,15]  },
+      ]},
+  ];
+
   const DUNGEON_CHOICE_SETS = [
     [{ id:'rest',    icon:'💊', label:'Curi le ferite',        desc:'Il prossimo nemico parte con −20 HP.', effect:'debuffEnemy', val:20 },
      { id:'rush',    icon:'⚡', label:'Carichi di corsa',      desc:'+10 danni al prossimo scontro.',       effect:'buffDmg',    val:10 }],
@@ -2592,6 +2643,9 @@ const RPG = (() => {
       buffs: { debuffEnemy:0, buffDmg:0, buffDmgPct:0, revealWeak:false },
       log: [],
       done: false,
+      heroHp: 100, heroMaxHp: 100,
+      enemyHp: 0,  enemyMaxHp: 0,
+      scenarioIdx: 0,
     };
     return hero.activeDungeon;
   }
@@ -2605,6 +2659,38 @@ const RPG = (() => {
     const d = hero.activeDungeon;
     if (!d || d.done) return null;
     return BESTIARY.find(b => b.id === d.enemies[d.step]) || null;
+  }
+
+  function dungeonStartEncounter(hero) {
+    const d = hero.activeDungeon;
+    if (!d) return;
+    const enemy = dungeonCurrentEnemy(hero);
+    if (!enemy) return;
+    const base = enemy.boss ? 130 : 90;
+    d.enemyMaxHp = Math.max(20, base - d.buffs.debuffEnemy);
+    d.enemyHp = d.enemyMaxHp;
+    d.scenarioIdx = Math.floor(Math.random() * DUNGEON_SCENARIOS.length);
+  }
+
+  function dungeonGetScenario(hero) {
+    const d = hero.activeDungeon;
+    if (!d) return DUNGEON_SCENARIOS[0];
+    return DUNGEON_SCENARIOS[d.scenarioIdx % DUNGEON_SCENARIOS.length];
+  }
+
+  function dungeonAction(hero, choiceIdx) {
+    const d = hero.activeDungeon;
+    if (!d || d.done) return null;
+    const scenario = dungeonGetScenario(hero);
+    const choice = scenario.choices[choiceIdx];
+    if (!choice) return null;
+    let heroHit = choice.hit[0] + Math.round(Math.random() * (choice.hit[1] - choice.hit[0]));
+    heroHit = Math.max(0, Math.round(heroHit * (1 + d.buffs.buffDmgPct) + d.buffs.buffDmg));
+    const heroDmg = choice.dmg[0] + Math.round(Math.random() * (choice.dmg[1] - choice.dmg[0]));
+    d.enemyHp = Math.max(0, d.enemyHp - heroHit);
+    d.heroHp  = Math.max(0, d.heroHp  - heroDmg);
+    d.scenarioIdx = (d.scenarioIdx + 1) % DUNGEON_SCENARIOS.length;
+    return { heroHit, heroDmg, enemyDefeated: d.enemyHp <= 0, heroDefeated: d.heroHp <= 0 };
   }
 
   function dungeonMakeChoice(hero, choiceIdx) {
@@ -2725,6 +2811,9 @@ const RPG = (() => {
     applyXp,
     DAILY_CHALLENGES_BONUS, getDailyChallenges, updateChallengeProgress, claimChallenge,
     WEEKLY_CHALLENGES_BONUS, getWeeklyChallenges, updateWeeklyProgress, claimWeeklyChallenge,
-    DUNGEON_CHOICE_SETS, startDungeon, canStartDungeon, dungeonCurrentEnemy, dungeonMakeChoice, dungeonStepResult,
+    DUNGEON_SCENARIOS, DUNGEON_CHOICE_SETS,
+    startDungeon, canStartDungeon, dungeonCurrentEnemy,
+    dungeonStartEncounter, dungeonGetScenario, dungeonAction,
+    dungeonMakeChoice, dungeonStepResult,
   };
 })();

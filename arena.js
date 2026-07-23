@@ -258,40 +258,6 @@ function endBattle(heroWon) {
   if (moves) moves.innerHTML = '';
   const center = document.getElementById('battle-center');
 
-  /* ── Modalità Spedizione ── */
-  if (HERO.activeDungeon && !HERO.activeDungeon.done) {
-    if (heroWon) {
-      sfx('level');
-      if (center) center.innerHTML = `<div class="battle-result-overlay"><div class="battle-result-text win">VITTORIA!</div></div>`;
-      const vs = document.getElementById('stage-villain');
-      if (vs) vs.classList.add('defeated');
-      setTimeout(() => {
-        closeBattle();
-        const result = RPG.dungeonStepResult(HERO, true);
-        persist(); renderHUD();
-        if (result.done) {
-          showDungeonReward(result.reward);
-        } else if (result.pendingChoice) {
-          showDungeonChoice();
-        } else {
-          showDungeonFight();
-        }
-      }, 1500);
-    } else {
-      sfx('defeat');
-      if (center) center.innerHTML = `<div class="battle-result-overlay"><div class="battle-result-text lose">SCONFITTA…</div></div>`;
-      const hs = document.getElementById('stage-hero');
-      if (hs) hs.classList.add('defeated');
-      setTimeout(() => {
-        closeBattle();
-        const result = RPG.dungeonStepResult(HERO, false);
-        persist(); renderHUD();
-        showDungeonDefeat(result.reward);
-      }, 1500);
-    }
-    return;
-  }
-
   if (heroWon) {
     const chest = RPG.battleReward(HERO, b.v);
     RPG.updateChallengeProgress(HERO, 'arena', 1);
@@ -351,8 +317,8 @@ function openDungeon() {
     <p class="center small">Affronta <b>3 nemici</b> + un <b>Boss</b> in sequenza.<br>
     Tra gli scontri scegli come proseguire. Il boss lascia un oggetto <b>Epico</b> garantito.</p>
     <div class="dungeon-intro-rules">
-      <div>⚔️ Vinci 3 su 5 round per avanzare</div>
-      <div>💀 Se perdi, ottieni ricompense parziali</div>
+      <div>📖 Scegli come affrontare ogni scontro</div>
+      <div>💀 Se cadi, ottieni ricompense parziali</div>
       <div>🔒 Una Spedizione al giorno</div>
     </div>
     <button class="btn btn-primary wide big" id="btn-dungeon-start">🗡️ PARTI!</button>
@@ -362,77 +328,134 @@ function openDungeon() {
     RPG.startDungeon(HERO);
     persist();
     closeModal();
-    showDungeonFight();
+    showDungeonEncounter();
   });
 }
 
-function showDungeonFight() {
+function showDungeonEncounter() {
   const d = HERO.activeDungeon;
   if (!d || d.done) return;
+  if (d.enemyHp <= 0) { RPG.dungeonStartEncounter(HERO); persist(); }
   const enemy = RPG.dungeonCurrentEnemy(HERO);
   if (!enemy) return;
   const isBoss = !!enemy.boss;
-  const stepLabel = isBoss ? 'BOSS' : `Scontro ${d.step + 1} di ${d.enemies.length - 1}`;
-  const fig = enemy.id === 'cavaliere-drago' ? '<div class="battle-emoji">🐉</div>'
-    : `<img class="arena-intro-img dungeon-enemy-img" src="assets/bestiario/${enemy.id}.png" onerror="this.style.display='none'">`;
-  const buffLines = [];
-  if (d.buffs.debuffEnemy > 0) buffLines.push(`🛡️ Trappola attiva: nemico −${d.buffs.debuffEnemy} HP`);
-  if (d.buffs.buffDmg > 0) buffLines.push(`⚡ Bonus danni: +${d.buffs.buffDmg}`);
-  if (d.buffs.buffDmgPct > 0) buffLines.push(`💪 Bonus danni: +${Math.round(d.buffs.buffDmgPct * 100)}%`);
-  if (d.buffs.revealWeak) buffLines.push(`🔍 Debolezza: <b>${enemy.weakness}</b>`);
-  modal(`<div class="arena-intro dungeon-step">
-    <div class="dungeon-step-badge">${isBoss ? '👑 BOSS FINALE' : stepLabel}</div>
-    ${fig}
-    <h3 class="panel-title center">${esc(enemy.name)} ${isBoss ? '<span class="tag tag-boss">BOSS</span>' : ''}</h3>
-    <p class="center small muted">Debolezza: <b>${d.buffs.revealWeak ? enemy.weakness : (isBoss ? enemy.weakness : '???')}</b></p>
-    ${buffLines.length ? `<div class="dungeon-buffs">${buffLines.map(l => `<div class="dungeon-buff-line">${l}</div>`).join('')}</div>` : ''}
-    <p class="center small">Vinci <b>3 round su 5</b> per ${isBoss ? 'completare la Spedizione' : 'avanzare'}!</p>
-    <button class="btn btn-primary wide big" id="btn-dungeon-fight">🔥 COMBATTI!</button>
-    <button class="btn wide" id="btn-dungeon-flee">✕ Abbandona Spedizione</button>
+  const stepLabel = isBoss ? '👑 BOSS FINALE' : `Scontro ${d.step + 1} / ${d.enemies.length - 1}`;
+  const eHpPct = Math.max(0, d.enemyHp / d.enemyMaxHp * 100);
+  const hHpPct = Math.max(0, d.heroHp / d.heroMaxHp * 100);
+  const scenario = RPG.dungeonGetScenario(HERO);
+  const fig = enemy.id === 'cavaliere-drago'
+    ? '<div class="denc-enemy-emoji">🐉</div>'
+    : `<img class="denc-enemy-img" src="assets/bestiario/${enemy.id}.png" onerror="this.style.display='none'">`;
+  const weakLine = d.buffs.revealWeak
+    ? `<div class="denc-weak">🔍 Debolezza: <b>${esc(enemy.weakness)}</b></div>` : '';
+  const buffs = [];
+  if (d.buffs.buffDmg > 0) buffs.push(`⚡ +${d.buffs.buffDmg} danni`);
+  if (d.buffs.buffDmgPct > 0) buffs.push(`💪 +${Math.round(d.buffs.buffDmgPct * 100)}% danni`);
+  const buffsHtml = buffs.length
+    ? `<div class="denc-buffs">${buffs.join(' · ')}</div>` : '';
+  const choicesHtml = scenario.choices.map((ch, i) =>
+    `<button class="denc-choice" data-idx="${i}">
+       <span class="denc-ch-icon">${ch.icon}</span>
+       <span class="denc-ch-label">${esc(ch.label)}</span>
+     </button>`
+  ).join('');
+  modal(`<div class="denc-wrap">
+    <div class="denc-header">
+      <span class="denc-step-badge${isBoss ? ' boss' : ''}">${stepLabel}</span>
+    </div>
+    <div class="denc-enemy-zone">
+      ${fig}
+      <div class="denc-enemy-name">${esc(enemy.name)}</div>
+      ${weakLine}
+      <div class="denc-hpbar-wrap">
+        <div class="denc-hpfill enemy-fill" style="width:${eHpPct}%"></div>
+      </div>
+      <div class="denc-hp-num enemy-num">${d.enemyHp} HP</div>
+    </div>
+    ${buffsHtml}
+    <div class="denc-scenario">${esc(scenario.text)}</div>
+    <div class="denc-result hidden">
+      <span class="denc-hit-text"></span>
+      <span class="denc-dmg-text"></span>
+    </div>
+    <div class="denc-hero-row">
+      <span class="denc-hp-label">❤️</span>
+      <div class="denc-hpbar-wrap hero-hpbar">
+        <div class="denc-hpfill hero-fill" style="width:${hHpPct}%"></div>
+      </div>
+      <span class="denc-hp-num hero-num">${d.heroHp} / ${d.heroMaxHp}</span>
+    </div>
+    <div class="denc-choices">${choicesHtml}</div>
+    <button class="btn denc-flee" id="btn-denc-flee">✕ Abbandona</button>
   </div>`);
-  document.getElementById('btn-dungeon-fight').addEventListener('click', () => {
-    beginDungeonBattle(enemy.id);
+  document.querySelectorAll('.denc-choice').forEach(btn => {
+    btn.addEventListener('click', () => dungeonDoAction(+btn.dataset.idx));
   });
-  document.getElementById('btn-dungeon-flee').addEventListener('click', () => {
+  document.getElementById('btn-denc-flee').addEventListener('click', () => {
     const r = RPG.dungeonStepResult(HERO, false);
     persist(); renderHUD();
-    closeModal();
     showDungeonDefeat(r ? r.reward : { gold:0, xp:0, complete:false, stepsOk:0 });
   });
 }
 
-function beginDungeonBattle(villainId) {
-  const enemy = RPG.BESTIARY.find(b => b.id === villainId);
-  if (!enemy) return;
-  HERO.bestiary = HERO.bestiary || [];
-  if (!HERO.bestiary.includes(enemy.id)) HERO.bestiary.push(enemy.id);
-  const petBonus = RPG.petArenaBonus(HERO);
-  const furn = RPG.furnitureAggregate(HERO);
-  const classBonus = RPG.classArenaBonus(HERO, enemy);
-  const furnHpBonus = Math.round(100 * furn.arenaHpMult);
-  const furnDmgBonus = Math.round(34 * (furn.arenaDmgMult + (enemy.boss ? furn.bossDmgMult : 0)));
-  const maxHP = 100 + petBonus.hpBonus + furnHpBonus + classBonus.hpBonus;
+function dungeonDoAction(choiceIdx) {
+  document.querySelectorAll('.denc-choice').forEach(b => b.disabled = true);
+  const fleeBtn = document.getElementById('btn-denc-flee');
+  if (fleeBtn) fleeBtn.disabled = true;
+
+  const result = RPG.dungeonAction(HERO, choiceIdx);
+  if (!result) return;
+  persist(); renderHUD();
+
   const d = HERO.activeDungeon;
-  const dmgBuff = Math.round(d.buffs.buffDmg + 34 * d.buffs.buffDmgPct);
-  const enemyDebuff = d.buffs.debuffEnemy;
-  BATTLE = {
-    v: enemy,
-    heroHP: maxHP, heroMaxHP: maxHP,
-    vHP: Math.max(20, 100 - enemyDebuff), dmg: 34 + dmgBuff, hw: 0, vw: 0, round: 1, busy: false, done: false,
-    petBonus, furnBonus: {
-      dmgBonus: furnDmgBonus + classBonus.dmgBonus,
-      critChance: furn.arenaCritChance,
-      critDmgMult: 1 + furn.arenaCritDmgMult,
-      defMult: 1 - Math.min(0.8, furn.arenaDefMult),
-      regenPct: (furn.flags.arenaRegen) || 0,
-      extraLife: !!furn.flags.arenaExtraLife,
-    },
-    extraLifeUsed: false,
-  };
-  closeModal();
-  battleEl().classList.remove('hidden');
-  drawBattle();
-  try { if (_AC && _AC.state === 'suspended') _AC.resume(); } catch {}
+  const resEl = document.querySelector('.denc-result');
+  const hitEl = document.querySelector('.denc-hit-text');
+  const dmgEl = document.querySelector('.denc-dmg-text');
+  if (hitEl) hitEl.textContent = result.heroHit > 0 ? `⚔️ −${result.heroHit} HP` : '💨 MANCATO!';
+  if (dmgEl) dmgEl.textContent = result.heroDmg > 0 ? `💔 −${result.heroDmg} HP` : '🛡️ SCHIVATO!';
+  if (resEl) { resEl.classList.remove('hidden', 'denc-show'); void resEl.offsetHeight; resEl.classList.add('denc-show'); }
+
+  const eFill = document.querySelector('.enemy-fill');
+  const hFill = document.querySelector('.hero-fill');
+  const eNum  = document.querySelector('.enemy-num');
+  const hNum  = document.querySelector('.hero-num');
+  if (eFill) eFill.style.width = Math.max(0, d.enemyHp / d.enemyMaxHp * 100) + '%';
+  if (hFill) hFill.style.width = Math.max(0, d.heroHp / d.heroMaxHp * 100) + '%';
+  if (eNum)  eNum.textContent  = d.enemyHp + ' HP';
+  if (hNum)  hNum.textContent  = `${d.heroHp} / ${d.heroMaxHp}`;
+
+  setTimeout(() => {
+    if (result.enemyDefeated) {
+      const sr = RPG.dungeonStepResult(HERO, true);
+      persist(); renderHUD();
+      if (!sr) return;
+      if (sr.done) showDungeonReward(sr.reward);
+      else if (sr.pendingChoice) showDungeonChoice();
+      else showDungeonEncounter();
+    } else if (result.heroDefeated) {
+      const sr = RPG.dungeonStepResult(HERO, false);
+      persist(); renderHUD();
+      showDungeonDefeat(sr ? sr.reward : { gold:0, xp:0, complete:false, stepsOk:0 });
+    } else {
+      const scenario = RPG.dungeonGetScenario(HERO);
+      const scenEl = document.querySelector('.denc-scenario');
+      const choicesEl = document.querySelector('.denc-choices');
+      if (scenEl) scenEl.textContent = scenario.text;
+      if (choicesEl) {
+        choicesEl.innerHTML = scenario.choices.map((ch, i) =>
+          `<button class="denc-choice" data-idx="${i}">
+             <span class="denc-ch-icon">${ch.icon}</span>
+             <span class="denc-ch-label">${esc(ch.label)}</span>
+           </button>`
+        ).join('');
+        choicesEl.querySelectorAll('.denc-choice').forEach(btn => {
+          btn.addEventListener('click', () => dungeonDoAction(+btn.dataset.idx));
+        });
+      }
+      if (resEl) resEl.classList.add('hidden');
+      if (fleeBtn) fleeBtn.disabled = false;
+    }
+  }, 1300);
 }
 
 function showDungeonChoice() {
@@ -468,7 +491,7 @@ function showDungeonChoice() {
       persist();
     }
     closeModal();
-    showDungeonFight();
+    showDungeonEncounter();
   };
   document.getElementById('dc-a').addEventListener('click', () => apply(0));
   document.getElementById('dc-b').addEventListener('click', () => apply(1));
