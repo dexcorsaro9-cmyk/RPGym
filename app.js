@@ -2678,23 +2678,46 @@ if ('serviceWorker' in navigator) {
 }
 
 function runSplash(done) {
-  const fill = document.getElementById('splash-progress-fill');
-  const text = document.getElementById('splash-progress-text');
+  const fill  = document.getElementById('splash-progress-fill');
+  const text  = document.getElementById('splash-progress-text');
   const splash = document.getElementById('screen-splash');
-  let pct = 0;
+
+  const MSGS = [
+    'Sellando il cavallo…',
+    'Affilando la lama…',
+    'Accendendo il fuoco del campo…',
+    'Controllando le provviste…',
+    'Studiando la mappa…',
+    'Lucidando l\'armatura…',
+    'Consultando le stelle…',
+    'Raccogliendo erbe medicinali…',
+    'Preparando la forgia…',
+    'Risvegliando il famiglio…',
+  ];
+  let msgIdx = 0;
+  if (text) text.textContent = MSGS[0];
+  const msgTimer = setInterval(() => {
+    msgIdx = (msgIdx + 1) % MSGS.length;
+    if (text) text.textContent = MSGS[msgIdx];
+  }, 370);
+
+  const DURATION = 2100, STEP = 30;
+  let s = 0, total = DURATION / STEP;
   const timer = setInterval(() => {
-    pct += 2;
-    if (pct >= 100) {
-      pct = 100;
-      clearInterval(timer);
-      setTimeout(() => {
-        splash.classList.add('hidden');
-        done();
-      }, 250);
-    }
+    s++;
+    // easeOutCubic — decolla veloce, rallenta verso la fine
+    const pct = Math.round((1 - Math.pow(1 - s / total, 3)) * 100);
     if (fill) fill.style.width = pct + '%';
-    if (text) text.textContent = pct + '%';
-  }, 30);
+    if (s >= total) {
+      clearInterval(timer);
+      clearInterval(msgTimer);
+      if (text) text.textContent = 'Pronti!';
+      setTimeout(() => {
+        splash.classList.add('splash-fadeout');
+        setTimeout(() => { splash.classList.add('hidden'); done(); }, 420);
+      }, 220);
+    }
+  }, STEP);
 }
 
 runSplash(() => {
