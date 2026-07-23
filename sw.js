@@ -1,5 +1,5 @@
 /* RPGym service worker — network-first per aggiornamenti immediati */
-const CACHE = 'rpgym-v93';
+const CACHE = 'rpgym-v94';
 
 /* File solo per fallback offline — NON pre-cachati all'install */
 const OFFLINE_ASSETS = [
