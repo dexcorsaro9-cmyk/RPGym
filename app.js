@@ -606,8 +606,12 @@ function setTab(tab) {
   document.querySelectorAll('#tabbar .tab').forEach(t =>
     t.classList.toggle('active', t.dataset.tab === tab));
   const c = $('#tab-content');
-  c.classList.toggle('bg-parchment', tab === 'hero' && PARCHMENT_OK);
-  c.classList.toggle('bg-rifugio', tab === 'camp');
+  c.classList.remove('bg-parchment', 'bg-rifugio', 'bg-map', 'bg-train', 'bg-market');
+  if (tab === 'hero')   c.classList.add('bg-parchment');
+  if (tab === 'camp')   c.classList.add('bg-rifugio');
+  if (tab === 'map')    c.classList.add('bg-map');
+  if (tab === 'train')  c.classList.add('bg-train');
+  if (tab === 'market') c.classList.add('bg-market');
   c.classList.remove('tab-in');
   c.innerHTML = '';
   ({ camp: renderCamp, map: renderMap, train: renderTrain, market: renderMarket, hero: renderHero }[tab])(c);
