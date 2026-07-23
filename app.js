@@ -289,87 +289,6 @@ un bottino alla volta. Il Re dei Predoni non chiede — conquista.`,
 function persist() { RPG.save(STATE); }
 function vibrate(pattern) { try { navigator.vibrate && navigator.vibrate(pattern); } catch {} }
 
-/* ══════════════ Sonoro ambientale (Web Audio API) ══════════════ */
-const AMBIENT = (() => {
-  let ctx = null, gainNode = null, filterNode = null, srcNode = null;
-  let unlocked = false, activeTab = 'camp';
-
-  function isOn() { return localStorage.getItem('rpgym_ambient') !== '0'; }
-
-  function _ensureCtx() {
-    if (ctx) return;
-    ctx = new (window.AudioContext || window.webkitAudioContext)();
-    // Generate 3s pink-noise buffer (reused for all sounds, filter/gain change the character)
-    const len = ctx.sampleRate * 3;
-    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
-    const d = buf.getChannelData(0);
-    let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
-    for (let i = 0; i < len; i++) {
-      const w = Math.random()*2-1;
-      b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759;
-      b2=0.96900*b2+w*0.1538520; b3=0.86650*b3+w*0.3104856;
-      b4=0.55000*b4+w*0.5329522; b5=-0.7616*b5-w*0.0168980;
-      d[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)/9;
-      b6=w*0.115926;
-    }
-    ctx._buf = buf;
-    filterNode = ctx.createBiquadFilter();
-    gainNode = ctx.createGain();
-    filterNode.connect(gainNode);
-    gainNode.connect(ctx.destination);
-  }
-
-  function _start(tab) {
-    try {
-      _ensureCtx();
-      if (ctx.state === 'suspended') ctx.resume();
-      if (srcNode) { try { srcNode.stop(); } catch {} srcNode = null; }
-      srcNode = ctx.createBufferSource();
-      srcNode.buffer = ctx._buf;
-      srcNode.loop = true;
-      srcNode.connect(filterNode);
-      if (tab === 'camp') {
-        filterNode.type = 'lowpass'; filterNode.frequency.value = 700; filterNode.Q.value = 0.8;
-        gainNode.gain.setTargetAtTime(0.20, ctx.currentTime, 0.5);
-      } else {
-        filterNode.type = 'bandpass'; filterNode.frequency.value = 1100; filterNode.Q.value = 0.4;
-        gainNode.gain.setTargetAtTime(0.07, ctx.currentTime, 0.5);
-      }
-      srcNode.start();
-    } catch {}
-  }
-
-  function _stop() {
-    if (!ctx) return;
-    if (gainNode) gainNode.gain.setTargetAtTime(0, ctx.currentTime, 0.4);
-    setTimeout(() => { if (srcNode) { try { srcNode.stop(); } catch {} srcNode = null; } }, 600);
-  }
-
-  function play(tab) {
-    activeTab = tab;
-    if (!isOn() || !unlocked) return;
-    _start(tab);
-  }
-
-  function toggle(on) {
-    localStorage.setItem('rpgym_ambient', on ? '1' : '0');
-    if (on) { if (unlocked) _start(activeTab); }
-    else _stop();
-  }
-
-  function init() {
-    const unlock = () => {
-      if (unlocked) return;
-      unlocked = true;
-      if (isOn()) _start(activeTab);
-    };
-    document.addEventListener('click', unlock, { once: true });
-    document.addEventListener('touchstart', unlock, { once: true, passive: true });
-  }
-
-  return { play, toggle, init, isOn };
-})();
-
 /* ══════════════ Schermate ══════════════ */
 
 function show(id) {
@@ -587,7 +506,6 @@ function enterGame() {
   renderHUD();
   setTab('camp');
   setupNotifications();
-  AMBIENT.init();
   // Rollover incursione + boss + mappa tesoro
   const missed = RPG.rolloverIncursion(HERO);
   RPG.rolloverWeeklyBoss(HERO);
@@ -800,7 +718,6 @@ function setTab(tab) {
   c.scrollTop = 0;
   requestAnimationFrame(() => c.classList.add('tab-in'));
   updateBadges();
-  AMBIENT.play(tab);
 }
 
 /* ── TAB: Rifugio ── */
@@ -2953,7 +2870,6 @@ function renderSettingsView(c) {
   c.appendChild(el('h2', 'section-title', '⚙️ Impostazioni'));
   c.appendChild(renderShortcutPanel());
   c.appendChild(_settingsNotifPanel());
-  c.appendChild(_settingsAudioPanel());
   c.appendChild(_settingsRefreshPanel());
   c.appendChild(_settingsBackupPanel());
   c.appendChild(_settingsFullscreenPanel());
@@ -2989,29 +2905,6 @@ function _settingsNotifPanel() {
     btn.disabled = true;
     p.appendChild(btn);
   }
-  return p;
-}
-
-function _settingsAudioPanel() {
-  const p = el('div', 'panel shortcut-panel');
-  p.appendChild(el('h3', 'panel-title', '🔊 Sonoro Ambientale'));
-  p.appendChild(el('p', 'guide-text', 'Attiva l\'atmosfera sonora: fuoco crepitante al Rifugio, vento gentile negli altri tab.'));
-  const row = el('div', 'settings-toggle-row');
-  const lbl = el('label', 'toggle-label');
-  const chk = el('input');
-  chk.type = 'checkbox';
-  chk.checked = AMBIENT.isOn();
-  chk.addEventListener('change', () => {
-    AMBIENT.toggle(chk.checked);
-    lbl.querySelector('.toggle-status').textContent = chk.checked ? 'Attivo' : 'Disattivo';
-  });
-  const slider = el('span', 'toggle-slider');
-  const status = el('span', 'toggle-status', chk.checked ? 'Attivo' : 'Disattivo');
-  lbl.appendChild(chk);
-  lbl.appendChild(slider);
-  row.appendChild(lbl);
-  row.appendChild(status);
-  p.appendChild(row);
   return p;
 }
 
