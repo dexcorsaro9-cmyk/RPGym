@@ -83,6 +83,8 @@ body {
 
 .muted { color: var(--ink-light); }
 .small { font-size: .85rem; }
+.panel .muted { color: var(--ink); }
+.panel .small { font-size: .9rem; }
 .center { text-align: center; }
 .row { display: flex; }
 .gap { gap: 10px; }
@@ -259,7 +261,7 @@ body {
   margin-bottom: 14px;
   display: flex; flex-direction: column; gap: 8px;
 }
-.panel-title { font-family: 'Cinzel', serif; font-size: 1rem; color: var(--leather); }
+.panel-title { font-family: 'Cinzel', serif; font-size: 1.05rem; color: var(--ink); }
 .panel.panel-featured {
   background:
     radial-gradient(ellipse at 30% 15%, rgba(255,220,130,.25), transparent 55%),
@@ -1578,7 +1580,7 @@ body {
 .biome-hero-name { font-family: 'Cinzel', serif; font-weight: 700; font-size: 1.25rem; color: var(--gold-bright); }
 .biome-hero-lv { color: #c9b48f; margin-bottom: 8px; }
 .membar.slim { height: 16px; }
-.membar.slim span { line-height: 13px; font-size: .68rem; }
+.membar.slim span { line-height: 14px; font-size: .74rem; font-weight: 700; }
 .done-strip { text-align: center; padding: 10px; }
 .mission-zone-icon { font-size: 1.4rem; }
 .biome-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
@@ -1790,7 +1792,7 @@ body {
 .arena-panel { border-color: var(--danger); }
 .arena-tokens {
   text-align: center; font-family: 'Cinzel', serif;
-  color: var(--leather); padding: 4px;
+  color: var(--ink); font-weight: 700; padding: 4px;
 }
 
 /* ── Spedizione a Tappe ── */
@@ -2898,9 +2900,9 @@ body {
   display: flex; gap: 6px; margin-bottom: 12px;
 }
 .ch-tab-pill {
-  flex: 1; padding: 5px 0; border-radius: 20px;
-  border: 1px solid var(--leather); background: transparent;
-  color: var(--ink-light); font-size: .82rem; cursor: pointer;
+  flex: 1; padding: 6px 0; border-radius: 20px;
+  border: 1px solid var(--leather); background: rgba(59,42,26,.06);
+  color: var(--ink); font-size: .88rem; font-weight: 600; cursor: pointer;
   transition: background .15s, color .15s, border-color .15s;
 }
 .ch-tab-pill.active {
@@ -2923,10 +2925,10 @@ body {
 .challenge-head {
   display: flex; align-items: flex-start; gap: 8px; margin-bottom: 4px;
 }
-.challenge-icon { font-size: 1.2rem; flex-shrink: 0; }
-.challenge-mid  { flex: 1; display: flex; flex-direction: column; gap: 1px; }
-.challenge-label { font-weight: 600; font-size: .95rem; }
-.challenge-rew  { color: var(--ink-light); }
+.challenge-icon { font-size: 1.3rem; flex-shrink: 0; }
+.challenge-mid  { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.challenge-label { font-weight: 700; font-size: 1rem; color: var(--ink); }
+.challenge-rew  { color: var(--ink); font-size: .88rem; }
 .challenge-check { color: var(--emerald); font-weight: 700; font-size: 1.1rem; }
 .challenge-bonus-row {
   margin-top: 8px; padding: 6px 8px; border-radius: 6px;
