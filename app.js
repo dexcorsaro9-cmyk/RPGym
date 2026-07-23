@@ -592,6 +592,8 @@ function enterGame() {
   const missed = RPG.rolloverIncursion(HERO);
   RPG.rolloverWeeklyBoss(HERO);
   RPG.rolloverTreasureMap(HERO);
+  // Assegna retroattivamente i punti abilità per i livelli già guadagnati
+  RPG.earnSkillPoints(HERO);
   // Tesoro Giornaliero
   const login = RPG.dailyLogin(HERO);
   persist();
@@ -1499,6 +1501,63 @@ function renderMap(c) {
     c.appendChild(tp);
   }
 
+  // ── Pozione del Giorno ──
+  {
+    const potion = RPG.getDailyPotion();
+    const already = HERO.dailyPotion && HERO.dailyPotion.claimedDate === todayISO();
+    const used = already && HERO.dailyPotion.used;
+    const pp = el('div', 'panel potion-day-panel');
+    pp.appendChild(el('h3', 'panel-title', '⚗️ Pozione del Giorno'));
+    pp.appendChild(el('p', 'center', `<span style="font-size:2rem">${potion.icon}</span><br><b>${esc(potion.name)}</b><br><span class="muted small">${esc(potion.desc)}</span>`));
+    if (used) {
+      pp.appendChild(el('div', 'done-strip', '✅ Pozione usata oggi'));
+    } else if (already) {
+      pp.appendChild(el('div', 'done-strip muted', `${potion.icon} Riscattata · si attiva al prossimo allenamento`));
+    } else {
+      const btn = el('button', 'btn btn-primary wide', `${potion.icon} Riscuoti pozione`);
+      btn.addEventListener('click', () => {
+        const err = RPG.claimDailyPotion(HERO);
+        if (err) { toast(err); return; }
+        persist(); renderHUD();
+        vibrate([60, 30, 100]);
+        setTab('camp');
+      });
+      pp.appendChild(btn);
+    }
+    c.appendChild(pp);
+  }
+
+  // ── Mercante Itinerante (ven–dom) ──
+  if (RPG.isMerchantWeekend()) {
+    const merchant = RPG.getTravelingMerchant(HERO);
+    if (merchant) {
+      const mp = el('div', 'panel merchant-panel');
+      mp.appendChild(el('h3', 'panel-title', '🛒 Mercante Itinerante'));
+      mp.appendChild(el('p', 'muted small center', 'Disponibile solo venerdì–domenica! Sparisce lunedì.'));
+      merchant.offers.forEach((o, i) => {
+        const boughtKey = merchant.weekStamp + '-' + i;
+        const bought = HERO.merchantBought && HERO.merchantBought[boughtKey];
+        const row = el('div', 'merchant-offer-row' + (bought ? ' bought' : ''));
+        row.innerHTML = `<div class="merchant-offer-info">${itemHtml(o.item)}</div>`;
+        if (bought) {
+          row.innerHTML += `<span class="done-strip">✅</span>`;
+        } else {
+          const btn = el('button', 'btn' + (HERO.gold >= o.price ? ' btn-primary' : ''), `🪙 ${o.price}`);
+          btn.addEventListener('click', () => {
+            const err = RPG.buyFromMerchant(HERO, i);
+            if (err) { toast(err); return; }
+            persist(); renderHUD();
+            vibrate([80, 40, 120]);
+            setTab('camp');
+          });
+          row.appendChild(btn);
+        }
+        mp.appendChild(row);
+      });
+      c.appendChild(mp);
+    }
+  }
+
   // ── Missione attiva ──
   if (HERO.activeMission) {
     const m = RPG.MISSIONS.find(x => x.id === HERO.activeMission.id);
@@ -2142,8 +2201,18 @@ function showReport(r) {
   if (r.bossDefeatedWeekly) {
     html += `<div class="big-news">⚔️ BOSS SCONFITTO: ${r.bossDefeatedWeekly.icon} ${esc(r.bossDefeatedWeekly.name)}!<br><span class="small">Torna al Rifugio per riscuotere il bottino.</span></div>`;
   }
+  if (r.potionUsed) {
+    const pot = RPG.DAILY_POTIONS.find(p => p.id === r.potionUsed);
+    if (pot) html += `<p class="report-streak-line">${pot.icon} Pozione usata: <b>${esc(pot.name)}</b></p>`;
+  }
+  if (r.loreUnlocked && r.loreUnlocked.length) {
+    r.loreUnlocked.forEach(f => {
+      html += `<div class="lore-unlock"><span class="lore-unlock-icon">📖</span><b>${esc(f.title)}</b><br><span class="small muted">Leggi nel tab Eroe → Cronache di Oakhaven</span></div>`;
+    });
+  }
   if (leveled) {
-    html += `<div class="report-levelup">🆙 LIVELLO ${newLevel}!<br><span class="small">${RPG.heroTitle(newLevel)}</span></div>`;
+    const ptsNow = HERO.skillPoints || 0;
+    html += `<div class="report-levelup">🆙 LIVELLO ${newLevel}!<br><span class="small">${RPG.heroTitle(newLevel)}</span>${ptsNow > 0 ? `<br><span class="small">🌟 +1 punto abilità disponibile!</span>` : ''}</div>`;
     setTimeout(() => showLevelUp(newLevel), 350);
   }
   if (r.capReached)
@@ -2668,6 +2737,66 @@ function renderHero(c) {
     c.appendChild(pc);
   } else if (HERO.prestige && HERO.prestige.count > 0) {
     c.appendChild(el('p', 'center small muted', `✨ Prestige ${HERO.prestige.count} · +${HERO.prestige.count*20}% XP permanente`));
+  }
+
+  // ── Albero Abilità ──
+  {
+    const pts = HERO.skillPoints || 0;
+    const sp2 = el('div', 'panel skill-tree-panel');
+    sp2.appendChild(el('h3', 'panel-title', `🌟 Abilità Passive${pts > 0 ? ` <span class="skill-pts-badge">${pts}</span>` : ''}`));
+    sp2.appendChild(el('p', 'muted small', `Punti disponibili: <b>${pts}</b> · guadagni 1 punto ogni 5 livelli`));
+    const grid = el('div', 'skill-tree-grid');
+    RPG.SKILL_TREE.forEach(sk => {
+      const learned = (HERO.skills || []).includes(sk.id);
+      const canLearn = !learned && HERO.level >= sk.reqLevel && pts >= sk.cost;
+      const locked = HERO.level < sk.reqLevel;
+      const cell = el('div', 'skill-cell' + (learned ? ' learned' : locked ? ' locked' : canLearn ? ' available' : ''));
+      cell.innerHTML = `<span class="skill-icon">${sk.icon}</span><span class="skill-name">${esc(sk.name)}</span><span class="skill-desc muted small">${esc(sk.desc)}</span>`;
+      if (locked) {
+        cell.innerHTML += `<span class="skill-req muted small">Lv ${sk.reqLevel}</span>`;
+      } else if (learned) {
+        cell.innerHTML += `<span class="skill-state done-strip">✅</span>`;
+      } else if (canLearn) {
+        const btn = el('button', 'btn btn-primary', `+${sk.cost} pt`);
+        btn.addEventListener('click', () => {
+          const err = RPG.learnSkill(HERO, sk.id);
+          if (err) { toast(err); return; }
+          persist();
+          vibrate([80, 40, 120]);
+          setTab('hero');
+        });
+        cell.appendChild(btn);
+      } else {
+        cell.innerHTML += `<span class="skill-req muted small">Lv ${sk.reqLevel} · ${sk.cost} pt</span>`;
+      }
+      grid.appendChild(cell);
+    });
+    sp2.appendChild(grid);
+    c.appendChild(sp2);
+  }
+
+  // ── Cronache di Oakhaven (Lore) ──
+  {
+    const unlocked = HERO.loreUnlocked || [];
+    if (unlocked.length > 0 || HERO.totalKm >= 40) {
+      const lp = el('div', 'panel lore-panel');
+      lp.appendChild(el('h3', 'panel-title', `📖 Cronache di Oakhaven <span class="muted small">${unlocked.length}/${RPG.LORE_FRAGMENTS.length}</span>`));
+      if (unlocked.length === 0) {
+        lp.appendChild(el('p', 'muted small', 'Percorri 50 km totali per sbloccare il primo capitolo.'));
+      } else {
+        RPG.LORE_FRAGMENTS.forEach(f => {
+          const isUnlocked = unlocked.includes(f.id);
+          const item = el('div', 'lore-item' + (isUnlocked ? '' : ' lore-locked'));
+          if (isUnlocked) {
+            item.innerHTML = `<div class="lore-title">${esc(f.title)}</div><p class="lore-text small">${esc(f.text)}</p>`;
+          } else {
+            item.innerHTML = `<div class="lore-title muted">🔒 Capitolo — sblocca a ${f.km} km totali</div>`;
+          }
+          lp.appendChild(item);
+        });
+      }
+      c.appendChild(lp);
+    }
   }
 
   const sw = el('button', 'btn wide', '↩ Cambia Eroe');

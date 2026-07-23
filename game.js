@@ -362,7 +362,10 @@ const RPG = (() => {
     const alchProc = isClass(hero, 'alchimista') && Math.random() < 0.10;
     const furn = furnitureAggregate(hero);
     const classDropRareChance = isClass(hero, 'principessa') ? 0.15 : 0;
-    const furnProc = Math.random() < furn.dropRareChance + classDropRareChance;
+    const skillDropChance = skillBonus(hero, 'dropRareChance');
+    const lootLuckActive = hero.dailyPotion && hero.dailyPotion.id === 'loot_luck' && !hero.dailyPotion.used;
+    const furnProc = Math.random() < furn.dropRareChance + classDropRareChance + skillDropChance || lootLuckActive;
+    if (lootLuckActive && !minRarity) minRarity = 'raro';
     if (alchProc || furnProc) {
       const avail = availableRarities(hero.level);
       const idx = avail.indexOf(item.rarity);
@@ -1034,6 +1037,12 @@ const RPG = (() => {
     h.treasureMap     = h.treasureMap     || null;
     h.prestige        = h.prestige        || { count: 0 };
 
+    // ── v5: mercante, skill tree, lore, pozione ───────────────
+    h.skills          = h.skills          || [];
+    h.skillPoints     = h.skillPoints     || 0;
+    h.loreUnlocked    = h.loreUnlocked    || [];
+    h.dailyPotion     = h.dailyPotion     || null;
+
     h.schemaVersion = SCHEMA_VERSION;
     return h;
   }
@@ -1188,12 +1197,23 @@ const RPG = (() => {
     if (isClass(hero, 'eroe2')) resMult += 0.25;
     if (isClass(hero, 'maga')) { resMult += 0.15; xpMult += 0.05; }
     if (isClass(hero, 'principe') && type === 'cyclette') xpMult += 0.15;
-    // Streak bonus: +5% XP per giorno consecutivo (cap 30%)
-    const streakBonus = Math.min(0.30, Math.max(0, (hero.streak ? hero.streak.count - 1 : 0)) * 0.05);
+    // Streak bonus: +5% XP per giorno consecutivo (cap 30%+skill)
+    const streakCap = 0.30 + skillBonus(hero, 'streakCap');
+    const streakBonus = Math.min(streakCap, Math.max(0, (hero.streak ? hero.streak.count - 1 : 0)) * 0.05);
     if (streakBonus > 0) { xpMult += streakBonus; report.streakBonus = streakBonus; }
     // Prestige bonus: +20% XP per ascensione
     const prestigeBonus = (hero.prestige && hero.prestige.count > 0) ? Math.min(0.60, hero.prestige.count * 0.20) : 0;
     if (prestigeBonus > 0) xpMult += prestigeBonus;
+    // Skill tree bonuses
+    if ((hero.skills || []).includes('swift_legs') && type !== 'cyclette') xpMult += 0.08;
+    // Pozione del giorno
+    if (hero.dailyPotion && !hero.dailyPotion.used) {
+      const pid = hero.dailyPotion.id;
+      if (pid === 'xp_boost')   { xpMult += 0.50; report.potionUsed = pid; }
+      if (pid === 'gold_rush')  { goldMult += 1.00; report.potionUsed = pid; }
+      if (pid === 'rest_echo' && !hero.restBonus) { mult = 2; report.potionUsed = pid; }
+      hero.dailyPotion.used = true;
+    }
     // Meteo dinamico
     const weather = getDailyWeather();
     if (weather.xpBonus > 0) { xpMult += weather.xpBonus; report.weatherBonus = weather; }
@@ -1202,6 +1222,7 @@ const RPG = (() => {
     const furn = furnitureAggregate(hero);
     xpMult += (furn.xpMult[type] || 0) + (furn.xpMult.global || 0);
     goldMult += furn.goldMult;
+    resMult += skillBonus(hero, 'resMult');
     let localWoodMult = resMult + furn.woodMult;
     let localStoneMult = resMult + furn.stoneMult;
     // Dualità: Cittadella dell'Eclissi, +risorse dopo le 18:00
@@ -1239,7 +1260,8 @@ const RPG = (() => {
     // Mappa del tesoro settimanale
     if (hero.treasureMap) {
       const prev = hero.treasureMap.progressKm;
-      hero.treasureMap.progressKm = Math.round((prev + km) * 10) / 10;
+      const treasureKm = km * (1 + skillBonus(hero, 'treasureKmBonus'));
+      hero.treasureMap.progressKm = Math.round((prev + treasureKm) * 10) / 10;
       const newTiers = TREASURE_MAP_TIERS.map((t,i) => ({ ...t, idx:i }))
         .filter(t => prev < t.km && hero.treasureMap.progressKm >= t.km);
       if (newTiers.length) report.treasureUnlocked = newTiers;
@@ -1258,11 +1280,16 @@ const RPG = (() => {
     hero.log.unshift({ date: Date.now(), type, km, xp: report.xp });
     if (hero.log.length > 100) hero.log.pop();
 
+    // Lore unlock check
+    const newLore = checkLoreUnlock(hero);
+    if (newLore.length) report.loreUnlocked = newLore;
+
     // Livelli (con sigillo al 20 finché non c'è l'Ascensione)
     const cap = hero.ascended ? MAX_LEVEL : LEVEL_CAP_1;
     while (hero.level < cap && hero.xp >= xpForLevel(hero.level)) {
       hero.xp -= xpForLevel(hero.level);
       hero.level++;
+      earnSkillPoints(hero);
       report.levelsGained.push(hero.level);
       if (hero.level === 5 && !hero.cards.includes('card_casa')) {
         hero.cards.push('card_casa'); report.cards.push('card_casa');
@@ -1494,7 +1521,7 @@ const RPG = (() => {
     const slots = ['arma', 'scudo', 'elmo', 'armatura'];
     const offers = [];
     const furn = furnitureAggregate(hero);
-    const discount = 1 - Math.min(0.6, furn.marketDiscount);
+    const discount = 1 - Math.min(0.6, furn.marketDiscount + skillBonus(hero, 'marketDiscount'));
     for (let i = 0; i < 3; i++) {
       const s = slots[(seed + i * 7) % slots.length];
       // rarità pseudo-casuale ma stabile nel giorno
@@ -2939,12 +2966,159 @@ const RPG = (() => {
     return { gold: st.boss.gold, item };
   }
 
+  /* ── Mercante Itinerante (ven-dom, 3 item rari) ──────────── */
+  function isMerchantWeekend() {
+    const d = new Date().getDay(); // 0=dom, 5=ven, 6=sab
+    return d === 0 || d === 5 || d === 6;
+  }
+  function getTravelingMerchant(hero) {
+    if (!isMerchantWeekend()) return null;
+    const ws = weekStamp();
+    const seed = dateSeed(ws + '-merchant');
+    const slots = Object.keys(SLOTS);
+    const rarityKeys = Object.keys(RARITIES);
+    const minIdx = Math.max(2, rarityKeys.indexOf('raro'));
+    const offers = [];
+    for (let i = 0; i < 3; i++) {
+      const slotKey = slots[(seed + i * 13) % slots.length];
+      const rarIdx  = minIdx + ((seed + i * 7) % (rarityKeys.length - minIdx));
+      const rar     = rarityKeys[Math.min(rarIdx, rarityKeys.length - 1)];
+      const avail   = availableRarities(hero.level);
+      const finalR  = avail.includes(rar) ? rar : (avail[avail.length - 1] || 'raro');
+      const item    = genItem(hero.level, null, slotKey, finalR);
+      const baseVal = RARITIES[finalR].value;
+      offers.push({ item, price: Math.round(baseVal * 2.5 / 10) * 10 });
+    }
+    return { weekStamp: ws, offers };
+  }
+  function buyFromMerchant(hero, offerIdx) {
+    const m = getTravelingMerchant(hero);
+    if (!m) return 'Il mercante non è disponibile questa settimana.';
+    const o = m.offers[offerIdx];
+    if (!o) return 'Offerta non trovata.';
+    hero.merchantBought = hero.merchantBought || {};
+    if (hero.merchantBought[m.weekStamp + '-' + offerIdx]) return 'Hai già acquistato questo oggetto.';
+    if (hero.gold < o.price) return 'Oro insufficiente!';
+    hero.gold -= o.price;
+    hero.items.push(o.item);
+    hero.merchantBought[m.weekStamp + '-' + offerIdx] = true;
+    return null;
+  }
+
+  /* ── Albero Abilità Passivo ──────────────────────────────── */
+  const SKILL_TREE = [
+    { id: 'swift_legs',  name: 'Gambe Veloci',     icon: '🥾', cost: 1, reqLevel: 5,
+      desc: '+8% XP da camminata e corsa',
+      effect: { xpMult_walk_run: 0.08 } },
+    { id: 'haggler',     name: 'Mercante Nato',    icon: '🪙', cost: 1, reqLevel: 5,
+      desc: '-15% prezzi al Mercato',
+      effect: { marketDiscount: 0.15 } },
+    { id: 'iron_will',   name: 'Volontà di Ferro', icon: '🔥', cost: 1, reqLevel: 10,
+      desc: 'Streak bonus cap +5% (da 30% a 35%)',
+      effect: { streakCap: 0.05 } },
+    { id: 'fortunate',   name: 'Mano Fortunata',  icon: '🍀', cost: 1, reqLevel: 10,
+      desc: '+12% probabilità loot di rarità superiore',
+      effect: { dropRareChance: 0.12 } },
+    { id: 'cartographer',name: 'Cartografo',       icon: '🗺️', cost: 1, reqLevel: 20,
+      desc: '+20% km contano per la Mappa del Tesoro',
+      effect: { treasureKmBonus: 0.20 } },
+    { id: 'hoarder',     name: 'Accumulatore',     icon: '🪵', cost: 1, reqLevel: 20,
+      desc: '+15% legna e pietra raccolte',
+      effect: { resMult: 0.15 } },
+  ];
+  function skillById(id) { return SKILL_TREE.find(s => s.id === id); }
+  function learnSkill(hero, id) {
+    const sk = skillById(id);
+    if (!sk) return 'Abilità sconosciuta.';
+    if (hero.level < sk.reqLevel) return `Serve il Livello ${sk.reqLevel}.`;
+    if (hero.skills.includes(id)) return 'Abilità già appresa.';
+    const pts = hero.skillPoints || 0;
+    if (pts < sk.cost) return 'Punti abilità insufficienti.';
+    hero.skillPoints -= sk.cost;
+    hero.skills.push(id);
+    return null;
+  }
+  function skillBonus(hero, key) {
+    let tot = 0;
+    (hero.skills || []).forEach(id => {
+      const sk = skillById(id);
+      if (sk && sk.effect[key]) tot += sk.effect[key];
+    });
+    return tot;
+  }
+  function earnSkillPoints(hero) {
+    const expected = Math.floor(hero.level / 5);
+    const owned = (hero.skills || []).reduce((s, id) => {
+      const sk = skillById(id); return s + (sk ? sk.cost : 0);
+    }, 0);
+    hero.skillPoints = Math.max(0, expected - owned - (hero.skillPoints || 0) < 0
+      ? (hero.skillPoints || 0)
+      : expected - owned);
+  }
+
+  /* ── Cronache di Oakhaven (Lore) ─────────────────────────── */
+  const LORE_FRAGMENTS = [
+    { id: 'lore1', km: 50,  title: 'Capitolo I — La Notte del Drago',
+      text: 'Qualcuno ricorda ancora come brillavano le stelle sopra Oakhaven la sera prima dell\'attacco. Poi venne l\'ombra — grande quanto una nuvola, silenziosa quanto la morte — e le stelle scomparvero una ad una. Al mattino, non rimase che fumo e silenzio.' },
+    { id: 'lore2', km: 100, title: 'Capitolo II — Il Cavaliere Senza Volto',
+      text: 'I sopravvissuti riferiscono la stessa cosa: una figura in armatura nera sul dorso del drago, che non ha gridato, non ha ordinato, non ha spiegato. Ha solo guardato bruciare. Chi è? Da dove viene? Il Vecchio Archivio di Oakhaven custodiva risposte. L\'Archivio non c\'è più.' },
+    { id: 'lore3', km: 150, title: 'Capitolo III — L\'Orda',
+      text: 'Non sono solo mostri. Hanno una struttura: esploratori in avanscoperta, guerrieri a proteggere i fianchi, saccheggiatori a raccogliere risorse. Qualcuno li addestra, qualcuno li comanda. E quel qualcuno conosce la geografia del reame meglio di chiunque.' },
+    { id: 'lore4', km: 200, title: 'Capitolo IV — Il Sigillo Antico',
+      text: 'La leggenda dice che il reame fu protetto per mille anni da un patto tra i Re e le creature della Foresta Sussurrante. Tre sigilli, tre guardiani, tre luoghi segreti. Uno dei sigilli era custodito a Oakhaven. Non lo è più.' },
+    { id: 'lore5', km: 250, title: 'Capitolo V — La Spia',
+      text: 'Qualcuno ha tradito. Le difese di Oakhaven erano solide, le sentinelle vigili, le porte chiuse. L\'Orda conosceva ogni debolezza, ogni turno di guardia, ogni tunnel nascosto. Chi aveva quella conoscenza? Chi l\'avrebbe venduta?' },
+    { id: 'lore6', km: 300, title: 'Capitolo VI — Il Prezzo della Corruzione',
+      text: 'L\'Orda non porta solo distruzione: porta corruzione. Le creature trasformate non muoiono — esistono in uno stato peggiore della morte, schiave di una volontà altrui. E quella volontà vuole qualcosa di preciso. Vuole il reame intero, non solo le sue macerie.' },
+    { id: 'lore7', km: 350, title: 'Capitolo VII — La Vetta Oscura',
+      text: 'I mappe più antiche segnano un luogo oltre le Montagne del Confine: la Vetta Oscura. Nessun esploratore che ci sia andato è mai tornato — ma nessuno ha mai avuto abbastanza tempo, abbastanza forza, abbastanza ragione per andarci davvero. Fino ad ora.' },
+    { id: 'lore8', km: 400, title: 'Capitolo VIII — L\'Alleanza',
+      text: 'Non sei solo. In ogni bioma che attraversi trovi tracce di resistenza: un falò ancora acceso, una trappola piazzata di fresco, un simbolo inciso nella pietra. Qualcuno combatte l\'Orda nell\'ombra, un passo alla volta. Come te.' },
+    { id: 'lore9', km: 450, title: 'Capitolo IX — Il Drago',
+      text: 'Il drago è antico — più del reame, forse più della memoria degli uomini. Le creature più vecchie della Foresta Sussurrante ne parlano come di una forza naturale: il fuoco che brucia per far crescere, la fine che prepara l\'inizio. Qualcuno ha corrotto anche lui. Qualcuno molto potente.' },
+    { id: 'lore10', km: 500, title: 'Capitolo X — La Verità',
+      text: 'Il Cavaliere del Drago ha un nome. Aveva un volto, una storia, forse anche delle ragioni. Le Memorie lo mostrano: un eroe come tanti, cresciuto a Oakhaven, partito in cerca di qualcosa che il reame non sapeva dargli. Trovò la Vetta Oscura. Trovò il potere. Perse tutto il resto. Ora tocca a te salire.' },
+  ];
+  function checkLoreUnlock(hero) {
+    const newOnes = LORE_FRAGMENTS.filter(f =>
+      hero.totalKm >= f.km && !(hero.loreUnlocked || []).includes(f.id)
+    );
+    newOnes.forEach(f => { hero.loreUnlocked = hero.loreUnlocked || []; hero.loreUnlocked.push(f.id); });
+    return newOnes;
+  }
+
+  /* ── Pozione del Giorno ──────────────────────────────────── */
+  const DAILY_POTIONS = [
+    { id: 'xp_boost',      icon: '✨', name: 'Pozione di Saggezza',   desc: '+50% XP nella prossima sessione' },
+    { id: 'gold_rush',     icon: '💰', name: 'Pozione dell\'Avaro',    desc: '+100% oro nella prossima sessione' },
+    { id: 'streak_shield', icon: '🛡️', name: 'Scudo della Costanza',  desc: 'Protegge la streak per 1 giorno' },
+    { id: 'loot_luck',     icon: '🍀', name: 'Pozione della Fortuna',  desc: 'Prossima sessione: loot minimo Raro' },
+    { id: 'rest_echo',     icon: '🌙', name: 'Essenza del Riposo',     desc: 'Bonus 2x XP come dopo un giorno di riposo' },
+  ];
+  function getDailyPotion() {
+    const d = new Date();
+    const seed = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate() + 77;
+    const v = (((seed * 1664525 + 1013904223) & 0x7fffffff) >>> 0) % DAILY_POTIONS.length;
+    return DAILY_POTIONS[v];
+  }
+  function claimDailyPotion(hero) {
+    const today = todayStamp();
+    if (hero.dailyPotion && hero.dailyPotion.claimedDate === today) return 'Pozione già riscattata oggi.';
+    const p = getDailyPotion();
+    hero.dailyPotion = { id: p.id, claimedDate: today, used: false };
+    return null;
+  }
+
   return {
     ACTIVITIES, MISSIONS, CARDS, BUILDINGS, BESTIARY, TROPHIES,
     WEEKLY_BOSSES, rolloverWeeklyBoss, weeklyBossStatus, claimWeeklyBoss,
     getDailyWeather, WEATHER_TYPES,
     TREASURE_MAP_TIERS, rolloverTreasureMap, treasureMapStatus, claimTreasureTier,
     canPrestige, prestige, getMonthlyRecap, monthStamp,
+    isMerchantWeekend, getTravelingMerchant, buyFromMerchant,
+    SKILL_TREE, skillById, learnSkill, skillBonus, earnSkillPoints,
+    LORE_FRAGMENTS, checkLoreUnlock,
+    DAILY_POTIONS, getDailyPotion, claimDailyPotion,
     BIOMES, MOUNTS, RARITIES, SLOTS,
     MAX_LEVEL, LEVEL_CAP_1, GOLD_PER_KM,
     xpForLevel, dailyGoalKm, heroTitle,
