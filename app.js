@@ -289,6 +289,87 @@ un bottino alla volta. Il Re dei Predoni non chiede — conquista.`,
 function persist() { RPG.save(STATE); }
 function vibrate(pattern) { try { navigator.vibrate && navigator.vibrate(pattern); } catch {} }
 
+/* ══════════════ Sonoro ambientale (Web Audio API) ══════════════ */
+const AMBIENT = (() => {
+  let ctx = null, gainNode = null, filterNode = null, srcNode = null;
+  let unlocked = false, activeTab = 'camp';
+
+  function isOn() { return localStorage.getItem('rpgym_ambient') !== '0'; }
+
+  function _ensureCtx() {
+    if (ctx) return;
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    // Generate 3s pink-noise buffer (reused for all sounds, filter/gain change the character)
+    const len = ctx.sampleRate * 3;
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+    for (let i = 0; i < len; i++) {
+      const w = Math.random()*2-1;
+      b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759;
+      b2=0.96900*b2+w*0.1538520; b3=0.86650*b3+w*0.3104856;
+      b4=0.55000*b4+w*0.5329522; b5=-0.7616*b5-w*0.0168980;
+      d[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)/9;
+      b6=w*0.115926;
+    }
+    ctx._buf = buf;
+    filterNode = ctx.createBiquadFilter();
+    gainNode = ctx.createGain();
+    filterNode.connect(gainNode);
+    gainNode.connect(ctx.destination);
+  }
+
+  function _start(tab) {
+    try {
+      _ensureCtx();
+      if (ctx.state === 'suspended') ctx.resume();
+      if (srcNode) { try { srcNode.stop(); } catch {} srcNode = null; }
+      srcNode = ctx.createBufferSource();
+      srcNode.buffer = ctx._buf;
+      srcNode.loop = true;
+      srcNode.connect(filterNode);
+      if (tab === 'camp') {
+        filterNode.type = 'lowpass'; filterNode.frequency.value = 700; filterNode.Q.value = 0.8;
+        gainNode.gain.setTargetAtTime(0.20, ctx.currentTime, 0.5);
+      } else {
+        filterNode.type = 'bandpass'; filterNode.frequency.value = 1100; filterNode.Q.value = 0.4;
+        gainNode.gain.setTargetAtTime(0.07, ctx.currentTime, 0.5);
+      }
+      srcNode.start();
+    } catch {}
+  }
+
+  function _stop() {
+    if (!ctx) return;
+    if (gainNode) gainNode.gain.setTargetAtTime(0, ctx.currentTime, 0.4);
+    setTimeout(() => { if (srcNode) { try { srcNode.stop(); } catch {} srcNode = null; } }, 600);
+  }
+
+  function play(tab) {
+    activeTab = tab;
+    if (!isOn() || !unlocked) return;
+    _start(tab);
+  }
+
+  function toggle(on) {
+    localStorage.setItem('rpgym_ambient', on ? '1' : '0');
+    if (on) { if (unlocked) _start(activeTab); }
+    else _stop();
+  }
+
+  function init() {
+    const unlock = () => {
+      if (unlocked) return;
+      unlocked = true;
+      if (isOn()) _start(activeTab);
+    };
+    document.addEventListener('click', unlock, { once: true });
+    document.addEventListener('touchstart', unlock, { once: true, passive: true });
+  }
+
+  return { play, toggle, init, isOn };
+})();
+
 /* ══════════════ Schermate ══════════════ */
 
 function show(id) {
@@ -508,6 +589,7 @@ function enterGame() {
   renderHUD();
   setTab('camp');
   setupNotifications();
+  AMBIENT.init();
   // Rollover incursione + FOMO del bottino perso
   const missed = RPG.rolloverIncursion(HERO);
   // Tesoro Giornaliero
@@ -710,6 +792,7 @@ function setTab(tab) {
   c.scrollTop = 0;
   requestAnimationFrame(() => c.classList.add('tab-in'));
   updateBadges();
+  AMBIENT.play(tab);
 }
 
 /* ── TAB: Rifugio ── */
@@ -2022,6 +2105,12 @@ function showReport(r) {
 
   if (r.streakBonus)
     html += `<p class="report-streak-line">🔥 Streak <b>${HERO.streak.count} giorni</b> · <b>+${Math.round(r.streakBonus * 100)}% XP</b></p>`;
+  if (r.trophies && r.trophies.length) {
+    r.trophies.forEach(t => {
+      html += `<div class="trophy-unlock"><span class="trophy-unlock-icon">${t.icon}</span><div><b>Trofeo sbloccato: ${t.name}</b><br><span class="small muted">${t.desc}</span></div></div>`;
+    });
+    vibrate([200, 100, 200]);
+  }
   if (leveled) {
     html += `<div class="report-levelup">🆙 LIVELLO ${newLevel}!<br><span class="small">${RPG.heroTitle(newLevel)}</span></div>`;
     setTimeout(() => showLevelUp(newLevel), 350);
@@ -2469,6 +2558,21 @@ function renderHero(c) {
   weekPanel.appendChild(el('p', 'center small', `Totale: <b>${totalWeek.toFixed(1)} km</b> questa settimana`));
   c.appendChild(weekPanel);
 
+  // Trofei km
+  const trophyPanel = el('div', 'panel on-parchment');
+  trophyPanel.appendChild(el('h3', 'panel-title', '🏆 Trofei'));
+  const trophyGrid = el('div', 'trophy-grid');
+  const earnedTrophies = HERO.trophies || [];
+  RPG.TROPHIES.forEach(t => {
+    const unlocked = earnedTrophies.includes(t.id);
+    const cell = el('div', 'trophy-cell' + (unlocked ? ' trophy-unlocked' : ' trophy-locked'));
+    cell.title = unlocked ? `${t.name} — ${t.desc}` : `Sblocca a ${t.km} km`;
+    cell.innerHTML = `<span class="trophy-icon">${unlocked ? t.icon : '🔒'}</span><span class="trophy-name">${t.name}</span><span class="trophy-km">${t.km} km</span>`;
+    trophyGrid.appendChild(cell);
+  });
+  trophyPanel.appendChild(trophyGrid);
+  c.appendChild(trophyPanel);
+
   // Statistiche
   const stats = el('div', 'panel on-parchment');
   const impreseTitle = el('h3', 'panel-title', '📊 Imprese');
@@ -2522,13 +2626,39 @@ function renderDiaryView(c) {
   sp.appendChild(sd);
   c.appendChild(sp);
 
-  // Heatmap km ultimi 84 giorni
+  // Calendario mensile + Heatmap
   if (HERO.log.length) {
     const kmByDay = {};
     HERO.log.forEach(l => {
       const key = new Date(l.date).toISOString().slice(0, 10);
       kmByDay[key] = (kmByDay[key] || 0) + l.km;
     });
+
+    // Calendario mese corrente
+    const now = new Date();
+    const yr = now.getFullYear(), mo = now.getMonth();
+    const MONTH_IT = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+    const firstDay = new Date(yr, mo, 1);
+    const daysInMonth = new Date(yr, mo + 1, 0).getDate();
+    const startDow = (firstDay.getDay() + 6) % 7; // Monday-based (0=Mon)
+    const calPanel = el('div', 'panel km-heatmap-wrap');
+    calPanel.appendChild(el('h3', 'panel-title', `📅 ${MONTH_IT[mo]} ${yr}`));
+    const calGrid = el('div', 'cal-grid');
+    ['L','M','M','G','V','S','D'].forEach(d => calGrid.appendChild(el('div', 'cal-day-hdr', d)));
+    for (let i = 0; i < startDow; i++) calGrid.appendChild(el('div', 'cal-cell cal-empty'));
+    for (let d = 1; d <= daysInMonth; d++) {
+      const key = `${yr}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const km = kmByDay[key] || 0;
+      const intensity = km === 0 ? 0 : km < 2 ? 1 : km < 5 ? 2 : km < 10 ? 3 : 4;
+      const cell = el('div', 'cal-cell' + (d === now.getDate() ? ' cal-today' : ''));
+      cell.dataset.i = intensity;
+      cell.title = `${d} ${MONTH_IT[mo]}: ${km > 0 ? km.toFixed(1) + ' km' : 'riposo'}`;
+      cell.textContent = d;
+      calGrid.appendChild(cell);
+    }
+    calPanel.appendChild(calGrid);
+    c.appendChild(calPanel);
+
     const today = new Date();
     const hmWrap = el('div', 'panel km-heatmap-wrap');
     hmWrap.appendChild(el('h3', 'panel-title', '🌙 Attività degli Ultimi 3 Mesi'));
@@ -2571,6 +2701,7 @@ function renderSettingsView(c) {
   c.appendChild(el('h2', 'section-title', '⚙️ Impostazioni'));
   c.appendChild(renderShortcutPanel());
   c.appendChild(_settingsNotifPanel());
+  c.appendChild(_settingsAudioPanel());
   c.appendChild(_settingsRefreshPanel());
   c.appendChild(_settingsBackupPanel());
   c.appendChild(_settingsFullscreenPanel());
@@ -2606,6 +2737,29 @@ function _settingsNotifPanel() {
     btn.disabled = true;
     p.appendChild(btn);
   }
+  return p;
+}
+
+function _settingsAudioPanel() {
+  const p = el('div', 'panel shortcut-panel');
+  p.appendChild(el('h3', 'panel-title', '🔊 Sonoro Ambientale'));
+  p.appendChild(el('p', 'guide-text', 'Attiva l\'atmosfera sonora: fuoco crepitante al Rifugio, vento gentile negli altri tab.'));
+  const row = el('div', 'settings-toggle-row');
+  const lbl = el('label', 'toggle-label');
+  const chk = el('input');
+  chk.type = 'checkbox';
+  chk.checked = AMBIENT.isOn();
+  chk.addEventListener('change', () => {
+    AMBIENT.toggle(chk.checked);
+    lbl.querySelector('.toggle-status').textContent = chk.checked ? 'Attivo' : 'Disattivo';
+  });
+  const slider = el('span', 'toggle-slider');
+  const status = el('span', 'toggle-status', chk.checked ? 'Attivo' : 'Disattivo');
+  lbl.appendChild(chk);
+  lbl.appendChild(slider);
+  row.appendChild(lbl);
+  row.appendChild(status);
+  p.appendChild(row);
   return p;
 }
 

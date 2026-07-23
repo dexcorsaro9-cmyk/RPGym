@@ -20,6 +20,16 @@ const RPG = (() => {
   const MEMORY_FRAGMENT_KM = 20;   // ogni 20 km → un Frammento di Memoria
   const LOOT_BAG_KM = 5;           // ogni 5 km → un Sacco del Viaggiatore
 
+  const TROPHIES = [
+    { id: 't10',   km: 10,   icon: '🥉', name: 'Primi Passi',          desc: '10 km percorsi' },
+    { id: 't25',   km: 25,   icon: '🎖️', name: 'Viandante',            desc: '25 km percorsi' },
+    { id: 't50',   km: 50,   icon: '🥈', name: 'Camminatore',          desc: '50 km percorsi' },
+    { id: 't100',  km: 100,  icon: '🏅', name: 'Esploratore',          desc: '100 km percorsi' },
+    { id: 't250',  km: 250,  icon: '🥇', name: 'Pellegrino',           desc: '250 km percorsi' },
+    { id: 't500',  km: 500,  icon: '🏆', name: 'Veterano del Cammino', desc: '500 km percorsi' },
+    { id: 't1000', km: 1000, icon: '👑', name: 'Leggenda Vivente',     desc: '1000 km percorsi' },
+  ];
+
   /* ── Curva di progressione ────────────────────────────────── */
   function xpForLevel(level) {
     return Math.round(60 * Math.pow(level, 1.25));
@@ -949,6 +959,7 @@ const RPG = (() => {
     // ── v4: mini-giochi e sfide giornaliere ──────────────────
     h.miniGames       = h.miniGames       || {};
     h.dailyChallenges = h.dailyChallenges || null;
+    h.trophies        = h.trophies        || [];
 
     h.schemaVersion = SCHEMA_VERSION;
     return h;
@@ -1083,7 +1094,7 @@ const RPG = (() => {
 
     migrateHero(hero);
     const act = ACTIVITIES[type];
-    const report = { km, type, levelsGained: [], loot: [], cards: [], fragments: 0, unlocks: [] };
+    const report = { km, type, levelsGained: [], loot: [], cards: [], fragments: 0, unlocks: [], trophies: [] };
 
     // Cavalcatura (+% km) e compagno (+10% km)
     let effKm = km;
@@ -1134,6 +1145,12 @@ const RPG = (() => {
     hero.totalKm += km;
     hero.kmByType[type] = (hero.kmByType[type] || 0) + km;
     updateChallengeProgress(hero, 'km', km);
+
+    // Trofei km milestone
+    hero.trophies = hero.trophies || [];
+    const newTrophies = TROPHIES.filter(t => hero.totalKm >= t.km && !hero.trophies.includes(t.id));
+    newTrophies.forEach(t => hero.trophies.push(t.id));
+    if (newTrophies.length) report.trophies = newTrophies;
     if (type === 'corsa') {
       let staminaGain = km * 5 + furn.staminaMaxBonus;
       if (furn.flags.doubleStamina) staminaGain *= 2;
@@ -2784,7 +2801,7 @@ const RPG = (() => {
   }
 
   return {
-    ACTIVITIES, MISSIONS, CARDS, BUILDINGS, BESTIARY,
+    ACTIVITIES, MISSIONS, CARDS, BUILDINGS, BESTIARY, TROPHIES,
     BIOMES, MOUNTS, RARITIES, SLOTS,
     MAX_LEVEL, LEVEL_CAP_1, GOLD_PER_KM,
     xpForLevel, dailyGoalKm, heroTitle,
