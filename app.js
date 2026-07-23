@@ -583,10 +583,24 @@ function renderHUD() {
     const nu = nextUnlock(HERO);
     next.innerHTML = nu ? `${nu.icon} Liv. ${nu.level}: ${nu.text} <span class="hud-next-in">(tra ${nu.inLv} liv.)</span>` : '';
   }
-  $('#res-gold').textContent = HERO.gold;
-  $('#res-wood').textContent = HERO.wood;
-  $('#res-stone').textContent = HERO.stone;
+  bumpRes('res-gold', HERO.gold);
+  bumpRes('res-wood', HERO.wood);
+  bumpRes('res-stone', HERO.stone);
   updateBadges();
+}
+
+function bumpRes(id, newVal) {
+  const span = $('#' + id);
+  if (!span) return;
+  const old = parseInt(span.textContent);
+  span.textContent = newVal;
+  if (!isNaN(old) && old !== newVal) {
+    span.classList.remove('res-bump');
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => span.classList.add('res-bump'));
+    });
+    span.addEventListener('animationend', () => span.classList.remove('res-bump'), { once: true });
+  }
 }
 
 let _tabClickTs = 0;
@@ -636,7 +650,55 @@ function renderCamp(c) {
   if (HERO.buildings.length >= 4) { sceneEmoji = '🏡'; sceneDesc = 'Il tuo rifugio è ormai una vera dimora fortificata!'; }
   const mount = HERO.mount ? RPG.mountById(HERO.mount) : null;
   const petSpeciesInfo = HERO.pet ? RPG.PET_SPECIES[HERO.pet.species] : null;
-  scene.appendChild(el('div', 'camp-emoji', sceneEmoji));
+  const emojiDiv = el('div', 'camp-emoji');
+  if (sceneEmoji === '🔥') {
+    emojiDiv.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" width="130" height="156" style="display:block;margin:auto;overflow:visible">
+      <defs>
+        <radialGradient id="fg1" cx="50%" cy="85%" r="55%">
+          <stop offset="0%" stop-color="#ff7700" stop-opacity=".5"/>
+          <stop offset="100%" stop-color="#ff4400" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <ellipse cx="50" cy="105" rx="42" ry="10" fill="url(#fg1)"/>
+      <rect x="16" y="90" width="68" height="11" rx="5.5" fill="#3b1e05" transform="rotate(-14 50 95)"/>
+      <rect x="16" y="90" width="68" height="11" rx="5.5" fill="#4a2608" transform="rotate(14 50 95)"/>
+      <ellipse cx="28" cy="97" rx="8" ry="6" fill="#2e2926"/>
+      <ellipse cx="72" cy="97" rx="8" ry="6" fill="#2e2926"/>
+      <ellipse cx="50" cy="101" rx="8" ry="5" fill="#242120"/>
+      <path d="M50,84 C36,76 28,56 36,40 C39,52 43,53 46,46 C48,38 44,25 50,12 C56,25 52,38 54,46 C57,53 61,52 64,40 C72,56 64,76 50,84Z" fill="#e85000" opacity=".85">
+        <animateTransform attributeName="transform" type="scale" values="1,1;.96,1.05;1.02,.98;1,1" dur="1.3s" repeatCount="indefinite" additive="sum" transformOrigin="50 84"/>
+        <animateTransform attributeName="transform" type="translate" values="0,0;1.5,-2;-1,-1;0,0" dur=".95s" repeatCount="indefinite" additive="sum"/>
+      </path>
+      <path d="M50,78 C40,70 35,54 41,42 C43,51 46,52 47.5,46 C49,40 47,30 50,20 C53,30 51,40 52.5,46 C54,52 57,51 59,42 C65,54 60,70 50,78Z" fill="#ff7700">
+        <animateTransform attributeName="transform" type="scale" values="1,1;.93,1.07;1.03,.97;1,1" dur="1.0s" repeatCount="indefinite" additive="sum" transformOrigin="50 78"/>
+        <animateTransform attributeName="transform" type="translate" values="0,0;-1.5,-2;1,-1;0,0" dur=".8s" repeatCount="indefinite" additive="sum"/>
+      </path>
+      <path d="M50,70 C43,63 40,51 44,42 C45.5,49 47,50 48,46 C49,41 47.5,34 50,26 C52.5,34 51,41 52,46 C53,50 54.5,49 56,42 C60,51 57,63 50,70Z" fill="#ffa020">
+        <animateTransform attributeName="transform" type="scale" values="1,1;.94,1.07;1,1" dur=".85s" repeatCount="indefinite" additive="sum" transformOrigin="50 70"/>
+      </path>
+      <path d="M50,62 C45,57 43,48 46,41 C47,47 48,48 49,45 C49.5,41 48.5,35 50,29 C51.5,35 50.5,41 51,45 C52,48 53,47 54,41 C57,48 55,57 50,62Z" fill="#ffcc30">
+        <animateTransform attributeName="transform" type="scale" values="1,1;.95,1.08;1,1" dur=".7s" repeatCount="indefinite" additive="sum" transformOrigin="50 62"/>
+      </path>
+      <circle cx="43" cy="50" r="1.5" fill="#ffe060" opacity="0">
+        <animate attributeName="cy" values="88;22" dur="2.2s" repeatCount="indefinite"/>
+        <animate attributeName="cx" values="43;39;43" dur="2.2s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0;.9;.9;0" dur="2.2s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="57" cy="50" r="1" fill="#ffaa30" opacity="0">
+        <animate attributeName="cy" values="85;18" dur="1.8s" begin=".6s" repeatCount="indefinite"/>
+        <animate attributeName="cx" values="57;61;57" dur="1.8s" begin=".6s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0;.8;.8;0" dur="1.8s" begin=".6s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="50" cy="50" r="1.2" fill="#fff0a0" opacity="0">
+        <animate attributeName="cy" values="82;12" dur="2.0s" begin="1.1s" repeatCount="indefinite"/>
+        <animate attributeName="cx" values="50;47;50" dur="2.0s" begin="1.1s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0;1;1;0" dur="2.0s" begin="1.1s" repeatCount="indefinite"/>
+      </circle>
+    </svg>`;
+  } else {
+    emojiDiv.textContent = sceneEmoji;
+  }
+  scene.appendChild(emojiDiv);
   if (HERO.companion && HERO.pet) {
     const petThumb = el('img', 'camp-companion-img');
     petThumb.src = petImageSrc(HERO.pet);
@@ -2367,18 +2429,30 @@ function renderBestiaryView(c) {
 
 /* ══════════════ Modal & toast ══════════════ */
 function modal(html) {
-  $('#modal-box').innerHTML = html;
+  const box = $('#modal-box');
+  box.innerHTML = html;
+  box.classList.remove('modal-opening');
   $('#modal').classList.remove('hidden');
+  requestAnimationFrame(() => requestAnimationFrame(() => box.classList.add('modal-opening')));
 }
-function closeModal() { $('#modal').classList.add('hidden'); }
+function closeModal() {
+  $('#modal').classList.add('hidden');
+  $('#modal-box').classList.remove('modal-opening');
+}
 $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
 
 let toastTimer = null;
 function toast(msg) {
   let t = $('#toast');
   if (!t) { t = el('div', ''); t.id = 'toast'; document.body.appendChild(t); }
-  t.textContent = msg;
-  t.classList.add('show');
+  const emojiMatch = msg.match(/^([^\x00-\x7F\s]+)\s+([\s\S]*)$/);
+  if (emojiMatch) {
+    t.innerHTML = `<span class="toast-icon">${emojiMatch[1]}</span><span class="toast-text">${esc(emojiMatch[2])}</span>`;
+  } else {
+    t.innerHTML = `<span class="toast-text" style="padding:12px 16px">${esc(msg)}</span>`;
+  }
+  t.classList.remove('show');
+  requestAnimationFrame(() => t.classList.add('show'));
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
 }
