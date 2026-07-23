@@ -1080,6 +1080,25 @@ const RPG = (() => {
     if (state.current === heroId) state.current = null;
   }
 
+  /* ── Backup helpers ──────────────────────────────────────────── */
+  function parseBackup(jsonText) {
+    const raw = JSON.parse(jsonText);
+    const s = migrateState(raw);
+    s.heroes.forEach(migrateHero);
+    return s;
+  }
+  // Aggiunge al salvataggio corrente solo gli eroi non già presenti (per id).
+  // Ritorna { added, skipped }.
+  function mergeImport(state, importedState) {
+    const existingIds = new Set(state.heroes.map(h => h.id));
+    let added = 0, skipped = 0;
+    importedState.heroes.forEach(h => {
+      if (existingIds.has(h.id)) { skipped++; }
+      else { state.heroes.push(h); added++; }
+    });
+    return { added, skipped };
+  }
+
   /* ── Bonus login giornaliero (Il Tesoro Giornaliero) ──────── */
   // Ritorna il premio del giorno o null se già riscosso oggi.
   function dailyLogin(hero) {
@@ -3152,5 +3171,6 @@ const RPG = (() => {
     startDungeon, canStartDungeon, dungeonCurrentEnemy,
     dungeonStartEncounter, dungeonGetScenario, dungeonAction,
     dungeonMakeChoice, dungeonStepResult,
+    parseBackup, mergeImport,
   };
 })();
