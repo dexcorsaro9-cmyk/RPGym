@@ -1768,35 +1768,61 @@ function itemHtml(it) {
 }
 
 function showLevelUp(newLevel) {
+  const col = AVATAR_COLORS[HERO.storyId] || { glow: '#c9932e' };
+  const glowColor = col.glow;
+  const talent = RPG.talentOf(HERO);
+
   const ov = document.createElement('div');
   ov.className = 'lup-overlay';
-  // Rings
+  ov.style.setProperty('--lup-glow', glowColor);
+
+  // Rings with class color
   for (let i = 0; i < 3; i++) {
     const r = document.createElement('div');
     r.className = 'lup-ring';
     ov.appendChild(r);
   }
-  // Particles
-  const angles = [0,18,36,54,72,90,108,126,144,162,180,198,216,234,252,270,288,306,324,342];
-  angles.forEach((deg, i) => {
+
+  // Particles — più numerose e con colore classe
+  Array.from({ length: 28 }, (_, i) => i * (360 / 28)).forEach((deg, i) => {
     const p = document.createElement('div');
     p.className = 'lup-particle';
     const rad = deg * Math.PI / 180;
-    const dist = 120 + Math.random() * 80;
+    const dist = 110 + Math.random() * 130;
     p.style.setProperty('--tx', Math.cos(rad) * dist + 'px');
     p.style.setProperty('--ty', Math.sin(rad) * dist + 'px');
-    p.style.setProperty('--dur', (.9 + Math.random() * .6) + 's');
-    p.style.setProperty('--delay', (Math.random() * .25) + 's');
+    p.style.setProperty('--dur', (.8 + Math.random() * .7) + 's');
+    p.style.setProperty('--delay', (Math.random() * .3) + 's');
+    p.style.setProperty('--pc', i % 3 === 0 ? '#fff' : i % 3 === 1 ? glowColor : '#f07030');
     ov.appendChild(p);
   });
-  ov.appendChild(Object.assign(document.createElement('div'), { className: 'lup-badge', textContent: 'Livello raggiunto' }));
+
+  // Avatar eroe
+  if (HERO.avatar && HERO.avatar.startsWith('assets/')) {
+    const avWrap = document.createElement('div');
+    avWrap.className = 'lup-avatar';
+    const avImg = document.createElement('img');
+    avImg.src = HERO.avatar;
+    avImg.className = 'lup-avatar-img';
+    avWrap.appendChild(avImg);
+    ov.appendChild(avWrap);
+  }
+
+  ov.appendChild(Object.assign(document.createElement('div'), { className: 'lup-badge', textContent: '✦ Livello raggiunto ✦' }));
   ov.appendChild(Object.assign(document.createElement('div'), { className: 'lup-level', textContent: newLevel }));
   ov.appendChild(Object.assign(document.createElement('div'), { className: 'lup-title-text', textContent: RPG.heroTitle(newLevel) }));
-  ov.appendChild(Object.assign(document.createElement('div'), { className: 'lup-tap', textContent: 'Tocca per continuare' }));
+  if (talent) {
+    const td = document.createElement('div');
+    td.className = 'lup-talent';
+    td.textContent = `${talent.icon} ${talent.name}`;
+    ov.appendChild(td);
+  }
+  ov.appendChild(Object.assign(document.createElement('div'), { className: 'lup-tap', textContent: '· tocca per continuare ·' }));
+
   document.body.appendChild(ov);
   requestAnimationFrame(() => ov.classList.add('lup-visible'));
   const dismiss = () => { ov.classList.add('lup-exit'); setTimeout(() => ov.remove(), 500); };
-  const tid = setTimeout(dismiss, 2600);
+  const tid = setTimeout(dismiss, 3800);
   ov.addEventListener('click', () => { clearTimeout(tid); dismiss(); });
 }
 
@@ -1961,6 +1987,7 @@ function revealChest(title, chest) {
 
 /* ── TAB: Mercato ── */
 let MARKET_VIEW = 'stalla';
+let NERO_FILTER = 'all';
 
 function renderMarket(c) {
   const marketTitle = el('h2', 'section-title', '🏪 Il Mercato');
@@ -2075,7 +2102,22 @@ function renderNero(c) {
     c.appendChild(emptyState('💼', 'Non hai bottini da vendere. Gli oggetti equipaggiati non si toccano!'));
     return;
   }
-  sellable.forEach(it => {
+  // Filtri per rarità
+  const rarityOrder = Object.keys(RPG.RARITIES);
+  const presentRarities = [...new Set(sellable.map(i => i.rarity))]
+    .sort((a, b) => rarityOrder.indexOf(a) - rarityOrder.indexOf(b));
+  if (presentRarities.length > 1) {
+    if (!presentRarities.includes(NERO_FILTER) && NERO_FILTER !== 'all') NERO_FILTER = 'all';
+    const filterRow = el('div', 'nero-filters');
+    [['all', `Tutti (${sellable.length})`], ...presentRarities.map(r => [r, RPG.RARITIES[r].label])].forEach(([key, label]) => {
+      const chip = el('button', 'nero-chip' + (NERO_FILTER === key ? ' active' : ''), label);
+      chip.addEventListener('click', () => { NERO_FILTER = key; setTab('market'); });
+      filterRow.appendChild(chip);
+    });
+    c.appendChild(filterRow);
+  }
+  const shown = NERO_FILTER === 'all' ? sellable : sellable.filter(i => i.rarity === NERO_FILTER);
+  shown.forEach(it => {
     const row = el('div', 'mission-row');
     row.appendChild(el('div', 'mission-mid',
       `${itemIconHtml(it, 'item-icon')} <b>${esc(it.name)}</b> <span class="tag">${RPG.RARITIES[it.rarity].label}</span><br>
