@@ -948,11 +948,16 @@ body {
   overflow: hidden;
   transition: opacity 0.15s ease;
 }
+@keyframes portrait-shimmer {
+  0%, 100% { filter: drop-shadow(0 8px 28px rgba(0,0,0,.7)); }
+  50%       { filter: drop-shadow(0 8px 28px rgba(0,0,0,.6))
+                      drop-shadow(0 0 22px var(--portrait-glow, #c9932e)); }
+}
 .create-portrait-img {
   max-height: 100%; max-width: 100%;
   object-fit: contain; object-position: bottom center;
   display: block; user-select: none; pointer-events: none;
-  filter: drop-shadow(0 8px 32px rgba(0,0,0,.7));
+  animation: portrait-shimmer 3.5s ease-in-out infinite;
 }
 .create-back-btn {
   position: absolute; top: env(safe-area-inset-top, 0px); left: 0;
@@ -982,15 +987,16 @@ body {
   text-shadow: 0 2px 12px rgba(0,0,0,.8);
   margin-bottom: 6px;
 }
-.create-dots {
-  display: flex; justify-content: center; gap: 6px; margin-bottom: 10px;
+.create-lore {
+  font-family: 'Crimson Pro', serif; font-style: italic;
+  font-size: .88rem; color: rgba(255,255,255,.5);
+  text-align: center; line-height: 1.4;
+  margin-bottom: 6px; min-height: 1.2em;
 }
-.create-dot {
-  width: 7px; height: 7px; border-radius: 50%;
-  background: rgba(255,255,255,.2); transition: background .25s, transform .25s;
-}
-.create-dot.active {
-  background: #e8c97c; transform: scale(1.3);
+.create-counter {
+  font-family: 'Cinzel', serif; font-size: .68rem; font-weight: 700;
+  color: rgba(232,182,76,.5); letter-spacing: .12em;
+  text-align: center; margin-bottom: 8px;
 }
 .create-talent-box {
   display: flex; flex-direction: column; gap: 2px;
@@ -1024,6 +1030,14 @@ body {
 }
 .create-name-input::placeholder { color: rgba(255,255,255,.3); }
 .create-name-input:focus { border-color: #e8c97c; background: rgba(255,255,255,.1); }
+.create-name-error {
+  font-family: 'Crimson Pro', serif; font-size: .88rem;
+  color: #e05050; min-height: 0;
+  opacity: 0; transform: translateY(-4px);
+  transition: opacity .2s, transform .2s;
+  padding: 0 4px; margin-top: -4px;
+}
+.create-name-error.visible { opacity: 1; transform: translateY(0); }
 
 .tag-distilled { background: #2e7d32; }
 
