@@ -267,6 +267,23 @@ eroe possiede: sai ESATTAMENTE cosa serve per fermare un mostro fatto della tua
 stessa magia. Il Cavaliere del Drago ha rubato qualcosa che ti appartiene.
 Vuoi indietro l'oscurità — e vuoi indietro Oakhaven.`,
   },
+  predone: {
+    title: 'Il Re dei Predoni',
+    text: `Non hai mai chiesto il permesso a nessuno, e non hai intenzione di cominciare
+adesso. Cresciuto ai margini delle terre di confine, hai imparato presto che le
+leggi sono scritte dai potenti per proteggere se stessi — e che chi non ha nulla
+da proteggere è libero come il vento.
+La tua banda era la tua famiglia: sei compagni fidati, ognuno con la sua storia
+e il suo segreto. Razziavate i convogli dell'Impero, ridistribuivate tra i
+villaggi dimenticati ciò che sottraevate ai nobili, e dormivate sotto le stelle
+con la certezza che nessuna prigione avrebbe retto abbastanza a lungo.
+Poi arrivò l'Orda. In una notte sola, il Cavaliere del Drago trasformò le terre
+di confine in cenere. I tuoi compagni si dispersero o caddero, e tu ti ritrovasti
+solo, con il tuo mantello e la tua astuzia — e niente altro.
+Sei in marcia da allora. Non per vendetta, non per gloria: per trovare quello che
+l'Orda ha distrutto e riprenderti ciò che ti appartiene. Un passo alla volta,
+un bottino alla volta. Il Re dei Predoni non chiede — conquista.`,
+  },
 };
 
 function persist() { RPG.save(STATE); }
