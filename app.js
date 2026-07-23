@@ -588,8 +588,9 @@ function enterGame() {
   setTab('camp');
   setupNotifications();
   AMBIENT.init();
-  // Rollover incursione + FOMO del bottino perso
+  // Rollover incursione + boss settimanale
   const missed = RPG.rolloverIncursion(HERO);
+  RPG.rolloverWeeklyBoss(HERO);
   // Tesoro Giornaliero
   const login = RPG.dailyLogin(HERO);
   persist();
@@ -1413,6 +1414,36 @@ function renderMap(c) {
     c.appendChild(el('div', 'panel done-strip', `✅ <b>Incursione di oggi respinta!</b> <span class="small muted">Torna domani.</span>`));
   }
 
+  // ── Boss settimanale ──
+  const bossStatus = RPG.weeklyBossStatus(HERO);
+  if (bossStatus) {
+    const { boss, progressKm, done, claimed } = bossStatus;
+    const pct = Math.min(100, Math.round(progressKm / boss.km * 100));
+    const bp = el('div', 'panel panel-featured boss-weekly-panel');
+    bp.appendChild(el('h3', 'panel-title', `${boss.icon} Boss Settimanale`));
+    bp.appendChild(el('p', 'center', `<b>${esc(boss.name)}</b> — <span class="muted small">${boss.zone}</span>`));
+    bp.appendChild(el('div', 'membar', `<div class="membar-fill${claimed ? '' : done ? ' gold' : ' danger'}" style="width:${pct}%"></div><span>${progressKm.toFixed(1)} / ${boss.km} km</span>`));
+    if (claimed) {
+      bp.appendChild(el('div', 'done-strip', `✅ <b>Boss sconfitto questa settimana!</b>`));
+    } else if (done) {
+      const claimBtn = el('button', 'btn btn-primary wide', `${boss.icon} Riscuoti bottino · 🪙 ${boss.gold}`);
+      claimBtn.addEventListener('click', () => {
+        const reward = RPG.claimWeeklyBoss(HERO);
+        if (!reward) return;
+        persist(); renderHUD();
+        vibrate([150, 50, 200]);
+        const itemEl = reward.item ? `<div class="loot-list" style="margin:.5rem 0">${itemHtml(reward.item)}</div>` : '';
+        modal(`<h3 class="center">${boss.icon} ${esc(boss.name)} sconfitto!</h3>
+          <p class="center">🪙 +${reward.gold} oro${itemEl}</p>
+          <button class="btn btn-primary wide" onclick="closeModal();setTab('camp')">Ottimo!</button>`);
+      });
+      bp.appendChild(claimBtn);
+    } else {
+      bp.appendChild(el('p', 'muted small center', `Sconfiggilo entro domenica · mancano ${(boss.km - progressKm).toFixed(1)} km`));
+    }
+    c.appendChild(bp);
+  }
+
   // ── Missione attiva ──
   if (HERO.activeMission) {
     const m = RPG.MISSIONS.find(x => x.id === HERO.activeMission.id);
@@ -2044,6 +2075,14 @@ function showReport(r) {
     });
     vibrate([200, 100, 200]);
   }
+  if (r.bossProgress) {
+    const bp = r.bossProgress;
+    const bpct = Math.min(100, Math.round(bp.done / bp.total * 100));
+    html += `<p class="boss-progress-line">${bp.boss.icon} <b>${esc(bp.boss.name)}</b> — ${bp.done.toFixed(1)} / ${bp.total} km (${bpct}%)</p>`;
+  }
+  if (r.bossDefeatedWeekly) {
+    html += `<div class="big-news">⚔️ BOSS SCONFITTO: ${r.bossDefeatedWeekly.icon} ${esc(r.bossDefeatedWeekly.name)}!<br><span class="small">Torna al Rifugio per riscuotere il bottino.</span></div>`;
+  }
   if (leveled) {
     html += `<div class="report-levelup">🆙 LIVELLO ${newLevel}!<br><span class="small">${RPG.heroTitle(newLevel)}</span></div>`;
     setTimeout(() => showLevelUp(newLevel), 350);
@@ -2098,6 +2137,9 @@ function showReport(r) {
       <p class="small muted center">Tocca lo scrigno per aprirlo</p>
     </div>`;
   }
+  if (navigator.share) {
+    html += `<button class="btn wide" id="btn-share-rpt">📤 Condividi risultato</button>`;
+  }
   html += `<button class="btn btn-primary wide" onclick="nextOpening(); renderHUD(); setTab('camp')">Torna al Rifugio</button>`;
   modal(html);
 
@@ -2124,6 +2166,17 @@ function showReport(r) {
 
   const chestBtn = $('#btn-open-chest');
   if (chestBtn) chestBtn.addEventListener('click', openChest);
+
+  const shareBtn = $('#btn-share-rpt');
+  if (shareBtn) {
+    shareBtn.addEventListener('click', () => {
+      const streakTxt = HERO.streak.count > 1 ? ` 🔥 Streak ${HERO.streak.count} giorni!` : '';
+      navigator.share({
+        title: 'RPGym ⚔️',
+        text: `Ho fatto ${r.km} km di ${a.label} e guadagnato +${r.xp} XP!${streakTxt} Lv.${newLevel} — ${RPG.heroTitle(newLevel)}`,
+      }).catch(() => {});
+    });
+  }
 }
 
 function openChest() {
@@ -2431,8 +2484,8 @@ function renderHero(c) {
   const center = el('div', 'hero-center');
   const BIG_CLASSES = { alchimista: 'hero-fullbody-big', maga: 'hero-fullbody-big', principe: 'hero-fullbody-big' };
   const heroCls = isImageAvatar(HERO)
-    ? 'hero-fullbody' + (BIG_CLASSES[HERO.storyId] ? ' ' + BIG_CLASSES[HERO.storyId] : '')
-    : 'hero-avatar';
+    ? 'hero-fullbody hero-idle' + (BIG_CLASSES[HERO.storyId] ? ' ' + BIG_CLASSES[HERO.storyId] : '')
+    : 'hero-avatar hero-idle';
   const av = avatarEl(HERO, heroCls);
   center.appendChild(av);
   rig.appendChild(leftCol);
@@ -2591,6 +2644,55 @@ function renderDiaryView(c) {
     }
     calPanel.appendChild(calGrid);
     c.appendChild(calPanel);
+
+    // Grafico km ultimi 8 settimane
+    const weeklyTotals = [];
+    const weekLabels = [];
+    for (let w = 7; w >= 0; w--) {
+      const ref = new Date(); ref.setHours(0,0,0,0);
+      ref.setDate(ref.getDate() - ((ref.getDay()+6)%7) - w*7);
+      const end = new Date(ref); end.setDate(end.getDate()+7);
+      const km = HERO.log.filter(l => { const d=new Date(l.date); return d>=ref && d<end; }).reduce((s,l)=>s+l.km,0);
+      weeklyTotals.push(+km.toFixed(1));
+      weekLabels.push(w===0?'Questa':(`-${w}s`));
+    }
+    const chartPanel = el('div', 'panel km-heatmap-wrap');
+    chartPanel.appendChild(el('h3', 'panel-title', '📈 Km · Ultime 8 Settimane'));
+    const canvas = document.createElement('canvas');
+    canvas.width = 320; canvas.height = 120;
+    canvas.style.cssText = 'width:100%;height:auto;display:block';
+    chartPanel.appendChild(canvas);
+    c.appendChild(chartPanel);
+    requestAnimationFrame(() => {
+      const ctx2 = canvas.getContext('2d');
+      const W = canvas.width, H = canvas.height;
+      const pad = { t:12, b:22, l:8, r:8 };
+      const maxKmW = Math.max(...weeklyTotals, 1);
+      const bw = (W - pad.l - pad.r) / weeklyTotals.length;
+      ctx2.clearRect(0,0,W,H);
+      // Bars
+      weeklyTotals.forEach((km, i) => {
+        const bh = ((H - pad.t - pad.b) * km / maxKmW);
+        const x = pad.l + i * bw + bw*0.15;
+        const y = H - pad.b - bh;
+        const isLast = i === weeklyTotals.length - 1;
+        ctx2.fillStyle = isLast ? '#e8b64c' : '#5abf7a88';
+        ctx2.roundRect(x, y, bw*0.7, bh, 3);
+        ctx2.fill();
+        // value label
+        if (km > 0) {
+          ctx2.fillStyle = '#fff';
+          ctx2.font = 'bold 9px sans-serif';
+          ctx2.textAlign = 'center';
+          ctx2.fillText(km.toFixed(0), x + bw*0.35, y - 3);
+        }
+        // week label
+        ctx2.fillStyle = '#9e8060';
+        ctx2.font = '9px sans-serif';
+        ctx2.textAlign = 'center';
+        ctx2.fillText(weekLabels[i], x + bw*0.35, H - pad.b + 12);
+      });
+    });
 
     const today = new Date();
     const hmWrap = el('div', 'panel km-heatmap-wrap');
@@ -3277,6 +3379,13 @@ function checkAndNotify() {
     if (!localStorage.getItem(key)) {
       localStorage.setItem(key, '1');
       new Notification('RPGym ⚔️', { body: 'Il Viandante ti aspetta! Non dimenticare l\'allenamento di oggi.', icon: 'assets/icons/icon.svg' });
+    }
+  }
+  if (!trainedToday && hour >= 20 && HERO.streak && HERO.streak.count >= 3) {
+    const key = 'rpgym_notif_streak_' + todayStr;
+    if (!localStorage.getItem(key)) {
+      localStorage.setItem(key, '1');
+      new Notification('⚠️ Streak in pericolo!', { body: `Hai una streak di ${HERO.streak.count} giorni — allena prima di mezzanotte per non perderla!`, icon: 'assets/icons/icon.svg' });
     }
   }
   if (HERO.pet && HERO.pet.hatched && HERO.pet.expedition) {
