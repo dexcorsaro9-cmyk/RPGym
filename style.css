@@ -864,24 +864,34 @@ body {
 .bestiary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 .beast {
   border: 2px solid var(--leather); border-radius: 14px;
-  padding: 10px 8px; text-align: center;
+  padding: 10px 8px 12px; text-align: center;
   background-image:
     url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='2'/><feColorMatrix type='saturate' values='0'/></filter><rect width='180' height='180' filter='url(%23p)' opacity='0.05'/></svg>"),
     linear-gradient(160deg, var(--parchment), var(--parchment-dark));
   box-shadow: 0 4px 12px rgba(0,0,0,.4), inset 0 0 0 1px rgba(201,147,46,.35);
   display: flex; flex-direction: column; align-items: center; gap: 4px;
+  position: relative; overflow: hidden;
+}
+.beast:not(.unknown) { border-color: rgba(201,147,46,.7); }
+.beast:not(.unknown)::after {
+  content: '✓'; position: absolute; top: 6px; right: 8px;
+  font-size: .6rem; font-weight: 700; background: rgba(46,139,87,.75); color: #9af0b8;
+  border-radius: 50%; width: 16px; height: 16px; line-height: 16px; text-align: center;
 }
 .beast.boss {
   border-color: var(--danger);
-  box-shadow: 0 4px 14px rgba(0,0,0,.45), 0 0 12px rgba(163,51,39,.35), inset 0 0 0 1px rgba(163,51,39,.4);
+  box-shadow: 0 4px 14px rgba(0,0,0,.45), 0 0 14px rgba(163,51,39,.4), inset 0 0 0 1px rgba(163,51,39,.4);
 }
-.beast-img-wrap { height: 110px; display: flex; align-items: flex-end; justify-content: center; }
-.beast-img { max-height: 110px; max-width: 100%; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,.35)); }
+.beast.boss:not(.unknown) { border-color: var(--gold); box-shadow: 0 4px 14px rgba(0,0,0,.5), 0 0 16px rgba(200,150,40,.35); }
+.beast.boss:not(.unknown)::after { background: rgba(180,130,20,.8); color: var(--gold-bright); }
+.beast-img-wrap { height: 130px; display: flex; align-items: flex-end; justify-content: center; }
+.beast-img { max-height: 130px; max-width: 100%; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,.35)); }
+.beast:not(.unknown) .beast-img { filter: drop-shadow(0 5px 12px rgba(0,0,0,.5)); }
 .beast-emoji { font-size: 3.4rem; }
-.beast.unknown .beast-img { filter: brightness(0) opacity(.55); }
-.beast.unknown .beast-emoji { filter: grayscale(1) opacity(.6); }
-.beast-name { font-family: 'Cinzel', serif; font-size: .82rem; }
-.beast-weak { color: var(--ink-light); }
+.beast.unknown .beast-img { filter: brightness(0) opacity(.4); }
+.beast.unknown .beast-emoji { filter: grayscale(1) opacity(.5); }
+.beast-name { font-family: 'Cinzel', serif; font-size: .82rem; font-weight: 700; }
+.beast-weak { color: var(--ink-light); font-size: .72rem; }
 .tag-boss { background: var(--danger); }
 
 /* Avvistamento nel report */
@@ -1034,6 +1044,46 @@ body {
 .mount-mid { flex: 1; min-width: 0; }
 
 /* ── Eroe: slot equipaggiamento ── */
+/* ── Hero banner ── */
+.hero-banner {
+  border-radius: 16px; padding: 14px 16px 12px;
+  margin-bottom: 8px; border: 1px solid rgba(201,147,46,.35);
+  display: flex; align-items: center; gap: 14px;
+}
+.hero-banner-avatar {
+  width: 64px; height: 64px; border-radius: 12px; flex-shrink: 0;
+  object-fit: cover; object-position: center top;
+  border: 2px solid var(--hb-accent, var(--gold));
+  box-shadow: 0 0 12px var(--hb-accent, rgba(200,150,46,.4));
+  overflow: hidden; background: rgba(0,0,0,.2);
+}
+.hero-banner-avatar img, .hero-banner-avatar div {
+  width: 100%; height: 100%; object-fit: cover; object-position: center top;
+}
+.hero-banner-info { flex: 1; min-width: 0; }
+.hero-banner-name {
+  font-family: 'Uncial Antiqua', 'Cinzel', serif; font-size: 1.05rem;
+  color: var(--hb-accent, var(--gold-bright)); letter-spacing: .5px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.hero-banner-class {
+  font-family: 'Cinzel', serif; font-size: .68rem; opacity: .75;
+  letter-spacing: .06em; margin-bottom: 3px;
+}
+.hero-banner-level { font-size: .78rem; color: var(--ink-light); }
+
+/* ── Hero banner avatar sizing ── */
+.hero-banner-av-img { width: 64px; height: 64px; object-fit: cover; object-position: center top; border-radius: 10px; }
+.hero-banner-av-emoji { width: 64px; height: 64px; font-size: 2.4rem; display: flex; align-items: center; justify-content: center; }
+.hero-banner .hero-settings-btn { margin-left: auto; align-self: flex-start; }
+
+/* ── Item preview modal ── */
+.item-preview-val {
+  font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 700; color: var(--gold-bright);
+  text-align: center; margin: 6px 0 12px;
+}
+.item-preview-warn { color: var(--danger); font-weight: 700; }
+
 .hero-rig {
   display: flex; align-items: center; justify-content: center;
   gap: 8px; margin: 10px 0;
@@ -1929,8 +1979,22 @@ body {
 /* ── Splash Screen ── */
 .splash-screen {
   background: url('assets/icons/watermarked_img_6703389115759478461.png') center / cover no-repeat;
-  display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
-  padding-bottom: 9dvh;
+  display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+  padding: 10dvh 0 9dvh;
+}
+.splash-logo-area { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.splash-logo-img {
+  max-width: 72%; filter: drop-shadow(0 8px 22px rgba(0,0,0,.85));
+  animation: splashLogoIn .7s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+@keyframes splashLogoIn {
+  from { opacity: 0; transform: scale(.88) translateY(-12px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.splash-tagline {
+  font-family: 'Cinzel', serif; font-size: .8rem; color: var(--gold-bright);
+  text-shadow: 0 2px 8px rgba(0,0,0,.95); letter-spacing: .1em;
+  animation: splashLogoIn .7s .15s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
 .splash-fadeout { opacity: 0 !important; transition: opacity .42s ease !important; pointer-events: none; }
 .splash-progress-wrap { width: 82%; max-width: 340px; text-align: center; }
@@ -1949,6 +2013,13 @@ body {
   letter-spacing: .04em; line-height: 1.4;
 }
 .game-logo { max-width: 78%; margin: 0 auto 4px; display: block; filter: drop-shadow(0 6px 14px rgba(0,0,0,.5)); }
+
+/* ── Transizione tra schermate ── */
+@keyframes screen-enter {
+  from { opacity: 0; transform: translateY(8px) scale(.985); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.screen-enter { animation: screen-enter .3s cubic-bezier(0.25,0.46,0.45,0.94) both; }
 
 /* ── Uovo del Famiglio: incubazione e schiusa ── */
 .egg-shake { animation: eggShake .5s ease-in-out infinite; }

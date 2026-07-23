@@ -274,8 +274,10 @@ function vibrate(pattern) { try { navigator.vibrate && navigator.vibrate(pattern
 /* ══════════════ Schermate ══════════════ */
 
 function show(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
-  $('#' + id).classList.remove('hidden');
+  document.querySelectorAll('.screen').forEach(s => { s.classList.add('hidden'); s.classList.remove('screen-enter'); });
+  const s = $('#' + id);
+  s.classList.remove('hidden');
+  requestAnimationFrame(() => s.classList.add('screen-enter'));
 }
 
 function emptyState(icon, text) {
@@ -1880,12 +1882,34 @@ function showMountSheet(m) {
   });
 }
 
+function showItemPreview(it) {
+  const sv = RPG.sellValue(HERO, it);
+  const warn = it.rarity === 'leggendario' || it.rarity === 'epico'
+    ? `<span class="item-preview-warn">⚠️ Oggetto ${RPG.RARITIES[it.rarity].label} — sicuro di venderlo?</span>` : '';
+  modal(`
+    ${itemHtml(it)}
+    <div class="item-preview-val">Ricavi: 🪙 ${sv} monete ${warn}</div>
+    <div class="row gap">
+      <button class="btn wide" onclick="closeModal()">Annulla</button>
+      <button class="btn wide btn-primary" id="btn-confirm-sell">Vendi 🪙${sv}</button>
+    </div>
+  `);
+  $('#btn-confirm-sell').addEventListener('click', () => {
+    RPG.sellItem(HERO, it.id);
+    persist(); renderHUD();
+    vibrate(60);
+    toast(`🪙 +${sv} monete!`);
+    closeModal();
+    setTab('market');
+  });
+}
+
 function renderNero(c) {
   c.appendChild(npcBanner('assets/avatars/npc/mercante-contrabbando.png', 'Messer Bilancia',
     '«Ogni oggetto ha il suo giusto peso in monete… la mia bilancia non sbaglia mai. Vendimi pure, qui non si fanno domande.»'));
   const sellable = HERO.items.filter(i => !Object.values(HERO.equipment).includes(i.id));
   if (!sellable.length) {
-    c.appendChild(el('div', 'panel', '<p class="center muted">Non hai bottini da vendere. Gli oggetti equipaggiati non si toccano!</p>'));
+    c.appendChild(emptyState('💼', 'Non hai bottini da vendere. Gli oggetti equipaggiati non si toccano!'));
     return;
   }
   sellable.forEach(it => {
@@ -1894,13 +1918,8 @@ function renderNero(c) {
       `${itemIconHtml(it, 'item-icon')} <b>${esc(it.name)}</b> <span class="tag">${RPG.RARITIES[it.rarity].label}</span><br>
        <span class="small muted">+${it.xp}% XP</span>`));
     const sv = RPG.sellValue(HERO, it);
-    const btn = el('button', 'btn btn-small btn-primary', `Vendi 🪙${sv}`);
-    btn.addEventListener('click', () => {
-      RPG.sellItem(HERO, it.id);
-      persist(); renderHUD();
-      toast(`🪙 +${sv} monete!`);
-      setTab('market');
-    });
+    const btn = el('button', 'btn btn-small btn-primary', `🔍 ${sv} 🪙`);
+    btn.addEventListener('click', () => showItemPreview(it));
     row.appendChild(btn);
     c.appendChild(row);
   });
@@ -1971,11 +1990,29 @@ function renderHero(c) {
   if (HERO_VIEW === 'settings') { renderSettingsView(c); return; }
   if (HERO_VIEW === 'diary')    { renderDiaryView(c);    return; }
 
+  // Hero banner
+  const heroStoryId = (HERO.avatar || '').replace('assets/avatars/', '').replace('.png', '');
+  const heroBannerCol = AVATAR_COLORS[heroStoryId] || { bg: '#0e0804', glow: '#c9932e' };
+  const heroBannerMeta = AVATARS.find(a => a.storyId === heroStoryId);
+  const banner = el('div', 'hero-banner');
+  banner.style.background = `radial-gradient(ellipse at 0% 50%, ${heroBannerCol.glow}22 0%, transparent 60%), linear-gradient(135deg, ${heroBannerCol.bg}cc, rgba(20,12,4,.85))`;
+  banner.style.setProperty('--hb-accent', heroBannerCol.glow);
+  const bannerAv = el('div', 'hero-banner-avatar');
+  bannerAv.appendChild(avatarEl(HERO, isImageAvatar(HERO) ? 'hero-banner-av-img' : 'hero-banner-av-emoji'));
+  banner.appendChild(bannerAv);
+  const bannerInfo = el('div', 'hero-banner-info');
+  bannerInfo.innerHTML = `<div class="hero-banner-name" style="color:${heroBannerCol.glow}">${esc(HERO.name)}</div>
+    <div class="hero-banner-class">${heroBannerMeta ? esc(heroBannerMeta.label) : ''}</div>
+    <div class="hero-banner-level">Liv. ${HERO.level} — ${RPG.heroTitle(HERO.level)}</div>`;
+  banner.appendChild(bannerInfo);
+  const settingsBtn = el('button', 'hero-settings-btn', '⚙️');
+  settingsBtn.title = 'Impostazioni';
+  settingsBtn.addEventListener('click', () => { HERO_VIEW = 'settings'; setTab('hero'); });
+  banner.appendChild(settingsBtn);
+  c.appendChild(banner);
+
   const titleH2 = el('h2', 'section-title on-parchment-title hero-title-row');
-  const titleIcon = new Image();
-  titleIcon.onload = () => { titleH2.innerHTML = `<img class="title-icon" src="assets/ui/eroe/eroe.png"> Scheda dell'Eroe <button class="hero-settings-btn" title="Impostazioni">⚙️</button>`; titleH2.querySelector('.hero-settings-btn').addEventListener('click', () => { HERO_VIEW = 'settings'; setTab('hero'); }); };
-  titleIcon.onerror = () => { titleH2.innerHTML = `🛡️ Scheda dell'Eroe <button class="hero-settings-btn" title="Impostazioni">⚙️</button>`; titleH2.querySelector('.hero-settings-btn').addEventListener('click', () => { HERO_VIEW = 'settings'; setTab('hero'); }); };
-  titleIcon.src = 'assets/ui/eroe/eroe.png';
+  titleH2.innerHTML = '🛡️ Equipaggiamento';
   c.appendChild(titleH2);
 
   // Eroe con i 6 slot: 3 a sinistra, 3 a destra
