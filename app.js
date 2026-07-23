@@ -507,6 +507,7 @@ function enterGame() {
   show('screen-game');
   renderHUD();
   setTab('camp');
+  setupNotifications();
   // Rollover incursione + FOMO del bottino perso
   const missed = RPG.rolloverIncursion(HERO);
   // Tesoro Giornaliero
@@ -640,12 +641,21 @@ function bumpRes(id, newVal) {
   if (!span) return;
   const old = parseInt(span.textContent);
   span.textContent = newVal;
-  if (!isNaN(old) && old !== newVal) {
+  if (!isNaN(old) && newVal > old) {
     span.classList.remove('res-bump');
     requestAnimationFrame(() => {
       requestAnimationFrame(() => span.classList.add('res-bump'));
     });
     span.addEventListener('animationend', () => span.classList.remove('res-bump'), { once: true });
+    const diff = newVal - old;
+    const floatEl = document.createElement('span');
+    floatEl.className = 'res-float';
+    floatEl.textContent = `+${diff}`;
+    const resDiv = span.closest('.res');
+    if (resDiv) {
+      resDiv.appendChild(floatEl);
+      floatEl.addEventListener('animationend', () => floatEl.remove(), { once: true });
+    }
   }
 }
 
@@ -1542,7 +1552,7 @@ function renderChallengeList(panel, list, claimFn, bonusObj, bonusClaimed, count
           toast(r.bonus
             ? `🌟 BONUS! +${r.bonus.gold + r.reward.gold}🪙 +${r.bonus.xp + r.reward.xp}⭐`
             : `🎯 +${r.reward.gold}🪙 +${r.reward.xp}⭐`);
-          sfx('coin');
+          sfx('coin'); vibrate(r.bonus ? [40, 20, 40] : 30);
         } else toast(r);
         updateBadges(); setTab('train');
       });
@@ -1684,6 +1694,7 @@ function renderTrain(c) {
       <button class="btn btn-primary wide" onclick="closeModal()">Va bene…</button>`); return; }
     persist();
     sfx(report.levelsGained.length ? 'level' : 'coin');
+    vibrate(report.levelsGained.length ? [80, 40, 80] : 30);
     showReport(report);
   });
   form.appendChild(go);
@@ -1858,6 +1869,7 @@ function itemHtml(it) {
 }
 
 function showLevelUp(newLevel) {
+  vibrate([100, 50, 100]);
   const col = AVATAR_COLORS[HERO.storyId] || { glow: '#c9932e' };
   const glowColor = col.glow;
   const talent = RPG.talentOf(HERO);
@@ -1966,6 +1978,7 @@ function showFabKm() {
     if (report.error) { toast(report.error); return; }
     persist();
     sfx(report.levelsGained.length ? 'level' : 'coin');
+    vibrate(report.levelsGained.length ? [80, 40, 80] : 30);
     dismiss();
     showReport(report);
   });
@@ -2007,6 +2020,8 @@ function showReport(r) {
     <div class="rpt-reward stone"><span class="rpt-rew-val">+${r.stone}</span><span class="rpt-rew-label">🪨</span></div>
   </div>`;
 
+  if (r.streakBonus)
+    html += `<p class="report-streak-line">🔥 Streak <b>${HERO.streak.count} giorni</b> · <b>+${Math.round(r.streakBonus * 100)}% XP</b></p>`;
   if (leveled) {
     html += `<div class="report-levelup">🆙 LIVELLO ${newLevel}!<br><span class="small">${RPG.heroTitle(newLevel)}</span></div>`;
     setTimeout(() => showLevelUp(newLevel), 350);
@@ -2429,6 +2444,31 @@ function renderHero(c) {
   });
   c.appendChild(sub);
 
+  // Riepilogo settimana
+  const now2 = new Date();
+  const mondayStart = new Date(now2);
+  mondayStart.setHours(0, 0, 0, 0);
+  mondayStart.setDate(now2.getDate() - ((now2.getDay() + 6) % 7));
+  const weekLogs = HERO.log.filter(l => new Date(l.date) >= mondayStart);
+  const weekKm = { cyclette: 0, camminata: 0, corsa: 0 };
+  weekLogs.forEach(l => { weekKm[l.type] = (weekKm[l.type] || 0) + l.km; });
+  const totalWeek = Object.values(weekKm).reduce((s, v) => s + v, 0);
+  const maxKm = Math.max(...Object.values(weekKm), 0.1);
+  const actColors = { cyclette: '#5a9fd4', camminata: '#5abf7a', corsa: '#e07040' };
+  const weekPanel = el('div', 'panel on-parchment');
+  weekPanel.appendChild(el('h3', 'panel-title', '📅 Questa Settimana'));
+  Object.entries(RPG.ACTIVITIES).forEach(([key, a]) => {
+    const km = weekKm[key] || 0;
+    const pct = Math.round(km / maxKm * 100);
+    const row = el('div', 'week-row');
+    row.innerHTML = `<span class="week-row-label">${a.icon} ${a.label}</span>
+      <div class="week-bar-wrap"><div class="week-bar-fill" style="width:${pct}%;background:${actColors[key]}"></div></div>
+      <span class="week-row-val">${km.toFixed(1)}</span>`;
+    weekPanel.appendChild(row);
+  });
+  weekPanel.appendChild(el('p', 'center small', `Totale: <b>${totalWeek.toFixed(1)} km</b> questa settimana`));
+  c.appendChild(weekPanel);
+
   // Statistiche
   const stats = el('div', 'panel on-parchment');
   const impreseTitle = el('h3', 'panel-title', '📊 Imprese');
@@ -2530,10 +2570,43 @@ function renderSettingsView(c) {
   c.appendChild(back);
   c.appendChild(el('h2', 'section-title', '⚙️ Impostazioni'));
   c.appendChild(renderShortcutPanel());
+  c.appendChild(_settingsNotifPanel());
   c.appendChild(_settingsRefreshPanel());
   c.appendChild(_settingsBackupPanel());
   c.appendChild(_settingsFullscreenPanel());
   c.appendChild(_settingsDangerPanel());
+}
+
+function _settingsNotifPanel() {
+  const p = el('div', 'panel shortcut-panel');
+  p.appendChild(el('h3', 'panel-title', '🔔 Notifiche'));
+  if (!('Notification' in window)) {
+    p.appendChild(el('p', 'guide-text', 'Il tuo browser non supporta le notifiche.'));
+    return p;
+  }
+  const perm = Notification.permission;
+  const desc = perm === 'granted'
+    ? 'Le notifiche sono attive. Riceverai un reminder se dimentichi l\'allenamento serale e quando la spedizione del famiglio è pronta.'
+    : perm === 'denied'
+    ? 'Le notifiche sono bloccate dal browser. Riabilitale nelle impostazioni del sito.'
+    : 'Abilita le notifiche per ricevere un reminder serale e avvisi sulla spedizione del famiglio.';
+  p.appendChild(el('p', 'guide-text', desc));
+  if (perm === 'default') {
+    const btn = el('button', 'btn btn-primary', '🔔 Abilita notifiche');
+    btn.addEventListener('click', async () => {
+      const r = await Notification.requestPermission();
+      HERO.notifAsked = true; persist();
+      if (r === 'granted') { toast('🔔 Notifiche attivate!'); checkAndNotify(); }
+      else toast('Notifiche non autorizzate.');
+      setTab('hero');
+    });
+    p.appendChild(btn);
+  } else if (perm === 'granted') {
+    const btn = el('button', 'btn', '✅ Notifiche attive');
+    btn.disabled = true;
+    p.appendChild(btn);
+  }
+  return p;
 }
 
 function _settingsRefreshPanel() {
@@ -3092,6 +3165,43 @@ function nextOpening() {
   closeModal();
   const fn = OPEN_QUEUE.shift();
   if (fn) fn();
+}
+
+/* ── Notifiche locali ── */
+async function setupNotifications() {
+  if (!('Notification' in window) || !HERO) return;
+  checkAndNotify();
+  if (Notification.permission === 'default' && !HERO.notifAsked) {
+    setTimeout(async () => {
+      const perm = await Notification.requestPermission();
+      HERO.notifAsked = true; persist();
+      if (perm === 'granted') checkAndNotify();
+    }, 4000);
+  }
+}
+
+function checkAndNotify() {
+  if (!('Notification' in window) || Notification.permission !== 'granted' || !HERO) return;
+  const today = new Date(); const todayStr = today.toISOString().slice(0, 10);
+  const hour = today.getHours();
+  const trainedToday = HERO.log[0] && new Date(HERO.log[0].date).toISOString().slice(0, 10) === todayStr;
+  if (!trainedToday && hour >= 17) {
+    const key = 'rpgym_notif_train_' + todayStr;
+    if (!localStorage.getItem(key)) {
+      localStorage.setItem(key, '1');
+      new Notification('RPGym ⚔️', { body: 'Il Viandante ti aspetta! Non dimenticare l\'allenamento di oggi.', icon: 'assets/icons/icon.svg' });
+    }
+  }
+  if (HERO.pet && HERO.pet.hatched && HERO.pet.expedition) {
+    const status = RPG.expeditionStatus(HERO);
+    if (status && status.ready) {
+      const key = 'rpgym_notif_exp_' + HERO.pet.expedition.startedAt;
+      if (!localStorage.getItem(key)) {
+        localStorage.setItem(key, '1');
+        new Notification('RPGym 🎒', { body: `${esc(HERO.pet.name)} è tornato dalla spedizione con del bottino!`, icon: 'assets/icons/icon.svg' });
+      }
+    }
+  }
 }
 
 /* ── Riepilogo "cosa ti aspetta oggi" ── */
