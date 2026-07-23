@@ -334,6 +334,13 @@ function isImageAvatar(hero) {
 }
 
 /* ── Creazione eroe — Card Cinematografica ── */
+const AVATAR_DIMS = {
+  eroe1:{w:417,h:700}, eroe2:{w:535,h:535}, fabbro:{w:535,h:535},
+  stregone:{w:535,h:535}, alchimista:{w:535,h:535}, furfante:{w:535,h:535},
+  maga:{w:535,h:535}, paladino:{w:401,h:535}, fata:{w:601,h:700},
+  principe:{w:529,h:700}, principessa:{w:542,h:700}, ranger:{w:368,h:700},
+  regina:{w:558,h:700},
+};
 const AVATAR_COLORS = {
   eroe1:       { bg: '#0d2215', glow: '#2e8b57' },
   eroe2:       { bg: '#1a0d22', glow: '#7b3fbf' },
@@ -396,6 +403,19 @@ function _updateCreate() {
     const img = document.createElement('img');
     img.src = a.path;
     img.className = 'create-portrait-img';
+    // Normalize all characters to the same visual height.
+    // Images whose aspect ratio is wider than the container are width-constrained
+    // and render shorter — scale them up so every portrait fills the card height.
+    const dims = AVATAR_DIMS[a.storyId];
+    if (dims) {
+      const zone = $('#create-card-zone');
+      const cH = zone.offsetHeight, cW = zone.offsetWidth;
+      if (cH > 0 && cW > 0 && (dims.h / dims.w) < (cH / cW)) {
+        const scale = (cH * dims.w) / (cW * dims.h);
+        img.style.transform = `scale(${scale.toFixed(3)})`;
+        img.style.transformOrigin = 'bottom center';
+      }
+    }
     img.onerror = () => { portrait.innerHTML = '<span style="font-size:5rem">⚔️</span>'; };
     portrait.appendChild(img);
     portrait.style.opacity = '1';

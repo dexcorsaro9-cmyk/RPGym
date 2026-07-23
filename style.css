@@ -945,7 +945,8 @@ body {
 .create-portrait {
   position: absolute; inset: 0;
   display: flex; align-items: flex-end; justify-content: center;
-  transition: opacity 0.15s ease; padding-bottom: 0;
+  overflow: hidden;
+  transition: opacity 0.15s ease;
 }
 .create-portrait-img {
   max-height: 100%; max-width: 100%;
