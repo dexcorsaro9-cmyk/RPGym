@@ -598,7 +598,6 @@ body {
     );
   border-top: none;
   box-shadow: 0 -4px 20px rgba(0,0,0,.8), 0 -1px 0 rgba(220,170,60,.18);
-  position: relative;
   overflow: visible;
 }
 /* Banda a nodo celtico in cima — specchio esatto del bordo inferiore dell'header */
