@@ -553,8 +553,8 @@ function enterGame() {
     persist();
     if (recap) OPEN_QUEUE.push(() => showMonthlyRecap(recap));
   }
-  // Riepilogo "cosa ti aspetta oggi" (una volta al giorno)
-  if (HERO.summarySeen !== todayISO()) {
+  // Riepilogo "cosa ti aspetta oggi" (una volta al giorno, non al primo accesso)
+  if (HERO.summarySeen !== todayISO() && (HERO.totalKm || 0) > 0) {
     HERO.summarySeen = todayISO();
     persist();
     OPEN_QUEUE.push(showDailySummary);
@@ -576,18 +576,13 @@ function enterGame() {
 const TUTORIAL_SLIDES = [
   {
     icon: '🏃',
-    title: 'Come funziona',
-    text: 'Ogni volta che ti alleni nella vita reale, registra l\'attività. I tuoi km diventano XP, oro e risorse nel gioco.',
-  },
-  {
-    icon: '🗺️',
-    title: 'Esplora il mondo',
-    text: 'Sali di livello per attraversare 20 biomi, sbloccare cavalcature leggendarie e imparare nuove abilità passive.',
+    title: 'Cammina. Corri. Pedala.',
+    text: 'Ogni km che percorri nella vita reale diventa XP, oro e bottino nel gioco. Più ti alleni, più il tuo eroe cresce.',
   },
   {
     icon: '⚔️',
-    title: 'Inizia ora',
-    text: 'Vai su <strong>Allenati</strong>, scegli l\'attività di oggi e inserisci i km. Il viaggio comincia con il primo passo.',
+    title: 'Il primo passo è tuo',
+    text: 'Registra subito la tua prima attività: scegli il tipo, inserisci i km e guarda cosa succede. Il viaggio inizia adesso.',
   },
 ];
 
@@ -625,6 +620,7 @@ function showTutorial() {
     HERO.tutorialDone = true;
     persist();
     nextOpening();
+    setTab('train');
   }
 
   render();
@@ -2242,6 +2238,36 @@ function renderTrain(c) {
   sssInput.addEventListener('paste', () => setTimeout(applySss, 150));
   sssInput.addEventListener('keydown', e => { if (e.key === 'Enter') applySss(); });
   c.appendChild(syncStrip);
+
+  // Banner primo accesso — spiega come inserire i dati
+  if (!HERO.trainTipDismissed) {
+    const tip = el('div', 'train-first-tip');
+    tip.innerHTML = `
+      <button class="train-tip-close" id="train-tip-close">✕</button>
+      <div class="train-tip-title">📲 Come registrare la tua attività</div>
+      <div class="train-tip-row">
+        <span class="train-tip-step">1</span>
+        <div>
+          <b>iPhone — Comando Rapido</b> <span class="train-tip-badge">più veloce</span><br>
+          <span class="muted small">Vai in <b>Impostazioni → Eroe → ⚙️ → Comandi Rapidi</b> e configura il comando una sola volta. Da quel momento: lancia il comando, copia i passi, incolla nel campo verde <span style="color:var(--gold)">⬆️</span> sopra. Fatto in 3 secondi.</span>
+        </div>
+      </div>
+      <div class="train-tip-row">
+        <span class="train-tip-step">2</span>
+        <div>
+          <b>Manuale (qualsiasi telefono)</b><br>
+          <span class="muted small">Apri <b>Salute</b>, <b>Strava</b> o qualsiasi app fitness, leggi i km percorsi oggi e inseriscili nel campo qui sotto.</span>
+        </div>
+      </div>`;
+    document.getElementById('train-tip-close')?.remove();
+    c.appendChild(tip);
+    tip.querySelector('#train-tip-close').addEventListener('click', () => {
+      HERO.trainTipDismissed = true;
+      persist();
+      tip.classList.add('tip-out');
+      setTimeout(() => tip.remove(), 250);
+    });
+  }
 
   c.appendChild(el('h2', 'section-title', '⚔️ Registra l\'Impresa'));
 
