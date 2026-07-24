@@ -1043,6 +1043,9 @@ const RPG = (() => {
     h.loreUnlocked    = h.loreUnlocked    || [];
     h.dailyPotion     = h.dailyPotion     || null;
 
+    // tutorial mostrato solo se l'eroe non ha ancora km registrati
+    if (h.tutorialDone === undefined) h.tutorialDone = (h.totalKm || 0) > 0;
+
     h.schemaVersion = SCHEMA_VERSION;
     return h;
   }
