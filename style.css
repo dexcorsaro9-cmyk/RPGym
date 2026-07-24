@@ -3887,7 +3887,7 @@ body {
 
 .lb-row {
   display: grid;
-  grid-template-columns: 1.6rem 1.6rem 1fr auto auto;
+  grid-template-columns: 1.6rem 1.6rem 1fr auto auto auto;
   align-items: center;
   gap: .35rem;
   padding: .35rem .5rem;
@@ -3936,6 +3936,60 @@ body {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   text-align: right;
+}
+.lb-rival-btn {
+  background: none;
+  border: 1px solid var(--muted);
+  border-radius: 6px;
+  color: var(--ink);
+  font-size: .78rem;
+  cursor: pointer;
+  padding: .1rem .3rem;
+  line-height: 1;
+  transition: background .15s, color .15s;
+}
+.lb-rival-btn:hover { background: rgba(255,255,255,.08); }
+.lb-rival-added {
+  border-color: var(--gold);
+  color: var(--gold);
+  cursor: default;
+}
+.lb-rival-spacer { display: inline-block; width: 1.4rem; }
+
+/* ── Rivali ──────────────────────────────────── */
+.rivals-list { display: flex; flex-direction: column; gap: .4rem; margin-top: .4rem; }
+.rival-row {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .4rem .5rem;
+  border-radius: 8px;
+  background: rgba(255,255,255,.03);
+  font-size: .84rem;
+}
+.rival-avatar { font-size: 1.15rem; flex-shrink: 0; }
+.rival-info { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rival-actions { display: flex; align-items: center; gap: .35rem; flex-shrink: 0; }
+.rival-chal-btn {
+  font-size: .75rem;
+  padding: .2rem .5rem;
+}
+.rival-rm-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: .85rem;
+  opacity: .45;
+  padding: .1rem;
+  transition: opacity .15s;
+  flex-shrink: 0;
+}
+.rival-rm-btn:hover { opacity: .8; }
+.pvp-btn-row {
+  display: flex;
+  gap: .75rem;
+  justify-content: center;
+  margin-top: 1rem;
 }
 
 /* ── PvP idle ────────────────────────────────── */
