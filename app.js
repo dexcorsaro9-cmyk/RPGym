@@ -877,6 +877,24 @@ function renderCamp(c) {
     (mount ? `<br>${mount.name} riposa nella stalla.` : '')));
   c.appendChild(scene);
 
+  // Prima missione — visibile solo finché totalKm === 0
+  if ((HERO.totalKm || 0) === 0) {
+    const fp = el('div', 'panel camp-first-quest');
+    fp.innerHTML = `
+      <div class="cfq-eyebrow">✦ Prima Missione</div>
+      <div class="cfq-title">Muovi il primo passo</div>
+      <p class="muted small cfq-text">Il tuo Rifugio prende vita con ogni km che percorri. Registra la tua prima attività e guarda cosa succede.</p>
+      <div class="cfq-rewards">
+        <span class="cfq-reward">🪙 Oro</span>
+        <span class="cfq-reward">⚔️ XP</span>
+        <span class="cfq-reward">🎁 Forziere</span>
+      </div>`;
+    const goBtn = el('button', 'btn btn-primary wide', '⚔️ Vai ad Allenarti');
+    goBtn.addEventListener('click', () => setTab('train'));
+    fp.appendChild(goBtn);
+    c.appendChild(fp);
+  }
+
   // Santuario dei Famigli
   if (HERO.companion && HERO.pet && !HERO.pet.hatched) {
     const egg = RPG.eggProgress(HERO);
@@ -1765,38 +1783,37 @@ function _renderRivalsPanel() {
 
   (async () => {
     list.innerHTML = '';
-    for (const fid of friends) {
-      const fh = await FB.getHero(fid);
+    // Carica tutti i rivali in parallelo
+    const heroData = await Promise.all(friends.map(fid => FB.getHero(fid)));
+
+    friends.forEach((fid, idx) => {
+      const fh  = heroData[idx];
       const row = el('div', 'rival-row');
 
       if (!fh) {
-        row.innerHTML = `<span class="rival-avatar">❓</span><span class="rival-name muted small">${esc(fid.slice(0,8))}…</span>`;
+        row.innerHTML = `<span class="rival-avatar">❓</span><span class="rival-info muted small">${esc(fid.slice(0,8))}…</span>`;
         const rmBtn = el('button', 'rival-rm-btn', '🗑️');
         rmBtn.title = 'Rimuovi';
         rmBtn.addEventListener('click', () => {
           HERO.cloud.friends = HERO.cloud.friends.filter(x => x !== fid);
-          persist();
-          row.remove();
+          persist(); row.remove();
         });
         row.appendChild(rmBtn);
         list.appendChild(row);
-        continue;
+        return;
       }
 
-      const avatar = el('span', 'rival-avatar', CLASS_EMOJI[fh.storyId] || '🧑');
-      const info   = el('span', 'rival-info');
+      const avatar  = el('span', 'rival-avatar', CLASS_EMOJI[fh.storyId] || '🧑');
+      const info    = el('span', 'rival-info');
       info.innerHTML = `<b>${esc(fh.name)}</b> <span class="muted small">Lv ${fh.level || 1} · ${(fh.totalKm || 0).toFixed(1)} km</span>`;
-
       const actions = el('span', 'rival-actions');
 
       if (ac) {
-        const busy = el('span', 'muted small', '⚔️ sfida in corso');
-        actions.appendChild(busy);
+        actions.appendChild(el('span', 'muted small', '⚔️ sfida in corso'));
       } else {
         const chalBtn = el('button', 'btn btn-small rival-chal-btn', '⚔️ Sfida');
         chalBtn.addEventListener('click', async () => {
-          chalBtn.disabled = true;
-          chalBtn.textContent = '…';
+          chalBtn.disabled = true; chalBtn.textContent = '…';
           const cid = await FB.createChallenge(HERO);
           if (!cid) { chalBtn.textContent = 'Errore'; return; }
           const sent = await FB.sendChallengeInvite(cid, HERO, fh.id);
@@ -1813,8 +1830,7 @@ function _renderRivalsPanel() {
       rmBtn.title = 'Rimuovi rivale';
       rmBtn.addEventListener('click', () => {
         HERO.cloud.friends = HERO.cloud.friends.filter(x => x !== fid);
-        persist();
-        row.remove();
+        persist(); row.remove();
       });
 
       row.appendChild(avatar);
@@ -1822,7 +1838,8 @@ function _renderRivalsPanel() {
       row.appendChild(actions);
       row.appendChild(rmBtn);
       list.appendChild(row);
-    }
+    });
+
     if (!list.children.length) list.innerHTML = '<div class="muted small">Lista vuota.</div>';
   })();
 
@@ -2338,6 +2355,7 @@ function renderTrain(c) {
     sfx(report.levelsGained.length ? 'level' : 'coin');
     vibrate(report.levelsGained.length ? [80, 40, 80] : 30);
     showReport(report);
+    askNotifPermissionAfterWorkout();
   });
   form.appendChild(go);
   c.appendChild(form);
@@ -4062,13 +4080,24 @@ async function setupNotifications() {
   if (!('Notification' in window) || !HERO) return;
   checkAndNotify();
   checkPvpNotify();
-  if (Notification.permission === 'default' && !HERO.notifAsked) {
+  // Il permesso viene chiesto dopo il primo allenamento (non all'avvio)
+  // Eccezione: utenti che hanno già km ma non hanno mai risposto
+  if (Notification.permission === 'default' && !HERO.notifAsked && (HERO.totalKm || 0) > 0) {
     setTimeout(async () => {
       const perm = await Notification.requestPermission();
       HERO.notifAsked = true; persist();
       if (perm === 'granted') { checkAndNotify(); checkPvpNotify(); }
     }, 4000);
   }
+}
+
+function askNotifPermissionAfterWorkout() {
+  if (!('Notification' in window) || Notification.permission !== 'default' || HERO.notifAsked) return;
+  setTimeout(async () => {
+    const perm = await Notification.requestPermission();
+    HERO.notifAsked = true; persist();
+    if (perm === 'granted') { checkAndNotify(); checkPvpNotify(); }
+  }, 3500);
 }
 
 /* Mostra una notifica tramite service worker (funziona in background su mobile) */

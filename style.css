@@ -4404,3 +4404,41 @@ body {
 @keyframes fadeOut {
   to { opacity: 0; transform: translateY(-6px); }
 }
+
+/* ── Prima Missione (Camp utente nuovo) ──────────────────────── */
+.camp-first-quest {
+  background: linear-gradient(135deg, rgba(212,169,80,.08) 0%, rgba(212,169,80,.03) 100%);
+  border: 1px solid rgba(212,169,80,.25);
+  text-align: center;
+}
+.cfq-eyebrow {
+  font-size: .68rem;
+  letter-spacing: .14em;
+  color: var(--gold);
+  opacity: .7;
+  text-transform: uppercase;
+  margin-bottom: .3rem;
+}
+.cfq-title {
+  font-family: 'Cinzel', serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: .5rem;
+}
+.cfq-text {
+  margin-bottom: .75rem;
+}
+.cfq-rewards {
+  display: flex;
+  justify-content: center;
+  gap: .75rem;
+  margin-bottom: .85rem;
+}
+.cfq-reward {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 20px;
+  font-size: .78rem;
+  padding: .2rem .6rem;
+}
