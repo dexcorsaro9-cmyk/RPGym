@@ -147,6 +147,50 @@ const FB = (() => {
     try { await db.collection('challenges').doc(id).delete(); } catch (e) {}
   }
 
+  /* ── Sistema Rivali ──────────────────────────────────────── */
+  async function getHero(id) {
+    if (!ok() || !id) return null;
+    try {
+      const doc = await db.collection('heroes').doc(id).get();
+      return doc.exists ? { id: doc.id, ...doc.data() } : null;
+    } catch (e) { return null; }
+  }
+
+  async function sendChallengeInvite(challengeId, fromHero, toHeroId) {
+    if (!ok()) return false;
+    try {
+      await db.collection('heroes').doc(toHeroId).update({
+        pendingInvites: firebase.firestore.FieldValue.arrayUnion({
+          challengeId,
+          fromId:      fromHero.id,
+          fromName:    fromHero.name,
+          fromStoryId: fromHero.storyId || 'eroe1',
+          fromLevel:   fromHero.level   || 1,
+          sentAt:      new Date().toISOString(),
+        }),
+      });
+      return true;
+    } catch (e) { console.warn('[FB] sendChallengeInvite:', e.message); return false; }
+  }
+
+  async function getPendingInvites(heroId) {
+    if (!ok() || !heroId) return [];
+    try {
+      const doc = await db.collection('heroes').doc(heroId).get();
+      return doc.exists ? (doc.data().pendingInvites || []) : [];
+    } catch (e) { return []; }
+  }
+
+  async function clearPendingInvite(heroId, challengeId) {
+    if (!ok() || !heroId) return;
+    try {
+      const doc = await db.collection('heroes').doc(heroId).get();
+      if (!doc.exists) return;
+      const remaining = (doc.data().pendingInvites || []).filter(i => i.challengeId !== challengeId);
+      await db.collection('heroes').doc(heroId).update({ pendingInvites: remaining });
+    } catch (e) {}
+  }
+
   return {
     syncHero,
     getLeaderboard,
@@ -155,5 +199,9 @@ const FB = (() => {
     joinChallenge,
     updateChallenge,
     deleteChallenge,
+    getHero,
+    sendChallengeInvite,
+    getPendingInvites,
+    clearPendingInvite,
   };
 })();

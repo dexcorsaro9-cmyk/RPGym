@@ -562,6 +562,14 @@ function enterGame() {
   // Tutorial per i nuovi eroi (mostrato prima di tutto il resto)
   if (!HERO.tutorialDone) OPEN_QUEUE.unshift(showTutorial);
   nextOpening();
+
+  // Inviti PvP in arrivo da Firestore
+  (async () => {
+    const invites = await FB.getPendingInvites(HERO.id);
+    if (!invites.length) return;
+    invites.forEach(inv => OPEN_QUEUE.push(() => showChallengeInviteModal(inv)));
+    if (document.getElementById('modal').classList.contains('hidden')) nextOpening();
+  })();
 }
 
 /* ══════════════ Tutorial ══════════════ */
@@ -1655,6 +1663,8 @@ function renderMap(c) {
 
   // ── Classifica globale ──
   c.appendChild(_renderLeaderboardPanel());
+  // ── Rivali ──
+  c.appendChild(_renderRivalsPanel());
   // ── Sfida PvP ──
   c.appendChild(_renderPvpPanel());
 }
@@ -1696,13 +1706,39 @@ function _renderLeaderboardPanel() {
     list.innerHTML = '';
     rows.forEach((h, i) => {
       const isMe = h.id === HERO.id;
-      const row  = el('div', 'lb-row' + (isMe ? ' lb-me' : ''));
-      row.innerHTML =
-        `<span class="lb-rank">${i + 1}</span>` +
-        `<span class="lb-avatar">${CLASS_EMOJI[h.storyId] || '🧑'}</span>` +
-        `<span class="lb-name">${esc(h.name)}${isMe ? ' <span class="lb-me-tag">tu</span>' : ''}</span>` +
-        `<span class="lb-lv">Lv ${h.level || 1}</span>` +
-        `<span class="lb-km">${(h.totalKm || 0).toFixed(1)} km</span>`;
+      const isFriend = HERO.cloud.friends.includes(h.id);
+      const row = el('div', 'lb-row' + (isMe ? ' lb-me' : ''));
+
+      const rank   = el('span', 'lb-rank',   String(i + 1));
+      const avatar = el('span', 'lb-avatar', CLASS_EMOJI[h.storyId] || '🧑');
+      const name   = el('span', 'lb-name');
+      name.innerHTML = esc(h.name) + (isMe ? ' <span class="lb-me-tag">tu</span>' : '');
+      const lv  = el('span', 'lb-lv',  `Lv ${h.level || 1}`);
+      const km  = el('span', 'lb-km',  `${(h.totalKm || 0).toFixed(1)} km`);
+
+      row.appendChild(rank);
+      row.appendChild(avatar);
+      row.appendChild(name);
+      row.appendChild(lv);
+      row.appendChild(km);
+
+      if (!isMe) {
+        const btn = el('button', 'lb-rival-btn' + (isFriend ? ' lb-rival-added' : ''), isFriend ? '★' : '➕');
+        btn.title = isFriend ? 'Già nella lista rivali' : 'Aggiungi ai rivali';
+        btn.addEventListener('click', () => {
+          if (isFriend) return;
+          if (!HERO.cloud.friends.includes(h.id)) HERO.cloud.friends.push(h.id);
+          persist();
+          btn.textContent = '★';
+          btn.classList.add('lb-rival-added');
+          btn.title = 'Già nella lista rivali';
+          toast('Rivale aggiunto! Sfidalo dalla scheda Rivali.');
+        });
+        row.appendChild(btn);
+      } else {
+        row.appendChild(el('span', 'lb-rival-spacer'));
+      }
+
       list.appendChild(row);
     });
     refreshBtn.disabled = false;
@@ -1711,6 +1747,118 @@ function _renderLeaderboardPanel() {
   refreshBtn.addEventListener('click', load);
   load();
   return p;
+}
+
+/* ── Rivali ─────────────────────────────────────────────────── */
+function _renderRivalsPanel() {
+  const friends = HERO.cloud.friends || [];
+  const p = el('div', 'panel pvp-panel');
+  const hdr = el('div', 'pvp-panel-hdr');
+  hdr.innerHTML = '<span class="pvp-panel-title">👥 I Tuoi Rivali</span>';
+  p.appendChild(hdr);
+
+  if (!friends.length) {
+    p.appendChild(el('p', 'muted small', 'Nessun rivale ancora. Usa ➕ in classifica per aggiungerne uno.'));
+    return p;
+  }
+
+  const ac = HERO.cloud && HERO.cloud.activeChallenge;
+  const list = el('div', 'rivals-list');
+  list.innerHTML = '<div class="lb-loading">Caricamento…</div>';
+  p.appendChild(list);
+
+  (async () => {
+    list.innerHTML = '';
+    for (const fid of friends) {
+      const fh = await FB.getHero(fid);
+      const row = el('div', 'rival-row');
+
+      if (!fh) {
+        row.innerHTML = `<span class="rival-avatar">❓</span><span class="rival-name muted small">${esc(fid.slice(0,8))}…</span>`;
+        const rmBtn = el('button', 'rival-rm-btn', '🗑️');
+        rmBtn.title = 'Rimuovi';
+        rmBtn.addEventListener('click', () => {
+          HERO.cloud.friends = HERO.cloud.friends.filter(x => x !== fid);
+          persist();
+          row.remove();
+        });
+        row.appendChild(rmBtn);
+        list.appendChild(row);
+        continue;
+      }
+
+      const avatar = el('span', 'rival-avatar', CLASS_EMOJI[fh.storyId] || '🧑');
+      const info   = el('span', 'rival-info');
+      info.innerHTML = `<b>${esc(fh.name)}</b> <span class="muted small">Lv ${fh.level || 1} · ${(fh.totalKm || 0).toFixed(1)} km</span>`;
+
+      const actions = el('span', 'rival-actions');
+
+      if (ac) {
+        const busy = el('span', 'muted small', '⚔️ sfida in corso');
+        actions.appendChild(busy);
+      } else {
+        const chalBtn = el('button', 'btn btn-small rival-chal-btn', '⚔️ Sfida');
+        chalBtn.addEventListener('click', async () => {
+          chalBtn.disabled = true;
+          chalBtn.textContent = '…';
+          const cid = await FB.createChallenge(HERO);
+          if (!cid) { chalBtn.textContent = 'Errore'; return; }
+          const sent = await FB.sendChallengeInvite(cid, HERO, fh.id);
+          if (!sent) { FB.deleteChallenge(cid); chalBtn.textContent = 'Errore'; return; }
+          HERO.cloud.activeChallenge = { id: cid, role: 'creator' };
+          persist();
+          chalBtn.textContent = '✅ Invito inviato!';
+          chalBtn.disabled = true;
+        });
+        actions.appendChild(chalBtn);
+      }
+
+      const rmBtn = el('button', 'rival-rm-btn', '🗑️');
+      rmBtn.title = 'Rimuovi rivale';
+      rmBtn.addEventListener('click', () => {
+        HERO.cloud.friends = HERO.cloud.friends.filter(x => x !== fid);
+        persist();
+        row.remove();
+      });
+
+      row.appendChild(avatar);
+      row.appendChild(info);
+      row.appendChild(actions);
+      row.appendChild(rmBtn);
+      list.appendChild(row);
+    }
+    if (!list.children.length) list.innerHTML = '<div class="muted small">Lista vuota.</div>';
+  })();
+
+  return p;
+}
+
+function showChallengeInviteModal(invite) {
+  modal(`
+    <h3 class="panel-title">⚔️ Sfida Ricevuta!</h3>
+    <p class="center" style="font-size:2rem">${CLASS_EMOJI[invite.fromStoryId] || '🧑'}</p>
+    <p class="center"><b>${esc(invite.fromName)}</b> (Lv ${invite.fromLevel || 1}) ti sfida a chi percorre più km in 7 giorni!</p>
+    <div class="pvp-btn-row">
+      <button class="btn btn-primary" id="inv-accept">✅ Accetta</button>
+      <button class="btn" id="inv-decline">❌ Rifiuta</button>
+    </div>`,
+  );
+  document.getElementById('inv-accept').addEventListener('click', async () => {
+    const ok = await FB.joinChallenge(invite.challengeId, HERO);
+    if (ok) {
+      HERO.cloud.activeChallenge = { id: invite.challengeId, role: 'opponent' };
+      persist();
+    }
+    await FB.clearPendingInvite(HERO.id, invite.challengeId);
+    nextOpening();
+    if (ok) toast('Sfida accettata! Percorri più km del tuo rivale in 7 giorni.');
+    else toast('Errore nell\'accettare la sfida. Riprova.');
+  });
+  document.getElementById('inv-decline').addEventListener('click', async () => {
+    await FB.deleteChallenge(invite.challengeId);
+    await FB.clearPendingInvite(HERO.id, invite.challengeId);
+    nextOpening();
+  });
 }
 
 /* ── Sfide PvP ───────────────────────────────────────────────── */
