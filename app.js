@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   RPGym — Interfaccia utente (v2.0)
+   Hero's Pace — Interfaccia utente (v2.0)
    ═══════════════════════════════════════════════════════════════ */
 
 let STATE = RPG.load();
@@ -2280,7 +2280,6 @@ function renderTrain(c) {
           <span class="muted small">Apri <b>Salute</b>, <b>Strava</b> o qualsiasi app fitness, leggi i km percorsi oggi e inseriscili nel campo qui sotto.</span>
         </div>
       </div>`;
-    document.getElementById('train-tip-close')?.remove();
     c.appendChild(tip);
     tip.querySelector('#train-tip-close').addEventListener('click', () => {
       HERO.trainTipDismissed = true;

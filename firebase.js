@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════
-   RPGym — Firebase helpers
+   Hero's Pace — Firebase helpers
    Classifica globale + Sfide PvP (Firestore)
    ══════════════════════════════════════════════════════════════ */
 
