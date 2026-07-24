@@ -3545,6 +3545,84 @@ body {
   to   { transform: scale(1);  opacity: 1; }
 }
 
+/* ── Tutorial overlay ── */
+.tutorial-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0,0,0,.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  opacity: 0;
+  transition: opacity .25s ease;
+}
+.tutorial-overlay.tutorial-in  { opacity: 1; }
+.tutorial-overlay.tutorial-out { opacity: 0; }
+.tutorial-card {
+  position: relative;
+  background: var(--parchment);
+  color: var(--ink);
+  border-radius: 18px;
+  padding: 2rem 1.6rem 1.6rem;
+  max-width: 340px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 8px 40px rgba(0,0,0,.5);
+  transform: translateY(24px);
+  transition: transform .3s ease;
+}
+.tutorial-overlay.tutorial-in .tutorial-card { transform: translateY(0); }
+.tutorial-overlay.tutorial-out .tutorial-card { transform: translateY(24px); }
+.tutorial-skip {
+  position: absolute;
+  top: .75rem;
+  right: .75rem;
+  background: none;
+  border: none;
+  font-size: 1rem;
+  color: var(--ink-light);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  line-height: 1;
+}
+.tutorial-skip:hover { background: rgba(0,0,0,.08); }
+.tutorial-icon {
+  font-size: 3.2rem;
+  margin-bottom: .6rem;
+  line-height: 1;
+}
+.tutorial-title {
+  font-family: 'Cinzel', serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: .6rem;
+  color: var(--ink);
+}
+.tutorial-text {
+  font-size: .92rem;
+  line-height: 1.55;
+  color: var(--ink-light);
+  margin-bottom: 1.2rem;
+}
+.tutorial-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 1rem;
+}
+.tutorial-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(0,0,0,.18);
+  transition: background .2s;
+}
+.tutorial-dot.active { background: var(--gold); }
+.tutorial-btn { width: 100%; }
+
 /* ── Backup import UI ── */
 .backup-hero-list {
   display: flex;

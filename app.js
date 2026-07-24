@@ -559,7 +559,69 @@ function enterGame() {
     persist();
     OPEN_QUEUE.push(showDailySummary);
   }
+  // Tutorial per i nuovi eroi (mostrato prima di tutto il resto)
+  if (!HERO.tutorialDone) OPEN_QUEUE.unshift(showTutorial);
   nextOpening();
+}
+
+/* ══════════════ Tutorial ══════════════ */
+const TUTORIAL_SLIDES = [
+  {
+    icon: '🏃',
+    title: 'Come funziona',
+    text: 'Ogni volta che ti alleni nella vita reale, registra l\'attività. I tuoi km diventano XP, oro e risorse nel gioco.',
+  },
+  {
+    icon: '🗺️',
+    title: 'Esplora il mondo',
+    text: 'Sali di livello per attraversare 20 biomi, sbloccare cavalcature leggendarie e imparare nuove abilità passive.',
+  },
+  {
+    icon: '⚔️',
+    title: 'Inizia ora',
+    text: 'Vai su <strong>Allenati</strong>, scegli l\'attività di oggi e inserisci i km. Il viaggio comincia con il primo passo.',
+  },
+];
+
+function showTutorial() {
+  let idx = 0;
+  const overlay = document.createElement('div');
+  overlay.className = 'tutorial-overlay';
+
+  function render() {
+    const s = TUTORIAL_SLIDES[idx];
+    const isLast = idx === TUTORIAL_SLIDES.length - 1;
+    const dots = TUTORIAL_SLIDES.map((_, i) =>
+      `<span class="tutorial-dot${i === idx ? ' active' : ''}"></span>`
+    ).join('');
+    overlay.innerHTML = `
+      <div class="tutorial-card">
+        <button class="tutorial-skip" aria-label="Salta">✕</button>
+        <div class="tutorial-icon">${s.icon}</div>
+        <div class="tutorial-title">${s.title}</div>
+        <div class="tutorial-text">${s.text}</div>
+        <div class="tutorial-dots">${dots}</div>
+        <button class="btn btn-primary tutorial-btn">
+          ${isLast ? '🔥 Inizia l\'avventura' : 'Avanti →'}
+        </button>
+      </div>`;
+    overlay.querySelector('.tutorial-skip').addEventListener('click', close);
+    overlay.querySelector('.tutorial-btn').addEventListener('click', () => {
+      if (isLast) close(); else { idx++; render(); }
+    });
+  }
+
+  function close() {
+    overlay.classList.add('tutorial-out');
+    setTimeout(() => { overlay.remove(); }, 300);
+    HERO.tutorialDone = true;
+    persist();
+    nextOpening();
+  }
+
+  render();
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => overlay.classList.add('tutorial-in'));
 }
 
 function showDailyLogin() {
