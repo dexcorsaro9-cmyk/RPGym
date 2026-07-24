@@ -1045,6 +1045,8 @@ const RPG = (() => {
 
     if (h.tutorialDone === undefined) h.tutorialDone = (h.totalKm || 0) > 0;
     h.cloud = h.cloud || { activeChallenge: null };
+    h.cloud.claimedChallenges = h.cloud.claimedChallenges || [];
+    h.pvpWins = h.pvpWins || 0;
 
     h.schemaVersion = SCHEMA_VERSION;
     return h;
