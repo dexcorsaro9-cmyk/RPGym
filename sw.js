@@ -1,5 +1,5 @@
 /* RPGym service worker — network-first per aggiornamenti immediati */
-const CACHE = 'rpgym-v117';
+const CACHE = 'rpgym-v118';
 
 /* File solo per fallback offline — NON pre-cachati all'install */
 const OFFLINE_ASSETS = [
@@ -64,6 +64,18 @@ self.addEventListener('fetch', e => {
         caches.open(CACHE).then(c => c.put(e.request, copy)).catch(() => {});
         return res;
       });
+    })
+  );
+});
+
+/* Tap su notifica → apre/porta in primo piano l'app */
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+      const existing = list.find(c => c.url.includes(self.location.origin) && 'focus' in c);
+      if (existing) return existing.focus();
+      return clients.openWindow('/');
     })
   );
 });
