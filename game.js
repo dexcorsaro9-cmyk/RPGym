@@ -1036,6 +1036,8 @@ const RPG = (() => {
       weakness: 'Gelo', lore: 'Ha trovato una corona tra le macerie e ha deciso di essere re. I topi lo seguono.' },
     { id: 'urna-maledetta',         name: 'Urna Maledetta',             zone: 'Rovine di Oakhaven',
       weakness: 'Luce', lore: 'Non aprirla. Non guardarla. Non starle vicino. Se la senti respirare, corri.' },
+    { id: 'scheletro-pazzerello',   name: 'Scheletro Pazzerello',       zone: 'Rovine di Oakhaven',
+      weakness: 'Impatto', lore: 'Le sue ossa non stanno mai ferme. Balla, salta, rotola. Colpirlo è la sfida più difficile di Oakhaven.' },
 
     /* ── Le Pianure del Vento (nuovi) ─────────────────────────── */
     { id: 'aquilone-dentato',        name: 'Aquilone Dentato',           zone: 'Le Pianure del Vento',
