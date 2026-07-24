@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   RPGym — Logica di gioco (v2.0)
+   Hero's Pace — Logica di gioco (v2.0)
    Tutto lo stato è salvato in localStorage. Ogni eroe ha il suo
    salvataggio; le funzioni qui non toccano il DOM.
    ═══════════════════════════════════════════════════════════════ */

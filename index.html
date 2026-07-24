@@ -96,16 +96,16 @@
 
     <!-- Contenuto tab -->
     <main id="tab-content"></main>
-
-    <!-- Barra di navigazione -->
-    <nav id="tabbar">
-      <button class="tab" data-tab="camp">🏕️<span>Rifugio</span></button>
-      <button class="tab" data-tab="map">🗺️<span>Mappa</span></button>
-      <button class="tab tab-main" data-tab="train">⚔️<span>Allenati</span></button>
-      <button class="tab" data-tab="market">🏪<span>Mercato</span></button>
-      <button class="tab" data-tab="hero">🛡️<span>Eroe</span></button>
-    </nav>
   </div>
+
+  <!-- Tabbar: FUORI da #screen-game per non essere mai colpita da transform/stacking-context del parent -->
+  <nav id="tabbar" class="hidden">
+    <button class="tab" data-tab="camp">🏕️<span>Rifugio</span></button>
+    <button class="tab" data-tab="map">🗺️<span>Mappa</span></button>
+    <button class="tab tab-main" data-tab="train">⚔️<span>Allenati</span></button>
+    <button class="tab" data-tab="market">🏪<span>Mercato</span></button>
+    <button class="tab" data-tab="hero">🛡️<span>Eroe</span></button>
+  </nav>
 
   <!-- Overlay Arena (battaglia a schermo intero) -->
   <div id="battle" class="battle-screen hidden"></div>

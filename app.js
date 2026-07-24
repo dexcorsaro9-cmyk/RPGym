@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   RPGym — Interfaccia utente (v2.0)
+   Hero's Pace — Interfaccia utente (v2.0)
    ═══════════════════════════════════════════════════════════════ */
 
 let STATE = RPG.load();
@@ -295,11 +295,13 @@ function show(id) {
   document.querySelectorAll('.screen').forEach(s => { s.classList.add('hidden'); s.classList.remove('screen-enter'); });
   const s = $('#' + id);
   s.classList.remove('hidden');
-  requestAnimationFrame(() => {
-    s.classList.add('screen-enter');
-    // Rimuovi dopo la fine dell'animazione: transform residuo rompe position:fixed
-    setTimeout(() => s.classList.remove('screen-enter'), 400);
-  });
+  const tabbar = $('#tabbar');
+  if (id === 'screen-game') {
+    tabbar.classList.remove('hidden');
+  } else {
+    tabbar.classList.add('hidden');
+  }
+  requestAnimationFrame(() => s.classList.add('screen-enter'));
 }
 
 function emptyState(icon, text) {
@@ -2280,7 +2282,6 @@ function renderTrain(c) {
           <span class="muted small">Apri <b>Salute</b>, <b>Strava</b> o qualsiasi app fitness, leggi i km percorsi oggi e inseriscili nel campo qui sotto.</span>
         </div>
       </div>`;
-    document.getElementById('train-tip-close')?.remove();
     c.appendChild(tip);
     tip.querySelector('#train-tip-close').addEventListener('click', () => {
       HERO.trainTipDismissed = true;

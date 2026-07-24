@@ -1,4 +1,4 @@
-/* ═══════════════ RPGym — Stile Pergamena Fantasy ═══════════════ */
+/* ═══════════════ Hero's Pace — Stile Pergamena Fantasy ═══════════════ */
 
 :root {
   --parchment: #efe0c3;
@@ -623,7 +623,7 @@ body {
   font-size: 1.5rem; color: #6a5030;
   display: flex; flex-direction: column; align-items: center; gap: 2px;
   padding: 8px 0 4px; border-radius: 0;
-  transition: color .2s, transform .15s;
+  transition: color .2s;
 }
 .tab span {
   font-family: 'Cinzel', serif; font-size: .55rem; font-weight: 700;
@@ -938,6 +938,7 @@ body {
 .tab.tab-main {
   transform: translateY(-18px);
   z-index: 3;
+  will-change: transform;
 }
 /* Medaglione: stesso legno dell'header, leggermente più chiaro */
 .tab.tab-main::before {
@@ -2432,10 +2433,10 @@ body {
 
 /* ── Transizione tra schermate ── */
 @keyframes screen-enter {
-  from { opacity: 0; transform: translateY(8px) scale(.985); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
-.screen-enter { animation: screen-enter .3s cubic-bezier(0.25,0.46,0.45,0.94) both; }
+.screen-enter { animation: screen-enter .25s ease both; }
 
 /* ── Uovo del Famiglio: incubazione e schiusa ── */
 .egg-shake { animation: eggShake .5s ease-in-out infinite; }
