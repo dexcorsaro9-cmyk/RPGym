@@ -295,11 +295,13 @@ function show(id) {
   document.querySelectorAll('.screen').forEach(s => { s.classList.add('hidden'); s.classList.remove('screen-enter'); });
   const s = $('#' + id);
   s.classList.remove('hidden');
-  requestAnimationFrame(() => {
-    s.classList.add('screen-enter');
-    // Rimuovi dopo la fine dell'animazione: transform residuo rompe position:fixed
-    setTimeout(() => s.classList.remove('screen-enter'), 400);
-  });
+  const tabbar = $('#tabbar');
+  if (id === 'screen-game') {
+    tabbar.classList.remove('hidden');
+  } else {
+    tabbar.classList.add('hidden');
+  }
+  requestAnimationFrame(() => s.classList.add('screen-enter'));
 }
 
 function emptyState(icon, text) {
