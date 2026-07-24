@@ -2351,7 +2351,7 @@ function renderTrain(c) {
 
 
 /* ── Pannello Comandi Rapidi / Apple Salute ── */
-const SHORTCUT_NAME = 'RPGym';
+const SHORTCUT_NAME = "Hero's Pace";
 const APP_BASE_URL   = 'https://dexcorsaro9-cmyk.github.io/RPGym/';
 
 function renderShortcutPanel() {
@@ -2366,7 +2366,7 @@ function renderShortcutPanel() {
 
   // Pulsante principale: lancia il Comando Rapido (se già configurato)
   const launchBtn = el('button', 'btn shortcut-launch-btn wide');
-  launchBtn.innerHTML = `<span class="shortcut-icon">⚡</span> Lancia "RPGym" (già configurato)`;
+  launchBtn.innerHTML = `<span class="shortcut-icon">⚡</span> Lancia "Hero's Pace" (già configurato)`;
   launchBtn.addEventListener('click', () => {
     window.location.href = `shortcuts://run-shortcut?name=${encodeURIComponent(SHORTCUT_NAME)}`;
   });
@@ -2399,7 +2399,7 @@ function renderShortcutPanel() {
       </div>
       <div class="shortcut-step">
         <span class="step-num">5</span>
-        <div>Salva con nome <b>RPGym</b>. Dopo averlo lanciato, apri RPGym: apparirà un campo verde — toccalo e incolla. Fatto.</div>
+        <div>Salva con nome <b>Hero's Pace</b>. Dopo averlo lanciato, apri Hero's Pace: apparirà un campo verde — toccalo e incolla. Fatto.</div>
       </div>
     </div>`;
 
@@ -2692,7 +2692,7 @@ function showReport(r) {
     shareBtn.addEventListener('click', () => {
       const streakTxt = HERO.streak.count > 1 ? ` 🔥 Streak ${HERO.streak.count} giorni!` : '';
       navigator.share({
-        title: 'RPGym ⚔️',
+        title: "Hero's Pace ⚔️",
         text: `Ho fatto ${r.km} km di ${a.label} e guadagnato +${r.xp} XP!${streakTxt} Lv.${newLevel} — ${RPG.heroTitle(newLevel)}`,
       }).catch(() => {});
     });
@@ -3033,6 +3033,11 @@ function renderHero(c) {
     ptEl.innerHTML = `${pt.icon} <b>${pt.label}</b> · ⚔️ ${HERO.pvpWins} ${HERO.pvpWins === 1 ? 'vittoria' : 'vittorie'}`;
     c.appendChild(ptEl);
   }
+
+  // Bottone condivisione hero card
+  const shareHeroBtn = el('button', 'btn btn-primary wide hero-share-btn', '📤 Sfida un Amico');
+  shareHeroBtn.addEventListener('click', showHeroShareCard);
+  c.appendChild(shareHeroBtn);
 
   // Sottomenù
   const sub = el('div', 'hero-submenu');
@@ -3457,7 +3462,7 @@ function _settingsBackupPanel() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `rpgym_backup_${new Date().toISOString().slice(0,10)}.json`;
+    a.download = `heropace_backup_${new Date().toISOString().slice(0,10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
     toast('📤 Backup esportato!');
@@ -4053,19 +4058,115 @@ async function showNotif(title, body, tag, data) {
   new Notification(title, opts);
 }
 
+/* ── Hero Share Card ─────────────────────────────────────────── */
+function showHeroShareCard() {
+  const existing = document.getElementById('share-overlay');
+  if (existing) existing.remove();
+
+  const pt          = pvpTitle(HERO.pvpWins || 0);
+  const classEmoji  = CLASS_EMOJI[HERO.storyId] || '🧑';
+  const heroTitle   = RPG.heroTitle(HERO.level);
+  const km          = (HERO.totalKm || 0).toFixed(1);
+  const streak      = HERO.streak && HERO.streak.count > 1 ? HERO.streak.count : 0;
+
+  const overlay = el('div', 'share-overlay');
+  overlay.id = 'share-overlay';
+
+  const card = el('div', 'share-card');
+
+  // Chiudi
+  const closeBtn = el('button', 'share-close-btn', '✕');
+  closeBtn.addEventListener('click', () => overlay.remove());
+  card.appendChild(closeBtn);
+
+  // Wordmark
+  card.appendChild(el('div', 'share-wordmark', "HERO'S PACE"));
+  card.appendChild(el('div', 'share-ornament-line'));
+
+  // Avatar
+  const avatarWrap = el('div', 'share-avatar-wrap');
+  if (isImageAvatar(HERO)) {
+    const img = el('img', 'share-avatar-img');
+    img.src = HERO.avatar;
+    img.alt = HERO.name;
+    img.onerror = () => { img.replaceWith(el('div', 'share-avatar-emoji', classEmoji)); };
+    avatarWrap.appendChild(img);
+  } else {
+    avatarWrap.appendChild(el('div', 'share-avatar-emoji', classEmoji));
+  }
+  card.appendChild(avatarWrap);
+
+  // Nome + titolo
+  card.appendChild(el('div', 'share-hero-name', esc(HERO.name)));
+  const titleEl = el('div', 'share-hero-subtitle');
+  titleEl.innerHTML = `Livello ${HERO.level} &nbsp;·&nbsp; <i>${esc(heroTitle)}</i>`;
+  card.appendChild(titleEl);
+
+  if (pt) {
+    const ptEl = el('div', 'share-pvp-title');
+    ptEl.innerHTML = `${pt.icon} ${pt.label}`;
+    card.appendChild(ptEl);
+  }
+
+  // Stats
+  const stats = el('div', 'share-stats');
+  const addStat = (val, lbl) => {
+    const s = el('div', 'share-stat');
+    s.innerHTML = `<span class="share-stat-val">${val}</span><span class="share-stat-lbl">${lbl}</span>`;
+    stats.appendChild(s);
+  };
+  addStat(km, 'km totali');
+  addStat(HERO.level, 'livello');
+  if (HERO.pvpWins) addStat(HERO.pvpWins, 'vittorie ⚔️');
+  if (streak)       addStat(`${streak}🔥`, 'streak');
+  card.appendChild(stats);
+
+  // Tagline
+  card.appendChild(el('div', 'share-divider-icon', '⚔'));
+  card.appendChild(el('div', 'share-tagline', 'Riesci a battermi?'));
+  card.appendChild(el('div', 'share-tagline-sub', "Sfidami su Hero's Pace"));
+
+  // Bottoni
+  const btns = el('div', 'share-btns');
+  const shareText = `⚔️ ${HERO.name} — Lv ${HERO.level} — ${km} km${pt ? ` · ${pt.label}` : ''}. Riesci a battermi su Hero's Pace?`;
+  const shareUrl  = APP_BASE_URL;
+
+  if (navigator.share) {
+    const shareBtn = el('button', 'btn btn-primary wide', '📤 Condividi');
+    shareBtn.addEventListener('click', () => {
+      navigator.share({ title: "Hero's Pace ⚔️", text: shareText, url: shareUrl }).catch(() => {});
+    });
+    btns.appendChild(shareBtn);
+  }
+
+  const copyBtn = el('button', 'btn wide share-copy-btn', '🔗 Copia link');
+  copyBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(shareText + '\n' + shareUrl).then(() => {
+      copyBtn.textContent = '✅ Copiato!';
+      setTimeout(() => { copyBtn.textContent = '🔗 Copia link'; }, 2000);
+    }).catch(() => {});
+  });
+  btns.appendChild(copyBtn);
+  card.appendChild(btns);
+
+  overlay.appendChild(card);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
 function checkAndNotify() {
   if (!('Notification' in window) || Notification.permission !== 'granted' || !HERO) return;
   const today = new Date(); const todayStr = today.toISOString().slice(0, 10);
   const hour = today.getHours();
   const trainedToday = HERO.log[0] && new Date(HERO.log[0].date).toISOString().slice(0, 10) === todayStr;
   if (!trainedToday && hour >= 17)
-    showNotif('RPGym ⚔️', 'Il Viandante ti aspetta! Non dimenticare l\'allenamento di oggi.', 'train_' + todayStr);
+    showNotif("Hero's Pace ⚔️", 'Il Viandante ti aspetta! Non dimenticare l\'allenamento di oggi.', 'train_' + todayStr);
   if (!trainedToday && hour >= 20 && HERO.streak && HERO.streak.count >= 3)
     showNotif('⚠️ Streak in pericolo!', `Hai una streak di ${HERO.streak.count} giorni — allena prima di mezzanotte!`, 'streak_' + todayStr);
   if (HERO.pet && HERO.pet.hatched && HERO.pet.expedition) {
     const status = RPG.expeditionStatus(HERO);
     if (status && status.ready)
-      showNotif('RPGym 🎒', `${HERO.pet.name} è tornato dalla spedizione con del bottino!`, 'exp_' + HERO.pet.expedition.startedAt);
+      showNotif("Hero's Pace 🎒", `${HERO.pet.name} è tornato dalla spedizione con del bottino!`, 'exp_' + HERO.pet.expedition.startedAt);
   }
 }
 
@@ -4095,7 +4196,7 @@ async function checkPvpNotify() {
     const iWon = ch.winnerId === HERO.id;
     showNotif(
       iWon ? '🏆 Hai vinto la sfida PvP!' : '💀 Sfida PvP terminata',
-      iWon ? 'Apri RPGym per ritirare la tua ricompensa in oro!' : 'Apri RPGym per vedere i risultati finali.',
+      iWon ? "Apri Hero's Pace per ritirare la tua ricompensa in oro!" : "Apri Hero's Pace per vedere i risultati finali.",
       'pvp_result_' + ac.id
     );
   }

@@ -4141,3 +4141,195 @@ body {
   margin: .2rem 0 .4rem;
   opacity: .9;
 }
+
+/* ── Hero Share Card ─────────────────────────────────────────── */
+.hero-share-btn {
+  margin: .9rem 0 .5rem;
+}
+
+.share-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .88);
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  backdrop-filter: blur(4px);
+  animation: fadeIn .2s ease;
+}
+
+.share-card {
+  position: relative;
+  background: #0e0906;
+  border: 1px solid rgba(212, 169, 80, .3);
+  border-radius: 22px;
+  max-width: 340px;
+  width: 100%;
+  padding: 2.2rem 1.75rem 1.75rem;
+  text-align: center;
+  box-shadow:
+    0 0 0 1px rgba(212,169,80,.08),
+    0 0 60px rgba(180, 120, 30, .15),
+    0 24px 64px rgba(0, 0, 0, .7);
+  overflow: hidden;
+}
+
+/* Radial amber glow */
+.share-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 22px;
+  background: radial-gradient(ellipse at 50% 35%, rgba(180,120,30,.14) 0%, transparent 68%);
+  pointer-events: none;
+}
+
+.share-close-btn {
+  position: absolute;
+  top: .75rem;
+  right: .9rem;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 1.1rem;
+  cursor: pointer;
+  line-height: 1;
+  opacity: .6;
+  transition: opacity .15s;
+}
+.share-close-btn:hover { opacity: 1; }
+
+.share-wordmark {
+  font-family: 'Cinzel', serif;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .22em;
+  color: var(--gold);
+  opacity: .8;
+  margin-bottom: .6rem;
+}
+
+.share-ornament-line {
+  width: 60%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212,169,80,.45), transparent);
+  margin: 0 auto .9rem;
+}
+
+.share-avatar-wrap {
+  margin: 0 auto .75rem;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(212,169,80,.18) 0%, transparent 70%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 1px rgba(212,169,80,.2), 0 0 24px rgba(212,169,80,.12);
+}
+
+.share-avatar-emoji {
+  font-size: 2.8rem;
+  line-height: 1;
+}
+
+.share-avatar-img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  border-radius: 50%;
+}
+
+.share-hero-name {
+  font-family: 'Cinzel', serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #f0e8d0;
+  letter-spacing: .04em;
+  text-wrap: balance;
+  margin-bottom: .25rem;
+}
+
+.share-hero-subtitle {
+  font-family: 'Crimson Pro', serif;
+  font-size: .92rem;
+  color: rgba(240,232,208,.55);
+  margin-bottom: .3rem;
+}
+
+.share-pvp-title {
+  font-size: .78rem;
+  color: var(--gold);
+  opacity: .85;
+  margin-bottom: .7rem;
+}
+
+.share-stats {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin: .9rem 0 .6rem;
+  padding: .7rem 0;
+  border-top: 1px solid rgba(212,169,80,.1);
+  border-bottom: 1px solid rgba(212,169,80,.1);
+}
+
+.share-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .1rem;
+}
+
+.share-stat-val {
+  font-family: 'Cinzel', serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+}
+
+.share-stat-lbl {
+  font-size: .64rem;
+  color: rgba(240,232,208,.4);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.share-divider-icon {
+  font-size: 1.1rem;
+  color: rgba(212,169,80,.35);
+  margin: .7rem 0 .5rem;
+  letter-spacing: .1em;
+}
+
+.share-tagline {
+  font-family: 'Cinzel', serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f0e8d0;
+  text-wrap: balance;
+  margin-bottom: .3rem;
+}
+
+.share-tagline-sub {
+  font-family: 'Crimson Pro', serif;
+  font-style: italic;
+  font-size: .88rem;
+  color: rgba(240,232,208,.45);
+  margin-bottom: 1.1rem;
+}
+
+.share-btns {
+  display: flex;
+  flex-direction: column;
+  gap: .55rem;
+}
+
+.share-copy-btn {
+  border-color: rgba(212,169,80,.25);
+  color: rgba(240,232,208,.6);
+  font-size: .85rem;
+}
