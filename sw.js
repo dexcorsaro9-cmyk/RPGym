@@ -1,5 +1,5 @@
 /* RPGym service worker — network-first per aggiornamenti immediati */
-const CACHE = 'rpgym-v116';
+const CACHE = 'rpgym-v117';
 
 /* File solo per fallback offline — NON pre-cachati all'install */
 const OFFLINE_ASSETS = [
@@ -9,6 +9,7 @@ const OFFLINE_ASSETS = [
   'app.js',
   'minigames.js',
   'arena.js',
+  'firebase.js',
   'manifest.webmanifest',
 ];
 

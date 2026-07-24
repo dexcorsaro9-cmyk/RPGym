@@ -3803,3 +3803,207 @@ body {
   font-size: .85rem;
 }
 .lore-unlock-icon { font-size: 1.4rem; flex-shrink: 0; }
+
+/* ══════════════════════════════════════════════
+   Classifica Globale + Sfide PvP (Firebase)
+   ══════════════════════════════════════════════ */
+
+/* Panel header */
+.pvp-panel { margin-top: 1rem; }
+.pvp-panel-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: .6rem;
+}
+.pvp-panel-title {
+  font-family: var(--font-head);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: .03em;
+}
+.pvp-refresh-btn {
+  font-size: .85rem;
+  padding: .2rem .55rem;
+  line-height: 1;
+}
+
+/* ── Classifica ──────────────────────────────── */
+.lb-list { display: flex; flex-direction: column; gap: .25rem; }
+.lb-loading {
+  text-align: center;
+  font-size: .85rem;
+  color: var(--muted);
+  padding: .8rem 0;
+}
+
+.lb-row {
+  display: grid;
+  grid-template-columns: 1.6rem 1.6rem 1fr auto auto;
+  align-items: center;
+  gap: .35rem;
+  padding: .35rem .5rem;
+  border-radius: 8px;
+  font-size: .82rem;
+  transition: background .15s;
+}
+.lb-row:hover { background: rgba(255,255,255,.04); }
+.lb-me {
+  background: rgba(var(--gold-rgb, 212,169,80), .12) !important;
+  border: 1px solid rgba(var(--gold-rgb, 212,169,80), .3);
+}
+.lb-rank {
+  color: var(--muted);
+  font-size: .75rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.lb-avatar { font-size: 1.05rem; text-align: center; }
+.lb-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink);
+}
+.lb-me-tag {
+  display: inline-block;
+  background: var(--gold);
+  color: #2a1a08;
+  font-size: .62rem;
+  font-weight: 700;
+  border-radius: 20px;
+  padding: .05rem .35rem;
+  vertical-align: middle;
+  margin-left: .25rem;
+  line-height: 1.4;
+}
+.lb-lv {
+  font-size: .75rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.lb-km {
+  font-size: .78rem;
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-align: right;
+}
+
+/* ── PvP idle ────────────────────────────────── */
+.pvp-sep {
+  text-align: center;
+  font-size: .78rem;
+  color: var(--muted);
+  margin: .75rem 0 .5rem;
+  position: relative;
+}
+.pvp-sep::before,
+.pvp-sep::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 28%;
+  height: 1px;
+  background: var(--border);
+}
+.pvp-sep::before { left: 0; }
+.pvp-sep::after  { right: 0; }
+
+.pvp-join-row {
+  display: flex;
+  gap: .5rem;
+}
+.pvp-code-input {
+  flex: 1;
+  font-family: var(--font-mono, monospace);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+/* Code display box */
+.pvp-code-box {
+  font-family: var(--font-mono, monospace);
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: .25em;
+  color: var(--gold);
+  text-align: center;
+  padding: .6rem .5rem;
+  margin: .5rem 0;
+  border: 2px dashed rgba(var(--gold-rgb, 212,169,80), .5);
+  border-radius: 10px;
+  background: rgba(var(--gold-rgb, 212,169,80), .06);
+}
+
+/* ── PvP active ──────────────────────────────── */
+.pvp-countdown {
+  font-size: .82rem;
+  color: var(--muted);
+  text-align: center;
+  margin-bottom: .6rem;
+}
+
+.pvp-bar-row {
+  display: grid;
+  grid-template-columns: 1fr 120px auto;
+  align-items: center;
+  gap: .5rem;
+  margin-bottom: .45rem;
+  font-size: .82rem;
+}
+.pvp-bar-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink);
+}
+.pvp-bar-wrap {
+  height: 10px;
+  border-radius: 5px;
+  background: rgba(255,255,255,.1);
+  overflow: hidden;
+}
+.pvp-bar-fill {
+  height: 100%;
+  background: var(--muted);
+  border-radius: 5px;
+  min-width: 4px;
+  transition: width .4s ease;
+}
+.pvp-bar-me { background: var(--gold); }
+.pvp-bar-km {
+  font-size: .78rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* ── PvP result ──────────────────────────────── */
+.pvp-result {
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: .8rem;
+  border-radius: 10px;
+  margin-bottom: .5rem;
+}
+.pvp-win  { background: rgba(100,200,100,.15); color: #4caf50; border: 1px solid rgba(100,200,100,.3); }
+.pvp-loss { background: rgba(200,80,80,.15);  color: #e57373; border: 1px solid rgba(200,80,80,.3); }
+
+.pvp-stats-row {
+  text-align: center;
+  font-size: .85rem;
+  color: var(--muted);
+  margin-bottom: .6rem;
+}
+
+.pvp-abandon {
+  margin-top: .75rem;
+  color: var(--muted);
+  font-size: .78rem;
+  border-color: rgba(200,80,80,.3);
+}
+.pvp-abandon:hover { color: #e57373; border-color: #e57373; }
