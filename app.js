@@ -1650,6 +1650,231 @@ function renderMap(c) {
     MAP_VIEW = 'atlas'; setTab('map');
   });
   c.appendChild(atlasEntry);
+
+  // ── Classifica globale ──
+  c.appendChild(_renderLeaderboardPanel());
+  // ── Sfida PvP ──
+  c.appendChild(_renderPvpPanel());
+}
+
+/* ── Classifica Globale ─────────────────────────────────────── */
+const CLASS_EMOJI = {
+  eroe1:'🧑',eroe2:'👩',fabbro:'⚒️',stregone:'🧙',alchimista:'⚗️',
+  furfante:'🗡️',maga:'🔮',paladino:'🛡️',ranger:'🏹',fata:'🧚',
+  principe:'🦅',principessa:'🦋',regina:'👑',predone:'💀',
+};
+
+function _renderLeaderboardPanel() {
+  const p = el('div', 'panel pvp-panel');
+  const hdr = el('div', 'pvp-panel-hdr');
+  hdr.innerHTML = '<span class="pvp-panel-title">🌍 Classifica Globale</span>';
+  const refreshBtn = el('button', 'btn btn-small pvp-refresh-btn', '↻');
+  refreshBtn.title = 'Aggiorna';
+  hdr.appendChild(refreshBtn);
+  p.appendChild(hdr);
+
+  const list = el('div', 'lb-list');
+  list.innerHTML = '<div class="lb-loading">Caricamento…</div>';
+  p.appendChild(list);
+
+  const load = async () => {
+    refreshBtn.disabled = true;
+    list.innerHTML = '<div class="lb-loading">Caricamento…</div>';
+    const rows = await FB.getLeaderboard(25);
+    if (!rows.length) { list.innerHTML = '<div class="lb-loading muted">Nessun eroe ancora online.</div>'; refreshBtn.disabled = false; return; }
+    list.innerHTML = '';
+    rows.forEach((h, i) => {
+      const isMe = h.id === HERO.id;
+      const row  = el('div', 'lb-row' + (isMe ? ' lb-me' : ''));
+      row.innerHTML =
+        `<span class="lb-rank">${i + 1}</span>` +
+        `<span class="lb-avatar">${CLASS_EMOJI[h.storyId] || '🧑'}</span>` +
+        `<span class="lb-name">${esc(h.name)}${isMe ? ' <span class="lb-me-tag">tu</span>' : ''}</span>` +
+        `<span class="lb-lv">Lv ${h.level || 1}</span>` +
+        `<span class="lb-km">${(h.totalKm || 0).toFixed(1)} km</span>`;
+      list.appendChild(row);
+    });
+    refreshBtn.disabled = false;
+  };
+
+  refreshBtn.addEventListener('click', load);
+  load();
+  return p;
+}
+
+/* ── Sfide PvP ───────────────────────────────────────────────── */
+function _renderPvpPanel() {
+  const p = el('div', 'panel pvp-panel');
+  p.appendChild(el('div', 'pvp-panel-title', '⚔️ Sfida un Amico'));
+
+  const inner = el('div');
+  p.appendChild(inner);
+
+  const refresh = async () => {
+    inner.innerHTML = '<div class="lb-loading">…</div>';
+    const ac = HERO.cloud && HERO.cloud.activeChallenge;
+
+    if (ac) {
+      // Carica dati sfida attiva
+      const ch = await FB.getChallenge(ac.id);
+      if (!ch) {
+        // Sfida non trovata — pulisci
+        HERO.cloud.activeChallenge = null; persist();
+        inner.innerHTML = ''; _buildPvpIdle(inner, refresh); return;
+      }
+      _buildPvpActive(inner, ch, refresh);
+    } else {
+      _buildPvpIdle(inner, refresh);
+    }
+  };
+
+  refresh();
+  return p;
+}
+
+function _buildPvpIdle(container, refresh) {
+  container.innerHTML = '';
+  container.appendChild(el('p', 'muted small', 'Sfida un amico a chi percorre più km in 7 giorni. Chi vince porta a casa oro e gloria.'));
+
+  const createBtn = el('button', 'btn btn-primary wide', '⚔️ Crea una sfida');
+  createBtn.addEventListener('click', async () => {
+    createBtn.disabled = true;
+    createBtn.textContent = 'Creazione…';
+    const code = await FB.createChallenge(HERO);
+    if (!code) { toast('❌ Errore di rete. Riprova.'); createBtn.disabled = false; createBtn.textContent = '⚔️ Crea una sfida'; return; }
+    HERO.cloud.activeChallenge = { id: code, role: 'creator' };
+    persist();
+    modal(`
+      <h3 class="panel-title">⚔️ Sfida Creata!</h3>
+      <p class="muted small">Condividi questo codice con il tuo avversario:</p>
+      <div class="pvp-code-box">${esc(code)}</div>
+      <p class="muted small center">La sfida dura 7 giorni. Chi percorre più km vince.</p>
+      <button class="btn btn-primary wide" id="btn-pvp-copy">📋 Copia codice</button>
+      <button class="btn wide" style="margin-top:.4rem" onclick="closeModal()">Chiudi</button>`);
+    document.getElementById('btn-pvp-copy').addEventListener('click', () => {
+      navigator.clipboard.writeText(code).then(() => toast('✅ Codice copiato!')).catch(() => {});
+    });
+    refresh();
+  });
+  container.appendChild(createBtn);
+
+  const sep = el('div', 'pvp-sep', 'oppure unisciti a una sfida esistente');
+  container.appendChild(sep);
+
+  const row = el('div', 'pvp-join-row');
+  const inp = el('input', 'input pvp-code-input');
+  inp.placeholder = 'Codice (es. AB3K7X)';
+  inp.maxLength = 6;
+  inp.style.textTransform = 'uppercase';
+  const joinBtn = el('button', 'btn', 'Unisciti');
+  joinBtn.addEventListener('click', async () => {
+    const code = inp.value.trim().toUpperCase();
+    if (code.length !== 6) { toast('Il codice deve essere di 6 caratteri.'); return; }
+    joinBtn.disabled = true;
+    joinBtn.textContent = '…';
+    const ch = await FB.getChallenge(code);
+    if (!ch) { toast('❌ Codice non trovato.'); joinBtn.disabled = false; joinBtn.textContent = 'Unisciti'; return; }
+    if (ch.status !== 'waiting') { toast('Questa sfida è già in corso o terminata.'); joinBtn.disabled = false; joinBtn.textContent = 'Unisciti'; return; }
+    if (ch.creatorId === HERO.id) { toast('Non puoi sfidare te stesso!'); joinBtn.disabled = false; joinBtn.textContent = 'Unisciti'; return; }
+    modal(`
+      <h3 class="panel-title">⚔️ Accetta la sfida?</h3>
+      <p><b>${CLASS_EMOJI[ch.creatorStoryId] || '🧑'} ${esc(ch.creatorName)}</b> (Lv ${ch.creatorLevel}) ti sfida a chi percorre più km in 7 giorni.</p>
+      <div class="row gap" style="margin-top:1rem">
+        <button class="btn wide" onclick="closeModal()">Rifiuta</button>
+        <button class="btn btn-primary wide" id="btn-pvp-accept">⚔️ Accetta</button>
+      </div>`);
+    document.getElementById('btn-pvp-accept').addEventListener('click', async () => {
+      const ok = await FB.joinChallenge(code, HERO);
+      if (!ok) { toast('❌ Errore. Riprova.'); closeModal(); return; }
+      HERO.cloud.activeChallenge = { id: code, role: 'opponent' };
+      persist();
+      closeModal();
+      toast('⚔️ Sfida accettata! Che vinca il migliore!');
+      refresh();
+    });
+  });
+  row.appendChild(inp);
+  row.appendChild(joinBtn);
+  container.appendChild(row);
+}
+
+function _buildPvpActive(container, ch, refresh) {
+  container.innerHTML = '';
+  const ac      = HERO.cloud.activeChallenge;
+  const isCreator = ac.role === 'creator';
+  const myKmStart = isCreator ? ch.creatorKmStart : ch.opponentKmStart;
+  const myKmNow   = isCreator ? ch.creatorKmNow   : ch.opponentKmNow;
+  const theirKmStart = isCreator ? ch.opponentKmStart : ch.creatorKmStart;
+  const theirKmNow   = isCreator ? ch.opponentKmNow   : ch.creatorKmNow;
+  const myDelta    = Math.max(0, (myKmNow    || 0) - (myKmStart    || 0));
+  const theirDelta = Math.max(0, (theirKmNow || 0) - (theirKmStart || 0));
+  const myName    = HERO.name;
+  const theirName = isCreator ? (ch.opponentName || '—') : ch.creatorName;
+  const theirStory= isCreator ? (ch.opponentStoryId || 'eroe1') : ch.creatorStoryId;
+  const maxDelta  = Math.max(myDelta, theirDelta, 1);
+  const expired   = new Date() > new Date(ch.endDate + 'T23:59:59');
+  const waiting   = ch.status === 'waiting';
+
+  if (ch.status === 'completed') {
+    const iWon = ch.winnerId === HERO.id;
+    container.appendChild(el('div', 'pvp-result ' + (iWon ? 'pvp-win' : 'pvp-loss'),
+      iWon ? '🏆 Hai vinto la sfida!' : '💀 Hai perso la sfida.'));
+    container.appendChild(el('div', 'pvp-stats-row',
+      `Tu: <b>${myDelta.toFixed(1)} km</b> &nbsp;·&nbsp; ${esc(theirName)}: <b>${theirDelta.toFixed(1)} km</b>`));
+    const closeBtn = el('button', 'btn wide', 'Chiudi sfida');
+    closeBtn.addEventListener('click', async () => {
+      await FB.deleteChallenge(ch.id);
+      HERO.cloud.activeChallenge = null; persist();
+      refresh();
+    });
+    container.appendChild(closeBtn);
+    return;
+  }
+
+  if (waiting) {
+    container.appendChild(el('p', 'muted small', `In attesa che qualcuno usi il codice:`));
+    const codeEl = el('div', 'pvp-code-box', esc(ch.id));
+    container.appendChild(codeEl);
+    const copyBtn = el('button', 'btn btn-small', '📋 Copia');
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(ch.id).then(() => toast('✅ Codice copiato!')).catch(() => {});
+    });
+    container.appendChild(copyBtn);
+  } else {
+    // Barre progresso
+    const endDate = ch.endDate;
+    const daysLeft = Math.max(0, Math.ceil((new Date(endDate + 'T23:59:59') - new Date()) / 86400000));
+    container.appendChild(el('div', 'pvp-countdown', `⏳ ${expired ? 'Terminata' : daysLeft + ' giorni rimasti'}`));
+
+    const mkBar = (name, storyId, delta, isMe) => {
+      const pct = Math.round(delta / maxDelta * 100);
+      const row = el('div', 'pvp-bar-row');
+      row.innerHTML =
+        `<span class="pvp-bar-label">${CLASS_EMOJI[storyId] || '🧑'} ${esc(name)}${isMe ? ' <span class="lb-me-tag">tu</span>' : ''}</span>` +
+        `<div class="pvp-bar-wrap"><div class="pvp-bar-fill${isMe ? ' pvp-bar-me' : ''}" style="width:${pct}%"></div></div>` +
+        `<span class="pvp-bar-km">${delta.toFixed(1)} km</span>`;
+      return row;
+    };
+    container.appendChild(mkBar(myName, HERO.storyId || 'eroe1', myDelta, true));
+    container.appendChild(mkBar(theirName, theirStory, theirDelta, false));
+  }
+
+  const abandonBtn = el('button', 'btn btn-small pvp-abandon', '🏳️ Abbandona sfida');
+  abandonBtn.addEventListener('click', () => {
+    modal(`
+      <h3 class="panel-title">🏳️ Abbandonare?</h3>
+      <p>La sfida verrà eliminata. Stai sicuro?</p>
+      <div class="row gap" style="margin-top:1rem">
+        <button class="btn wide" onclick="closeModal()">Annulla</button>
+        <button class="btn btn-danger wide" id="btn-pvp-abandon-confirm">Abbandona</button>
+      </div>`);
+    document.getElementById('btn-pvp-abandon-confirm').addEventListener('click', async () => {
+      await FB.deleteChallenge(ch.id);
+      HERO.cloud.activeChallenge = null; persist();
+      closeModal(); refresh();
+    });
+  });
+  container.appendChild(abandonBtn);
 }
 
 let MAP_VIEW = 'main';
@@ -1896,6 +2121,8 @@ function renderTrain(c) {
     if (report.error) { modal(`<h3 class="panel-title">⏳ Il Custode del Tempo</h3><p>${report.error}</p>
       <button class="btn btn-primary wide" onclick="closeModal()">Va bene…</button>`); return; }
     persist();
+    FB.syncHero(HERO);
+    FB.updateChallenge(HERO);
     sfx(report.levelsGained.length ? 'level' : 'coin');
     vibrate(report.levelsGained.length ? [80, 40, 80] : 30);
     showReport(report);
