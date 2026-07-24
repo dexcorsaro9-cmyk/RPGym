@@ -978,12 +978,22 @@ body {
 }
 .tab.tab-main::after { display: none; }
 
-/* ── Tab content fade-in ── */
+/* ── Tab content animations ── */
 @keyframes tab-content-in {
   from { opacity: 0; transform: translateY(12px) scale(.985); }
   to   { opacity: 1; transform: translateY(0)    scale(1); }
 }
-#tab-content.tab-in { animation: tab-content-in .22s cubic-bezier(.2,.8,.4,1) both; }
+@keyframes tab-slide-from-right {
+  from { opacity: 0; transform: translateX(48px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes tab-slide-from-left {
+  from { opacity: 0; transform: translateX(-48px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+#tab-content.tab-in          { animation: tab-content-in        .22s cubic-bezier(.2,.8,.4,1) both; }
+#tab-content.tab-slide-left  { animation: tab-slide-from-right  .22s cubic-bezier(.2,.8,.4,1) both; }
+#tab-content.tab-slide-right { animation: tab-slide-from-left   .22s cubic-bezier(.2,.8,.4,1) both; }
 .tab img.tab-icon {
   width: 34px; height: 34px; object-fit: contain;
   filter: drop-shadow(0 2px 3px rgba(0,0,0,.6));
