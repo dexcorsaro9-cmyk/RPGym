@@ -1048,6 +1048,7 @@ const RPG = (() => {
     h.cloud.claimedChallenges = h.cloud.claimedChallenges || [];
     h.cloud.friends = h.cloud.friends || [];
     h.pvpWins = h.pvpWins || 0;
+    if (h.trainTipDismissed === undefined) h.trainTipDismissed = (h.totalKm || 0) > 0;
 
     h.schemaVersion = SCHEMA_VERSION;
     return h;
