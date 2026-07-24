@@ -684,9 +684,11 @@ function renderHUD() {
   const pct = Math.min(100, Math.round(HERO.xp / need * 100));
   $('#hud-xpfill').style.width = pct + '%';
   $('#hud-xptext').textContent = `${HERO.xp} / ${need} XP`;
-  // streak nel titolo
+  // streak + pvp title nel titolo
   const streak = HERO.streak && HERO.streak.count > 1 ? ` · 🔥${HERO.streak.count}` : '';
-  $('#hud-title').textContent = `Liv. ${HERO.level} — ${RPG.heroTitle(HERO.level)}${streak}`;
+  const ptHud = pvpTitle(HERO.pvpWins || 0);
+  const pvpSuffix = ptHud ? ` · ${ptHud.icon} ${ptHud.label}` : '';
+  $('#hud-title').textContent = `Liv. ${HERO.level} — ${RPG.heroTitle(HERO.level)}${streak}${pvpSuffix}`;
   // barra che "esplode" vicino al level-up + prossimo sblocco
   const bar = document.querySelector('.xpbar');
   let next = $('#hud-next');
@@ -1657,6 +1659,15 @@ function renderMap(c) {
   c.appendChild(_renderPvpPanel());
 }
 
+/* ── Titoli PvP ─────────────────────────────────────────────── */
+function pvpTitle(wins) {
+  if (wins >= 10) return { label: 'Leggenda delle Sfide',   icon: '🏆' };
+  if (wins >= 5)  return { label: 'Campione PvP',           icon: '⚔️' };
+  if (wins >= 3)  return { label: 'Combattente di Sfide',   icon: '🥊' };
+  if (wins >= 1)  return { label: 'Duellante',              icon: '🗡️' };
+  return null;
+}
+
 /* ── Classifica Globale ─────────────────────────────────────── */
 const CLASS_EMOJI = {
   eroe1:'🧑',eroe2:'👩',fabbro:'⚒️',stregone:'🧙',alchimista:'⚗️',
@@ -1821,6 +1832,33 @@ function _buildPvpActive(container, ch, refresh) {
       iWon ? '🏆 Hai vinto la sfida!' : '💀 Hai perso la sfida.'));
     container.appendChild(el('div', 'pvp-stats-row',
       `Tu: <b>${myDelta.toFixed(1)} km</b> &nbsp;·&nbsp; ${esc(theirName)}: <b>${theirDelta.toFixed(1)} km</b>`));
+
+    // Ricompensa da ritirare (solo chi ha vinto e non ha ancora riscosso)
+    const claimed = (HERO.cloud.claimedChallenges || []).includes(ch.id);
+    if (iWon && !claimed) {
+      const reward = 150 + (HERO.level || 1) * 10;
+      const claimBtn = el('button', 'btn btn-primary wide pvp-claim-btn', `🎁 Ritira ricompensa: ${reward} 🪙`);
+      claimBtn.addEventListener('click', () => {
+        HERO.gold = (HERO.gold || 0) + reward;
+        HERO.pvpWins = (HERO.pvpWins || 0) + 1;
+        HERO.cloud.claimedChallenges = [...(HERO.cloud.claimedChallenges || []), ch.id];
+        persist(); updateHUD();
+        const pt = pvpTitle(HERO.pvpWins);
+        const titleLine = pt ? `<p class="pvp-new-title">${pt.icon} Nuovo titolo: <b>${pt.label}</b></p>` : '';
+        modal(`
+          <div class="pvp-claim-modal">
+            <div class="pvp-claim-icon">🏆</div>
+            <h3 class="panel-title">Vittoria!</h3>
+            <p class="pvp-claim-gold">+${reward} <span class="pvp-gold-coin">🪙</span></p>
+            ${titleLine}
+            <p class="muted small">Sfide vinte totali: <b>${HERO.pvpWins}</b></p>
+            <button class="btn btn-primary wide" onclick="closeModal()">Grande!</button>
+          </div>`);
+        claimBtn.remove();
+      });
+      container.appendChild(claimBtn);
+    }
+
     const closeBtn = el('button', 'btn wide', 'Chiudi sfida');
     closeBtn.addEventListener('click', async () => {
       await FB.deleteChallenge(ch.id);
@@ -2839,6 +2877,14 @@ function renderHero(c) {
   const talent = RPG.talentOf(HERO);
   if (talent) c.appendChild(el('p', 'center small talent-line',
     `${talent.icon} Talento: <b>${talent.name}</b> — ${talent.desc}`));
+
+  // Titolo PvP
+  const pt = pvpTitle(HERO.pvpWins || 0);
+  if (pt) {
+    const ptEl = el('p', 'center pvp-badge-profile');
+    ptEl.innerHTML = `${pt.icon} <b>${pt.label}</b> · ⚔️ ${HERO.pvpWins} ${HERO.pvpWins === 1 ? 'vittoria' : 'vittorie'}`;
+    c.appendChild(ptEl);
+  }
 
   // Sottomenù
   const sub = el('div', 'hero-submenu');

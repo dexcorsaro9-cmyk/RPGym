@@ -4007,3 +4007,36 @@ body {
   border-color: rgba(200,80,80,.3);
 }
 .pvp-abandon:hover { color: #e57373; border-color: #e57373; }
+
+/* ── PvP claim reward ────────────────────────────────────────── */
+.pvp-claim-btn {
+  margin: .5rem 0;
+  animation: pvp-pulse 1.8s ease-in-out infinite;
+}
+@keyframes pvp-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(var(--gold-rgb,212,169,80),.4); }
+  50%       { box-shadow: 0 0 0 8px rgba(var(--gold-rgb,212,169,80),0); }
+}
+
+.pvp-claim-modal { text-align: center; padding: .5rem 0; }
+.pvp-claim-icon { font-size: 3rem; margin-bottom: .3rem; }
+.pvp-claim-gold {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--gold);
+  margin: .4rem 0;
+}
+.pvp-gold-coin { font-size: 1.6rem; }
+.pvp-new-title {
+  font-size: .9rem;
+  color: var(--gold);
+  margin: .3rem 0 .6rem;
+}
+
+/* ── PvP badge sul profilo eroe ──────────────────────────────── */
+.pvp-badge-profile {
+  font-size: .82rem;
+  color: var(--gold);
+  margin: .2rem 0 .4rem;
+  opacity: .9;
+}
