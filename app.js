@@ -3220,10 +3220,10 @@ function _settingsNotifPanel() {
   }
   const perm = Notification.permission;
   const desc = perm === 'granted'
-    ? 'Le notifiche sono attive. Riceverai un reminder se dimentichi l\'allenamento serale e quando la spedizione del famiglio è pronta.'
+    ? 'Le notifiche sono attive. Riceverai reminder per l\'allenamento serale, streak in pericolo, spedizioni del famiglio e aggiornamenti sulle sfide PvP.'
     : perm === 'denied'
     ? 'Le notifiche sono bloccate dal browser. Riabilitale nelle impostazioni del sito.'
-    : 'Abilita le notifiche per ricevere un reminder serale e avvisi sulla spedizione del famiglio.';
+    : 'Abilita le notifiche per ricevere reminder sull\'allenamento, streak, famiglio e sfide PvP — anche con l\'app chiusa.';
   p.appendChild(el('p', 'guide-text', desc));
   if (perm === 'default') {
     const btn = el('button', 'btn btn-primary', '🔔 Abilita notifiche');
@@ -3852,13 +3852,27 @@ function nextOpening() {
 async function setupNotifications() {
   if (!('Notification' in window) || !HERO) return;
   checkAndNotify();
+  checkPvpNotify();
   if (Notification.permission === 'default' && !HERO.notifAsked) {
     setTimeout(async () => {
       const perm = await Notification.requestPermission();
       HERO.notifAsked = true; persist();
-      if (perm === 'granted') checkAndNotify();
+      if (perm === 'granted') { checkAndNotify(); checkPvpNotify(); }
     }, 4000);
   }
+}
+
+/* Mostra una notifica tramite service worker (funziona in background su mobile) */
+async function showNotif(title, body, tag, data) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  if (localStorage.getItem('notif_shown_' + tag)) return;
+  localStorage.setItem('notif_shown_' + tag, '1');
+  const opts = { body, icon: 'assets/icons/icon.svg', badge: 'assets/icons/icon.svg', tag, data: data || {} };
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (reg) { reg.showNotification(title, opts); return; }
+  } catch {}
+  new Notification(title, opts);
 }
 
 function checkAndNotify() {
@@ -3866,29 +3880,46 @@ function checkAndNotify() {
   const today = new Date(); const todayStr = today.toISOString().slice(0, 10);
   const hour = today.getHours();
   const trainedToday = HERO.log[0] && new Date(HERO.log[0].date).toISOString().slice(0, 10) === todayStr;
-  if (!trainedToday && hour >= 17) {
-    const key = 'rpgym_notif_train_' + todayStr;
-    if (!localStorage.getItem(key)) {
-      localStorage.setItem(key, '1');
-      new Notification('RPGym ⚔️', { body: 'Il Viandante ti aspetta! Non dimenticare l\'allenamento di oggi.', icon: 'assets/icons/icon.svg' });
-    }
-  }
-  if (!trainedToday && hour >= 20 && HERO.streak && HERO.streak.count >= 3) {
-    const key = 'rpgym_notif_streak_' + todayStr;
-    if (!localStorage.getItem(key)) {
-      localStorage.setItem(key, '1');
-      new Notification('⚠️ Streak in pericolo!', { body: `Hai una streak di ${HERO.streak.count} giorni — allena prima di mezzanotte per non perderla!`, icon: 'assets/icons/icon.svg' });
-    }
-  }
+  if (!trainedToday && hour >= 17)
+    showNotif('RPGym ⚔️', 'Il Viandante ti aspetta! Non dimenticare l\'allenamento di oggi.', 'train_' + todayStr);
+  if (!trainedToday && hour >= 20 && HERO.streak && HERO.streak.count >= 3)
+    showNotif('⚠️ Streak in pericolo!', `Hai una streak di ${HERO.streak.count} giorni — allena prima di mezzanotte!`, 'streak_' + todayStr);
   if (HERO.pet && HERO.pet.hatched && HERO.pet.expedition) {
     const status = RPG.expeditionStatus(HERO);
-    if (status && status.ready) {
-      const key = 'rpgym_notif_exp_' + HERO.pet.expedition.startedAt;
-      if (!localStorage.getItem(key)) {
-        localStorage.setItem(key, '1');
-        new Notification('RPGym 🎒', { body: `${esc(HERO.pet.name)} è tornato dalla spedizione con del bottino!`, icon: 'assets/icons/icon.svg' });
-      }
-    }
+    if (status && status.ready)
+      showNotif('RPGym 🎒', `${HERO.pet.name} è tornato dalla spedizione con del bottino!`, 'exp_' + HERO.pet.expedition.startedAt);
+  }
+}
+
+/* Controlla le sfide PvP su Firestore e notifica cambi di stato */
+async function checkPvpNotify() {
+  if (!('Notification' in window) || Notification.permission !== 'granted' || !HERO) return;
+  const ac = HERO.cloud && HERO.cloud.activeChallenge;
+  if (!ac) return;
+  const ch = await FB.getChallenge(ac.id);
+  if (!ch) return;
+
+  // Avversario si è unito
+  if (ch.status === 'active' && ch.opponentName) {
+    const key = 'pvp_joined_' + ac.id;
+    const theirName = ac.role === 'creator' ? ch.opponentName : ch.creatorName;
+    showNotif('⚔️ La sfida è iniziata!', `${theirName} ha accettato la tua sfida. Che vinca il migliore!`, key);
+  }
+
+  // Scade oggi
+  const today = new Date().toISOString().slice(0, 10);
+  if (ch.status === 'active' && ch.endDate === today) {
+    showNotif('⏳ Ultimo giorno di sfida!', 'La sfida PvP scade oggi — dai tutto quello che hai!', 'pvp_lastday_' + ac.id);
+  }
+
+  // Terminata — notifica risultato
+  if (ch.status === 'completed') {
+    const iWon = ch.winnerId === HERO.id;
+    showNotif(
+      iWon ? '🏆 Hai vinto la sfida PvP!' : '💀 Sfida PvP terminata',
+      iWon ? 'Apri RPGym per ritirare la tua ricompensa in oro!' : 'Apri RPGym per vedere i risultati finali.',
+      'pvp_result_' + ac.id
+    );
   }
 }
 
