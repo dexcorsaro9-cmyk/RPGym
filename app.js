@@ -3108,7 +3108,7 @@ function renderDiaryView(c) {
       const cell = el('div', 'cal-cell' + (d === now.getDate() ? ' cal-today' : ''));
       cell.dataset.i = intensity;
       cell.title = `${d} ${MONTH_IT[mo]}: ${km > 0 ? km.toFixed(1) + ' km' : 'riposo'}`;
-      cell.textContent = d;
+      cell.innerHTML = `<span class="cal-day-num">${d}</span>${km > 0 ? `<span class="cal-day-km">${km.toFixed(1)}</span>` : ''}`;
       calGrid.appendChild(cell);
     }
     calPanel.appendChild(calGrid);
@@ -3123,7 +3123,7 @@ function renderDiaryView(c) {
       const end = new Date(ref); end.setDate(end.getDate()+7);
       const km = HERO.log.filter(l => { const d=new Date(l.date); return d>=ref && d<end; }).reduce((s,l)=>s+l.km,0);
       weeklyTotals.push(+km.toFixed(1));
-      weekLabels.push(w===0?'Questa':(`-${w}s`));
+      weekLabels.push(w===0?'Questa':`${ref.getDate()}/${ref.getMonth()+1}`);
     }
     const chartPanel = el('div', 'panel km-heatmap-wrap');
     chartPanel.appendChild(el('h3', 'panel-title', '📈 Km · Ultime 8 Settimane'));
@@ -3163,9 +3163,34 @@ function renderDiaryView(c) {
       });
     });
 
-    const today = new Date();
+    const today = new Date(); today.setHours(0,0,0,0);
+    const MONTHS_SHORT = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
     const hmWrap = el('div', 'panel km-heatmap-wrap');
     hmWrap.appendChild(el('h3', 'panel-title', '🌙 Attività degli Ultimi 3 Mesi'));
+
+    // Calculate month label per week column (12 columns of 7 days)
+    const weekMonthLabel = new Array(12).fill('');
+    let prevHmMonth = -1;
+    for (let i = 83; i >= 0; i--) {
+      const d = new Date(today); d.setDate(d.getDate() - i);
+      const col = Math.floor((83 - i) / 7);
+      if (d.getMonth() !== prevHmMonth) { weekMonthLabel[col] = MONTHS_SHORT[d.getMonth()]; prevHmMonth = d.getMonth(); }
+    }
+
+    // Outer wrapper: day-labels column + right area
+    const hmOuter = el('div', 'hm-outer');
+
+    // Day labels (L M M G V S D) — show only alternate ones to save space
+    const dayCol = el('div', 'hm-daylabels');
+    ['L','','M','','V','','D'].forEach(d => dayCol.appendChild(el('div', 'hm-daylabel', d)));
+    hmOuter.appendChild(dayCol);
+
+    // Right: month row + grid
+    const hmRight = el('div', 'hm-right');
+    const monthRow = el('div', 'hm-month-row');
+    weekMonthLabel.forEach(lbl => monthRow.appendChild(el('div', 'hm-month-cell', lbl)));
+    hmRight.appendChild(monthRow);
+
     const hm = el('div', 'km-heatmap');
     for (let i = 83; i >= 0; i--) {
       const d = new Date(today); d.setDate(d.getDate() - i);
@@ -3177,8 +3202,13 @@ function renderDiaryView(c) {
       cell.title = `${d.toLocaleDateString('it-IT')}: ${km > 0 ? km.toFixed(1) + ' km' : 'riposo'}`;
       hm.appendChild(cell);
     }
-    hmWrap.appendChild(hm);
-    hmWrap.innerHTML += `<div class="hm-legend">Meno <div class="hm-legend-cell" style="background:rgba(255,255,255,.08)"></div><div class="hm-legend-cell" data-i="1" style="background:rgba(46,139,87,.3)"></div><div class="hm-legend-cell" data-i="2" style="background:rgba(46,139,87,.55)"></div><div class="hm-legend-cell" data-i="3" style="background:rgba(46,139,87,.82)"></div><div class="hm-legend-cell" data-i="4" style="background:var(--gold-bright)"></div> Più</div>`;
+    hmRight.appendChild(hm);
+    hmOuter.appendChild(hmRight);
+    hmWrap.appendChild(hmOuter);
+
+    const legend = el('div', 'hm-legend');
+    legend.innerHTML = `Meno <div class="hm-legend-cell" style="background:rgba(255,255,255,.08)"></div><div class="hm-legend-cell" data-i="1"></div><div class="hm-legend-cell" data-i="2"></div><div class="hm-legend-cell" data-i="3"></div><div class="hm-legend-cell" data-i="4"></div> Più &nbsp;<span class="hm-legend-scale">(&lt;2 · &lt;5 · &lt;10 · 10+ km)</span>`;
+    hmWrap.appendChild(legend);
     c.appendChild(hmWrap);
   }
 
