@@ -870,10 +870,10 @@ const RPG = (() => {
 
   /* ── Bestiario ────────────────────────────────────────────── */
   const BESTIARY = [
-    { id: 'goblin',              name: 'Goblin Sciacallo',      zone: 'Rovine di Oakhaven',
+    { id: 'goblin-del-focolare', name: 'Goblin del Focolare',   zone: 'Rovine di Oakhaven',
       weakness: 'Fuoco', lore: 'Fruga tra le macerie in cerca di bottini. Odia chi arriva prima di lui.' },
-    { id: 'slime',               name: 'Slime della Palude',    zone: 'Rovine di Oakhaven',
-      weakness: 'Fulmine', lore: 'Gelatinoso e dispettoso: si infila negli stivali degli avventurieri.' },
+    { id: 'slime-con-il-gilet', name: 'Slime con il Gilet',    zone: 'Rovine di Oakhaven',
+      weakness: 'Fulmine', lore: 'Gelatinoso e dispettoso: si infila negli stivali degli avventurieri. Il gilet è elegante, l\'igiene no.' },
     { id: 'pipistrello',         name: 'Pipistrello Paffuto',   zone: 'Rovine di Oakhaven',
       weakness: 'Luce', lore: 'Troppo grasso per volare in alto. Perfetto per gli agguati bassi.' },
     { id: 'scheletro-arciere',   name: 'Scheletro Arciere',     zone: 'Rovine di Oakhaven',
