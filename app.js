@@ -761,15 +761,15 @@ document.addEventListener('touchend', e => {
   if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
   if (document.getElementById('modal').classList.contains('hidden') === false) return;
   const idx = _TAB_ORDER.indexOf(CURRENT_TAB);
-  if (dx < 0 && idx < _TAB_ORDER.length - 1) setTab(_TAB_ORDER[idx + 1]);
-  if (dx > 0 && idx > 0) setTab(_TAB_ORDER[idx - 1]);
+  if (dx < 0 && idx < _TAB_ORDER.length - 1) setTab(_TAB_ORDER[idx + 1], 'left');
+  if (dx > 0 && idx > 0) setTab(_TAB_ORDER[idx - 1], 'right');
 }, { passive: true });
 
 
 // Tocco sulle risorse dell'header → popup dettaglio
 document.querySelector('.hud-right').addEventListener('click', () => { if (HERO) showResources(); });
 
-function setTab(tab) {
+function setTab(tab, dir) {
   CURRENT_TAB = tab;
   document.querySelectorAll('#tabbar .tab').forEach(t =>
     t.classList.toggle('active', t.dataset.tab === tab));
@@ -780,11 +780,15 @@ function setTab(tab) {
   if (tab === 'map')    c.classList.add('bg-map');
   if (tab === 'train')  c.classList.add('bg-train');
   if (tab === 'market') c.classList.add('bg-market');
-  c.classList.remove('tab-in');
+  c.classList.remove('tab-in', 'tab-slide-left', 'tab-slide-right');
   c.innerHTML = '';
   ({ camp: renderCamp, map: renderMap, train: renderTrain, market: renderMarket, hero: renderHero }[tab])(c);
   c.scrollTop = 0;
-  requestAnimationFrame(() => c.classList.add('tab-in'));
+  requestAnimationFrame(() => {
+    if (dir === 'left')       c.classList.add('tab-slide-left');
+    else if (dir === 'right') c.classList.add('tab-slide-right');
+    else                      c.classList.add('tab-in');
+  });
   updateBadges();
 }
 
