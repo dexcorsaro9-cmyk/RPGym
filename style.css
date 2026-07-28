@@ -4869,11 +4869,31 @@ body {
   margin-bottom: 14px;
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 10px 12px;
 }
-.serra-hero-banner::after {
+.serra-hero-banner::before {
   content: '';
   position: absolute; inset: 0;
-  background: linear-gradient(to bottom, transparent 40%, var(--bg) 100%);
+  background: linear-gradient(135deg, rgba(0,0,0,.55) 0%, rgba(0,0,0,.25) 100%);
+  border-radius: 12px;
+  pointer-events: none;
+}
+.serra-back-btn {
+  position: relative; z-index: 1;
+  background: rgba(0,0,0,.55) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,.3) !important;
+  backdrop-filter: blur(4px);
+  align-self: flex-start;
+}
+.serra-banner-title {
+  position: relative; z-index: 1;
+  color: #fff !important;
+  text-shadow: 0 1px 6px rgba(0,0,0,.8);
+  margin: 0;
 }
 
 /* ── NPC Messer Ortica ────────────────────────────────────────────────────── */

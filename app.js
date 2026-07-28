@@ -4665,13 +4665,15 @@ function msToMidnight() {
 }
 /* ── La Serra del Viandante ─────────────────────────────────────────────── */
 function renderSerraView(c) {
-  const backBtn = el('button', 'btn btn-small', '↩ Torna al Rifugio');
-  backBtn.addEventListener('click', () => { CAMP_VIEW = 'main'; setTab('camp'); });
-  c.appendChild(backBtn);
-  c.appendChild(el('h2', 'section-title', '🌿 La Serra del Viandante'));
-
   const serraBanner = el('div', 'serra-hero-banner');
   c.appendChild(serraBanner);
+
+  const backBtn = el('button', 'btn btn-small serra-back-btn', '↩ Torna al Rifugio');
+  backBtn.addEventListener('click', () => { CAMP_VIEW = 'main'; setTab('camp'); });
+  serraBanner.appendChild(backBtn);
+
+  const serraTitle = el('h2', 'section-title serra-banner-title', '🌿 La Serra del Viandante');
+  serraBanner.appendChild(serraTitle);
 
   // NPC Messer Ortica — prima visita
   if (!HERO.greenhouse.metNpc) {
