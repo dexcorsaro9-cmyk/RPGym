@@ -4731,3 +4731,61 @@ body {
   min-height: 1.1rem; color: var(--ink);
 }
 .mgd-hint-err { color: #e07070 !important; opacity: 1 !important; }
+
+/* ── Pesca nel Fossato ──────────────────────────────────────────────────── */
+.mgp-wrap {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 12px 10px 10px;
+  min-height: 420px;
+}
+.mgp-arena {
+  display: flex; justify-content: center; align-items: stretch;
+  gap: 14px; flex: 1;
+  min-height: 260px;
+}
+.mgp-bar-col {
+  position: relative;
+  width: 58px; flex-shrink: 0;
+  background: rgba(0,0,0,.5);
+  border-radius: 29px;
+  border: 2px solid #1a2a3a;
+  overflow: hidden;
+  box-shadow: inset 0 0 18px rgba(0,0,0,.8);
+}
+.mgp-zone {
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 90px;
+  background: rgba(76,175,80,.3);
+  border: 3px solid #4caf50;
+  border-radius: 14px;
+  box-shadow: 0 0 14px rgba(76,175,80,.5) inset;
+  will-change: transform;
+  transition: background .1s, box-shadow .1s;
+}
+.mgp-zone.mgp-zone-active {
+  background: rgba(255,152,0,.5);
+  border-color: #ffeb3b;
+  box-shadow: 0 0 20px rgba(255,235,59,.8) inset;
+}
+.mgp-fish {
+  position: absolute; top: 0; left: 7px;
+  width: 44px; height: 44px;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 5px rgba(0,0,0,.8));
+  will-change: transform; z-index: 10;
+}
+.mgp-prog-col {
+  position: relative;
+  width: 22px; flex-shrink: 0;
+  background: rgba(0,0,0,.6);
+  border: 2px solid rgba(168,213,255,.5);
+  border-radius: 11px;
+  overflow: hidden;
+}
+.mgp-prog-fill {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 0%;
+  background: linear-gradient(to top, #f44336, #ffeb3b, #4caf50);
+  transition: height .1s linear;
+}
+.mgp-shake { animation: shake-anim .4s cubic-bezier(.36,.07,.19,.97) both; }
