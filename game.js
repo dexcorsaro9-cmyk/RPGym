@@ -1352,6 +1352,7 @@ const RPG = (() => {
     h.cloud.friends = h.cloud.friends || [];
     h.pvpWins = h.pvpWins || 0;
     if (h.trainTipDismissed === undefined) h.trainTipDismissed = (h.totalKm || 0) > 0;
+    h.mappaInfuocata = h.mappaInfuocata || null;
 
     h.schemaVersion = SCHEMA_VERSION;
     return h;
@@ -1468,10 +1469,12 @@ const RPG = (() => {
     let missed = null;
     if (hero.incursion && hero.incursion.date !== today) {
       if (!hero.incursion.done && hero.incursion.progressKm > 0) {
+        const lostItem = genItemFor(hero, hero.incursion.minRarity);
         missed = {
           name: hero.incursion.name,
           kmMissing: Math.max(0.1, hero.incursion.km - hero.incursion.progressKm).toFixed(1),
           minRarity: hero.incursion.minRarity,
+          lostItem,
         };
       }
       hero.incursion = null;
@@ -1481,6 +1484,55 @@ const RPG = (() => {
       hero.incursion = { ...inc, progressKm: 0, done: false };
     }
     return missed;
+  }
+
+  /* ── Mappa Infuocata ───────────────────────────────────────── */
+  // Tiers: degrada dal migliore al peggiore col passare del tempo
+  const MI_TIERS = [
+    { maxMs:  4 * 3600000, rarity: 'leggendario', label: 'Leggendario', color: '#d9822b' },
+    { maxMs:  8 * 3600000, rarity: 'epico',       label: 'Epico',       color: '#7b3fbf' },
+    { maxMs: 16 * 3600000, rarity: 'raro',        label: 'Raro',        color: '#2e6fb0' },
+    { maxMs: 24 * 3600000, rarity: 'comune',      label: 'Comune',      color: '#8a7a5f' },
+  ];
+
+  function rolloverMappaInfuocata(hero) {
+    const ws = weekStamp();
+    if (!hero.mappaInfuocata || hero.mappaInfuocata.week !== ws) {
+      hero.mappaInfuocata = { week: ws, status: 'offered', activatedAt: null, kmDone: 0 };
+    } else if (hero.mappaInfuocata.status === 'active') {
+      const elapsed = Date.now() - hero.mappaInfuocata.activatedAt;
+      if (elapsed > 86400000) hero.mappaInfuocata.status = 'burned';
+    }
+  }
+
+  function mappaInfuocataStatus(hero) {
+    const mi = hero.mappaInfuocata;
+    if (!mi) return null;
+    if (mi.status !== 'active') return { ...mi, tier: null, msLeft: 0 };
+    const elapsed = Date.now() - mi.activatedAt;
+    const msLeft = Math.max(0, 86400000 - elapsed);
+    const tier = MI_TIERS.find(t => elapsed < t.maxMs) || MI_TIERS[MI_TIERS.length - 1];
+    return { ...mi, tier, msLeft, elapsed };
+  }
+
+  function activateMappaInfuocata(hero) {
+    if (!hero.mappaInfuocata || hero.mappaInfuocata.status !== 'offered') return false;
+    hero.mappaInfuocata.status = 'active';
+    hero.mappaInfuocata.activatedAt = Date.now();
+    hero.mappaInfuocata.kmDone = 0;
+    return true;
+  }
+
+  function claimMappaInfuocata(hero) {
+    const mi = hero.mappaInfuocata;
+    if (!mi || mi.status !== 'ready') return null;
+    const elapsed = Date.now() - mi.activatedAt;
+    const tier = MI_TIERS.find(t => elapsed < t.maxMs) || MI_TIERS[MI_TIERS.length - 1];
+    const item = genItemFor(hero, tier.rarity);
+    hero.items.push(item);
+    hero.gold += 50;
+    mi.status = 'claimed';
+    return { item, gold: 50, tier };
   }
 
   /* ── Streak freeze ─────────────────────────────────────────── */
@@ -1773,6 +1825,22 @@ const RPG = (() => {
           done: hero.incursion.progressKm,
           km: hero.incursion.km,
         };
+      }
+    }
+
+    // Mappa Infuocata
+    if (hero.mappaInfuocata && hero.mappaInfuocata.status === 'active') {
+      const elapsed = Date.now() - hero.mappaInfuocata.activatedAt;
+      if (elapsed > 86400000) {
+        hero.mappaInfuocata.status = 'burned';
+      } else {
+        hero.mappaInfuocata.kmDone = Math.min(10, (hero.mappaInfuocata.kmDone || 0) + km);
+        if (hero.mappaInfuocata.kmDone >= 10) {
+          hero.mappaInfuocata.status = 'ready';
+          report.mappaInfuocataReady = true;
+        } else {
+          report.mappaInfuocataProgress = { kmDone: hero.mappaInfuocata.kmDone };
+        }
       }
     }
 
@@ -3544,6 +3612,7 @@ const RPG = (() => {
     equipItem, unequipSlot,
     dailyLogin, rolloverIncursion,
     restoreStreak,
+    MI_TIERS, rolloverMappaInfuocata, mappaInfuocataStatus, activateMappaInfuocata, claimMappaInfuocata,
     daysSinceLastWorkout, checkBuildingDamage, repairBuildings,
     rolloverFugitiveMerchant, getFugitiveMerchant, todayKm, buyFromFugitiveMerchant,
     PET_PERSONALITIES, PET_FOODS, PET_ACCESSORIES, PET_SPECIES,

@@ -518,6 +518,8 @@ function enterGame() {
   RPG.checkBuildingDamage(HERO);
   // Mercante Fuggiasco (aggiorna giornalmente)
   RPG.rolloverFugitiveMerchant(HERO);
+  // Mappa Infuocata (aggiorna settimanalmente)
+  RPG.rolloverMappaInfuocata(HERO);
   // Salva streak prima del login giornaliero (per rilevare rottura)
   const preStreakCount = HERO.streak.count;
   // Tesoro Giornaliero
@@ -539,17 +541,28 @@ function enterGame() {
 
   // Sync passi: disponibile inline nel tab Allenati (non più popup automatico)
   if (missed) {
-    const rarInfo = missed.minRarity ? RPG.RARITIES[missed.minRarity] : null;
-    const rarChip = rarInfo ? `<div class="near-miss-rarity rar-chip-${missed.minRarity}">${rarInfo.label} o superiore</div>` : '';
+    const it = missed.lostItem;
+    const rarInfo = it ? RPG.RARITIES[it.rarity] : (missed.minRarity ? RPG.RARITIES[missed.minRarity] : null);
+    const rarKey = it ? it.rarity : missed.minRarity;
+    const itemImg = it ? RPG.itemImg(it) : null;
+    const itemVisual = it
+      ? (itemImg
+          ? `<img class="nm-item-img" src="${itemImg}" alt="" onerror="this.outerHTML='<span class=nm-item-emoji>${it.icon}</span>'">`
+          : `<span class="nm-item-emoji">${it.icon}</span>`)
+      : `<span class="nm-item-emoji">🎁</span>`;
+    const itemName = it ? esc(it.name) : esc(missed.name);
+    const rarLabel = rarInfo ? rarInfo.label : '';
     OPEN_QUEUE.push(() => modal(`
-      <h3 class="panel-title">💨 Il Forziere Svanito…</h3>
-      <div class="lost-chest-wrap">
-        <div class="lost-chest">🎁</div>
-        ${rarChip}
+      <h3 class="panel-title">💨 Bottino Perduto…</h3>
+      <div class="nm-item-wrap">
+        <div class="nm-item-veil rar-${rarKey}">
+          ${itemVisual}
+        </div>
+        ${rarInfo ? `<div class="nm-rarity-chip rar-chip-${rarKey}">${rarLabel}</div>` : ''}
       </div>
-      <p class="center"><b>${esc(missed.name)}</b></p>
-      <p class="muted center">Hai mancato il forziere per soli <b>${missed.kmMissing} km</b>! L'occasione è svanita all'alba…</p>
-      <button class="btn btn-primary wide" onclick="nextOpening()">Non succederà più!</button>`));
+      <p class="center nm-item-name"><b>${itemName}</b></p>
+      <p class="muted center nm-miss-text">Ha portato con sé questo oggetto. Ti mancavano solo <b>${missed.kmMissing} km</b> per reclamarlo!</p>
+      <button class="btn btn-primary wide" onclick="nextOpening()">Domani non scapperà!</button>`));
   }
   if (streakBroke) OPEN_QUEUE.push(() => showStreakFreezeOffer(preStreakCount));
   if (HERO.buildingsDamaged && HERO.buildings.length) OPEN_QUEUE.push(showBuildingDamageAlert);
@@ -1788,17 +1801,25 @@ function renderMap(c) {
 
   // ── Taglia Unica settimanale (compatta) ──
   const ev = RPG.weeklyEvent(STATE);
-  const evp = el('div', 'panel event-panel');
+  const evMsLeft = msToWeekEnd();
+  const evUrgent = evMsLeft < 86400000; // meno di 24 ore
+  const evp = el('div', 'panel event-panel' + (evUrgent && !ev.claimedBy ? ' event-panel-urgent' : ''));
+  if (evUrgent && !ev.claimedBy) {
+    const urgLabel = el('div', 'event-urgency-banner');
+    urgLabel.innerHTML = `⚠️ SCADE FRA <span data-cd="week">…</span> — MAI PIÙ OTTENIBILE!`;
+    evp.appendChild(urgLabel);
+  }
   evp.appendChild(el('h3', 'panel-title', `${ev.icon} Taglia: ${ev.name}`));
   if (ev.claimedBy) {
     evp.appendChild(el('p', 'muted small', ev.claimedBy === HERO.name
       ? `🏆 Reclamata da TE! Ricompensa: ${ev.skin}`
       : `⛔ <b>${esc(ev.claimedBy)}</b> è arrivato prima di te questa settimana.`));
   } else {
+    const cdClass = evUrgent ? 'cd-critical' : 'cd-hot';
     evp.appendChild(el('p', 'muted small',
       `Primo allenamento singolo da <b>${ev.km} km</b> della settimana vince: <b>${ev.skin}</b>.<br>` +
-      `<b class="cd-hot"><span data-cd="week">…</span> alla fine dell'evento</b>`));
-    const btn = el('button', 'btn wide btn-small', `Reclama la Taglia`);
+      `<b class="${cdClass}">⏳ <span data-cd="week">…</span> alla fine dell'evento</b>`));
+    const btn = el('button', 'btn wide btn-small', `🏆 Reclama la Taglia`);
     btn.addEventListener('click', () => {
       const last = HERO.log[0];
       const today = new Date().toISOString().slice(0, 10);
@@ -1815,6 +1836,9 @@ function renderMap(c) {
     evp.appendChild(btn);
   }
   c.appendChild(evp);
+
+  // ── Mappa Infuocata ──
+  _renderMappaInfuocata(c);
 
   // ── Atlante: pulsante di accesso alla subview ──
   const atlasEntry = el('div', 'panel atlas-entry-panel');
@@ -1838,6 +1862,98 @@ function renderMap(c) {
   c.appendChild(_renderRivalsPanel());
   // ── Sfida PvP ──
   c.appendChild(_renderPvpPanel());
+}
+
+/* ── Mappa Infuocata ─────────────────────────────────────────── */
+function _renderMappaInfuocata(c) {
+  const info = RPG.mappaInfuocataStatus(HERO);
+  if (!info) return;
+
+  const panel = el('div', 'panel mi-panel');
+
+  if (info.status === 'offered') {
+    panel.innerHTML = `
+      <h3 class="panel-title">🗺️ Mappa Infuocata</h3>
+      <p class="muted small">Una mappa segreta è disponibile questa settimana. Attivala e corri <b>10 km in 24 ore</b> per reclamare un bottino leggendario — ma la rarità cala con il passare del tempo!</p>
+      <div class="mi-tiers-preview">
+        <span class="mi-tier-dot" style="color:#d9822b">★ Leggendario</span> &lt;4h ·
+        <span class="mi-tier-dot" style="color:#7b3fbf">★ Epico</span> &lt;8h ·
+        <span class="mi-tier-dot" style="color:#2e6fb0">★ Raro</span> &lt;16h ·
+        <span class="mi-tier-dot" style="color:#8a7a5f">★ Comune</span> &lt;24h
+      </div>`;
+    const btn = el('button', 'btn btn-primary wide mi-activate-btn', '🔥 Accendi la Mappa!');
+    btn.addEventListener('click', () => {
+      if (RPG.activateMappaInfuocata(HERO)) {
+        persist();
+        toast('🗺️ Mappa Infuocata attivata! Hai 24 ore per percorrere 10 km!');
+        setTab('map');
+      }
+    });
+    panel.appendChild(btn);
+
+  } else if (info.status === 'active') {
+    const pct = Math.min(100, Math.round((info.kmDone / 10) * 100));
+    const hoursLeft = Math.floor(info.msLeft / 3600000);
+    const tier = info.tier;
+    const tierColor = tier ? tier.color : '#8a7a5f';
+    const tierLabel = tier ? tier.label : 'Comune';
+    panel.innerHTML = `
+      <h3 class="panel-title">🗺️ Mappa Infuocata</h3>
+      <div class="mi-status-row">
+        <span class="mi-current-tier" style="color:${tierColor}">★ ${tierLabel}</span>
+        <span class="mi-time-left" data-mi-cd>⏳ <span data-cd="mi">…</span></span>
+      </div>
+      <div class="mi-km-bar-wrap">
+        <div class="mi-km-bar" style="width:${pct}%"></div>
+      </div>
+      <div class="mi-km-text">${info.kmDone.toFixed(1)} / 10 km — ${pct}%</div>
+      <p class="muted small center">Più veloce arrivi a 10 km, più rara sarà la ricompensa!</p>`;
+
+  } else if (info.status === 'ready') {
+    const elapsed = Date.now() - info.activatedAt;
+    const tier = RPG.MI_TIERS.find(t => elapsed < t.maxMs) || RPG.MI_TIERS[RPG.MI_TIERS.length - 1];
+    panel.innerHTML = `
+      <h3 class="panel-title">🗺️ Mappa Infuocata</h3>
+      <p class="center" style="font-size:2rem">🎉</p>
+      <p class="center"><b>10 km completati!</b></p>
+      <p class="center muted small">Il tuo bottino: <b style="color:${tier.color}">★ ${tier.label}</b></p>`;
+    const btn = el('button', 'btn btn-primary wide', '🎁 Reclama il Bottino!');
+    btn.addEventListener('click', () => {
+      const result = RPG.claimMappaInfuocata(HERO);
+      if (result) {
+        persist();
+        modal(`
+          <h3 class="panel-title">🗺️ Bottino della Mappa!</h3>
+          <div class="mi-claim-reward">
+            <div class="loot rar-${result.item.rarity} loot-with-img">
+              ${itemIconHtml(result.item, 'item-icon-big')}
+              <div class="loot-body">
+                <div class="loot-head"><b>${esc(result.item.name)}</b> <span class="tag">${RPG.RARITIES[result.item.rarity].label}</span></div>
+                <div class="small muted">${result.item.desc}</div>
+              </div>
+            </div>
+          </div>
+          <p class="muted center small">+ 🪙 ${result.gold} oro bonus!</p>
+          <button class="btn btn-primary wide" onclick="closeModal();renderHUD();">Fantastico!</button>`);
+        setTab('map');
+      }
+    });
+    panel.appendChild(btn);
+
+  } else if (info.status === 'burned') {
+    panel.innerHTML = `
+      <h3 class="panel-title">🗺️ Mappa Infuocata</h3>
+      <p class="center muted">⏰ Il tempo è scaduto. La mappa si è consumata senza lasciare traccia…</p>
+      <p class="muted small center">La prossima Mappa Infuocata apparirà la settimana prossima.</p>`;
+
+  } else if (info.status === 'claimed') {
+    panel.innerHTML = `
+      <h3 class="panel-title">🗺️ Mappa Infuocata</h3>
+      <p class="center">✅ Bottino reclamato questa settimana!</p>
+      <p class="muted small center">La prossima Mappa Infuocata apparirà la settimana prossima.</p>`;
+  }
+
+  c.appendChild(panel);
 }
 
 /* ── Titoli PvP ─────────────────────────────────────────────── */
@@ -2447,6 +2563,35 @@ function renderTrain(c) {
     });
   }
 
+  // ── Fiamma della Streak ──
+  const sc = HERO.streak && HERO.streak.count || 0;
+  if (sc >= 5) {
+    const streakCap = 0.30;
+    const bonusPct = Math.round(Math.min(streakCap, (sc - 1) * 0.05) * 100);
+    const maxBonusPct = Math.round(streakCap * 100);
+    const flamePct = Math.min(100, Math.round(bonusPct / maxBonusPct * 100));
+    const flameEmoji = sc >= 30 ? '🩵' : sc >= 15 ? '🔥' : '🔥';
+    const flameSize = sc >= 30 ? '2.8rem' : sc >= 15 ? '2.4rem' : '2rem';
+    const flameCls = sc >= 30 ? 'streak-flame-l' : sc >= 15 ? 'streak-flame-m' : 'streak-flame-s';
+    const sf = el('div', `panel streak-flame-panel ${flameCls}`);
+    sf.innerHTML = `
+      <div class="sf-header">
+        <span class="sf-emoji" style="font-size:${flameSize}">${flameEmoji}</span>
+        <div class="sf-info">
+          <div class="sf-title">Striscia di ${sc} giorni</div>
+          <div class="sf-bonus">+${bonusPct}% XP per ogni allenamento</div>
+        </div>
+      </div>
+      <div class="sf-bar-wrap">
+        <div class="sf-bar" style="width:${flamePct}%"></div>
+      </div>
+      <div class="sf-labels">
+        <span class="muted small">+5%</span>
+        <span class="muted small">Massimo +${maxBonusPct}%</span>
+      </div>`;
+    c.appendChild(sf);
+  }
+
   c.appendChild(el('h2', 'section-title', '⚔️ Registra l\'Impresa'));
 
   // Daily goal progress bar
@@ -2805,6 +2950,13 @@ function showReport(r) {
   if (r.incursionComplete) {
     html += `<p class="big-news">⚡ INCURSIONE RESPINTA!</p>`;
     PENDING_CHEST = { title: r.incursionComplete.name, chest: r.incursionComplete.chest };
+  }
+  if (r.mappaInfuocataProgress) {
+    const mi = r.mappaInfuocataProgress;
+    html += `<p>🗺️ Mappa Infuocata: ${mi.kmDone.toFixed(1)} / 10 km — continua!</p>`;
+  }
+  if (r.mappaInfuocataReady) {
+    html += `<p class="big-news">🗺️ MAPPA INFUOCATA COMPLETATA! Reclama il tuo bottino nella Mappa.</p>`;
   }
   if (r.missionProgress) {
     const mp = r.missionProgress;
@@ -4496,9 +4648,19 @@ function fmtMs(ms) {
   const s = Math.floor(ms % 60000 / 1000);
   return mm + 'm ' + s + 's';
 }
+function msToMappaInfuocata() {
+  const mi = HERO && HERO.mappaInfuocata;
+  if (!mi || mi.status !== 'active' || !mi.activatedAt) return 0;
+  return Math.max(0, 86400000 - (Date.now() - mi.activatedAt));
+}
 setInterval(() => {
   document.querySelectorAll('[data-cd]').forEach(e => {
-    e.textContent = '⏳ ' + fmtMs(e.dataset.cd === 'week' ? msToWeekEnd() : msToMidnight());
+    const cd = e.dataset.cd;
+    e.textContent = '⏳ ' + fmtMs(
+      cd === 'week' ? msToWeekEnd() :
+      cd === 'mi'   ? msToMappaInfuocata() :
+      msToMidnight()
+    );
   });
 }, 1000);
 

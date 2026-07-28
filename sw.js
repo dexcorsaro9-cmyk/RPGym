@@ -1,5 +1,5 @@
 /* RPGym service worker — network-first per aggiornamenti immediati */
-const CACHE = 'heropace-v141';
+const CACHE = 'heropace-v142';
 
 /* File solo per fallback offline — NON pre-cachati all'install */
 const OFFLINE_ASSETS = [
