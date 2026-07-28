@@ -1947,22 +1947,20 @@ function renderMap(c) {
 
   // ── Classifica globale ──
   // ── Il Pantheon dei Campioni (entry) ──
-  const pvpEntry = el('div', 'panel pantheon-entry-panel');
   const pvpWins = HERO.pvpWins || 0;
   const pt = pvpTitle(pvpWins);
-  pvpEntry.innerHTML = `
-    <div class="pantheon-banner">
-      <img src="assets/ui/pantheon.jpg" alt="Pantheon" class="pantheon-banner-img">
-      <div class="pantheon-banner-overlay">
-        <div class="pantheon-entry-title">Il Pantheon dei Campioni</div>
-        <div class="pantheon-banner-sub">Classifica · Rivali · Sfide PvP</div>
-        ${pt ? `<div class="pantheon-rank-chip">${pt.icon} ${pt.label}</div>` : ''}
-      </div>
-      <button class="btn btn-small pantheon-open-btn">Entra →</button>
-    </div>`;
-  pvpEntry.querySelector('.pantheon-open-btn').addEventListener('click', () => {
-    MAP_VIEW = 'pantheon'; setTab('map');
-  });
+  const pvpEntry = el('div', 'panel pantheon-entry-panel');
+  const pantheonThumb = document.createElement('img');
+  pantheonThumb.src = 'assets/ui/pantheon.jpg';
+  pantheonThumb.alt = '';
+  pantheonThumb.className = 'camp-panel-thumb';
+  pvpEntry.appendChild(pantheonThumb);
+  pvpEntry.appendChild(el('h3', 'panel-title pantheon-entry-title', '🏛️ Il Pantheon dei Campioni'));
+  if (pt) pvpEntry.appendChild(el('div', 'pantheon-rank-chip', `${pt.icon} ${pt.label}`));
+  pvpEntry.appendChild(el('p', 'muted small', 'Classifica globale · I tuoi Rivali · Sfide PvP'));
+  const enterPantheonBtn = el('button', 'btn wide', '⚔️ Entra nel Pantheon');
+  enterPantheonBtn.addEventListener('click', () => { MAP_VIEW = 'pantheon'; setTab('map'); });
+  pvpEntry.appendChild(enterPantheonBtn);
   c.appendChild(pvpEntry);
 }
 
