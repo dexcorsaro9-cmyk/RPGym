@@ -105,7 +105,7 @@ const MG_CATEGORIES = [
   ]},
   { id:'intelletto', icon:'🧩', label:'Intelletto', games:[
     { id:'runes',   emoji:'🔮', name:'Rune Magiche', open: openRunesGame },
-    { id:'memory',  emoji:'🧠', name:'Memory',       open: openMemoryGame },
+    { id:'memory',  emoji:'📖', name:'Tomo Memorie',  open: openMemoryGame },
     { id:'forge',   emoji:'🔥', name:'Forgia',       open: openForgeGame },
   ]},
   { id:'taverna',    icon:'🍺', label:'Taverna',    games:[
@@ -577,39 +577,63 @@ function openWheelGame() {
 /* ── 🧠 MEMORY DELLE RUNE ── */
 function openMemoryGame() {
   if (!mgCanPlay('memory')) return;
-  const SYMS = ['🌙','⚡','🔥','🌊','⚔️','🛡️'];
-  const pairs = [...SYMS,...SYMS].sort(()=>Math.random()-.5);
-  let flipped=[], matched=0, mistakes=0, locked=false;
+
+  const ALL_CARDS = [
+    { id:'goblin',      src:'assets/cards/caduta del generale goblin.png' },
+    { id:'ciclista',    src:'assets/cards/ciclista del vento.png' },
+    { id:'cuore',       src:'assets/cards/cuore di pietra spento.png' },
+    { id:'esploratore', src:'assets/cards/esploratore delle terre selvagge.png' },
+    { id:'cavaliere',   src:'assets/cards/il cavaliere del drago.png' },
+    { id:'lupo',        src:'assets/cards/il lupo astrale.png' },
+    { id:'passo',       src:'assets/cards/il primo passo.png' },
+    { id:'amuleto',     src:"assets/cards/l'amuleto del viaggiatore esperto.png" },
+    { id:'stemma',      src:'assets/cards/lo stemma bruciato.png' },
+    { id:'mura',        src:'assets/cards/oltre le mura.png' },
+    { id:'radici',      src:'assets/cards/radici nuove.png' },
+  ];
+
+  // pick 6 random cards, build pairs, shuffle
+  const chosen = [...ALL_CARDS].sort(() => Math.random() - .5).slice(0, 6);
+  const pairs = [...chosen, ...chosen].sort(() => Math.random() - .5);
+
+  let flipped = [], matched = 0, mistakes = 0, locked = false;
+
   const wrap = document.createElement('div');
   wrap.className = 'mg-memory-wrap';
   wrap.innerHTML = `
     <button class="mg-x-btn" id="mgm-x">✕</button>
-    <div class="mg-game-title">🧠 Memory delle Rune</div>
+    <div class="mg-game-title">📖 Il Tomo delle Memorie</div>
     <div class="mgm-hud">Coppie <span id="mgm-m">0</span>/6 · Errori <span id="mgm-e">0</span></div>
     <div class="mgm-grid" id="mgm-grid"></div>
     <div class="mg-result-area" id="mgm-res"></div>
     <button class="btn mg-close-btn hidden" id="mgm-close">Continua ›</button>`;
   mgOverlay(wrap);
-  const grid = document.getElementById('mgm-grid');
-  const mEl = document.getElementById('mgm-m');
-  const eEl = document.getElementById('mgm-e');
-  const resEl = document.getElementById('mgm-res');
+
+  const grid     = document.getElementById('mgm-grid');
+  const mEl      = document.getElementById('mgm-m');
+  const eEl      = document.getElementById('mgm-e');
+  const resEl    = document.getElementById('mgm-res');
   const closeBtn = document.getElementById('mgm-close');
-  const cardEls = pairs.map((sym, i) => {
+
+  pairs.forEach(card => {
     const c = document.createElement('div'); c.className = 'mgm-card';
-    c.innerHTML = `<div class="mgm-inner"><div class="mgm-back"><span>✦</span></div><div class="mgm-front">${sym}</div></div>`;
+    c.innerHTML = `<div class="mgm-inner">
+      <div class="mgm-back"><span>✦</span></div>
+      <div class="mgm-front"><img src="${card.src}" alt="${card.id}" class="mgm-card-img"></div>
+    </div>`;
     c.addEventListener('click', () => {
       if (locked || c.classList.contains('mgm-flipped') || c.classList.contains('mgm-ok')) return;
       c.classList.add('mgm-flipped'); vibrate(20);
-      flipped.push({ c, sym });
+      flipped.push({ c, id: card.id });
       if (flipped.length < 2) return;
       locked = true;
       const [a, b] = flipped;
-      if (a.sym === b.sym) {
+      if (a.id === b.id) {
         a.c.classList.add('mgm-ok'); b.c.classList.add('mgm-ok');
         matched++; mEl.textContent = matched; flipped = []; locked = false;
         if (matched === 6) {
-          const xp = Math.max(10, MG_B.memory.xpBase - mistakes * MG_B.memory.xpPenalty), gold = Math.max(3, MG_B.memory.goldBase - mistakes * MG_B.memory.goldPenalty);
+          const xp = Math.max(10, MG_B.memory.xpBase - mistakes * MG_B.memory.xpPenalty);
+          const gold = Math.max(3, MG_B.memory.goldBase - mistakes * MG_B.memory.goldPenalty);
           mgGiveReward({ xp, gold }); mgRecord('memory');
           resEl.innerHTML = mgRewardHTML({ xp, gold }, `Completato! ${mistakes} error${mistakes===1?'e':'i'}`, mistakes === 0 ? '🏆 Senza errori!' : '');
           resEl.classList.add('mg-res-in'); closeBtn.classList.remove('hidden');
@@ -617,11 +641,16 @@ function openMemoryGame() {
       } else {
         mistakes++; eEl.textContent = mistakes;
         a.c.classList.add('mgm-wrong'); b.c.classList.add('mgm-wrong');
-        setTimeout(() => { a.c.classList.remove('mgm-flipped','mgm-wrong'); b.c.classList.remove('mgm-flipped','mgm-wrong'); flipped=[]; locked=false; }, 900);
+        setTimeout(() => {
+          a.c.classList.remove('mgm-flipped', 'mgm-wrong');
+          b.c.classList.remove('mgm-flipped', 'mgm-wrong');
+          flipped = []; locked = false;
+        }, 900);
       }
     });
-    grid.appendChild(c); return c;
+    grid.appendChild(c);
   });
+
   document.getElementById('mgm-x').addEventListener('click', mgClose);
   closeBtn.addEventListener('click', mgClose);
 }
