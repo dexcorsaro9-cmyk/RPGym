@@ -19,6 +19,7 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
+html { background: #1a0f05; }
 html, body { height: 100%; }
 body {
   font-family: 'Crimson Pro', Georgia, serif;
@@ -343,7 +344,7 @@ body {
 .act-label { font-family: 'Cinzel', serif; font-size: .88rem; font-weight: 700; color: var(--ink); }
 .act-xp-badge {
   font-size: .62rem; color: var(--gold-bright);
-  background: rgba(0,0,0,.25); border-radius: 10px; padding: 1px 7px;
+  background: rgba(0,0,0,.68); border-radius: 10px; padding: 1px 7px;
 }
 .act-bonus-badge {
   font-size: .6rem; color: #9af0b8;

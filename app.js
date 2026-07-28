@@ -2397,6 +2397,8 @@ function renderDailyChallenges(c) {
 }
 
 function renderTrain(c) {
+  let chosen = 'camminata';
+
   // ── Strip incolla-passi: sempre visibile, nessun popup ──
   const syncStrip = el('div', 'step-sync-strip');
   syncStrip.innerHTML = `<span class="sss-label">⚡ Passi da Salute</span>
@@ -2407,7 +2409,7 @@ function renderTrain(c) {
     if (!(steps > 0)) return;
     const km = Math.round(steps * 0.00075 * 100) / 100;
     if (km < 0.05) { toast(`${steps} passi (${km} km) — troppo pochi.`); sssInput.value = ''; return; }
-    const report = RPG.logHealthSync(HERO, 'camminata', km);
+    const report = RPG.logHealthSync(HERO, chosen, km);
     sssInput.value = '';
     if (report) { persist(); renderHUD(); showHealthSyncResult(report); }
     else toast('Attività già sincronizzata per oggi.');
@@ -2462,7 +2464,6 @@ function renderTrain(c) {
   const form = el('div', 'panel');
   form.appendChild(el('label', 'field-label', 'Tipo di attività'));
   const actRow = el('div', 'act-row');
-  let chosen = 'camminata';
   const ACT_ICON_FILES = { cyclette: 'assets/ui/act-cyclette.png', camminata: 'assets/ui/act-camminata.png', corsa: 'assets/ui/act-corsa.png' };
   const mount = HERO.mount ? RPG.mountById(HERO.mount) : null;
   Object.entries(RPG.ACTIVITIES).forEach(([key, a]) => {
@@ -2485,38 +2486,7 @@ function renderTrain(c) {
     actRow.appendChild(b);
   });
   form.appendChild(actRow);
-
-  form.appendChild(el('label', 'field-label', 'Chilometri percorsi (dall\'app Salute / Fitness)'));
-  const kmInput = el('input', 'input');
-  kmInput.type = 'number'; kmInput.step = '0.1'; kmInput.min = '0'; kmInput.placeholder = 'Es. 5.2';
-  form.appendChild(kmInput);
-  form.appendChild(el('p', 'muted small',
-    '📱 Apri l\'app <b>Salute</b> (o Strava/Fitness), leggi i km di oggi e riportali qui.'));
-
-  const go = el('button', 'btn btn-primary wide big', '🔥 SINCRONIZZA AVVENTURA');
-  const plaque = new Image();
-  plaque.onload = () => {
-    go.classList.add('btn-plaque');
-    go.innerHTML = '';
-    plaque.className = 'plaque-img';
-    go.appendChild(plaque);
-    go.appendChild(el('div', 'plaque-caption', 'Sincronizza Avventura'));
-  };
-  plaque.src = 'assets/ui/btn-gioca.png';
-  go.addEventListener('click', () => {
-    const km = parseFloat(kmInput.value);
-    const report = RPG.logWorkout(HERO, chosen, km);
-    if (report.error) { modal(`<h3 class="panel-title">⏳ Il Custode del Tempo</h3><p>${report.error}</p>
-      <button class="btn btn-primary wide" onclick="closeModal()">Va bene…</button>`); return; }
-    persist();
-    FB.syncHero(HERO);
-    FB.updateChallenge(HERO);
-    sfx(report.levelsGained.length ? 'level' : 'coin');
-    vibrate(report.levelsGained.length ? [80, 40, 80] : 30);
-    showReport(report);
-    askNotifPermissionAfterWorkout();
-  });
-  form.appendChild(go);
+  form.appendChild(el('p', 'muted small', '⬆️ Incolla i passi nella striscia sopra — usa il tipo selezionato.'));
   c.appendChild(form);
 
   // ── L'Arena dei Guerrieri ──
