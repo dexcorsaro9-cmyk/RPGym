@@ -4829,12 +4829,18 @@ body {
 
 /* ── Mappa Infuocata ─────────────────────────────────────────────────────── */
 .mi-panel {
-  border: 1.5px solid rgba(217,130,43,.4);
-  background: rgba(217,130,43,.04);
+  border: 1.5px solid #d9822b;
+  background: #201408;
 }
+@media (prefers-color-scheme: light) {
+  .mi-panel { background: #fff4e6; border-color: #c46a10; }
+}
+:root[data-theme="light"] .mi-panel { background: #fff4e6; border-color: #c46a10; }
+:root[data-theme="dark"]  .mi-panel { background: #201408; border-color: #d9822b; }
+
 .mi-tiers-preview {
   font-size: .75rem; color: var(--ink-light);
-  margin: 8px 0;
+  margin: 8px 0; line-height: 1.7;
 }
 .mi-tier-dot { font-weight: 600; }
 .mi-activate-btn { margin-top: 10px; }
@@ -4847,9 +4853,13 @@ body {
 .mi-time-left { font-size: .8rem; color: var(--ink-light); }
 .mi-km-bar-wrap {
   height: 10px; border-radius: 5px;
-  background: rgba(255,255,255,.1);
+  background: rgba(0,0,0,.35);
   overflow: hidden; margin: 4px 0;
 }
+@media (prefers-color-scheme: light) {
+  .mi-km-bar-wrap { background: rgba(0,0,0,.12); }
+}
+:root[data-theme="light"] .mi-km-bar-wrap { background: rgba(0,0,0,.12); }
 .mi-km-bar {
   height: 100%; border-radius: 5px;
   background: linear-gradient(90deg, #d9822b, #f0aa50);
