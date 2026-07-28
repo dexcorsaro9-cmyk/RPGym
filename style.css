@@ -4922,3 +4922,5 @@ body {
 }
 .npc-img .npc-emoji-fallback { font-size: 1.5rem; }
 .npc-quote { flex: 1; font-size: .85rem; line-height: 1.4; }
+.panel-title-icon { width: 28px; height: 28px; object-fit: contain; vertical-align: -6px; margin-right: 4px; }
+.loot .item-icon-big[src*="seme-sacchetto"] { filter: drop-shadow(0 4px 6px rgba(0,0,0,.3)); }

@@ -4828,12 +4828,39 @@ function renderSerraView(c) {
 }
 
 function showSeedPicker(potIndex) {
-  let html = `<h3 class="panel-title">🪴 Pianta un Seme</h3>
+  modal(`<h3 class="panel-title">🪴 Pianta un Seme</h3>
     <div class="loot-list" id="seed-picker-list"></div>
-    <button class="btn wide" style="margin-top:8px" onclick="closeModal()">Annulla</button>`;
-  modal(html);
+    <button class="btn wide" style="margin-top:8px" onclick="closeModal()">Annulla</button>`);
 
   const list = $('#seed-picker-list');
+
+  // Semi in inventario (slot 'seme') — usa e consuma
+  const invSeeds = (HERO.items || []).filter(it => it.slot === 'seme');
+  if (invSeeds.length) {
+    list.appendChild(el('div', 'small muted', '🌰 Semi nel tuo zaino:'));
+    invSeeds.forEach(seed => {
+      const plant = RPG.PLANTS[seed.seedId];
+      const row = el('div', `loot rar-${seed.rarity} pickable`);
+      row.style.cursor = 'pointer';
+      row.innerHTML = `
+        <div class="loot-head">
+          <img src="${seed.img}" style="width:28px;height:28px;object-fit:contain;vertical-align:middle;margin-right:6px" onerror="this.style.display='none'">
+          <b>${plant ? plant.icon + ' ' + esc(plant.name) : esc(seed.name)}</b>
+          <span class="tag">${RPG.RARITIES[seed.rarity].label}</span>
+        </div>
+        <div class="small muted">${plant ? esc(plant.desc) + '<br>💧 ' + plant.water + ' km/giorno · ' + plant.days + ' giorni' : esc(seed.desc)}</div>`;
+      row.addEventListener('click', () => {
+        const err = RPG.useSeedItem(HERO, seed.id, potIndex);
+        if (err) { toast(err); return; }
+        persist(); closeModal(); setTab('camp');
+        toast(`🌱 Hai piantato ${plant ? plant.name : seed.name}!`);
+      });
+      list.appendChild(row);
+    });
+    list.appendChild(el('div', 'small muted', '— oppure pianta liberamente: —'));
+  }
+
+  // Tutte le piante (selezione libera)
   Object.values(RPG.PLANTS).forEach(p => {
     const row = el('div', `loot rar-${p.rarity} pickable`);
     row.style.cursor = 'pointer';

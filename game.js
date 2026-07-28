@@ -3714,17 +3714,8 @@ const RPG = (() => {
     if (pData.rarity === 'epico')      reward.items.push(genItemFor(hero, 'epico'));
     if (pData.rarity === 'divino')     reward.items.push(genItemFor(hero, 'divino'));
 
-    // Bonus: sacchetto di semi da ogni raccolto
-    const sacchetto = {
-      id: 'seme-sacchetto-' + Date.now(),
-      name: 'Sacchetto di Semi Magici',
-      icon: '🌱',
-      rarity: pData.rarity === 'comune' ? 'comune' : 'non_comune',
-      slot: 'amuleto',
-      img: 'assets/loot/seme-sacchetto.jpg',
-      atk:0, def:0, hp:0, xpBonus:0,
-    };
-    reward.items.push(sacchetto);
+    // Bonus: seme casuale da ogni raccolto
+    reward.items.push(genSeed(hero));
 
     reward.items.forEach(it => hero.items.push(it));
     hero.gold += reward.gold;
@@ -3738,6 +3729,38 @@ const RPG = (() => {
     if (!pot || pot.status !== 'empty') return 'Vaso non disponibile.';
     if (!PLANTS[seedId]) return 'Seme sconosciuto.';
     pot.status = 'growing'; pot.seedId = seedId; pot.daysGrown = 0; pot.health = 100; pot.water = 0;
+    return null;
+  }
+
+  function genSeed(hero) {
+    const plantKeys = Object.keys(PLANTS);
+    const rarity = rollRarity(hero.level);
+    let pool = plantKeys.filter(k => PLANTS[k].rarity === rarity);
+    if (!pool.length) pool = plantKeys;
+    const plant = PLANTS[pool[Math.floor(Math.random() * pool.length)]];
+    const rInfo = RARITIES[plant.rarity];
+    return {
+      id: 'seed_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+      slot: 'seme',
+      rarity: plant.rarity,
+      name: 'Seme di ' + plant.name,
+      icon: '🌰',
+      img: 'assets/loot/seme-sacchetto.jpg',
+      seedId: plant.id,
+      xp: 0, atk: 0, def: 0, hp: 0, xpBonus: 0,
+      value: Math.round(rInfo.value * 0.4),
+      desc: `Seme magico per la Serra. 💧 Richiede ${plant.water} km/giorno per ${plant.days} giorni.`,
+    };
+  }
+
+  function useSeedItem(hero, itemId, potIndex) {
+    const idx = hero.items.findIndex(it => it.id === itemId);
+    if (idx === -1) return 'Seme non trovato.';
+    const item = hero.items[idx];
+    if (item.slot !== 'seme') return 'Non è un seme.';
+    const err = plantSeeds(hero, potIndex, item.seedId);
+    if (err) return err;
+    hero.items.splice(idx, 1);
     return null;
   }
 
@@ -3789,6 +3812,6 @@ const RPG = (() => {
     dungeonStartEncounter, dungeonGetScenario, dungeonAction,
     dungeonMakeChoice, dungeonStepResult,
     parseBackup, mergeImport,
-    PLANTS, initGreenhouse, rolloverGreenhouse, waterPlant, harvestPlant, plantSeeds,
+    PLANTS, initGreenhouse, rolloverGreenhouse, waterPlant, harvestPlant, plantSeeds, genSeed, useSeedItem,
   };
 })();
