@@ -4799,3 +4799,61 @@ body {
 }
 .mi-km-text { font-size: .8rem; color: var(--ink-light); text-align: right; margin-bottom: 4px; }
 .mi-claim-reward { margin: 12px 0; }
+
+/* ═══════════════ La Serra del Viandante ═══════════════════════════════════ */
+.water-tank-panel {
+  display: flex; align-items: center; gap: 12px;
+  background: linear-gradient(135deg, rgba(20,100,180,.2), rgba(10,50,90,.1));
+  border: 1px solid rgba(46,111,176,.5);
+  border-radius: 12px; padding: 12px 14px; margin-bottom: 16px;
+}
+.water-drop-icon {
+  font-size: 2.5rem; line-height: 1;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,.5));
+  animation: floatDrop 2s ease-in-out infinite;
+}
+@keyframes floatDrop {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-4px); }
+}
+.water-tank-title { font-family: 'Cinzel', serif; font-size: .85rem; font-weight: 700; color: #60c8ff; }
+.water-tank-val   { font-size: .9rem; color: var(--parchment); margin-top: 2px; }
+
+.greenhouse-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+.pot-card {
+  background: radial-gradient(ellipse at center top, rgba(255,255,255,.08), transparent), rgba(0,0,0,.3);
+  border: 2px solid var(--leather);
+  border-radius: 14px; padding: 16px 10px;
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px;
+  box-shadow: inset 0 -10px 20px rgba(50,30,10,.5), 0 4px 10px rgba(0,0,0,.4);
+}
+.pot-card.locked { opacity: .5; filter: grayscale(1); }
+.pot-card.pickable { cursor: pointer; transition: transform .15s, border-color .2s; }
+.pot-card.pickable:hover { transform: translateY(-3px); border-color: var(--emerald); }
+
+.pot-emoji {
+  font-size: 3.5rem; line-height: 1; margin-bottom: 4px;
+  filter: drop-shadow(0 6px 8px rgba(0,0,0,.5));
+}
+.pot-emoji.glow { animation: plantGlow 2s infinite alternate; }
+@keyframes plantGlow {
+  from { filter: drop-shadow(0 0 10px rgba(90,255,120,.4)); }
+  to   { filter: drop-shadow(0 0 20px rgba(90,255,120,.8)); }
+}
+.pot-name       { font-family: 'Cinzel', serif; font-weight: 700; font-size: .8rem; color: var(--parchment); }
+.pot-name.danger { color: #e05050; }
+
+.pot-stats { width: 100%; display: flex; flex-direction: column; gap: 3px; margin: 4px 0; }
+.pot-stat-label { font-size: .65rem; text-align: left; }
+.pot-stat-bar {
+  height: 6px; background: rgba(0,0,0,.6);
+  border-radius: 3px; overflow: hidden;
+  border: 1px solid rgba(255,255,255,.1);
+}
+.pot-fill-hp  { height: 100%; background: linear-gradient(90deg, #e05050, #ff7a00, #4caf50); transition: width .3s; }
+.pot-fill-xp  { height: 100%; background: linear-gradient(90deg, #60c8ff, var(--magic)); transition: width .3s; }
+.pot-water-info { font-size: .75rem; color: var(--ink-light); }

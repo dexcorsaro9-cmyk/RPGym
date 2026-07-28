@@ -520,6 +520,15 @@ function enterGame() {
   RPG.rolloverFugitiveMerchant(HERO);
   // Mappa Infuocata (aggiorna settimanalmente)
   RPG.rolloverMappaInfuocata(HERO);
+  // Serra del Viandante (aggiorna giornalmente)
+  const serraLogs = RPG.rolloverGreenhouse(HERO);
+  if (serraLogs && serraLogs.length) {
+    serraLogs.forEach(msg => OPEN_QUEUE.push(() => modal(`
+      <h3 class="panel-title">🌿 Serra del Viandante</h3>
+      <p class="center" style="font-size:1.5rem">🌱</p>
+      <p class="center">${msg}</p>
+      <button class="btn btn-primary wide" onclick="nextOpening()">Capito!</button>`)));
+  }
   // Salva streak prima del login giornaliero (per rilevare rottura)
   const preStreakCount = HERO.streak.count;
   // Tesoro Giornaliero
@@ -903,6 +912,7 @@ let CAMP_VIEW = 'main';
 function renderCamp(c) {
   if (CAMP_VIEW === 'santuario') { renderSantuarioView(c); return; }
   if (CAMP_VIEW === 'arredamento') { renderArredamentoView(c); return; }
+  if (CAMP_VIEW === 'serra') { renderSerraView(c); return; }
 
   const scene = el('div', 'camp-scene');
   const hasHouse = HERO.buildings.includes('fondamenta');
@@ -1070,6 +1080,25 @@ function renderCamp(c) {
     enterBtn2.addEventListener('click', () => { CAMP_VIEW = 'arredamento'; setTab('camp'); });
     ap.appendChild(enterBtn2);
     c.appendChild(ap);
+  }
+
+  // Serra del Viandante
+  {
+    const growingCount = HERO.greenhouse.pots.filter(p => p.status === 'growing' || p.status === 'ready').length;
+    const readyCount   = HERO.greenhouse.pots.filter(p => p.status === 'ready').length;
+    const gp = el('div', readyCount ? 'panel panel-featured' : 'panel');
+    gp.appendChild(el('h3', 'panel-title', '🌿 La Serra del Viandante'));
+    gp.appendChild(el('p', 'muted small',
+      readyCount
+        ? `🎁 ${readyCount} pianta${readyCount > 1 ? 'e' : ''} pronta${readyCount > 1 ? '' : 'e'} per il raccolto!`
+        : growingCount
+          ? `${growingCount} pianta${growingCount > 1 ? 'e' : ''} in crescita. Annaffiale con il tuo sudore.`
+          : 'Coltiva piante magiche annaffiandole con i km percorsi. La costanza porta frutti leggendari.'));
+    if (readyCount) gp.appendChild(el('span', 'mg-card-badge', String(readyCount)));
+    const enterGreenhouseBtn = el('button', readyCount ? 'btn btn-primary wide' : 'btn wide', '🌿 Entra nella Serra');
+    enterGreenhouseBtn.addEventListener('click', () => { CAMP_VIEW = 'serra'; setTab('camp'); });
+    gp.appendChild(enterGreenhouseBtn);
+    c.appendChild(gp);
   }
 
   // Costruzione
@@ -4634,6 +4663,138 @@ function msToMidnight() {
   m.setHours(24, 0, 0, 0);
   return m - d;
 }
+/* ── La Serra del Viandante ─────────────────────────────────────────────── */
+function renderSerraView(c) {
+  const backBtn = el('button', 'btn btn-small', '↩ Torna al Rifugio');
+  backBtn.addEventListener('click', () => { CAMP_VIEW = 'main'; setTab('camp'); });
+  c.appendChild(backBtn);
+  c.appendChild(el('h2', 'section-title', '🌿 La Serra del Viandante'));
+
+  const kmToday = RPG.todayKm(HERO);
+  const waterAvail = Math.max(0, kmToday - (HERO.greenhouse.waterUsedToday || 0));
+  const tank = el('div', 'water-tank-panel');
+  tank.innerHTML = `<span class="water-drop-icon">💧</span>
+    <div>
+      <div class="water-tank-title">Riserva di Sudore (oggi)</div>
+      <div class="water-tank-val"><b>${waterAvail.toFixed(1)} km</b> disponibili per l'irrigazione</div>
+    </div>`;
+  c.appendChild(tank);
+
+  const grid = el('div', 'greenhouse-grid');
+  HERO.greenhouse.pots.forEach((pot, i) => {
+    const pEl = el('div', 'pot-card' + (pot.status === 'locked' ? ' locked' : ''));
+
+    if (pot.status === 'locked') {
+      pEl.innerHTML = `<div class="pot-emoji">🔒</div>
+        <div class="pot-name">Sblocca al Liv. ${i === 1 ? 10 : 30}</div>`;
+
+    } else if (pot.status === 'empty') {
+      pEl.innerHTML = `<div class="pot-emoji">🪴</div>
+        <div class="pot-name">Vaso Vuoto</div>
+        <div class="muted small">Tocca per piantare</div>`;
+      pEl.classList.add('pickable');
+      pEl.addEventListener('click', () => showSeedPicker(i));
+
+    } else if (pot.status === 'dead') {
+      pEl.innerHTML = `<div class="pot-emoji">🥀</div>
+        <div class="pot-name danger">Pianta morta</div>`;
+      const cleanBtn = el('button', 'btn btn-small wide', 'Pulisci vaso');
+      cleanBtn.addEventListener('click', () => {
+        Object.assign(pot, { status:'empty', seedId:null, daysGrown:0, health:100, water:0 });
+        persist(); setTab('camp');
+      });
+      pEl.appendChild(cleanBtn);
+
+    } else if (pot.status === 'ready') {
+      const pData = RPG.PLANTS[pot.seedId];
+      pEl.innerHTML = `<div class="pot-emoji glow">${pData.icon}</div>
+        <div class="pot-name" style="color:var(--gold-bright)">Fioritura Perfetta!</div>`;
+      const harBtn = el('button', 'btn btn-primary wide btn-small', '🎁 Raccogli');
+      harBtn.addEventListener('click', () => {
+        const rew = RPG.harvestPlant(HERO, i);
+        if (!rew) return;
+        persist(); renderHUD();
+        const itemLine = rew.items.length ? `<br>🎒 ${rew.items.map(it => `${it.icon} ${esc(it.name)}`).join(', ')}` : '';
+        const goldLine = rew.gold ? `<br>🪙 +${rew.gold} oro` : '';
+        const resLine  = rew.wood  ? `<br>🪵 +${rew.wood} legno · 🪨 +${rew.stone} pietra` : '';
+        modal(`<h3 class="panel-title">✨ Raccolto!</h3>
+          <p class="center" style="font-size:2.5rem">${pData.icon}</p>
+          <p class="center"><b>${esc(pData.name)}</b></p>
+          <p class="center muted small">${goldLine}${resLine}${itemLine}</p>
+          <button class="btn btn-primary wide" onclick="closeModal();setTab('camp');">Fantastico!</button>`);
+        sfx('coin'); vibrate([60, 30, 100]);
+      });
+      pEl.appendChild(harBtn);
+
+    } else if (pot.status === 'growing') {
+      const pData = RPG.PLANTS[pot.seedId];
+      const growPct = Math.min(100, Math.round(pot.daysGrown / pData.days * 100));
+      const hpPct   = Math.round(Math.max(0, pot.health));
+      const hpColor = hpPct > 60 ? 'var(--emerald)' : hpPct > 30 ? '#ff9a3c' : '#e05050';
+      pEl.innerHTML = `
+        <div class="pot-emoji">${growPct < 50 ? '🌱' : pData.icon}</div>
+        <div class="pot-name">${esc(pData.name)}</div>
+        <div class="pot-stats">
+          <div class="pot-stat-label muted small">❤️ Salute</div>
+          <div class="pot-stat-bar"><div class="pot-fill-hp" style="width:${hpPct}%;background:${hpColor}"></div></div>
+          <div class="pot-stat-label muted small">🌱 Crescita — ${growPct}%</div>
+          <div class="pot-stat-bar"><div class="pot-fill-xp" style="width:${growPct}%"></div></div>
+        </div>
+        <div class="pot-water-info">Versati oggi: <b>${(pot.water || 0).toFixed(1)} / ${pData.water} km</b></div>`;
+      const waterBtn = el('button', 'btn btn-primary wide btn-small', '💧 Annaffia (1 km)');
+      waterBtn.disabled = waterAvail < 1;
+      waterBtn.addEventListener('click', () => {
+        const err = RPG.waterPlant(HERO, i, 1);
+        if (err) { toast(err); return; }
+        persist(); setTab('camp');
+        sfx('block');
+      });
+      pEl.appendChild(waterBtn);
+    }
+
+    grid.appendChild(pEl);
+  });
+  c.appendChild(grid);
+
+  // Glossario tratti
+  const loreBtn = el('button', 'btn btn-small', '📖 Proprietà delle Piante');
+  loreBtn.style.marginTop = '12px';
+  loreBtn.addEventListener('click', () => {
+    const rows = Object.values(RPG.PLANTS).map(p =>
+      `<div class="loot rar-${p.rarity}" style="margin-bottom:6px">
+        <div class="loot-head"><b>${p.icon} ${esc(p.name)}</b> <span class="tag">${RPG.RARITIES[p.rarity].label}</span></div>
+        <div class="small muted">${esc(p.desc)}<br>💧 ${p.water} km/giorno · ${p.days} giorni</div>
+      </div>`).join('');
+    modal(`<h3 class="panel-title">📖 Piante della Serra</h3>
+      <div class="loot-list" style="max-height:55vh;overflow-y:auto">${rows}</div>
+      <button class="btn wide" onclick="closeModal()">Chiudi</button>`);
+  });
+  c.appendChild(loreBtn);
+}
+
+function showSeedPicker(potIndex) {
+  let html = `<h3 class="panel-title">🪴 Pianta un Seme</h3>
+    <div class="loot-list" id="seed-picker-list"></div>
+    <button class="btn wide" style="margin-top:8px" onclick="closeModal()">Annulla</button>`;
+  modal(html);
+
+  const list = $('#seed-picker-list');
+  Object.values(RPG.PLANTS).forEach(p => {
+    const row = el('div', `loot rar-${p.rarity} pickable`);
+    row.style.cursor = 'pointer';
+    row.innerHTML = `
+      <div class="loot-head"><b>${p.icon} ${esc(p.name)}</b> <span class="tag">${RPG.RARITIES[p.rarity].label}</span></div>
+      <div class="small muted">${esc(p.desc)}<br>💧 Richiede <b>${p.water} km/giorno</b> per <b>${p.days} giorni</b></div>`;
+    row.addEventListener('click', () => {
+      const err = RPG.plantSeeds(HERO, potIndex, p.id);
+      if (err) { toast(err); return; }
+      persist(); closeModal(); setTab('camp');
+      toast(`🌱 Hai piantato ${p.name}!`);
+    });
+    list.appendChild(row);
+  });
+}
+
 function msToWeekEnd() {
   const d = new Date(); const m = new Date(d);
   const dow = (d.getDay() + 6) % 7; // 0 = lunedì

@@ -1353,6 +1353,7 @@ const RPG = (() => {
     h.pvpWins = h.pvpWins || 0;
     if (h.trainTipDismissed === undefined) h.trainTipDismissed = (h.totalKm || 0) > 0;
     h.mappaInfuocata = h.mappaInfuocata || null;
+    initGreenhouse(h);
 
     h.schemaVersion = SCHEMA_VERSION;
     return h;
@@ -3586,6 +3587,146 @@ const RPG = (() => {
     return null;
   }
 
+  /* ═══════════════════════════════════════════════════════════
+     LA SERRA DEL VIANDANTE
+     ═══════════════════════════════════════════════════════════ */
+
+  const PLANTS = {
+    muschio:   { id:'muschio',   name:'Muschio Soffice',      icon:'🌱', rarity:'comune',      days:3,  water:1.5,
+      desc:'Resistente e infestante. Non perde salute se salti un giorno.',          trait:'infestante' },
+    mentuccia: { id:'mentuccia', name:'Mentuccia',             icon:'🌿', rarity:'comune',      days:4,  water:2.5,
+      desc:'Fresca ma delicata. Marcisce se le dai più di 5 km d\'acqua.',           trait:'rinfrescante' },
+    bosso:     { id:'bosso',     name:'Bosso Scudo',           icon:'🌳', rarity:'non_comune',  days:5,  water:3.0,
+      desc:'Richiede potatura geometrica. Tollera pochissimi errori (max ±0.5 km).', trait:'ferrea' },
+    cactus:    { id:'cactus',    name:'Cactus di Cenere',      icon:'🌵', rarity:'non_comune',  days:6,  water:4.0,
+      desc:'Nato nel fuoco. Odia l\'eccesso: non bagnarlo due giorni di fila!',      trait:'fuoco' },
+    giglio:    { id:'giglio',    name:'Giglio della Pioggia',  icon:'🪷', rarity:'raro',        days:6,  water:5.0,
+      desc:'Se il meteo è Piovoso o Tempesta, si annaffia da solo.',                 trait:'meteoropatica' },
+    orchidea:  { id:'orchidea',  name:'Orchidea del Vento',    icon:'🌾', rarity:'raro',        days:7,  water:5.0,
+      desc:'Molto esigente, perde il doppio della salute se trascurata.',            trait:'esigente' },
+    edera:     { id:'edera',     name:'Edera Vampira',         icon:'🥀', rarity:'raro',        days:7,  water:4.5,
+      desc:'Se non la annaffi, sopravvive rubandoti 50 Monete d\'Oro.',              trait:'parassita' },
+    girasole:  { id:'girasole',  name:'Girasole Radiante',     icon:'🌻', rarity:'epico',       days:8,  water:7.0,
+      desc:'Se riceve 10+ km in un giorno, cresce a velocità doppia.',               trait:'fotosintesi' },
+    bonsai:    { id:'bonsai',    name:'Bonsai di Yggdrasil',   icon:'🌲', rarity:'epico',       days:14, water:6.0,
+      desc:'Radici millenarie. Salute crolla del 50% se salti un giorno.',           trait:'millenaria' },
+    loto:      { id:'loto',      name:'Loto dell\'Abisso',     icon:'🌑', rarity:'divino',      days:10, water:8.0,
+      desc:'Instabile. Se la salute scende sotto il 50%, muta e fugge.',             trait:'senziente' },
+  };
+
+  function initGreenhouse(h) {
+    h.greenhouse = h.greenhouse || {
+      waterUsedToday: 0,
+      lastTick: todayStamp(),
+      pots: [
+        { status:'empty',  seedId:null, daysGrown:0, health:100, water:0 },
+        { status:'locked', seedId:null, daysGrown:0, health:100, water:0 },
+        { status:'locked', seedId:null, daysGrown:0, health:100, water:0 },
+      ],
+    };
+    if (h.level >= 10 && h.greenhouse.pots[1].status === 'locked') h.greenhouse.pots[1].status = 'empty';
+    if (h.level >= 30 && h.greenhouse.pots[2].status === 'locked') h.greenhouse.pots[2].status = 'empty';
+  }
+
+  function rolloverGreenhouse(hero) {
+    const today = todayStamp();
+    if (!hero.greenhouse) { initGreenhouse(hero); return []; }
+    if (hero.greenhouse.lastTick === today) return [];
+
+    const logs = [];
+    hero.greenhouse.pots.forEach((pot, i) => {
+      if (pot.status !== 'growing') return;
+      const pData = PLANTS[pot.seedId];
+      if (!pData) { pot.status = 'empty'; return; }
+
+      let water = pot.water;
+      const weather = getDailyWeather();
+      if (pData.trait === 'meteoropatica' && (weather.type === 'rain' || weather.type === 'storm')) {
+        water = pData.water;
+      }
+
+      const diff = water - pData.water;
+      let healthHit = 0;
+      let growth = 1;
+
+      if (diff >= -0.5 && diff <= 1.0) {
+        pot.health = Math.min(100, pot.health + 10);
+      } else if (diff < -0.5) {
+        // Siccità
+        if      (pData.trait === 'infestante')  healthHit = 0;
+        else if (pData.trait === 'esigente')    healthHit = 40;
+        else if (pData.trait === 'millenaria')  healthHit = 50;
+        else if (pData.trait === 'parassita') {
+          if (hero.gold >= 50) { hero.gold -= 50; logs.push(`🥀 L'Edera Vampira ti ha rubato 50 oro per sopravvivere!`); }
+          else healthHit = 30;
+        } else { healthHit = 25; }
+      } else {
+        // Eccesso
+        if      (pData.trait === 'rinfrescante' && water > 5) healthHit = 100;
+        else if (pData.trait === 'fotosintesi'  && water >= 10) { growth = 2; healthHit = 0; }
+        else { healthHit = Math.round(15 + diff * 5); }
+      }
+
+      pot.health = Math.max(0, pot.health - healthHit);
+      pot.daysGrown += growth;
+      pot.water = 0;
+
+      if (pot.health <= 0) {
+        pot.status = 'dead';
+        logs.push(`💀 Il tuo ${pData.name} è appassito nel vaso ${i + 1}.`);
+      } else if (pData.trait === 'senziente' && pot.health < 50) {
+        pot.status = 'empty'; pot.seedId = null; pot.daysGrown = 0; pot.health = 100;
+        hero.items.push(genItemFor(hero, 'epico'));
+        logs.push(`🌑 Il Loto dell'Abisso è mutato ed è fuggito dal vaso!`);
+      } else if (pot.daysGrown >= pData.days) {
+        pot.status = 'ready';
+        logs.push(`✨ Il tuo ${pData.name} è pronto per il raccolto!`);
+      }
+    });
+
+    hero.greenhouse.waterUsedToday = 0;
+    hero.greenhouse.lastTick = today;
+    return logs;
+  }
+
+  function waterPlant(hero, potIndex, kmAmount) {
+    const pot = hero.greenhouse.pots[potIndex];
+    if (!pot || pot.status !== 'growing') return 'Vaso non valido.';
+    const avail = todayKm(hero) - (hero.greenhouse.waterUsedToday || 0);
+    if (kmAmount > avail) return 'Non hai abbastanza km di sudore oggi!';
+    hero.greenhouse.waterUsedToday = (hero.greenhouse.waterUsedToday || 0) + kmAmount;
+    pot.water += kmAmount;
+    return null;
+  }
+
+  function harvestPlant(hero, potIndex) {
+    const pot = hero.greenhouse.pots[potIndex];
+    if (!pot || pot.status !== 'ready') return null;
+    const pData = PLANTS[pot.seedId];
+    const reward = { gold: 0, items: [], wood: 0, stone: 0 };
+
+    if (pData.id === 'muschio') { hero.wood += 30; hero.stone += 30; reward.wood = 30; reward.stone = 30; }
+    if (pData.id === 'giglio')  { reward.gold += 150; }
+    if (pData.rarity === 'non_comune') reward.items.push(genItemFor(hero, 'comune'));
+    if (pData.rarity === 'raro')       reward.items.push(genItemFor(hero, 'raro'));
+    if (pData.rarity === 'epico')      reward.items.push(genItemFor(hero, 'epico'));
+    if (pData.rarity === 'divino')     reward.items.push(genItemFor(hero, 'divino'));
+
+    reward.items.forEach(it => hero.items.push(it));
+    hero.gold += reward.gold;
+
+    pot.status = 'empty'; pot.seedId = null; pot.daysGrown = 0; pot.health = 100; pot.water = 0;
+    return reward;
+  }
+
+  function plantSeeds(hero, potIndex, seedId) {
+    const pot = hero.greenhouse.pots[potIndex];
+    if (!pot || pot.status !== 'empty') return 'Vaso non disponibile.';
+    if (!PLANTS[seedId]) return 'Seme sconosciuto.';
+    pot.status = 'growing'; pot.seedId = seedId; pot.daysGrown = 0; pot.health = 100; pot.water = 0;
+    return null;
+  }
+
   return {
     ACTIVITIES, MISSIONS, CARDS, BUILDINGS, BESTIARY, TROPHIES,
     WEEKLY_BOSSES, rolloverWeeklyBoss, weeklyBossStatus, claimWeeklyBoss,
@@ -3634,5 +3775,6 @@ const RPG = (() => {
     dungeonStartEncounter, dungeonGetScenario, dungeonAction,
     dungeonMakeChoice, dungeonStepResult,
     parseBackup, mergeImport,
+    PLANTS, initGreenhouse, rolloverGreenhouse, waterPlant, harvestPlant, plantSeeds,
   };
 })();
