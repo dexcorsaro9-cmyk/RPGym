@@ -1,0 +1,11 @@
+Carica qui gli asset della Serra del Viandante:
+- bg-serra.jpg       (sfondo)
+- npc-ortica.png     (ritratto Messer Ortica)
+- pot-empty.png      (vaso runico)
+- seed.png           (germoglio magico)
+- girasole.png
+- loto.png
+- muschio.png
+- cactus.png
+- sacchetto.png
+- watering-can.png
