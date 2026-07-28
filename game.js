@@ -3618,6 +3618,7 @@ const RPG = (() => {
     h.greenhouse = h.greenhouse || {
       waterUsedToday: 0,
       lastTick: todayStamp(),
+      metNpc: false,
       pots: [
         { status:'empty',  seedId:null, daysGrown:0, health:100, water:0 },
         { status:'locked', seedId:null, daysGrown:0, health:100, water:0 },
