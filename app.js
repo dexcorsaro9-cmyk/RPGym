@@ -4706,7 +4706,7 @@ function renderSerraView(c) {
   const kmToday = RPG.todayKm(HERO);
   const waterAvail = Math.max(0, kmToday - (HERO.greenhouse.waterUsedToday || 0));
   const tank = el('div', 'water-tank-panel');
-  tank.innerHTML = `<img src="assets/minigames/serra/annaffiatoio magico.png" class="water-tank-img" alt="">
+  tank.innerHTML = `<span class="water-drop-icon">💧</span>
     <div>
       <div class="water-tank-title">Riserva di Sudore (oggi)</div>
       <div class="water-tank-val"><b>${waterAvail.toFixed(1)} km</b> disponibili per l'irrigazione</div>
@@ -4782,7 +4782,7 @@ function renderSerraView(c) {
       const hpPct   = Math.round(Math.max(0, pot.health));
       const hpColor = hpPct > 60 ? 'var(--emerald)' : hpPct > 30 ? '#ff9a3c' : '#e05050';
       pEl.innerHTML = `
-        <div class="pot-emoji">${growPct < 50 ? '<img src="assets/minigames/serra/germoglio.png" class="pot-img" alt="">' : plantIcon(pot.seedId, pData.icon)}</div>
+        <div class="pot-emoji">${growPct < 50 ? '🌱' : plantIcon(pot.seedId, pData.icon)}</div>
         <div class="pot-name">${esc(pData.name)}</div>
         <div class="pot-stats">
           <div class="pot-stat-label muted small">❤️ Salute</div>
