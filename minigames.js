@@ -1072,7 +1072,7 @@ function openColtelloGame() {
       const stuck = document.createElement('span');
       stuck.className = 'mgck-stuck';
       stuck.textContent = '🗡️';
-      stuck.style.transform = `rotate(${impactAngle}deg) translateY(-68px)`;
+      stuck.style.transform = `rotate(${impactAngle}deg) translateY(68px)`;
       logWrap.appendChild(stuck);
 
       knivesLeft--;

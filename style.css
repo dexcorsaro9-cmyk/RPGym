@@ -4589,8 +4589,7 @@ body {
 .mgck-stuck {
   position: absolute; top: 50%; left: 50%;
   font-size: 1.8rem;
-  transform-origin: bottom center;
-  /* actual position set inline via rotate+translateY */
+  transform-origin: center center;
   margin-left: -14px; margin-top: -14px;
   pointer-events: none;
 }
