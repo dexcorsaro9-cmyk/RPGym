@@ -4713,9 +4713,14 @@ function renderSerraView(c) {
 
   const PLANT_IMGS = {
     muschio:  "assets/minigames/serra/muschio soffice di oakhaven.png",
+    mentuccia:"assets/minigames/serra/mentuccia di oakhaven.jpeg",
     bosso:    "assets/minigames/serra/bosso scudo delle pianure.png",
     cactus:   "assets/minigames/serra/cactus di cenere.png",
+    giglio:   "assets/minigames/serra/giglio della pioggia.png",
+    orchidea: "assets/minigames/serra/orchidea del vento.png",
+    edera:    "assets/minigames/serra/edera vampira.png",
     girasole: "assets/minigames/serra/girasole radiante.png",
+    bonsai:   "assets/minigames/serra/Bonsai di Yggdrasil.png",
     loto:     "assets/minigames/serra/loto dell'abisso.png",
   };
   const plantIcon = (seedId, fallback) => {
