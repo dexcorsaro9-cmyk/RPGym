@@ -8,7 +8,7 @@ function getMG(id) {
   HERO.miniGames[id] = d;
   return d;
 }
-const MG_MAX = { dice:1, cards:3, runes:3, forge:2, archery:3, wheel:1, memory:2, tap:3, wham:3 };
+const MG_MAX = { dice:1, cards:3, runes:3, forge:2, archery:3, wheel:1, memory:2, tap:3, wham:3, boccale:2 };
 // ── Bilanciamento economia ───────────────────────────────────────────────────
 // Allenamento base (5 km camminata): gold≈25  xp≈75  wood≈0  stone≈0
 // Target mini-giochi totale/die:     gold≈80  xp≈500 wood≈15 stone≈15
@@ -107,6 +107,9 @@ const MG_CATEGORIES = [
     { id:'runes',   emoji:'🔮', name:'Rune Magiche', open: openRunesGame },
     { id:'memory',  emoji:'🧠', name:'Memory',       open: openMemoryGame },
     { id:'forge',   emoji:'🔥', name:'Forgia',       open: openForgeGame },
+  ]},
+  { id:'taverna',    icon:'🍺', label:'Taverna',    games:[
+    { id:'boccale', emoji:'🍺', name:'Lancio Boccale', open: openBoccaleGame },
   ]},
 ];
 
@@ -740,4 +743,136 @@ function openWhamGame() {
   });
   document.getElementById('mgwh-x').addEventListener('click', () => { clearTimeout(gameTimer); clearInterval(spawnTimer); mgClose(); });
   closeBtn.addEventListener('click', mgClose);
+}
+
+/* ── 🍺 LANCIO DEL BOCCALE ── */
+function openBoccaleGame() {
+  if (!mgCanPlay('boccale')) return;
+
+  let state = 'IDLE'; // IDLE | CHARGING | SLIDING | END
+  let power = 0, powerDir = 1, velocity = 0, currentY = 0;
+  const FRICTION = 0.975, POWER_SPEED = 2.5;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'mg-boccale-wrap';
+  wrap.innerHTML = `
+    <button class="mg-x-btn" id="mgb-x">✕</button>
+    <div class="mg-game-title">🍺 La Sfida dell'Oste</div>
+    <p class="mg-hint" id="mgb-hint">Tieni premuto per caricare, rilascia per lanciare!</p>
+    <div class="mgb-arena" id="mgb-arena">
+      <img src="assets/minigames/boccale/sottobicchiere.png" class="mgb-target" id="mgb-target" alt="Bersaglio">
+      <div class="mgb-mug" id="mgb-mug">
+        <img src="assets/minigames/boccale/boccale.png" class="mgb-mug-img" alt="Boccale">
+        <img src="assets/minigames/boccale/splash birra.png" class="mgb-splash" id="mgb-splash" alt="">
+      </div>
+      <div class="mgb-power-wrap">
+        <div class="mgb-power-fill" id="mgb-power-fill"></div>
+      </div>
+    </div>
+    <div class="mg-result-area" id="mgb-res"></div>
+    <button class="btn mg-close-btn hidden" id="mgb-close">Continua ›</button>`;
+  mgOverlay(wrap);
+
+  const arena    = document.getElementById('mgb-arena');
+  const mug      = document.getElementById('mgb-mug');
+  const target   = document.getElementById('mgb-target');
+  const splash   = document.getElementById('mgb-splash');
+  const powerFill= document.getElementById('mgb-power-fill');
+  const hintEl   = document.getElementById('mgb-hint');
+  const resEl    = document.getElementById('mgb-res');
+  const closeBtn = document.getElementById('mgb-close');
+
+  function cleanup() {
+    window.removeEventListener('mouseup', releaseMug);
+    window.removeEventListener('touchend', releaseMug);
+  }
+
+  function startCharging(e) {
+    if (e.type === 'touchstart') e.preventDefault();
+    if (state !== 'IDLE') return;
+    state = 'CHARGING';
+    hintEl.textContent = 'Caricando la spinta…';
+    power = 0;
+    function chargeLoop() {
+      if (state !== 'CHARGING') return;
+      power += POWER_SPEED * powerDir;
+      if (power >= 100) { power = 100; powerDir = -1; }
+      if (power <= 0)   { power = 0;   powerDir =  1; }
+      powerFill.style.height = `${power}%`;
+      _mgRAF = requestAnimationFrame(chargeLoop);
+    }
+    chargeLoop();
+  }
+
+  function releaseMug(e) {
+    if (e && e.type === 'touchend') e.preventDefault();
+    if (state !== 'CHARGING') return;
+    state = 'SLIDING';
+    cancelAnimationFrame(_mgRAF);
+    velocity = (power / 100) * 38;
+    hintEl.textContent = 'Lanciato!';
+    slideLoop();
+  }
+
+  function slideLoop() {
+    currentY -= velocity;
+    velocity *= FRICTION;
+    mug.style.transform = `translateX(-50%) translateY(${currentY}px)`;
+    const maxY = -(arena.clientHeight - 70);
+    if (currentY <= maxY) {
+      mug.style.transform = `translateX(-50%) translateY(${maxY}px)`;
+      arena.classList.add('mgb-shake');
+      setTimeout(() => arena.classList.remove('mgb-shake'), 400);
+      endGame(false, 'Troppa forza! Il boccale è andato a pezzi!');
+      return;
+    }
+    if (velocity < 0.1) { checkWin(); return; }
+    _mgRAF = requestAnimationFrame(slideLoop);
+  }
+
+  function checkWin() {
+    state = 'END';
+    const mugR    = mug.getBoundingClientRect();
+    const tgtR    = target.getBoundingClientRect();
+    const dist    = Math.abs((mugR.top + mugR.height / 2) - (tgtR.top + tgtR.height / 2));
+    const tol     = tgtR.height / 1.5;
+    if (dist <= tol) {
+      splash.classList.add('mgb-splash-active');
+      vibrate([100, 50, 200]); sfx('coin');
+      endGame(true, '🎯 Centrato! Pinta perfetta!');
+    } else {
+      const dir = (mugR.top + mugR.height / 2) > (tgtR.top + tgtR.height / 2) ? 'debole' : 'forte';
+      endGame(false, `Mancato! Lancio troppo ${dir}.`);
+    }
+  }
+
+  function endGame(won, msg) {
+    state = 'END';
+    cleanup();
+    mgRecord('boccale');
+    const gold = 30, xp = 50;
+    if (won) {
+      mgGiveReward({ gold, xp });
+      resEl.innerHTML = mgRewardHTML({ gold, xp }, msg, '');
+    } else {
+      resEl.innerHTML = `<div class="mg-reward"><div class="mg-reward-title">${msg}</div></div>`;
+    }
+    resEl.classList.add('mg-res-in');
+    closeBtn.classList.remove('hidden');
+    if (!won && mgCanPlay('boccale')) {
+      const rb = document.createElement('button');
+      rb.className = 'btn btn-primary wide'; rb.style.marginTop = '8px';
+      rb.textContent = 'Riprova';
+      rb.addEventListener('click', () => { mgClose(); setTimeout(openBoccaleGame, 300); });
+      resEl.appendChild(rb);
+    }
+  }
+
+  arena.addEventListener('mousedown', startCharging);
+  arena.addEventListener('touchstart', startCharging, { passive: false });
+  window.addEventListener('mouseup', releaseMug);
+  window.addEventListener('touchend', releaseMug);
+
+  document.getElementById('mgb-x').addEventListener('click', () => { cleanup(); mgClose(); });
+  closeBtn.addEventListener('click', () => { cleanup(); mgClose(); });
 }

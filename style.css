@@ -4553,3 +4553,74 @@ body {
   background: #e85020; color: #fff;
   font-size: .7rem; font-weight: 700; padding: .15rem .45rem; border-radius: 12px;
 }
+
+/* ═══════════════ Minigioco: Lancio del Boccale ═══════════════ */
+.mg-boccale-wrap { width: 100%; }
+
+.mgb-arena {
+  position: relative;
+  width: 100%; height: 52vh;
+  min-height: 320px; max-height: 500px;
+  border-radius: 10px; overflow: hidden;
+  background: url('assets/minigames/boccale/tavolo birra.jpg') center/cover no-repeat;
+  touch-action: none; user-select: none;
+  cursor: pointer;
+  margin-bottom: .75rem;
+}
+
+.mgb-target {
+  position: absolute;
+  top: 10%; left: 50%; transform: translateX(-50%);
+  width: 100px; height: 100px;
+  object-fit: contain; border-radius: 50%;
+  box-shadow: 0 0 22px rgba(255,215,0,.45);
+  pointer-events: none;
+}
+
+.mgb-mug {
+  position: absolute;
+  bottom: 5%; left: 50%;
+  transform: translateX(-50%) translateY(0px);
+  width: 80px; height: 80px;
+  z-index: 10; will-change: transform;
+}
+
+.mgb-mug-img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 6px rgba(0,0,0,.6));
+  pointer-events: none;
+}
+
+.mgb-splash {
+  position: absolute; top: -30px; left: -30px;
+  width: 140px; height: 140px;
+  object-fit: contain;
+  opacity: 0; pointer-events: none;
+  mix-blend-mode: screen;
+  transform: scale(.5);
+  transition: all .3s cubic-bezier(.175,.885,.32,1.275);
+}
+.mgb-splash-active { opacity: 1 !important; transform: scale(1.15) !important; }
+
+.mgb-power-wrap {
+  position: absolute; bottom: 14px; right: 14px;
+  width: 22px; height: 42%;
+  background: rgba(0,0,0,.8);
+  border: 2px solid #d4b886; border-radius: 11px;
+  overflow: hidden;
+}
+
+.mgb-power-fill {
+  position: absolute; bottom: 0; width: 100%; height: 0%;
+  background: linear-gradient(to top, #4caf50, #ffeb3b, #f44336);
+}
+
+.mgb-shake { animation: shake-anim .4s cubic-bezier(.36,.07,.19,.97) both; }
+
+@keyframes shake-anim {
+  10%, 90% { transform: translate3d(-2px,0,0); }
+  20%, 80% { transform: translate3d(3px,0,0); }
+  30%, 50%, 70% { transform: translate3d(-5px,0,0); }
+  40%, 60% { transform: translate3d(5px,0,0); }
+}
