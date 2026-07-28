@@ -4670,6 +4670,34 @@ function renderSerraView(c) {
   c.appendChild(backBtn);
   c.appendChild(el('h2', 'section-title', '🌿 La Serra del Viandante'));
 
+  // NPC Messer Ortica — prima visita
+  if (!HERO.greenhouse.metNpc) {
+    HERO.greenhouse.metNpc = true;
+    persist();
+    modal(`<div class="npc-dialogue-modal">
+      <div class="npc-portrait-big">
+        <span class="npc-emoji-fallback">🧙</span>
+      </div>
+      <h3 class="panel-title" style="margin-top:8px">Messer Ortica</h3>
+      <p class="muted small center" style="margin-bottom:12px"><i>Gnomo giardiniere della Serra</i></p>
+      <p>"Benvenuto, Viandante! Questa è la tua Serra personale. Ogni km che corri diventa Sudore Vitale — la nostra acqua magica."</p>
+      <p>"Ricorda le tre leggi del giardiniere:"</p>
+      <ul style="text-align:left;padding-left:1.2rem;line-height:1.8">
+        <li>💧 <b>Annaffia ogni giorno</b> — le piante assetate perdono Salute.</li>
+        <li>❤️ <b>Tieni d'occhio la Salute</b> — a 0% la pianta marcisce.</li>
+        <li>🎁 <b>Raccogli subito</b> quando è pronta — non aspettare troppo!</li>
+      </ul>
+      <button class="btn btn-primary wide" onclick="nextOpening()">Ho capito, Messer Ortica!</button>
+    </div>`);
+  }
+
+  // Banner permanente Messer Ortica
+  const npcBanner = el('div', 'npc-banner');
+  npcBanner.innerHTML = `
+    <div class="npc-img"><span class="npc-emoji-fallback">🧙</span></div>
+    <div class="npc-quote"><b>Messer Ortica</b><br><span class="muted small">"Corri, annaffia, raccogli. La Serra non dimentica chi la cura."</span></div>`;
+  c.appendChild(npcBanner);
+
   const kmToday = RPG.todayKm(HERO);
   const waterAvail = Math.max(0, kmToday - (HERO.greenhouse.waterUsedToday || 0));
   const tank = el('div', 'water-tank-panel');

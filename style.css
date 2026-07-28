@@ -4857,3 +4857,27 @@ body {
 .pot-fill-hp  { height: 100%; background: linear-gradient(90deg, #e05050, #ff7a00, #4caf50); transition: width .3s; }
 .pot-fill-xp  { height: 100%; background: linear-gradient(90deg, #60c8ff, var(--magic)); transition: width .3s; }
 .pot-water-info { font-size: .75rem; color: var(--ink-light); }
+
+/* ── NPC Messer Ortica ────────────────────────────────────────────────────── */
+.npc-dialogue-modal { text-align: center; padding: 4px 0; }
+.npc-portrait-big {
+  width: 90px; height: 90px; border-radius: 50%;
+  background: var(--surface2); border: 3px solid var(--emerald);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 4px;
+}
+.npc-emoji-fallback { font-size: 2.8rem; line-height: 1; }
+.npc-banner {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface2); border-radius: 10px;
+  border-left: 4px solid var(--emerald);
+  padding: 10px 14px; margin-bottom: 12px;
+}
+.npc-img {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--surface3); border: 2px solid var(--emerald);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.npc-img .npc-emoji-fallback { font-size: 1.5rem; }
+.npc-quote { flex: 1; font-size: .85rem; line-height: 1.4; }
