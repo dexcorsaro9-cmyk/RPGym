@@ -1951,11 +1951,11 @@ function renderMap(c) {
   const pvpWins = HERO.pvpWins || 0;
   const pt = pvpTitle(pvpWins);
   pvpEntry.innerHTML = `
-    <div class="pantheon-entry-row">
-      <div class="pantheon-entry-icon">🏛️</div>
-      <div class="pantheon-entry-info">
+    <div class="pantheon-banner">
+      <img src="assets/ui/pantheon.png" alt="Pantheon" class="pantheon-banner-img">
+      <div class="pantheon-banner-overlay">
         <div class="pantheon-entry-title">Il Pantheon dei Campioni</div>
-        <div class="small muted">Classifica · Rivali · Sfide PvP</div>
+        <div class="pantheon-banner-sub">Classifica · Rivali · Sfide PvP</div>
         ${pt ? `<div class="pantheon-rank-chip">${pt.icon} ${pt.label}</div>` : ''}
       </div>
       <button class="btn btn-small pantheon-open-btn">Entra →</button>

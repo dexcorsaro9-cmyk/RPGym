@@ -2351,23 +2351,49 @@ body {
 /* ── Pantheon dei Campioni: entry panel e subview ── */
 .pantheon-entry-panel {
   border-color: #7b3fbf !important;
-  background: linear-gradient(135deg, rgba(123,63,191,.08), rgba(60,20,100,.04));
-  padding: 12px 14px;
+  padding: 0;
+  overflow: hidden;
 }
-.pantheon-entry-row { display: flex; align-items: center; gap: 12px; }
-.pantheon-entry-icon { font-size: 2rem; flex-shrink: 0; }
-.pantheon-entry-info { flex: 1; }
+.pantheon-banner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 100px;
+}
+.pantheon-banner-img {
+  width: 110px;
+  height: 100px;
+  object-fit: contain;
+  object-position: center;
+  flex-shrink: 0;
+  background: #1a0d2e;
+  padding: 6px;
+}
+.pantheon-banner-overlay {
+  flex: 1;
+  padding: 10px 12px;
+  background: linear-gradient(to right, rgba(20,8,40,.95), rgba(40,15,70,.85));
+}
+.pantheon-banner-sub {
+  font-size: .72rem;
+  color: rgba(192,154,240,.7);
+  margin-top: 2px;
+}
 .pantheon-entry-title {
   font-family: 'Cinzel', serif; font-size: .9rem; font-weight: 700;
   color: #b47fe8;
 }
 .pantheon-rank-chip {
-  display: inline-block; margin-top: 3px;
+  display: inline-block; margin-top: 4px;
   font-size: .68rem; font-weight: 700;
-  background: rgba(123,63,191,.18); border: 1px solid rgba(123,63,191,.4);
+  background: rgba(123,63,191,.25); border: 1px solid rgba(123,63,191,.5);
   border-radius: 20px; padding: 1px 8px; color: #c09af0;
 }
-.pantheon-open-btn { flex-shrink: 0; }
+.pantheon-open-btn {
+  flex-shrink: 0;
+  margin-right: 12px;
+  align-self: center;
+}
 
 .pantheon-back-btn { margin-bottom: 12px; }
 .pantheon-header {
