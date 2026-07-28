@@ -4670,13 +4670,16 @@ function renderSerraView(c) {
   c.appendChild(backBtn);
   c.appendChild(el('h2', 'section-title', '🌿 La Serra del Viandante'));
 
+  const serraBanner = el('div', 'serra-hero-banner');
+  c.appendChild(serraBanner);
+
   // NPC Messer Ortica — prima visita
   if (!HERO.greenhouse.metNpc) {
     HERO.greenhouse.metNpc = true;
     persist();
     modal(`<div class="npc-dialogue-modal">
       <div class="npc-portrait-big">
-        <span class="npc-emoji-fallback">🧙</span>
+        <img src="assets/minigames/serra/npc.png" class="npc-portrait-img" alt="Messer Ortica">
       </div>
       <h3 class="panel-title" style="margin-top:8px">Messer Ortica</h3>
       <p class="muted small center" style="margin-bottom:12px"><i>Gnomo giardiniere della Serra</i></p>
@@ -4694,19 +4697,31 @@ function renderSerraView(c) {
   // Banner permanente Messer Ortica
   const npcBanner = el('div', 'npc-banner');
   npcBanner.innerHTML = `
-    <div class="npc-img"><span class="npc-emoji-fallback">🧙</span></div>
+    <div class="npc-img"><img src="assets/minigames/serra/npc.png" class="npc-img-real" alt=""></div>
     <div class="npc-quote"><b>Messer Ortica</b><br><span class="muted small">"Corri, annaffia, raccogli. La Serra non dimentica chi la cura."</span></div>`;
   c.appendChild(npcBanner);
 
   const kmToday = RPG.todayKm(HERO);
   const waterAvail = Math.max(0, kmToday - (HERO.greenhouse.waterUsedToday || 0));
   const tank = el('div', 'water-tank-panel');
-  tank.innerHTML = `<span class="water-drop-icon">💧</span>
+  tank.innerHTML = `<img src="assets/minigames/serra/annaffiatoio magico.png" class="water-tank-img" alt="">
     <div>
       <div class="water-tank-title">Riserva di Sudore (oggi)</div>
       <div class="water-tank-val"><b>${waterAvail.toFixed(1)} km</b> disponibili per l'irrigazione</div>
     </div>`;
   c.appendChild(tank);
+
+  const PLANT_IMGS = {
+    muschio:  "assets/minigames/serra/muschio soffice di oakhaven.png",
+    bosso:    "assets/minigames/serra/bosso scudo delle pianure.png",
+    cactus:   "assets/minigames/serra/cactus di cenere.png",
+    girasole: "assets/minigames/serra/girasole radiante.png",
+    loto:     "assets/minigames/serra/loto dell'abisso.png",
+  };
+  const plantIcon = (seedId, fallback) => {
+    const src = PLANT_IMGS[seedId];
+    return src ? `<img src="${src}" class="pot-img" alt="">` : fallback;
+  };
 
   const grid = el('div', 'greenhouse-grid');
   HERO.greenhouse.pots.forEach((pot, i) => {
@@ -4717,7 +4732,7 @@ function renderSerraView(c) {
         <div class="pot-name">Sblocca al Liv. ${i === 1 ? 10 : 30}</div>`;
 
     } else if (pot.status === 'empty') {
-      pEl.innerHTML = `<div class="pot-emoji">🪴</div>
+      pEl.innerHTML = `<div class="pot-emoji"><img src="assets/minigames/serra/vaso vuoto.png" class="pot-img" alt=""></div>
         <div class="pot-name">Vaso Vuoto</div>
         <div class="muted small">Tocca per piantare</div>`;
       pEl.classList.add('pickable');
@@ -4735,7 +4750,7 @@ function renderSerraView(c) {
 
     } else if (pot.status === 'ready') {
       const pData = RPG.PLANTS[pot.seedId];
-      pEl.innerHTML = `<div class="pot-emoji glow">${pData.icon}</div>
+      pEl.innerHTML = `<div class="pot-emoji glow">${plantIcon(pot.seedId, pData.icon)}</div>
         <div class="pot-name" style="color:var(--gold-bright)">Fioritura Perfetta!</div>`;
       const harBtn = el('button', 'btn btn-primary wide btn-small', '🎁 Raccogli');
       harBtn.addEventListener('click', () => {
@@ -4760,7 +4775,7 @@ function renderSerraView(c) {
       const hpPct   = Math.round(Math.max(0, pot.health));
       const hpColor = hpPct > 60 ? 'var(--emerald)' : hpPct > 30 ? '#ff9a3c' : '#e05050';
       pEl.innerHTML = `
-        <div class="pot-emoji">${growPct < 50 ? '🌱' : pData.icon}</div>
+        <div class="pot-emoji">${growPct < 50 ? '<img src="assets/minigames/serra/germoglio.png" class="pot-img" alt="">' : plantIcon(pot.seedId, pData.icon)}</div>
         <div class="pot-name">${esc(pData.name)}</div>
         <div class="pot-stats">
           <div class="pot-stat-label muted small">❤️ Salute</div>
