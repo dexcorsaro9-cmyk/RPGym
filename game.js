@@ -272,7 +272,8 @@ const RPG = (() => {
     armatura: { label: 'Armatura', icon: '🥋' },
     anello:   { label: 'Anello',   icon: '💍' },
     amuleto:  { label: 'Amuleto',  icon: '📿' },
-    seme:     { label: 'Seme',    icon: '🌰' },
+    seme:        { label: 'Seme',        icon: '🌰' },
+    consumabile: { label: 'Consumabile', icon: '🧪' },
   };
 
   /* ── Icone del loot (generate con l'IA, in assets/loot/) ──── */
@@ -1772,6 +1773,13 @@ const RPG = (() => {
       const item = genItemFor(hero);
       hero.items.push(item);
       report.loot.push(item);
+    }
+
+    // Serra: 5% possibilità di trovare Fertilizzante Magico durante l'allenamento
+    if (hero.greenhouse && Math.random() < 0.05) {
+      const fert = genFertilizzante();
+      hero.items.push(fert);
+      report.loot.push(fert);
     }
 
     // Frammenti di Memoria — l'ultimo (che rivela il Cavaliere del Drago)
@@ -3621,14 +3629,26 @@ const RPG = (() => {
       waterUsedToday: 0,
       lastTick: todayStamp(),
       metNpc: false,
+      weeklyMissions: null,
       pots: [
-        { status:'empty',  seedId:null, daysGrown:0, health:100, water:0 },
-        { status:'locked', seedId:null, daysGrown:0, health:100, water:0 },
-        { status:'locked', seedId:null, daysGrown:0, health:100, water:0 },
+        { status:'empty',  seedId:null, daysGrown:0, health:100, water:0, readyDays:0 },
+        { status:'locked', seedId:null, daysGrown:0, health:100, water:0, readyDays:0 },
+        { status:'locked', seedId:null, daysGrown:0, health:100, water:0, readyDays:0 },
+        { status:'locked', seedId:null, daysGrown:0, health:100, water:0, readyDays:0 },
+        { status:'locked', seedId:null, daysGrown:0, health:100, water:0, readyDays:0 },
       ],
     };
+    // Migration: add missing pots
+    while (h.greenhouse.pots.length < 5)
+      h.greenhouse.pots.push({ status:'locked', seedId:null, daysGrown:0, health:100, water:0, readyDays:0 });
+    // Migration: ensure readyDays and weeklyMissions exist
+    h.greenhouse.pots.forEach(p => { if (p.readyDays === undefined) p.readyDays = 0; });
+    if (h.greenhouse.weeklyMissions === undefined) h.greenhouse.weeklyMissions = null;
+    // Unlock pots by level
     if (h.level >= 10 && h.greenhouse.pots[1].status === 'locked') h.greenhouse.pots[1].status = 'empty';
     if (h.level >= 30 && h.greenhouse.pots[2].status === 'locked') h.greenhouse.pots[2].status = 'empty';
+    if (h.level >= 50 && h.greenhouse.pots[3].status === 'locked') h.greenhouse.pots[3].status = 'empty';
+    if (h.level >= 70 && h.greenhouse.pots[4].status === 'locked') h.greenhouse.pots[4].status = 'empty';
   }
 
   function rolloverGreenhouse(hero) {
@@ -3636,11 +3656,32 @@ const RPG = (() => {
     if (!hero.greenhouse) { initGreenhouse(hero); return []; }
     if (hero.greenhouse.lastTick === today) return [];
 
+    rolloverSerraMissions(hero);
+
     const logs = [];
+    let allHealthy = true;
+    let allWatered = true;
+    let hasActivePlants = false;
+
     hero.greenhouse.pots.forEach((pot, i) => {
+      // Stagionatura: piante pronte che non vengono raccolte invecchiano
+      if (pot.status === 'ready') {
+        pot.readyDays = (pot.readyDays || 0) + 1;
+        const pData = PLANTS[pot.seedId];
+        if (pot.readyDays >= 4) {
+          pot.status = 'dead';
+          pot.readyDays = 0;
+          logs.push(`🥀 Il tuo ${pData ? pData.name : 'pianta'} è marcita nel vaso ${i + 1} per troppa attesa!`);
+        }
+        return;
+      }
+
       if (pot.status !== 'growing') return;
+      hasActivePlants = true;
       const pData = PLANTS[pot.seedId];
       if (!pData) { pot.status = 'empty'; return; }
+
+      if (pot.water < pData.water * 0.8) allWatered = false;
 
       let water = pot.water;
       const weather = getDailyWeather();
@@ -3671,6 +3712,7 @@ const RPG = (() => {
       }
 
       pot.health = Math.max(0, pot.health - healthHit);
+      if (pot.health < 90) allHealthy = false;
       pot.daysGrown += growth;
       pot.water = 0;
 
@@ -3678,14 +3720,25 @@ const RPG = (() => {
         pot.status = 'dead';
         logs.push(`💀 Il tuo ${pData.name} è appassito nel vaso ${i + 1}.`);
       } else if (pData.trait === 'senziente' && pot.health < 50) {
-        pot.status = 'empty'; pot.seedId = null; pot.daysGrown = 0; pot.health = 100;
+        pot.status = 'empty'; pot.seedId = null; pot.daysGrown = 0; pot.health = 100; pot.readyDays = 0;
         hero.items.push(genItemFor(hero, 'epico'));
         logs.push(`🌑 Il Loto dell'Abisso è mutato ed è fuggito dal vaso!`);
       } else if (pot.daysGrown >= pData.days) {
         pot.status = 'ready';
+        pot.readyDays = 0;
         logs.push(`✨ Il tuo ${pData.name} è pronto per il raccolto!`);
       }
     });
+
+    // Missioni giornaliere della Serra
+    const wm = hero.greenhouse.weeklyMissions;
+    if (wm && hasActivePlants) {
+      wm.missions.forEach(m => {
+        if (m.claimed || m.progress >= m.target) return;
+        if (m.type === 'health_days' && allHealthy) m.progress = Math.min(m.target, m.progress + 1);
+        if (m.type === 'water_days'  && allWatered) m.progress = Math.min(m.target, m.progress + 1);
+      });
+    }
 
     hero.greenhouse.waterUsedToday = 0;
     hero.greenhouse.lastTick = today;
@@ -3699,6 +3752,14 @@ const RPG = (() => {
     if (kmAmount > avail) return 'Non hai abbastanza km di sudore oggi!';
     hero.greenhouse.waterUsedToday = (hero.greenhouse.waterUsedToday || 0) + kmAmount;
     pot.water += kmAmount;
+    // Missione: km totali versati questa settimana
+    const wm = hero.greenhouse.weeklyMissions;
+    if (wm) {
+      wm.missions.forEach(m => {
+        if (m.claimed || m.progress >= m.target) return;
+        if (m.type === 'water_km') m.progress = Math.min(m.target, +(m.progress + kmAmount).toFixed(1));
+      });
+    }
     return null;
   }
 
@@ -3706,7 +3767,7 @@ const RPG = (() => {
     const pot = hero.greenhouse.pots[potIndex];
     if (!pot || pot.status !== 'ready') return null;
     const pData = PLANTS[pot.seedId];
-    const reward = { gold: 0, items: [], wood: 0, stone: 0 };
+    const reward = { gold: 0, items: [], wood: 0, stone: 0, maturBonus: 0 };
 
     if (pData.id === 'muschio') { hero.wood += 30; hero.stone += 30; reward.wood = 30; reward.stone = 30; }
     if (pData.id === 'giglio')  { reward.gold += 150; }
@@ -3715,13 +3776,36 @@ const RPG = (() => {
     if (pData.rarity === 'epico')      reward.items.push(genItemFor(hero, 'epico'));
     if (pData.rarity === 'divino')     reward.items.push(genItemFor(hero, 'divino'));
 
+    // Stagionatura: +20% valore base per ogni giorno di attesa dopo "pronto" (max 3)
+    const readyDays = Math.min(3, pot.readyDays || 0);
+    if (readyDays > 0) {
+      const baseVal = (RARITIES[pData.rarity] || {}).value || 50;
+      const maturBonus = Math.round(baseVal * 0.2 * readyDays);
+      reward.gold += maturBonus;
+      reward.maturBonus = maturBonus;
+    }
+
     // Bonus: seme casuale da ogni raccolto
     reward.items.push(genSeed(hero));
-
     reward.items.forEach(it => hero.items.push(it));
     hero.gold += reward.gold;
 
-    pot.status = 'empty'; pot.seedId = null; pot.daysGrown = 0; pot.health = 100; pot.water = 0;
+    // Missioni raccolto
+    const wm = hero.greenhouse.weeklyMissions;
+    if (wm) {
+      const rarOrder = ['comune','non_comune','raro','epico','leggendario','divino','oscuro'];
+      wm.missions.forEach(m => {
+        if (m.claimed || m.progress >= m.target) return;
+        if (m.type === 'harvest') m.progress = Math.min(m.target, m.progress + 1);
+        if (m.type === 'harvest_rarity') {
+          const ti = rarOrder.indexOf(m.target);
+          const pi = rarOrder.indexOf(pData.rarity);
+          if (pi >= ti) m.progress = m.target;
+        }
+      });
+    }
+
+    pot.status = 'empty'; pot.seedId = null; pot.daysGrown = 0; pot.health = 100; pot.water = 0; pot.readyDays = 0;
     return reward;
   }
 
@@ -3729,7 +3813,15 @@ const RPG = (() => {
     const pot = hero.greenhouse.pots[potIndex];
     if (!pot || pot.status !== 'empty') return 'Vaso non disponibile.';
     if (!PLANTS[seedId]) return 'Seme sconosciuto.';
-    pot.status = 'growing'; pot.seedId = seedId; pot.daysGrown = 0; pot.health = 100; pot.water = 0;
+    pot.status = 'growing'; pot.seedId = seedId; pot.daysGrown = 0; pot.health = 100; pot.water = 0; pot.readyDays = 0;
+    // Missione: riempi vasi
+    const wm = hero.greenhouse && hero.greenhouse.weeklyMissions;
+    if (wm) {
+      wm.missions.forEach(m => {
+        if (m.claimed || m.progress >= m.target) return;
+        if (m.type === 'pots_used') m.progress = Math.min(m.target, m.progress + 1);
+      });
+    }
     return null;
   }
 
@@ -3752,6 +3844,88 @@ const RPG = (() => {
       value: Math.round(rInfo.value * 0.4),
       desc: `Seme magico per la Serra. 💧 Richiede ${plant.water} km/giorno per ${plant.days} giorni.`,
     };
+  }
+
+  const SERRA_MISSION_TEMPLATES = [
+    { id:'sm_water3',    label:'Grande Irrigatore',    desc:'Annaffia le piante per 3 giorni di fila.',
+      type:'water_days',    target:3,    reward:{ gold:80,  item:'seme' } },
+    { id:'sm_harvest2',  label:'Raccoglitore Provetto', desc:'Raccogli 2 piante questa settimana.',
+      type:'harvest',       target:2,    reward:{ gold:100, item:'fertilizzante' } },
+    { id:'sm_water20km', label:'Bagno di Sudore',       desc:'Versa 20 km di sudore nelle piante.',
+      type:'water_km',      target:20,   reward:{ gold:60,  item:null } },
+    { id:'sm_harvest1r', label:'Raccolto Raro',         desc:'Raccogli una pianta Raro o superiore.',
+      type:'harvest_rarity',target:'raro', reward:{ gold:120, item:'fertilizzante' } },
+    { id:'sm_allpots',   label:'La Serra Vive',         desc:'Semina in ogni vaso sbloccato almeno una volta.',
+      type:'pots_used',     target:0,    reward:{ gold:90,  item:'seme' } },
+    { id:'sm_health90',  label:'Pollice Verde',         desc:'Tieni tutte le piante sopra il 90% di salute per 2 giorni.',
+      type:'health_days',   target:2,    reward:{ gold:75,  item:'fertilizzante' } },
+  ];
+
+  function rolloverSerraMissions(hero) {
+    const ws = weekStamp();
+    if (hero.greenhouse.weeklyMissions && hero.greenhouse.weeklyMissions.weekStamp === ws) return;
+    const shuffled = [...SERRA_MISSION_TEMPLATES].sort(() => Math.random() - 0.5);
+    const picked = shuffled.slice(0, 3);
+    const unlockedCount = hero.greenhouse.pots.filter(p => p.status !== 'locked').length;
+    hero.greenhouse.weeklyMissions = {
+      weekStamp: ws,
+      missions: picked.map(t => ({
+        id: t.id,
+        label: t.label,
+        desc: t.desc,
+        type: t.type,
+        target: t.type === 'pots_used' ? unlockedCount : t.target,
+        reward: t.reward,
+        progress: 0,
+        claimed: false,
+      })),
+    };
+  }
+
+  function claimSerraMission(hero, missionId) {
+    const wm = hero.greenhouse && hero.greenhouse.weeklyMissions;
+    if (!wm) return 'Nessuna missione attiva.';
+    const m = wm.missions.find(x => x.id === missionId);
+    if (!m) return 'Missione non trovata.';
+    if (m.claimed) return 'Già riscattata.';
+    const done = (m.type === 'harvest_rarity') ? m.progress >= m.target : m.progress >= m.target;
+    if (!done) return 'Missione non completata.';
+    m.claimed = true;
+    const r = m.reward;
+    hero.gold += (r.gold || 0);
+    const items = [];
+    if (r.item === 'seme') { const s = genSeed(hero); hero.items.push(s); items.push(s); }
+    if (r.item === 'fertilizzante') { const f = genFertilizzante(); hero.items.push(f); items.push(f); }
+    return { gold: r.gold || 0, items };
+  }
+
+  function genFertilizzante() {
+    return {
+      id: 'fertilizzante_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+      slot: 'consumabile',
+      rarity: 'comune',
+      name: 'Fertilizzante Magico',
+      icon: '🌿',
+      img: null,
+      xp: 0, atk: 0, def: 0, hp: 0, xpBonus: 0,
+      value: 15,
+      desc: 'Accelera la crescita di una pianta di 1 giorno.',
+    };
+  }
+
+  function useFertilizer(hero, itemId, potIndex) {
+    const idx = hero.items.findIndex(it => it.id === itemId);
+    if (idx === -1) return 'Fertilizzante non trovato.';
+    const item = hero.items[idx];
+    if (item.slot !== 'consumabile') return 'Oggetto non valido.';
+    const pot = hero.greenhouse && hero.greenhouse.pots[potIndex];
+    if (!pot || pot.status !== 'growing') return 'Nessuna pianta in crescita in questo vaso.';
+    const pData = PLANTS[pot.seedId];
+    if (!pData) return 'Pianta sconosciuta.';
+    pot.daysGrown = Math.min(pData.days, pot.daysGrown + 1);
+    if (pot.daysGrown >= pData.days) { pot.status = 'ready'; pot.readyDays = 0; }
+    hero.items.splice(idx, 1);
+    return null;
   }
 
   function useSeedItem(hero, itemId, potIndex) {
@@ -3814,6 +3988,9 @@ const RPG = (() => {
     dungeonStartEncounter, dungeonGetScenario, dungeonAction,
     dungeonMakeChoice, dungeonStepResult,
     parseBackup, mergeImport,
-    PLANTS, initGreenhouse, rolloverGreenhouse, waterPlant, harvestPlant, plantSeeds, genSeed, useSeedItem,
+    PLANTS, SERRA_MISSION_TEMPLATES,
+    initGreenhouse, rolloverGreenhouse, waterPlant, harvestPlant, plantSeeds,
+    genSeed, useSeedItem, genFertilizzante, useFertilizer,
+    rolloverSerraMissions, claimSerraMission,
   };
 })();

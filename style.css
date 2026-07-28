@@ -4860,6 +4860,36 @@ body {
 .pot-fill-xp  { height: 100%; background: linear-gradient(90deg, #60c8ff, var(--magic)); transition: width .3s; }
 .pot-water-info { font-size: .75rem; color: var(--ink-light); }
 .pot-img { width: 120px; height: 120px; object-fit: contain; display: block; margin: 0 auto; }
+
+/* Stagionatura */
+.matur-hint { font-size: .72rem; color: var(--ink-light); text-align: center; margin: 2px 0 4px; }
+.matur-ripe  { color: var(--gold-bright) !important; font-weight: 600; }
+
+/* Missioni Serra settimanali */
+.serra-missions-panel {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 12px;
+  margin: 14px 0 4px;
+}
+.serra-mission-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
+.serra-mission-card.done   { border-color: var(--emerald); }
+.serra-mission-card.claimed { opacity: .6; }
+.sm-label  { font-weight: 700; font-size: .85rem; margin-bottom: 2px; }
+.sm-desc   { margin-bottom: 6px; }
+.sm-progress-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.sm-bar    { flex: 1; height: 6px; background: rgba(0,0,0,.4); border-radius: 3px; overflow: hidden; }
+.sm-fill   { height: 100%; background: var(--emerald); border-radius: 3px; transition: width .4s; }
+.sm-fraction { font-size: .72rem; white-space: nowrap; color: var(--ink-light); }
+.sm-reward { margin-bottom: 6px; }
+.sm-claimed-badge { font-size: .75rem; font-weight: 700; color: var(--emerald); margin-top: 4px; }
 .pot-emoji.glow .pot-img { filter: drop-shadow(0 0 8px var(--gold-bright)); }
 .water-tank-img { width: 48px; height: 48px; object-fit: contain; flex-shrink: 0; }
 
