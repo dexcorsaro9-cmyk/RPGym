@@ -1952,7 +1952,7 @@ function renderMap(c) {
   const pt = pvpTitle(pvpWins);
   pvpEntry.innerHTML = `
     <div class="pantheon-banner">
-      <img src="assets/ui/pantheon.png" alt="Pantheon" class="pantheon-banner-img">
+      <img src="assets/ui/pantheon.jpg" alt="Pantheon" class="pantheon-banner-img">
       <div class="pantheon-banner-overlay">
         <div class="pantheon-entry-title">Il Pantheon dei Campioni</div>
         <div class="pantheon-banner-sub">Classifica · Rivali · Sfide PvP</div>
