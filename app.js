@@ -1086,6 +1086,7 @@ function renderCamp(c) {
   {
     const growingCount = HERO.greenhouse.pots.filter(p => p.status === 'growing' || p.status === 'ready').length;
     const readyCount   = HERO.greenhouse.pots.filter(p => p.status === 'ready').length;
+    const dangerCount  = HERO.greenhouse.pots.filter(p => p.status === 'growing' && p.health < 40).length;
     const gp = el('div', readyCount ? 'panel panel-featured' : 'panel');
     const serraThumb = document.createElement('img');
     serraThumb.src = 'assets/ui/rifugio/serra.jpg';
@@ -1093,6 +1094,10 @@ function renderCamp(c) {
     serraThumb.className = 'camp-panel-thumb';
     gp.appendChild(serraThumb);
     gp.appendChild(el('h3', 'panel-title', '🌿 La Serra del Viandante'));
+    if (dangerCount) {
+      const warn = el('p', 'serra-danger-warn', `⚠️ ${dangerCount} pianta${dangerCount > 1 ? 'e in pericolo' : ' in pericolo'}! Annaffia subito.`);
+      gp.appendChild(warn);
+    }
     gp.appendChild(el('p', 'muted small',
       readyCount
         ? `🎁 ${readyCount} pianta${readyCount > 1 ? 'e' : ''} pronta${readyCount > 1 ? '' : 'e'} per il raccolto!`
@@ -4837,7 +4842,7 @@ function showSeedPicker(potIndex) {
   // Semi in inventario (slot 'seme') — usa e consuma
   const invSeeds = (HERO.items || []).filter(it => it.slot === 'seme');
   if (invSeeds.length) {
-    list.appendChild(el('div', 'small muted', '🌰 Semi nel tuo zaino:'));
+    list.appendChild(el('div', 'small muted', '🌰 Semi nel tuo zaino — partono pre-germinati (+1 giorno bonus):'));
     invSeeds.forEach(seed => {
       const plant = RPG.PLANTS[seed.seedId];
       const row = el('div', `loot rar-${seed.rarity} pickable`);

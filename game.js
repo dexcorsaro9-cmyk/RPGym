@@ -272,6 +272,7 @@ const RPG = (() => {
     armatura: { label: 'Armatura', icon: '🥋' },
     anello:   { label: 'Anello',   icon: '💍' },
     amuleto:  { label: 'Amuleto',  icon: '📿' },
+    seme:     { label: 'Seme',    icon: '🌰' },
   };
 
   /* ── Icone del loot (generate con l'IA, in assets/loot/) ──── */
@@ -3761,6 +3762,7 @@ const RPG = (() => {
     const err = plantSeeds(hero, potIndex, item.seedId);
     if (err) return err;
     hero.items.splice(idx, 1);
+    hero.greenhouse.pots[potIndex].daysGrown = 1; // pre-germinata: +1 giorno bonus
     return null;
   }
 

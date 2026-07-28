@@ -264,6 +264,7 @@ body {
 }
 .panel-title { font-family: 'Cinzel', serif; font-size: 1.05rem; color: var(--ink); }
 .camp-panel-thumb { width: 100%; height: 90px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; display: block; }
+.serra-danger-warn { font-size: .8rem; font-weight: 600; color: #e05050; margin-bottom: 4px; }
 .panel.panel-featured {
   background:
     radial-gradient(ellipse at 30% 15%, rgba(255,220,130,.25), transparent 55%),
