@@ -4624,3 +4624,103 @@ body {
   30%, 50%, 70% { transform: translate3d(-5px,0,0); }
   40%, 60% { transform: translate3d(5px,0,0); }
 }
+
+/* ── Dadi del Bluff ─────────────────────────────────────────────────────── */
+.mgd-wrap {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 12px 10px 10px;
+  min-height: 420px;
+}
+.mgd-main {
+  display: flex; flex-direction: column; gap: 8px;
+  flex: 1;
+}
+.mgd-oste-section,
+.mgd-player-section {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.mgd-oste-section {
+  background: rgba(0,0,0,.35);
+  border-radius: 10px; padding: 8px 6px 4px;
+}
+.mgd-player-section {
+  background: rgba(255,255,255,.08);
+  border-radius: 10px; padding: 8px 6px 4px;
+}
+.mgd-oste-avatar {
+  width: 54px; height: 54px;
+  object-fit: contain; border-radius: 50%;
+  border: 2px solid rgba(212,184,134,.5);
+}
+.mgd-section-label {
+  font-size: .72rem; text-transform: uppercase;
+  letter-spacing: .08em; opacity: .65;
+  color: var(--ink);
+}
+.mgd-dice-row {
+  display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+}
+.mgd-die {
+  position: relative;
+  width: 44px; height: 44px;
+  background: #fff;
+  border-radius: 8px;
+  border: 2px solid #bbb;
+  box-shadow: 2px 3px 6px rgba(0,0,0,.45);
+}
+.mgd-die.mgd-hidden {
+  background: #4a3060;
+  border-color: #7a5a9a;
+}
+.mgd-die.mgd-hidden .mgd-dot { background: #7a5a9a; }
+.mgd-dot {
+  position: absolute;
+  width: 8px; height: 8px;
+  background: #222;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+.mgd-bid-display {
+  text-align: center;
+  padding: 7px 10px;
+  background: rgba(212,184,134,.12);
+  border-radius: 8px;
+  font-size: .92rem;
+  color: var(--ink);
+}
+.mgd-bid-label { opacity: .7; font-size: .8rem; margin-right: 4px; }
+.mgd-controls { display: flex; flex-direction: column; gap: 8px; }
+.mgd-sel-row { display: flex; gap: 12px; justify-content: center; }
+.mgd-sel-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.mgd-sel-lbl { font-size: .72rem; opacity: .65; text-transform: uppercase; letter-spacing: .06em; }
+.mgd-spin-row { display: flex; align-items: center; gap: 6px; }
+.mgd-spin-btn {
+  width: 30px; height: 30px;
+  border: none; border-radius: 6px;
+  background: rgba(212,184,134,.25);
+  color: var(--ink); font-size: 1.1rem;
+  cursor: pointer; line-height: 1;
+}
+.mgd-spin-btn:active { background: rgba(212,184,134,.5); }
+.mgd-spin-val {
+  min-width: 26px; text-align: center;
+  font-size: 1.1rem; font-weight: 700;
+  color: var(--ink);
+}
+.mgd-btn-row {
+  display: flex; gap: 8px; justify-content: center;
+}
+.mgd-bluff-btn {
+  background: rgba(180,40,40,.75) !important;
+  border-color: #b42828 !important;
+}
+.mgd-thinking {
+  text-align: center; font-style: italic;
+  opacity: .7; padding: 10px 0;
+  color: var(--ink);
+}
+.mgd-hint {
+  text-align: center; font-size: .82rem; opacity: .7;
+  min-height: 1.1rem; color: var(--ink);
+}
+.mgd-hint-err { color: #e07070 !important; opacity: 1 !important; }

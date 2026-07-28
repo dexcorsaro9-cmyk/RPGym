@@ -8,7 +8,7 @@ function getMG(id) {
   HERO.miniGames[id] = d;
   return d;
 }
-const MG_MAX = { dice:1, cards:3, runes:3, forge:2, archery:3, wheel:1, memory:2, tap:3, wham:3, boccale:2 };
+const MG_MAX = { dice:1, cards:3, runes:3, forge:2, archery:3, wheel:1, memory:2, tap:3, wham:3, boccale:2, dadi:2 };
 // ── Bilanciamento economia ───────────────────────────────────────────────────
 // Allenamento base (5 km camminata): gold≈25  xp≈75  wood≈0  stone≈0
 // Target mini-giochi totale/die:     gold≈80  xp≈500 wood≈15 stone≈15
@@ -110,6 +110,7 @@ const MG_CATEGORIES = [
   ]},
   { id:'taverna',    icon:'🍺', label:'Taverna',    games:[
     { id:'boccale', emoji:'🍺', name:'Lancio Boccale', open: openBoccaleGame },
+    { id:'dadi',    emoji:'🎲', name:'Dadi del Bluff',  open: openDadiGame },
   ]},
 ];
 
@@ -875,4 +876,296 @@ function openBoccaleGame() {
 
   document.getElementById('mgb-x').addEventListener('click', () => { cleanup(); mgClose(); });
   closeBtn.addEventListener('click', () => { cleanup(); mgClose(); });
+}
+
+/* ── 🎲 DADI DEL BLUFF ── */
+function openDadiGame() {
+  if (!mgCanPlay('dadi')) return;
+
+  const N_DICE = 5;
+  let playerDice = [], osteDice = [];
+  let bidQty = 1, bidFace = 1;
+  let currentBid = { qty: 0, face: 1 }; // qty=0 means no bid yet
+  let turn = 'player'; // 'player' | 'oste'
+  let gameOver = false;
+
+  function rollDice(n) {
+    return Array.from({ length: n }, () => Math.floor(Math.random() * 6) + 1);
+  }
+
+  function startRound() {
+    playerDice = rollDice(N_DICE);
+    osteDice   = rollDice(N_DICE);
+    currentBid = { qty: 0, face: 1 };
+    turn = 'player';
+    bidQty = 1; bidFace = 1;
+    gameOver = false;
+    renderDadi();
+  }
+
+  /* ── dot layouts for CSS dice ── */
+  function makeDie(face, hidden) {
+    const d = document.createElement('div');
+    d.className = 'mgd-die' + (hidden ? ' mgd-hidden' : '');
+    d.dataset.face = face;
+    const layouts = {
+      1: [[50,50]],
+      2: [[25,25],[75,75]],
+      3: [[25,25],[50,50],[75,75]],
+      4: [[25,25],[75,25],[25,75],[75,75]],
+      5: [[25,25],[75,25],[50,50],[25,75],[75,75]],
+      6: [[25,25],[75,25],[25,50],[75,50],[25,75],[75,75]],
+    };
+    (layouts[face] || []).forEach(([x,y]) => {
+      const dot = document.createElement('div');
+      dot.className = 'mgd-dot';
+      dot.style.cssText = `left:${x}%;top:${y}%;`;
+      d.appendChild(dot);
+    });
+    return d;
+  }
+
+  function renderDiceRow(arr, hidden) {
+    const row = document.createElement('div');
+    row.className = 'mgd-dice-row';
+    arr.forEach(f => row.appendChild(makeDie(f, hidden)));
+    return row;
+  }
+
+  /* ── AI logic ── */
+  function osteThink() {
+    const counts = Array(7).fill(0);
+    osteDice.forEach(f => counts[f]++);
+    const estTotal = (f) => counts[f] + Math.round(N_DICE / 6);
+
+    const prevQty  = currentBid.qty;
+    const prevFace = currentBid.face;
+
+    // call bluff if bid seems implausible
+    const believable = estTotal(prevFace) + 1;
+    if (prevQty > believable) {
+      return 'bluff';
+    }
+
+    // pick best face to raise on
+    let bestFace = prevFace, bestCount = counts[prevFace];
+    for (let f = 1; f <= 6; f++) {
+      if (counts[f] > bestCount) { bestCount = counts[f]; bestFace = f; }
+    }
+
+    // try to raise quantity on same face, or move to a better face
+    if (bestFace > prevFace) {
+      return { qty: prevQty, face: bestFace };
+    }
+    // raise qty
+    const newQty = prevQty + 1;
+    if (newQty > N_DICE * 2) return 'bluff'; // nothing sensible to bid
+    return { qty: newQty, face: bestFace };
+  }
+
+  function resolveBluff(callerIsPlayer) {
+    const declQty  = currentBid.qty;
+    const declFace = currentBid.face;
+    const allDice  = [...playerDice, ...osteDice];
+    const actual   = allDice.filter(f => f === declFace).length;
+    const bidWasTrue = actual >= declQty;
+    // if bid was true → caller loses; if bid was false → bidder loses
+    const playerWins = callerIsPlayer ? !bidWasTrue : bidWasTrue;
+    endDadiGame(playerWins, declQty, declFace, actual, callerIsPlayer);
+  }
+
+  /* ── rendering ── */
+  function renderDadi() {
+    const panelEl = document.getElementById('mgd-main');
+    if (!panelEl) return;
+    panelEl.innerHTML = '';
+
+    // Oste section
+    const osteSection = document.createElement('div');
+    osteSection.className = 'mgd-oste-section';
+    osteSection.innerHTML = `<img class="mgd-oste-avatar" src="assets/minigames/dadi-del-bluff/oste.png" alt="Oste">`;
+    const osteLabel = document.createElement('div');
+    osteLabel.className = 'mgd-section-label';
+    osteLabel.textContent = 'Dadi dell\'Oste';
+    osteSection.appendChild(osteLabel);
+    osteSection.appendChild(renderDiceRow(osteDice, !gameOver));
+    panelEl.appendChild(osteSection);
+
+    // Current bid
+    const bidEl = document.createElement('div');
+    bidEl.className = 'mgd-bid-display';
+    if (currentBid.qty > 0) {
+      bidEl.innerHTML = `<span class="mgd-bid-label">Rilancio attuale:</span> <strong>${currentBid.qty}× ⚄${currentBid.face}</strong>`;
+    } else {
+      bidEl.innerHTML = `<span class="mgd-bid-label">Fai la prima dichiarazione!</span>`;
+    }
+    panelEl.appendChild(bidEl);
+
+    // Player section
+    const playerSection = document.createElement('div');
+    playerSection.className = 'mgd-player-section';
+    const playerLabel = document.createElement('div');
+    playerLabel.className = 'mgd-section-label';
+    playerLabel.textContent = 'I tuoi dadi';
+    playerSection.appendChild(playerLabel);
+    playerSection.appendChild(renderDiceRow(playerDice, false));
+    panelEl.appendChild(playerSection);
+
+    // Controls
+    const ctrl = document.createElement('div');
+    ctrl.className = 'mgd-controls';
+    if (!gameOver && turn === 'player') {
+      // Bid selectors
+      const selRow = document.createElement('div');
+      selRow.className = 'mgd-sel-row';
+
+      const qtyWrap = document.createElement('div');
+      qtyWrap.className = 'mgd-sel-wrap';
+      qtyWrap.innerHTML = `<label class="mgd-sel-lbl">Quantità</label>`;
+      const qtyRow = document.createElement('div');
+      qtyRow.className = 'mgd-spin-row';
+      const qtyDec = document.createElement('button');
+      qtyDec.className = 'mgd-spin-btn'; qtyDec.textContent = '−';
+      const qtyVal = document.createElement('span');
+      qtyVal.className = 'mgd-spin-val'; qtyVal.id = 'mgd-qty-val'; qtyVal.textContent = bidQty;
+      const qtyInc = document.createElement('button');
+      qtyInc.className = 'mgd-spin-btn'; qtyInc.textContent = '+';
+      qtyDec.addEventListener('click', () => { if (bidQty > 1) { bidQty--; qtyVal.textContent = bidQty; } });
+      qtyInc.addEventListener('click', () => { if (bidQty < N_DICE * 2) { bidQty++; qtyVal.textContent = bidQty; } });
+      qtyRow.append(qtyDec, qtyVal, qtyInc);
+      qtyWrap.appendChild(qtyRow);
+
+      const faceWrap = document.createElement('div');
+      faceWrap.className = 'mgd-sel-wrap';
+      faceWrap.innerHTML = `<label class="mgd-sel-lbl">Faccia</label>`;
+      const faceRow = document.createElement('div');
+      faceRow.className = 'mgd-spin-row';
+      const faceDec = document.createElement('button');
+      faceDec.className = 'mgd-spin-btn'; faceDec.textContent = '−';
+      const faceVal = document.createElement('span');
+      faceVal.className = 'mgd-spin-val'; faceVal.id = 'mgd-face-val'; faceVal.textContent = bidFace;
+      const faceInc = document.createElement('button');
+      faceInc.className = 'mgd-spin-btn'; faceInc.textContent = '+';
+      faceDec.addEventListener('click', () => { if (bidFace > 1) { bidFace--; faceVal.textContent = bidFace; } });
+      faceInc.addEventListener('click', () => { if (bidFace < 6) { bidFace++; faceVal.textContent = bidFace; } });
+      faceRow.append(faceDec, faceVal, faceInc);
+      faceWrap.appendChild(faceRow);
+
+      selRow.append(qtyWrap, faceWrap);
+      ctrl.appendChild(selRow);
+
+      const btnRow = document.createElement('div');
+      btnRow.className = 'mgd-btn-row';
+
+      const bidBtn = document.createElement('button');
+      bidBtn.className = 'btn btn-primary'; bidBtn.textContent = '📢 Dichiara';
+      bidBtn.addEventListener('click', () => {
+        // validate: must be strictly higher than currentBid
+        const valid = currentBid.qty === 0 ||
+          bidQty > currentBid.qty ||
+          (bidQty === currentBid.qty && bidFace > currentBid.face);
+        if (!valid) {
+          const hint = document.getElementById('mgd-hint');
+          if (hint) { hint.textContent = 'Devi alzare la dichiarazione!'; hint.classList.add('mgd-hint-err'); }
+          return;
+        }
+        currentBid = { qty: bidQty, face: bidFace };
+        turn = 'oste';
+        renderDadi();
+        setTimeout(osteMove, 900);
+      });
+
+      btnRow.appendChild(bidBtn);
+
+      if (currentBid.qty > 0) {
+        const bluffBtn = document.createElement('button');
+        bluffBtn.className = 'btn btn-secondary mgd-bluff-btn'; bluffBtn.textContent = '🤥 Chiama Bluff!';
+        bluffBtn.addEventListener('click', () => {
+          resolveBluff(true);
+        });
+        btnRow.appendChild(bluffBtn);
+      }
+      ctrl.appendChild(btnRow);
+    } else if (!gameOver && turn === 'oste') {
+      const thinking = document.createElement('div');
+      thinking.className = 'mgd-thinking';
+      thinking.textContent = 'L\'oste sta pensando…';
+      ctrl.appendChild(thinking);
+    }
+
+    panelEl.appendChild(ctrl);
+
+    // hint line
+    const hint = document.createElement('div');
+    hint.className = 'mgd-hint'; hint.id = 'mgd-hint';
+    panelEl.appendChild(hint);
+  }
+
+  function osteMove() {
+    if (gameOver) return;
+    const decision = osteThink();
+    if (decision === 'bluff') {
+      resolveBluff(false);
+    } else {
+      currentBid = decision;
+      bidQty  = Math.min(N_DICE * 2, currentBid.qty + 1);
+      bidFace = currentBid.face;
+      turn = 'player';
+      renderDadi();
+    }
+  }
+
+  function endDadiGame(playerWins, declQty, declFace, actual, callerIsPlayer) {
+    gameOver = true;
+    // re-render to reveal oste dice
+    renderDadi();
+
+    const resEl = document.getElementById('mgd-res');
+    const closeBtn = document.getElementById('mgd-close');
+    if (!resEl || !closeBtn) return;
+
+    const callerName = callerIsPlayer ? 'Tu hai' : 'L\'oste ha';
+    const bidderName = callerIsPlayer ? 'L\'oste aveva dichiarato' : 'Avevi dichiarato';
+    const resultLine = `${bidderName} ${declQty}× faccia ${declFace}. Trovati: ${actual}.`;
+    const verdictLine = actual >= declQty
+      ? `La dichiarazione era VERA — ${callerName} chiamato bluff invano!`
+      : `La dichiarazione era FALSA — bluff smascherato!`;
+
+    mgRecord('dadi');
+    if (playerWins) {
+      const gold = 30, xp = 50;
+      mgGiveReward({ gold, xp });
+      vibrate([80, 40, 160]); sfx('coin');
+      resEl.innerHTML = mgRewardHTML({ gold, xp }, '🎉 Hai vinto!', `${resultLine} ${verdictLine}`);
+    } else {
+      resEl.innerHTML = `<div class="mg-reward"><div class="mg-reward-title">😔 Hai perso!</div><div class="mg-reward-sub">${resultLine} ${verdictLine}</div></div>`;
+    }
+    resEl.classList.add('mg-res-in');
+    closeBtn.classList.remove('hidden');
+
+    if (!playerWins && mgCanPlay('dadi')) {
+      const rb = document.createElement('button');
+      rb.className = 'btn btn-primary wide'; rb.style.marginTop = '8px';
+      rb.textContent = 'Riprova';
+      rb.addEventListener('click', () => { mgClose(); setTimeout(openDadiGame, 300); });
+      resEl.appendChild(rb);
+    }
+  }
+
+  /* ── build overlay ── */
+  const wrap = document.createElement('div');
+  wrap.className = 'mgd-wrap';
+  wrap.innerHTML = `
+    <button class="mg-x-btn" id="mgd-x">✕</button>
+    <div class="mg-game-title">🎲 Dadi del Bluff</div>
+    <div id="mgd-main" class="mgd-main"></div>
+    <div class="mg-result-area" id="mgd-res"></div>
+    <button class="btn mg-close-btn hidden" id="mgd-close">Continua ›</button>`;
+
+  mgOverlay(wrap, 'assets/minigames/dadi-del-bluff/tavolo.jpg');
+
+  startRound();
+
+  document.getElementById('mgd-x').addEventListener('click', mgClose);
+  document.getElementById('mgd-close').addEventListener('click', mgClose);
 }
