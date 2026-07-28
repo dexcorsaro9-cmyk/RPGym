@@ -3177,6 +3177,62 @@ body {
 }
 .camp-weather-bonus { color: var(--gold-bright); }
 
+/* Stagione chip nella scena campo */
+.camp-season-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: .82rem; padding: 4px 12px;
+  background: color-mix(in srgb, var(--season-color, #7ec850) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--season-color, #7ec850) 50%, transparent);
+  border-radius: 20px; margin: 4px auto 0;
+  color: var(--season-color, #7ec850);
+  cursor: pointer; width: fit-content;
+  transition: background .2s;
+}
+.camp-season-chip:hover { background: color-mix(in srgb, var(--season-color, #7ec850) 30%, transparent); }
+
+/* Sfida stagionale panel */
+.season-challenge-panel {
+  border: 1px solid color-mix(in srgb, var(--season-color, #7ec850) 60%, transparent) !important;
+  background: color-mix(in srgb, var(--season-color, #7ec850) 6%, var(--surface)) !important;
+}
+.sc-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.sc-season-tag {
+  font-size: .7rem; font-weight: 700; padding: 2px 8px; border-radius: 20px;
+  background: color-mix(in srgb, var(--season-color, #7ec850) 25%, transparent);
+  color: var(--season-color, #7ec850);
+  white-space: nowrap;
+}
+.sc-label { font-weight: 700; font-size: .9rem; }
+.sc-desc  { margin-bottom: 8px; }
+.sc-progress-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.sc-bar   { flex: 1; height: 8px; background: rgba(0,0,0,.3); border-radius: 4px; overflow: hidden; }
+.sc-fill  { height: 100%; background: var(--season-color, #7ec850); border-radius: 4px; transition: width .4s; }
+.sc-fraction { font-size: .75rem; white-space: nowrap; color: var(--ink-light); }
+
+/* Modal stagione */
+.season-modal-header {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 0 10px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 10px;
+}
+.season-modal-icon { font-size: 2.2rem; }
+.season-cards-row  { display: flex; gap: 8px; justify-content: center; margin-bottom: 10px; }
+.season-mini-card  {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 6px 10px; border-radius: 10px;
+  background: var(--surface2); border: 1px solid var(--border);
+  font-size: .72rem; opacity: .55;
+}
+.season-mini-card.active {
+  border-color: var(--season-color, #7ec850);
+  color: var(--season-color, #7ec850);
+  opacity: 1;
+  background: color-mix(in srgb, var(--season-color, #7ec850) 12%, var(--surface2));
+}
+.smc-icon { font-size: 1.3rem; }
+.season-bonus-list { padding-left: 1.1rem; line-height: 1.9; font-size: .85rem; margin: 0 0 8px; }
+
 /* ── Mappa del Tesoro settimanale ── */
 .treasure-map-panel { border-color: #a0782a !important; }
 .treasure-map-panel .panel-title { color: #c9932e; }

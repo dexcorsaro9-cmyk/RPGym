@@ -1697,6 +1697,23 @@ const RPG = (() => {
       localStoneMult += furn.flags.dualityBonus;
     }
 
+    // Bonus stagionali
+    const season = currentSeason();
+    if (season.id === 'estate') {
+      if (type === 'corsa' || type === 'cyclette') xpMult += 0.20;
+    }
+    if (season.id === 'autunno') {
+      goldMult += 0.15;
+      localWoodMult += 0.25;
+      localStoneMult += 0.25;
+    }
+    if (season.id === 'inverno') {
+      xpMult += 0.15;
+      // streak raddoppiato: già computato sopra con streakBonus, aggiungiamo altra metà
+      if (streakBonus > 0) xpMult += streakBonus; // era già aggiunto, aggiungiamo di nuovo = doppio
+    }
+    report.season = season.id;
+
     report.xp = Math.round(effKm * act.xpPerKm * mult * xpMult);
     report.gold = Math.round(effKm * GOLD_PER_KM * mult * goldMult);
     hero.xp += report.xp;
@@ -1710,6 +1727,17 @@ const RPG = (() => {
     hero.totalKm += km;
     hero.kmByType[type] = (hero.kmByType[type] || 0) + km;
     updateChallengeProgress(hero, 'km', km);
+
+    // Sfida stagionale
+    initSeasonalChallenge(hero);
+    if (!hero.seasonalChallenge.claimed) {
+      const prev = hero.seasonalChallenge.progressKm;
+      hero.seasonalChallenge.progressKm = Math.min(hero.seasonalChallenge.km, +(prev + km).toFixed(1));
+      if (!report.seasonalChallenge && hero.seasonalChallenge.progressKm >= hero.seasonalChallenge.km) {
+        report.seasonalChallengeComplete = true;
+      }
+      report.seasonalChallenge = { ...hero.seasonalChallenge };
+    }
 
     // Boss settimanale
     if (hero.weeklyBoss && !hero.weeklyBoss.claimed) {
@@ -3624,6 +3652,91 @@ const RPG = (() => {
       desc:'Instabile. Se la salute scende sotto il 50%, muta e fugge.',             trait:'senziente' },
   };
 
+  /* ── Stagioni del Mondo ─────────────────────────────────────── */
+  const SEASONS = {
+    primavera: {
+      id: 'primavera', name: 'Primavera', icon: '🌸', color: '#7ec850',
+      months: [2, 3, 4],
+      desc: 'La natura si risveglia. La Serra prospera e i semi sono più preziosi.',
+      bonuses: [
+        '🌿 Serra: ogni pianta cresce 1 giorno extra al giorno',
+        '🌰 Semi da raccolto di rarità superiore',
+      ],
+      challenge: { label: 'Risveglio Primaverile', km: 80,  reward: 'epico'      },
+    },
+    estate: {
+      id: 'estate',    name: 'Estate',    icon: '☀️', color: '#f4c430',
+      months: [5, 6, 7],
+      desc: 'Il sole splende alto. Ogni km vale di più e il sudore abbonda.',
+      bonuses: [
+        '🏃 +20% XP da corsa e cyclette',
+        '💧 Sudore della Serra vale 1.5× (1 km = 1.5 km di irrigazione)',
+      ],
+      challenge: { label: 'Maratona Estiva',        km: 120, reward: 'leggendario' },
+    },
+    autunno: {
+      id: 'autunno',   name: 'Autunno',   icon: '🍂', color: '#d4700a',
+      months: [8, 9, 10],
+      desc: 'Il tempo del raccolto. Risorse e oro abbondano ovunque.',
+      bonuses: [
+        '🪵 +25% legno e pietra da ogni allenamento',
+        '🪙 +15% oro da ogni allenamento',
+      ],
+      challenge: { label: 'Grande Raccolto',        km: 100, reward: 'epico'      },
+    },
+    inverno: {
+      id: 'inverno',   name: 'Inverno',   icon: '❄️', color: '#6ab4e8',
+      months: [11, 0, 1],
+      desc: 'La quiete invernale ricompensa la perseveranza.',
+      bonuses: [
+        '🔥 Bonus streak raddoppiato (ogni giorno vale il doppio)',
+        '⭐ +15% XP globale da tutti gli allenamenti',
+      ],
+      challenge: { label: 'Sfida del Solstizio',    km: 60,  reward: 'divino'     },
+    },
+  };
+
+  function currentSeason() {
+    const m = new Date().getMonth();
+    return Object.values(SEASONS).find(s => s.months.includes(m)) || SEASONS.primavera;
+  }
+
+  function monthStampSeason() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  }
+
+  function initSeasonalChallenge(hero) {
+    const s = currentSeason();
+    const stamp = monthStampSeason();
+    if (!hero.seasonalChallenge || hero.seasonalChallenge.stamp !== stamp) {
+      hero.seasonalChallenge = {
+        stamp,
+        seasonId: s.id,
+        label: s.challenge.label,
+        km: s.challenge.km,
+        progressKm: 0,
+        claimed: false,
+      };
+    }
+  }
+
+  function claimSeasonalChallenge(hero) {
+    if (!hero.seasonalChallenge) return 'Nessuna sfida attiva.';
+    const sc = hero.seasonalChallenge;
+    if (sc.claimed) return 'Già riscattata.';
+    if (sc.progressKm < sc.km) return 'Sfida non completata.';
+    const s = SEASONS[sc.seasonId];
+    if (!s) return 'Stagione sconosciuta.';
+    sc.claimed = true;
+    const item = genItemFor(hero, s.challenge.reward);
+    // Nomina l'oggetto con tema stagionale
+    item.name = `${s.icon} ${item.name}`;
+    item.seasonal = sc.seasonId;
+    hero.items.push(item);
+    return { item };
+  }
+
   function initGreenhouse(h) {
     h.greenhouse = h.greenhouse || {
       waterUsedToday: 0,
@@ -3691,7 +3804,7 @@ const RPG = (() => {
 
       const diff = water - pData.water;
       let healthHit = 0;
-      let growth = 1;
+      let growth = currentSeason().id === 'primavera' ? 2 : 1;
 
       if (diff >= -0.5 && diff <= 1.0) {
         pot.health = Math.min(100, pot.health + 10);
@@ -3751,7 +3864,8 @@ const RPG = (() => {
     const avail = todayKm(hero) - (hero.greenhouse.waterUsedToday || 0);
     if (kmAmount > avail) return 'Non hai abbastanza km di sudore oggi!';
     hero.greenhouse.waterUsedToday = (hero.greenhouse.waterUsedToday || 0) + kmAmount;
-    pot.water += kmAmount;
+    const effectiveWater = currentSeason().id === 'estate' ? kmAmount * 1.5 : kmAmount;
+    pot.water += effectiveWater;
     // Missione: km totali versati questa settimana
     const wm = hero.greenhouse.weeklyMissions;
     if (wm) {
@@ -3827,7 +3941,13 @@ const RPG = (() => {
 
   function genSeed(hero) {
     const plantKeys = Object.keys(PLANTS);
-    const rarity = rollRarity(hero.level);
+    let rarity = rollRarity(hero.level);
+    // Primavera: semi di rarità superiore
+    if (currentSeason().id === 'primavera') {
+      const order = ['comune','non_comune','raro','epico','leggendario','divino'];
+      const idx = order.indexOf(rarity);
+      if (idx >= 0 && idx < order.length - 1) rarity = order[idx + 1];
+    }
     let pool = plantKeys.filter(k => PLANTS[k].rarity === rarity);
     if (!pool.length) pool = plantKeys;
     const plant = PLANTS[pool[Math.floor(Math.random() * pool.length)]];
@@ -3992,5 +4112,6 @@ const RPG = (() => {
     initGreenhouse, rolloverGreenhouse, waterPlant, harvestPlant, plantSeeds,
     genSeed, useSeedItem, genFertilizzante, useFertilizer,
     rolloverSerraMissions, claimSerraMission,
+    SEASONS, currentSeason, initSeasonalChallenge, claimSeasonalChallenge,
   };
 })();
