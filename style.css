@@ -4789,3 +4789,74 @@ body {
   transition: height .1s linear;
 }
 .mgp-shake { animation: shake-anim .4s cubic-bezier(.36,.07,.19,.97) both; }
+
+/* ── Braccio di Ferro ───────────────────────────────────────────────────── */
+.mgbf-wrap {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 10px; padding: 12px 10px 10px;
+  min-height: 380px;
+}
+.mgbf-avatars {
+  display: flex; justify-content: space-around; width: 85%;
+}
+.mgbf-avatar-wrap {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.mgbf-avatar-img {
+  width: 62px; height: 62px;
+  object-fit: contain; border-radius: 50%;
+  border: 2px solid rgba(212,184,134,.5);
+  background: rgba(0,0,0,.3);
+}
+.mgbf-avatar-hero {
+  width: 62px; height: 62px; border-radius: 50%;
+  border: 2px solid rgba(212,184,134,.5);
+  background: rgba(0,0,0,.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem;
+  transition: transform .06s;
+}
+.mgbf-avatar-lbl {
+  font-size: .72rem; opacity: .65; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--ink);
+}
+.mgbf-bar-wrap {
+  position: relative;
+  width: 85%; height: 44px;
+  background: #111;
+  border: 3px solid #5a3d22; border-radius: 22px;
+  overflow: hidden;
+  box-shadow: inset 0 0 10px rgba(0,0,0,.8);
+}
+.mgbf-bar-danger {
+  position: absolute; left: 0; top: 0; bottom: 0; width: 50%;
+  background: linear-gradient(to right, #f44336, #ff9800);
+}
+.mgbf-bar-safe {
+  position: absolute; right: 0; top: 0; bottom: 0; width: 50%;
+  background: linear-gradient(to left, #4caf50, #ff9800);
+}
+.mgbf-indicator {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 52px; height: 52px;
+  background: #d4b886; border-radius: 50%;
+  border: 3px solid #fff;
+  box-shadow: 0 0 14px rgba(255,255,255,.5);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.6rem;
+  will-change: left;
+  transition: left .05s linear;
+}
+.mgbf-tap {
+  width: 85%; height: 90px;
+  background: rgba(76,175,80,.2);
+  border: 2px dashed #4caf50;
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  color: #4caf50; font-family: 'Cinzel', serif; font-size: 1.4rem;
+  cursor: pointer; letter-spacing: .08em;
+  transition: background .08s;
+}
+.mgbf-tap:active { background: rgba(76,175,80,.5); }
+.mgbf-shake { animation: shake-anim .3s ease-in-out; }

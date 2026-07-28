@@ -8,7 +8,7 @@ function getMG(id) {
   HERO.miniGames[id] = d;
   return d;
 }
-const MG_MAX = { dice:1, cards:3, runes:3, forge:2, archery:3, wheel:1, memory:2, tap:3, wham:3, boccale:2, dadi:2, pesca:2 };
+const MG_MAX = { dice:1, cards:3, runes:3, forge:2, archery:3, wheel:1, memory:2, tap:3, wham:3, boccale:2, dadi:2, pesca:2, braccio:3 };
 // ── Bilanciamento economia ───────────────────────────────────────────────────
 // Allenamento base (5 km camminata): gold≈25  xp≈75  wood≈0  stone≈0
 // Target mini-giochi totale/die:     gold≈80  xp≈500 wood≈15 stone≈15
@@ -112,6 +112,7 @@ const MG_CATEGORIES = [
   { id:'taverna',    icon:'🍺', label:'Taverna',    games:[
     { id:'boccale', emoji:'🍺', name:'Lancio Boccale', open: openBoccaleGame },
     { id:'dadi',    emoji:'🎲', name:'Dadi del Bluff',  open: openDadiGame },
+    { id:'braccio', emoji:'💪', name:'Braccio di Ferro', open: openBraccioGame },
   ]},
 ];
 
@@ -1340,4 +1341,108 @@ function openPescaGame() {
 
   document.getElementById('mgp-x').addEventListener('click', () => { cleanup(); mgClose(); });
   closeBtn.addEventListener('click', () => { cleanup(); mgClose(); });
+}
+
+/* ── 💪 BRACCIO DI FERRO ── */
+function openBraccioGame() {
+  if (!mgCanPlay('braccio')) return;
+
+  let position = 50; // 0 = nano vince, 100 = eroe vince
+  let state = 'IDLE';
+  const DWARF_FORCE = 0.3;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'mgbf-wrap';
+  wrap.innerHTML = `
+    <button class="mg-x-btn" id="mgbf-x">✕</button>
+    <div class="mg-game-title">💪 Il Nano Possente</div>
+    <p class="mg-hint" id="mgbf-msg">Tocca la zona per vincere il braccio di ferro!</p>
+    <div class="mgbf-avatars">
+      <div class="mgbf-avatar-wrap">
+        <img src="assets/minigames/braccio-di-ferro/sfidante.png" class="mgbf-avatar-img" alt="Nano">
+        <span class="mgbf-avatar-lbl">Nano</span>
+      </div>
+      <div class="mgbf-avatar-wrap">
+        <div class="mgbf-avatar-hero" id="mgbf-hero">🤺</div>
+        <span class="mgbf-avatar-lbl">Tu</span>
+      </div>
+    </div>
+    <div class="mgbf-bar-wrap">
+      <div class="mgbf-bar-danger"></div>
+      <div class="mgbf-bar-safe"></div>
+      <div class="mgbf-indicator" id="mgbf-ind">✊</div>
+    </div>
+    <div class="mgbf-tap" id="mgbf-tap">PREMI!</div>
+    <div class="mg-result-area" id="mgbf-res"></div>
+    <button class="btn mg-close-btn hidden" id="mgbf-close">Continua ›</button>`;
+
+  mgOverlay(wrap);
+
+  const msgEl    = document.getElementById('mgbf-msg');
+  const indEl    = document.getElementById('mgbf-ind');
+  const tapEl    = document.getElementById('mgbf-tap');
+  const heroEl   = document.getElementById('mgbf-hero');
+  const resEl    = document.getElementById('mgbf-res');
+  const closeBtn = document.getElementById('mgbf-close');
+
+  function tap(e) {
+    if (e.type === 'touchstart') e.preventDefault();
+    if (state === 'IDLE') {
+      state = 'PLAYING';
+      msgEl.textContent = 'Premi velocemente!';
+      _mgRAF = requestAnimationFrame(gameLoop);
+    }
+    if (state !== 'PLAYING') return;
+    position += 4.5;
+    // nano reagisce visivamente
+    heroEl.style.transform = `scale(${1 + Math.random() * 0.15})`;
+    setTimeout(() => { heroEl.style.transform = 'scale(1)'; }, 60);
+  }
+
+  function gameLoop() {
+    if (state !== 'PLAYING') return;
+    const extra = position > 70 ? 0.4 : 0;
+    position -= DWARF_FORCE + extra;
+
+    // shake quando vicino ai bordi
+    if (position < 20 || position > 80) wrap.classList.add('mgbf-shake');
+    else                                 wrap.classList.remove('mgbf-shake');
+
+    position = Math.max(0, Math.min(position, 100));
+    indEl.style.left = `${position}%`;
+
+    if (position >= 100) { endGame(true);  return; }
+    if (position <= 0)   { endGame(false); return; }
+    _mgRAF = requestAnimationFrame(gameLoop);
+  }
+
+  function endGame(won) {
+    state = 'END';
+    wrap.classList.remove('mgbf-shake');
+    mgRecord('braccio');
+    if (won) {
+      const gold = 30, xp = 50;
+      mgGiveReward({ gold, xp });
+      vibrate([100, 50, 200]); sfx('coin');
+      resEl.innerHTML = mgRewardHTML({ gold, xp }, '💪 Vittoria!', 'Che muscoli da guerriero!');
+    } else {
+      vibrate([300]);
+      resEl.innerHTML = `<div class="mg-reward"><div class="mg-reward-title">😵 Schiacciato!</div><div class="mg-reward-sub">Il nano vince questa volta.</div></div>`;
+    }
+    resEl.classList.add('mg-res-in');
+    closeBtn.classList.remove('hidden');
+    if (!won && mgCanPlay('braccio')) {
+      const rb = document.createElement('button');
+      rb.className = 'btn btn-primary wide'; rb.style.marginTop = '8px';
+      rb.textContent = 'Riprova';
+      rb.addEventListener('click', () => { mgClose(); setTimeout(openBraccioGame, 300); });
+      resEl.appendChild(rb);
+    }
+  }
+
+  tapEl.addEventListener('touchstart', tap, { passive: false });
+  tapEl.addEventListener('mousedown', tap);
+
+  document.getElementById('mgbf-x').addEventListener('click', mgClose);
+  closeBtn.addEventListener('click', mgClose);
 }
