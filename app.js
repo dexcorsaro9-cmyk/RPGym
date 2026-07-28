@@ -519,6 +519,9 @@ function enterGame() {
   persist();
   renderHUD();
 
+  // Sincronizza il profilo su Firestore all'avvio (popola la classifica globale)
+  FB.syncHero(HERO);
+
   // Sincronizzazione automatica da Apple Salute (URL params o clipboard)
   const healthReport = applyHealthSyncFromURL(HERO);
   if (healthReport) { persist(); renderHUD(); }
