@@ -514,8 +514,15 @@ function enterGame() {
   RPG.rolloverTreasureMap(HERO);
   // Assegna retroattivamente i punti abilità per i livelli già guadagnati
   RPG.earnSkillPoints(HERO);
+  // Controlla danno edifici per inattività
+  RPG.checkBuildingDamage(HERO);
+  // Mercante Fuggiasco (aggiorna giornalmente)
+  RPG.rolloverFugitiveMerchant(HERO);
+  // Salva streak prima del login giornaliero (per rilevare rottura)
+  const preStreakCount = HERO.streak.count;
   // Tesoro Giornaliero
   const login = RPG.dailyLogin(HERO);
+  const streakBroke = login && preStreakCount > 1 && HERO.streak.count === 1;
   persist();
   renderHUD();
 
@@ -531,12 +538,21 @@ function enterGame() {
   if (healthReport) OPEN_QUEUE.push(() => showHealthSyncResult(healthReport));
 
   // Sync passi: disponibile inline nel tab Allenati (non più popup automatico)
-  if (missed) OPEN_QUEUE.push(() => modal(`
+  if (missed) {
+    const rarInfo = missed.minRarity ? RPG.RARITIES[missed.minRarity] : null;
+    const rarChip = rarInfo ? `<div class="near-miss-rarity rar-chip-${missed.minRarity}">${rarInfo.label} o superiore</div>` : '';
+    OPEN_QUEUE.push(() => modal(`
       <h3 class="panel-title">💨 Il Forziere Svanito…</h3>
-      <div class="lost-chest">🎁</div>
+      <div class="lost-chest-wrap">
+        <div class="lost-chest">🎁</div>
+        ${rarChip}
+      </div>
       <p class="center"><b>${esc(missed.name)}</b></p>
       <p class="muted center">Hai mancato il forziere per soli <b>${missed.kmMissing} km</b>! L'occasione è svanita all'alba…</p>
       <button class="btn btn-primary wide" onclick="nextOpening()">Non succederà più!</button>`));
+  }
+  if (streakBroke) OPEN_QUEUE.push(() => showStreakFreezeOffer(preStreakCount));
+  if (HERO.buildingsDamaged && HERO.buildings.length) OPEN_QUEUE.push(showBuildingDamageAlert);
   if (login) { window._pendingLogin = login; OPEN_QUEUE.push(showDailyLogin); }
   // La Taglia è stata reclamata dall'altro eroe?
   const ev = RPG.weeklyEvent(STATE);
@@ -667,6 +683,71 @@ function showDailyLogin() {
   vibrate(80);
 }
 
+/* ── Streak freeze offer ──────────────────────────────────── */
+function showStreakFreezeOffer(savedCount) {
+  const canAfford = HERO.gold >= 500;
+  modal(`
+    <h3 class="panel-title">💔 Striscia Spezzata!</h3>
+    <div class="streak-broke-wrap">
+      <div class="streak-broke-flames">${'🔥'.repeat(Math.min(savedCount, 5))}</div>
+      <div class="streak-broke-count">${savedCount} giorni di fila</div>
+      <div class="streak-broke-sub">La tua striscia si è interrotta. Hai saltato un giorno.</div>
+    </div>
+    <div class="streak-freeze-offer">
+      <div class="streak-freeze-title">❄️ Congela la Striscia</div>
+      <div class="streak-freeze-desc">Paga 500 🪙 per restaurare la tua striscia di <b>${savedCount}</b> giorni e continuare senza perdere i bonus.</div>
+      <button class="btn btn-primary wide" id="btn-streak-freeze" ${canAfford ? '' : 'disabled'} onclick="doStreakFreeze(${savedCount})">
+        ${canAfford ? '❄️ Congela · 500 🪙' : '❄️ Oro insufficiente · 500 🪙'}
+      </button>
+    </div>
+    <button class="btn wide" style="margin-top:.5rem;opacity:.7" onclick="nextOpening()">Accetta la sconfitta</button>`);
+}
+
+window.doStreakFreeze = function(savedCount) {
+  const err = RPG.restoreStreak(HERO, savedCount);
+  if (err) { toast(err); return; }
+  persist(); renderHUD();
+  vibrate([100, 50, 100, 50, 200]);
+  sfx('coin');
+  modal(`
+    <h3 class="panel-title">❄️ Striscia Salvata!</h3>
+    <div class="streak-saved-wrap">
+      <div class="streak-broke-flames">${'🔥'.repeat(Math.min(savedCount + 1, 5))}</div>
+      <div class="streak-broke-count">${savedCount + 1} giorni di fila</div>
+    </div>
+    <p class="muted center">Il gelo arcano ha preservato la tua striscia. Non deludere il Viandante!</p>
+    <button class="btn btn-primary wide" onclick="nextOpening()">Avanti!</button>`);
+};
+
+/* ── Building damage alert ────────────────────────────────── */
+function showBuildingDamageAlert() {
+  const days = RPG.daysSinceLastWorkout(HERO);
+  const canAfford = HERO.gold >= 100;
+  modal(`
+    <h3 class="panel-title">🏚️ Rifugio Danneggiato!</h3>
+    <div class="building-damage-alert">
+      <div class="bda-icon">🏚️</div>
+      <p class="center">Sono passati <b>${days} giorni</b> senza allenamento.<br>L'abbandono ha danneggiato le tue strutture!</p>
+      <p class="muted small center">I bonus degli edifici sono sospesi finché non ripari il Rifugio.</p>
+    </div>
+    <button class="btn btn-primary wide" id="btn-repair-buildings" ${canAfford ? '' : 'disabled'} onclick="doRepairBuildings()">
+      ${canAfford ? '🔨 Ripara il Rifugio · 100 🪙' : '🔨 Oro insufficiente · 100 🪙'}
+    </button>
+    <button class="btn wide" style="margin-top:.5rem;opacity:.7" onclick="nextOpening()">Lascia perdere</button>`);
+}
+
+window.doRepairBuildings = function() {
+  const err = RPG.repairBuildings(HERO);
+  if (err) { toast(err); return; }
+  persist(); renderHUD();
+  vibrate([80, 40, 120]);
+  modal(`
+    <h3 class="panel-title">🏠 Rifugio Riparato!</h3>
+    <p class="center" style="font-size:2rem">🔨✨</p>
+    <p class="muted center">I tuoi edifici tornano a splendere. I bonus sono di nuovo attivi!</p>
+    <button class="btn btn-primary wide" onclick="nextOpening()">Ottimo!</button>`);
+};
+
 /* Popup dettaglio risorse (tocco sulle risorse in alto a destra) */
 function showResources() {
   modal(`
@@ -693,11 +774,17 @@ function renderHUD() {
   const pct = Math.min(100, Math.round(HERO.xp / need * 100));
   $('#hud-xpfill').style.width = pct + '%';
   $('#hud-xptext').textContent = `${HERO.xp} / ${need} XP`;
-  // streak + pvp title nel titolo
-  const streak = HERO.streak && HERO.streak.count > 1 ? ` · 🔥${HERO.streak.count}` : '';
+  // streak progressiva + pvp title
+  const sc = HERO.streak && HERO.streak.count || 0;
+  let streakHtml = '';
+  if (sc >= 30)      streakHtml = ` <span class="streak-chip streak-chip-l">🩵${sc}</span>`;
+  else if (sc >= 15) streakHtml = ` <span class="streak-chip streak-chip-m">🔥${sc}</span>`;
+  else if (sc >= 5)  streakHtml = ` <span class="streak-chip streak-chip-s">🔥${sc}</span>`;
+  else if (sc > 1)   streakHtml = ` · 🔥${sc}`;
   const ptHud = pvpTitle(HERO.pvpWins || 0);
   const pvpSuffix = ptHud ? ` · ${ptHud.icon} ${ptHud.label}` : '';
-  $('#hud-title').textContent = `Liv. ${HERO.level} — ${RPG.heroTitle(HERO.level)}${streak}${pvpSuffix}`;
+  const baseTitleText = `Liv. ${HERO.level} — ${RPG.heroTitle(HERO.level)}`;
+  $('#hud-title').innerHTML = baseTitleText + streakHtml + pvpSuffix;
   // barra che "esplode" vicino al level-up + prossimo sblocco
   const bar = document.querySelector('.xpbar');
   let next = $('#hud-next');
@@ -885,6 +972,24 @@ function renderCamp(c) {
     (HERO.companion && petSpeciesInfo && !HERO.pet.hatched ? `<br>Un uovo di ${petSpeciesInfo.name} si scalda accanto al fuoco.` : '') +
     (mount ? `<br>${mount.name} riposa nella stalla.` : '')));
   c.appendChild(scene);
+
+  // Avviso Rifugio Danneggiato
+  if (HERO.buildingsDamaged && HERO.buildings.length) {
+    const dmg = el('div', 'panel building-damage-panel');
+    dmg.innerHTML = `
+      <div class="bdp-header">🏚️ Rifugio Danneggiato</div>
+      <p class="muted small">Giorni di inattività hanno danneggiato le strutture. I bonus degli edifici sono sospesi.</p>`;
+    const repairBtn = el('button', 'btn btn-primary wide', `🔨 Ripara · 100 🪙${HERO.gold < 100 ? ' (oro insuff.)' : ''}`);
+    repairBtn.disabled = HERO.gold < 100;
+    repairBtn.addEventListener('click', () => {
+      const err = RPG.repairBuildings(HERO);
+      if (err) { toast(err); return; }
+      persist(); renderHUD(); setTab('camp');
+      toast('🏠 Rifugio riparato! I bonus sono di nuovo attivi.');
+    });
+    dmg.appendChild(repairBtn);
+    c.appendChild(dmg);
+  }
 
   // Prima missione — visibile solo finché totalKm === 0
   if ((HERO.totalKm || 0) === 0) {
@@ -1441,6 +1546,49 @@ function renderMap(c) {
     c.appendChild(p);
   } else if (HERO.incursion && HERO.incursion.done) {
     c.appendChild(el('div', 'panel done-strip', `✅ <b>Incursione di oggi respinta!</b> <span class="small muted">Torna domani.</span>`));
+  }
+
+  // ── Mercante Fuggiasco ──
+  const fm = RPG.getFugitiveMerchant(HERO);
+  if (fm) {
+    const kmToday = RPG.todayKm(HERO);
+    const kmLeft = Math.max(0, fm.kmRequired - kmToday);
+    const reached = kmLeft <= 0;
+    const fp = el('div', 'panel panel-featured fugitive-merchant-panel');
+    fp.innerHTML = `
+      <h3 class="panel-title">🏃 Mercante Fuggiasco!</h3>
+      <div class="fm-subtitle">Sparisce a mezzanotte · <b class="cd-hot"><span data-cd="midnight">…</span></b></div>
+      <div class="fm-item">${itemHtml(fm.item)}</div>
+      <div class="fm-prices">
+        <span class="fm-price-full">🪙 ${fm.fullPrice}</span>
+        <span class="fm-price-sale">🪙 ${fm.price}</span>
+        <span class="fm-discount">–80%</span>
+      </div>`;
+    if (fm.bought) {
+      fp.appendChild(el('div', 'done-strip', `✅ <b>Acquistato!</b> Il mercante è stato raggiunto.`));
+    } else if (reached) {
+      const buyBtn = el('button', 'btn btn-primary wide', `🤝 Acquista · 🪙 ${fm.price}`);
+      buyBtn.disabled = HERO.gold < fm.price;
+      buyBtn.addEventListener('click', () => {
+        const err = RPG.buyFromFugitiveMerchant(HERO);
+        if (err) { toast(err); return; }
+        persist(); renderHUD();
+        vibrate([120, 40, 180]);
+        sfx('coin');
+        modal(`<h3 class="panel-title">🤝 Affare Concluso!</h3>
+          <p class="center">Hai raggiunto il mercante fuggiasco a tempo!</p>
+          <div class="loot-list" style="margin:.5rem 0">${itemHtml(fm.item)}</div>
+          <button class="btn btn-primary wide" onclick="closeModal();setTab('map')">Ottimo!</button>`);
+        setTab('map');
+      });
+      fp.appendChild(buyBtn);
+    } else {
+      const prog = el('div', 'membar');
+      prog.innerHTML = `<div class="membar-fill gold" style="width:${Math.min(100, Math.round(kmToday / fm.kmRequired * 100))}%"></div><span>${kmToday.toFixed(1)} / ${fm.kmRequired} km</span>`;
+      fp.appendChild(prog);
+      fp.appendChild(el('p', 'muted small center', `Percorri ancora <b>${kmLeft.toFixed(1)} km</b> oggi per raggiungerlo!`));
+    }
+    c.appendChild(fp);
   }
 
   // ── Boss settimanale ──

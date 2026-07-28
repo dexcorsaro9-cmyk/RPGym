@@ -1346,6 +1346,8 @@ const RPG = (() => {
 
     if (h.tutorialDone === undefined) h.tutorialDone = (h.totalKm || 0) > 0;
     h.cloud = h.cloud || { activeChallenge: null };
+    if (h.buildingsDamaged === undefined) h.buildingsDamaged = false;
+    h.fugitiveMerchant = h.fugitiveMerchant || null;
     h.cloud.claimedChallenges = h.cloud.claimedChallenges || [];
     h.cloud.friends = h.cloud.friends || [];
     h.pvpWins = h.pvpWins || 0;
@@ -1469,6 +1471,7 @@ const RPG = (() => {
         missed = {
           name: hero.incursion.name,
           kmMissing: Math.max(0.1, hero.incursion.km - hero.incursion.progressKm).toFixed(1),
+          minRarity: hero.incursion.minRarity,
         };
       }
       hero.incursion = null;
@@ -1480,8 +1483,87 @@ const RPG = (() => {
     return missed;
   }
 
+  /* ── Streak freeze ─────────────────────────────────────────── */
+  function restoreStreak(hero, savedCount) {
+    const cost = 500;
+    if (hero.gold < cost) return 'Oro insufficiente! Servono 500 🪙.';
+    hero.gold -= cost;
+    hero.streak.count = savedCount + 1;
+    return null;
+  }
+
+  /* ── Rifugio danneggiato (inattività > 3 giorni) ───────────── */
+  function daysSinceLastWorkout(hero) {
+    if (!hero.log || !hero.log.length) return 999;
+    return Math.floor((Date.now() - hero.log[0].date) / 86400000);
+  }
+
+  function checkBuildingDamage(hero) {
+    if (!hero.buildings || !hero.buildings.length) return false;
+    if (daysSinceLastWorkout(hero) >= 3) {
+      hero.buildingsDamaged = true;
+      return true;
+    }
+    return false;
+  }
+
+  function repairBuildings(hero) {
+    if (hero.gold < 100) return 'Oro insufficiente! Servono 100 🪙.';
+    hero.gold -= 100;
+    hero.buildingsDamaged = false;
+    return null;
+  }
+
+  /* ── Mercante Fuggiasco (appare a caso ogni giorno, 6 km) ──── */
+  function rolloverFugitiveMerchant(hero) {
+    const today = todayStamp();
+    if (hero.fugitiveMerchant && hero.fugitiveMerchant.date === today) return;
+    const seed = dateSeed(today + (hero.id || ''));
+    if (seed % 2 !== 0) { hero.fugitiveMerchant = { date: today, item: null }; return; }
+    const rarityKeys = Object.keys(RARITIES);
+    const slots = Object.keys(SLOTS);
+    const itemSeed = dateSeed(today + 'fug');
+    const slotKey = slots[itemSeed % slots.length];
+    const minIdx = Math.max(1, rarityKeys.indexOf('non_comune'));
+    const rarIdx = minIdx + (itemSeed % (rarityKeys.length - minIdx));
+    const rar = rarityKeys[Math.min(rarIdx, rarityKeys.length - 1)];
+    const avail = availableRarities(hero.level);
+    const finalR = avail.includes(rar) ? rar : (avail[avail.length - 1] || 'raro');
+    const item = genItem(hero.level, null, slotKey, finalR);
+    const fullPrice = RARITIES[finalR].value;
+    const discountedPrice = Math.max(5, Math.round(fullPrice * 0.20 / 5) * 5);
+    hero.fugitiveMerchant = { date: today, item, fullPrice, price: discountedPrice, kmRequired: 6, bought: false };
+  }
+
+  function getFugitiveMerchant(hero) {
+    const today = todayStamp();
+    if (!hero.fugitiveMerchant || hero.fugitiveMerchant.date !== today || !hero.fugitiveMerchant.item) return null;
+    return hero.fugitiveMerchant;
+  }
+
+  function todayKm(hero) {
+    const today = todayStamp();
+    return (hero.log || [])
+      .filter(e => new Date(e.date).toISOString().slice(0, 10) === today)
+      .reduce((s, e) => s + (e.km || 0), 0);
+  }
+
+  function buyFromFugitiveMerchant(hero) {
+    const fm = getFugitiveMerchant(hero);
+    if (!fm) return 'Il mercante è già fuggito!';
+    if (fm.bought) return 'Hai già acquistato da questo mercante.';
+    const km = todayKm(hero);
+    if (km < fm.kmRequired) return `Percorri ${(fm.kmRequired - km).toFixed(1)} km in più oggi per raggiungerlo!`;
+    if (hero.gold < fm.price) return 'Oro insufficiente!';
+    hero.gold -= fm.price;
+    hero.items.push(fm.item);
+    hero.fugitiveMerchant.bought = true;
+    return null;
+  }
+
   /* ── Allenamento ──────────────────────────────────────────── */
   function buildingBonus(hero, key) {
+    if (hero.buildingsDamaged) return 0;
     return BUILDINGS
       .filter(b => hero.buildings.includes(b.id) && b.bonus && b.bonus[key])
       .reduce((s, b) => s + b.bonus[key], 0);
@@ -3461,6 +3543,9 @@ const RPG = (() => {
     logHealthSync,
     equipItem, unequipSlot,
     dailyLogin, rolloverIncursion,
+    restoreStreak,
+    daysSinceLastWorkout, checkBuildingDamage, repairBuildings,
+    rolloverFugitiveMerchant, getFugitiveMerchant, todayKm, buyFromFugitiveMerchant,
     PET_PERSONALITIES, PET_FOODS, PET_ACCESSORIES, PET_SPECIES,
     PHOENIX_POTION_PRICE, EXPEDITION_HOURS, WISH_WINDOW_MINUTES,
     createPet, petXpForLevel, petStage, tickPet, petArenaBonus, classArenaBonus,
