@@ -580,6 +580,7 @@ body {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
   display: flex; justify-content: space-around; align-items: flex-end;
   padding: calc(16px + 4px) 4px calc(env(safe-area-inset-bottom) + 13px);
+  transition: opacity .18s ease;
   background:
     linear-gradient(180deg,
       rgba(18,10,3,.8) 0%, rgba(40,22,8,.28) 18%,
@@ -601,6 +602,7 @@ body {
   box-shadow: 0 -4px 20px rgba(0,0,0,.8), 0 -1px 0 rgba(220,170,60,.18);
   overflow: visible;
 }
+#tabbar.tab-hidden { opacity: 0; pointer-events: none; }
 /* Banda a nodo celtico in cima — specchio esatto del bordo inferiore dell'header */
 #tabbar::before {
   content: '';

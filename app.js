@@ -297,9 +297,9 @@ function show(id) {
   s.classList.remove('hidden');
   const tabbar = $('#tabbar');
   if (id === 'screen-game') {
-    setTimeout(() => tabbar.classList.remove('hidden'), 50);
+    tabbar.classList.remove('tab-hidden');
   } else {
-    tabbar.classList.add('hidden');
+    tabbar.classList.add('tab-hidden');
   }
   requestAnimationFrame(() => s.classList.add('screen-enter'));
 }
