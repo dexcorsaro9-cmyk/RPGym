@@ -4887,14 +4887,9 @@ body {
 
 /* ── Mappa Infuocata ─────────────────────────────────────────────────────── */
 .mi-panel {
-  border: 1.5px solid #d9822b;
-  background: #201408;
+  border-color: #c46a10 !important;
 }
-@media (prefers-color-scheme: light) {
-  .mi-panel { background: #fff4e6; border-color: #c46a10; }
-}
-:root[data-theme="light"] .mi-panel { background: #fff4e6; border-color: #c46a10; }
-:root[data-theme="dark"]  .mi-panel { background: #201408; border-color: #d9822b; }
+.mi-panel .panel-title { color: #c46a10; }
 
 .mi-tiers-preview {
   font-size: .75rem; color: var(--ink-light);
@@ -4911,13 +4906,9 @@ body {
 .mi-time-left { font-size: .8rem; color: var(--ink-light); }
 .mi-km-bar-wrap {
   height: 10px; border-radius: 5px;
-  background: rgba(0,0,0,.35);
+  background: rgba(0,0,0,.15);
   overflow: hidden; margin: 4px 0;
 }
-@media (prefers-color-scheme: light) {
-  .mi-km-bar-wrap { background: rgba(0,0,0,.12); }
-}
-:root[data-theme="light"] .mi-km-bar-wrap { background: rgba(0,0,0,.12); }
 .mi-km-bar {
   height: 100%; border-radius: 5px;
   background: linear-gradient(90deg, #d9822b, #f0aa50);
