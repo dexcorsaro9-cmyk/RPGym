@@ -990,6 +990,14 @@ function renderCamp(c) {
   wxEl.innerHTML = `${wx.icon} <span class="camp-weather-label">${wx.label}</span>${wx.xpBonus > 0 ? ` · <b class="camp-weather-bonus">+${Math.round(wx.xpBonus*100)}% XP</b>` : ''}`;
   scene.appendChild(wxEl);
 
+  // Stagione corrente
+  const season = RPG.currentSeason();
+  const seasonEl = el('div', 'camp-season-chip');
+  seasonEl.innerHTML = `${season.icon} <b>${season.name}</b>`;
+  seasonEl.style.setProperty('--season-color', season.color);
+  seasonEl.addEventListener('click', () => showSeasonModal());
+  scene.appendChild(seasonEl);
+
   scene.appendChild(el('p', 'camp-desc', sceneDesc +
     (HERO.companion && petSpeciesInfo && HERO.pet.hatched ? `<br>${esc(HERO.pet.name)} ${petSpeciesInfo.icon} sonnecchia accanto a te.` : '') +
     (HERO.companion && petSpeciesInfo && !HERO.pet.hatched ? `<br>Un uovo di ${petSpeciesInfo.name} si scalda accanto al fuoco.` : '') +
@@ -1012,6 +1020,47 @@ function renderCamp(c) {
     });
     dmg.appendChild(repairBtn);
     c.appendChild(dmg);
+  }
+
+  // Sfida stagionale
+  RPG.initSeasonalChallenge(HERO);
+  const sc = HERO.seasonalChallenge;
+  if (sc && !sc.claimed) {
+    const scPct = Math.min(100, Math.round(sc.progressKm / sc.km * 100));
+    const scPanel = el('div', 'panel season-challenge-panel');
+    scPanel.style.setProperty('--season-color', season.color);
+    scPanel.innerHTML = `
+      <div class="sc-header">
+        <span class="sc-season-tag">${season.icon} ${season.name}</span>
+        <span class="sc-label">${esc(sc.label)}</span>
+      </div>
+      <div class="sc-desc muted small">${esc(season.desc)}</div>
+      <div class="sc-progress-row">
+        <div class="sc-bar"><div class="sc-fill" style="width:${scPct}%"></div></div>
+        <span class="sc-fraction">${sc.progressKm.toFixed(1)} / ${sc.km} km</span>
+      </div>`;
+    if (scPct >= 100) {
+      const claimBtn = el('button', 'btn btn-primary wide', '🎁 Riscatta Ricompensa Stagionale');
+      claimBtn.addEventListener('click', () => {
+        const res = RPG.claimSeasonalChallenge(HERO);
+        if (typeof res === 'string') { toast(res); return; }
+        persist(); renderHUD(); setTab('camp');
+        modal(`<h3 class="panel-title">${season.icon} Sfida Stagionale Completata!</h3>
+          <p class="center muted small">Hai conquistato:</p>
+          <div class="loot rar-${res.item.rarity}" style="margin:12px 0">
+            <div class="loot-head"><b>${res.item.icon} ${esc(res.item.name)}</b>
+            <span class="tag">${RPG.RARITIES[res.item.rarity].label}</span></div>
+          </div>
+          <button class="btn btn-primary wide" onclick="closeModal()">Magnifico!</button>`);
+        sfx('coin'); vibrate([80, 40, 120]);
+      });
+      scPanel.appendChild(claimBtn);
+    } else {
+      const infoBtn = el('button', 'btn btn-small', '✨ Dettagli Stagione');
+      infoBtn.addEventListener('click', () => showSeasonModal());
+      scPanel.appendChild(infoBtn);
+    }
+    c.appendChild(scPanel);
   }
 
   // Prima missione — visibile solo finché totalKm === 0
@@ -1560,7 +1609,8 @@ function openFurnitureSetModal(setId) {
 
 /* ── TAB: Mappa ── */
 function renderMap(c) {
-  if (MAP_VIEW === 'atlas') { renderAtlasView(c); return; }
+  if (MAP_VIEW === 'atlas')    { renderAtlasView(c);    return; }
+  if (MAP_VIEW === 'pantheon') { renderPantheonView(c); return; }
   const biome = RPG.currentBiome(HERO.level);
 
   // ── Il bioma attuale, con progresso verso il prossimo ──
@@ -1896,11 +1946,24 @@ function renderMap(c) {
   c.appendChild(atlasEntry);
 
   // ── Classifica globale ──
-  c.appendChild(_renderLeaderboardPanel());
-  // ── Rivali ──
-  c.appendChild(_renderRivalsPanel());
-  // ── Sfida PvP ──
-  c.appendChild(_renderPvpPanel());
+  // ── Il Pantheon dei Campioni (entry) ──
+  const pvpEntry = el('div', 'panel pantheon-entry-panel');
+  const pvpWins = HERO.pvpWins || 0;
+  const pt = pvpTitle(pvpWins);
+  pvpEntry.innerHTML = `
+    <div class="pantheon-banner">
+      <img src="assets/ui/pantheon.png" alt="Pantheon" class="pantheon-banner-img">
+      <div class="pantheon-banner-overlay">
+        <div class="pantheon-entry-title">Il Pantheon dei Campioni</div>
+        <div class="pantheon-banner-sub">Classifica · Rivali · Sfide PvP</div>
+        ${pt ? `<div class="pantheon-rank-chip">${pt.icon} ${pt.label}</div>` : ''}
+      </div>
+      <button class="btn btn-small pantheon-open-btn">Entra →</button>
+    </div>`;
+  pvpEntry.querySelector('.pantheon-open-btn').addEventListener('click', () => {
+    MAP_VIEW = 'pantheon'; setTab('map');
+  });
+  c.appendChild(pvpEntry);
 }
 
 /* ── Mappa Infuocata ─────────────────────────────────────────── */
@@ -2392,6 +2455,25 @@ function _buildPvpActive(container, ch, refresh) {
 }
 
 let MAP_VIEW = 'main';
+
+function renderPantheonView(c) {
+  const back = el('button', 'btn btn-small pantheon-back-btn', '← Mappa');
+  back.addEventListener('click', () => { MAP_VIEW = 'main'; setTab('map'); });
+  c.appendChild(back);
+
+  const hdr = el('div', 'pantheon-header');
+  hdr.innerHTML = `
+    <div class="pantheon-header-icon">🏛️</div>
+    <div>
+      <h2 class="section-title pantheon-title" style="margin:0">Il Pantheon dei Campioni</h2>
+      <div class="muted small">Dove gli eroi si misurano e la gloria è eterna</div>
+    </div>`;
+  c.appendChild(hdr);
+
+  c.appendChild(_renderLeaderboardPanel());
+  c.appendChild(_renderRivalsPanel());
+  c.appendChild(_renderPvpPanel());
+}
 
 function renderAtlasView(c) {
   const back = el('button', 'btn btn-small', '← Mappa');
@@ -4675,11 +4757,13 @@ function msToMidnight() {
 }
 /* ── La Serra del Viandante ─────────────────────────────────────────────── */
 function renderSerraView(c) {
+  c.classList.add('in-serra');
+
   const serraBanner = el('div', 'serra-hero-banner');
   c.appendChild(serraBanner);
 
   const backBtn = el('button', 'btn btn-small serra-back-btn', '↩ Torna al Rifugio');
-  backBtn.addEventListener('click', () => { CAMP_VIEW = 'main'; setTab('camp'); });
+  backBtn.addEventListener('click', () => { c.classList.remove('in-serra'); CAMP_VIEW = 'main'; setTab('camp'); });
   serraBanner.appendChild(backBtn);
 
   const serraTitle = el('h2', 'section-title serra-banner-title', '🌿 La Serra del Viandante');
@@ -4745,8 +4829,9 @@ function renderSerraView(c) {
     const pEl = el('div', 'pot-card' + (pot.status === 'locked' ? ' locked' : ''));
 
     if (pot.status === 'locked') {
+      const unlockLvl = [0, 10, 30, 50, 70][i] || 10;
       pEl.innerHTML = `<div class="pot-emoji">🔒</div>
-        <div class="pot-name">Sblocca al Liv. ${i === 1 ? 10 : 30}</div>`;
+        <div class="pot-name">Sblocca al Liv. ${unlockLvl}</div>`;
 
     } else if (pot.status === 'empty') {
       pEl.innerHTML = `<div class="pot-emoji"><img src="assets/minigames/serra/vaso vuoto.png" class="pot-img" alt=""></div>
@@ -4760,15 +4845,22 @@ function renderSerraView(c) {
         <div class="pot-name danger">Pianta morta</div>`;
       const cleanBtn = el('button', 'btn btn-small wide', 'Pulisci vaso');
       cleanBtn.addEventListener('click', () => {
-        Object.assign(pot, { status:'empty', seedId:null, daysGrown:0, health:100, water:0 });
+        Object.assign(pot, { status:'empty', seedId:null, daysGrown:0, health:100, water:0, readyDays:0 });
         persist(); setTab('camp');
       });
       pEl.appendChild(cleanBtn);
 
     } else if (pot.status === 'ready') {
       const pData = RPG.PLANTS[pot.seedId];
+      const rdDays = pot.readyDays || 0;
+      const baseVal = (RPG.RARITIES[pData.rarity] || {}).value || 50;
+      const maturPreview = rdDays > 0 ? Math.round(baseVal * 0.2 * Math.min(3, rdDays)) : 0;
+      let maturLine = '';
+      if (rdDays === 0) maturLine = `<div class="matur-hint">🌿 Aspetta 1-3 giorni per bonus stagionatura!</div>`;
+      else if (rdDays < 4) maturLine = `<div class="matur-hint matur-ripe">⭐ Stagionata ${rdDays} giorno${rdDays > 1 ? 'i' : ''} — bonus +${maturPreview} oro!</div>`;
       pEl.innerHTML = `<div class="pot-emoji glow">${plantIcon(pot.seedId, pData.icon)}</div>
-        <div class="pot-name" style="color:var(--gold-bright)">Fioritura Perfetta!</div>`;
+        <div class="pot-name" style="color:var(--gold-bright)">Fioritura Perfetta!</div>
+        ${maturLine}`;
       const harBtn = el('button', 'btn btn-primary wide btn-small', '🎁 Raccogli');
       harBtn.addEventListener('click', () => {
         const rew = RPG.harvestPlant(HERO, i);
@@ -4776,11 +4868,12 @@ function renderSerraView(c) {
         persist(); renderHUD();
         const itemLine = rew.items.length ? `<br>🎒 ${rew.items.map(it => `${it.icon} ${esc(it.name)}`).join(', ')}` : '';
         const goldLine = rew.gold ? `<br>🪙 +${rew.gold} oro` : '';
+        const maturBonusLine = rew.maturBonus > 0 ? `<br><span style="color:var(--gold-bright)">⭐ Bonus stagionatura: +${rew.maturBonus} oro!</span>` : '';
         const resLine  = rew.wood  ? `<br>🪵 +${rew.wood} legno · 🪨 +${rew.stone} pietra` : '';
         modal(`<h3 class="panel-title">✨ Raccolto!</h3>
           <p class="center" style="font-size:2.5rem">${pData.icon}</p>
           <p class="center"><b>${esc(pData.name)}</b></p>
-          <p class="center muted small">${goldLine}${resLine}${itemLine}</p>
+          <p class="center muted small">${goldLine}${maturBonusLine}${resLine}${itemLine}</p>
           <button class="btn btn-primary wide" onclick="closeModal();setTab('camp');">Fantastico!</button>`);
         sfx('coin'); vibrate([60, 30, 100]);
       });
@@ -4810,11 +4903,63 @@ function renderSerraView(c) {
         sfx('block');
       });
       pEl.appendChild(waterBtn);
+      // Fertilizzante: mostra bottone se ne possiede uno
+      const fertItems = (HERO.items || []).filter(it => it.slot === 'consumabile' && it.name === 'Fertilizzante Magico');
+      if (fertItems.length) {
+        const fertBtn = el('button', 'btn btn-small wide', `🌿 Fertilizza (${fertItems.length})`);
+        fertBtn.addEventListener('click', () => {
+          const err2 = RPG.useFertilizer(HERO, fertItems[0].id, i);
+          if (err2) { toast(err2); return; }
+          persist(); setTab('camp');
+          toast('🌿 Fertilizzante usato — la pianta è cresciuta di 1 giorno!');
+        });
+        pEl.appendChild(fertBtn);
+      }
     }
 
     grid.appendChild(pEl);
   });
   c.appendChild(grid);
+
+  // Missioni Serra settimanali
+  RPG.rolloverSerraMissions(HERO);
+  const wm = HERO.greenhouse.weeklyMissions;
+  if (wm && wm.missions) {
+    const missSection = el('div', 'serra-missions-panel');
+    missSection.innerHTML = `<div class="panel-title" style="margin-bottom:8px">📋 Missioni Settimanali</div>`;
+    wm.missions.forEach(m => {
+      const done = m.progress >= m.target;
+      const pct = m.type === 'harvest_rarity' ? (done ? 100 : 0)
+        : Math.min(100, Math.round(m.progress / m.target * 100));
+      const targetDisp = m.type === 'harvest_rarity' ? '1' : (typeof m.target === 'number' ? m.target.toFixed(m.type === 'water_km' ? 0 : 0) : '—');
+      const progDisp = m.type === 'harvest_rarity' ? (done ? '1' : '0') : m.progress.toFixed(m.type === 'water_km' ? 1 : 0);
+      const rewardLabel = `🪙 ${m.reward.gold}${m.reward.item === 'seme' ? ' + 🌰 Seme' : m.reward.item === 'fertilizzante' ? ' + 🌿 Fertilizzante' : ''}`;
+      const mEl = el('div', `serra-mission-card${done ? ' done' : ''}${m.claimed ? ' claimed' : ''}`);
+      mEl.innerHTML = `
+        <div class="sm-label">${m.label}</div>
+        <div class="sm-desc muted small">${esc(m.desc)}</div>
+        <div class="sm-progress-row">
+          <div class="sm-bar"><div class="sm-fill" style="width:${pct}%"></div></div>
+          <span class="sm-fraction">${progDisp}/${targetDisp}</span>
+        </div>
+        <div class="sm-reward muted small">${rewardLabel}</div>`;
+      if (done && !m.claimed) {
+        const claimBtn = el('button', 'btn btn-primary btn-small', '🎁 Riscatta');
+        claimBtn.addEventListener('click', () => {
+          const res = RPG.claimSerraMission(HERO, m.id);
+          if (typeof res === 'string') { toast(res); return; }
+          persist(); renderHUD(); setTab('camp');
+          const itLine = res.items.length ? res.items.map(it => `${it.icon} ${esc(it.name)}`).join(', ') : '';
+          toast(`🎁 Missione completata! +${res.gold} oro${itLine ? ' · ' + itLine : ''}`);
+        });
+        mEl.appendChild(claimBtn);
+      } else if (m.claimed) {
+        mEl.appendChild(el('div', 'sm-claimed-badge', '✓ Riscattata'));
+      }
+      missSection.appendChild(mEl);
+    });
+    c.appendChild(missSection);
+  }
 
   // Glossario tratti
   const loreBtn = el('button', 'btn btn-small', '📖 Proprietà delle Piante');
@@ -4830,6 +4975,52 @@ function renderSerraView(c) {
       <button class="btn wide" onclick="closeModal()">Chiudi</button>`);
   });
   c.appendChild(loreBtn);
+}
+
+function showSeasonModal() {
+  const season = RPG.currentSeason();
+  const allSeasons = Object.values(RPG.SEASONS);
+  const d = new Date();
+  const daysInMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  const daysLeft = daysInMonth - d.getDate();
+
+  const bonusRows = season.bonuses.map(b => `<li>${esc(b)}</li>`).join('');
+  const seasonCards = allSeasons.map(s => {
+    const active = s.id === season.id;
+    return `<div class="season-mini-card${active ? ' active' : ''}">
+      <span class="smc-icon">${s.icon}</span>
+      <span class="smc-name">${esc(s.name)}</span>
+    </div>`;
+  }).join('');
+
+  RPG.initSeasonalChallenge(HERO);
+  const sc = HERO.seasonalChallenge;
+  const scPct = sc ? Math.min(100, Math.round(sc.progressKm / sc.km * 100)) : 0;
+
+  modal(`
+    <div class="season-modal">
+      <div class="season-modal-header" style="--season-color:${season.color}">
+        <span class="season-modal-icon">${season.icon}</span>
+        <div>
+          <h3 style="margin:0">${esc(season.name)}</h3>
+          <div class="muted small">${daysLeft} giorni rimanenti questo mese</div>
+        </div>
+      </div>
+      <div class="season-cards-row">${seasonCards}</div>
+      <p class="muted small" style="margin:10px 0 6px">${esc(season.desc)}</p>
+      <div class="sm-label" style="margin-bottom:4px">Bonus Attivi:</div>
+      <ul class="season-bonus-list">${bonusRows}</ul>
+      ${sc ? `
+      <div class="sm-label" style="margin:10px 0 4px">🏆 ${esc(sc.label)}</div>
+      <div class="sm-progress-row">
+        <div class="sm-bar"><div class="sm-fill" style="width:${scPct}%;background:${season.color}"></div></div>
+        <span class="sm-fraction">${sc.progressKm.toFixed(1)} / ${sc.km} km</span>
+      </div>
+      <div class="muted small" style="margin-top:4px">Ricompensa: oggetto ${RPG.RARITIES[season.challenge.reward].label} stagionale</div>
+      ` : ''}
+    </div>
+    <button class="btn wide" style="margin-top:12px" onclick="closeModal()">Chiudi</button>
+  `);
 }
 
 function showSeedPicker(potIndex) {

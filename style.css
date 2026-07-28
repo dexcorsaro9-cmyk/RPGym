@@ -2348,6 +2348,64 @@ body {
 .atlas-entry-title { font-family: 'Cinzel', serif; font-size: .88rem; font-weight: 700; color: var(--gold-bright); }
 .atlas-open-btn { flex-shrink: 0; }
 
+/* ── Pantheon dei Campioni: entry panel e subview ── */
+.pantheon-entry-panel {
+  border-color: #7b3fbf !important;
+  padding: 0;
+  overflow: hidden;
+}
+.pantheon-banner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 100px;
+}
+.pantheon-banner-img {
+  width: 110px;
+  height: 100px;
+  object-fit: contain;
+  object-position: center;
+  flex-shrink: 0;
+  background: #1a0d2e;
+  padding: 6px;
+}
+.pantheon-banner-overlay {
+  flex: 1;
+  padding: 10px 12px;
+  background: linear-gradient(to right, rgba(20,8,40,.95), rgba(40,15,70,.85));
+}
+.pantheon-banner-sub {
+  font-size: .72rem;
+  color: rgba(192,154,240,.7);
+  margin-top: 2px;
+}
+.pantheon-entry-title {
+  font-family: 'Cinzel', serif; font-size: .9rem; font-weight: 700;
+  color: #b47fe8;
+}
+.pantheon-rank-chip {
+  display: inline-block; margin-top: 4px;
+  font-size: .68rem; font-weight: 700;
+  background: rgba(123,63,191,.25); border: 1px solid rgba(123,63,191,.5);
+  border-radius: 20px; padding: 1px 8px; color: #c09af0;
+}
+.pantheon-open-btn {
+  flex-shrink: 0;
+  margin-right: 12px;
+  align-self: center;
+}
+
+.pantheon-back-btn { margin-bottom: 12px; }
+.pantheon-header {
+  display: flex; align-items: center; gap: 14px;
+  background: linear-gradient(135deg, rgba(123,63,191,.15), rgba(60,20,100,.08));
+  border: 1px solid rgba(123,63,191,.35);
+  border-radius: 14px; padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.pantheon-header-icon { font-size: 2.4rem; flex-shrink: 0; }
+.pantheon-title { color: #c09af0 !important; }
+
 .clipboard-sync-banner {
   position: fixed; bottom: calc(72px + env(safe-area-inset-bottom)); left: 12px; right: 12px;
   background: linear-gradient(135deg, #1e3d12, #2d5a1b);
@@ -3176,6 +3234,62 @@ body {
   color: #e8dcc8;
 }
 .camp-weather-bonus { color: var(--gold-bright); }
+
+/* Stagione chip nella scena campo */
+.camp-season-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: .82rem; padding: 4px 12px;
+  background: color-mix(in srgb, var(--season-color, #7ec850) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--season-color, #7ec850) 50%, transparent);
+  border-radius: 20px; margin: 4px auto 0;
+  color: var(--season-color, #7ec850);
+  cursor: pointer; width: fit-content;
+  transition: background .2s;
+}
+.camp-season-chip:hover { background: color-mix(in srgb, var(--season-color, #7ec850) 30%, transparent); }
+
+/* Sfida stagionale panel */
+.season-challenge-panel {
+  border: 1px solid color-mix(in srgb, var(--season-color, #7ec850) 60%, transparent) !important;
+  background: color-mix(in srgb, var(--season-color, #7ec850) 6%, var(--surface)) !important;
+}
+.sc-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.sc-season-tag {
+  font-size: .7rem; font-weight: 700; padding: 2px 8px; border-radius: 20px;
+  background: color-mix(in srgb, var(--season-color, #7ec850) 25%, transparent);
+  color: var(--season-color, #7ec850);
+  white-space: nowrap;
+}
+.sc-label { font-weight: 700; font-size: .9rem; }
+.sc-desc  { margin-bottom: 8px; }
+.sc-progress-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.sc-bar   { flex: 1; height: 8px; background: rgba(0,0,0,.3); border-radius: 4px; overflow: hidden; }
+.sc-fill  { height: 100%; background: var(--season-color, #7ec850); border-radius: 4px; transition: width .4s; }
+.sc-fraction { font-size: .75rem; white-space: nowrap; color: var(--ink-light); }
+
+/* Modal stagione */
+.season-modal-header {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 0 10px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 10px;
+}
+.season-modal-icon { font-size: 2.2rem; }
+.season-cards-row  { display: flex; gap: 8px; justify-content: center; margin-bottom: 10px; }
+.season-mini-card  {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 6px 10px; border-radius: 10px;
+  background: var(--surface2); border: 1px solid var(--border);
+  font-size: .72rem; opacity: .55;
+}
+.season-mini-card.active {
+  border-color: var(--season-color, #7ec850);
+  color: var(--season-color, #7ec850);
+  opacity: 1;
+  background: color-mix(in srgb, var(--season-color, #7ec850) 12%, var(--surface2));
+}
+.smc-icon { font-size: 1.3rem; }
+.season-bonus-list { padding-left: 1.1rem; line-height: 1.9; font-size: .85rem; margin: 0 0 8px; }
 
 /* ── Mappa del Tesoro settimanale ── */
 .treasure-map-panel { border-color: #a0782a !important; }
@@ -4773,12 +4887,18 @@ body {
 
 /* ── Mappa Infuocata ─────────────────────────────────────────────────────── */
 .mi-panel {
-  border: 1.5px solid rgba(217,130,43,.4);
-  background: rgba(217,130,43,.04);
+  border: 1.5px solid #d9822b;
+  background: #201408;
 }
+@media (prefers-color-scheme: light) {
+  .mi-panel { background: #fff4e6; border-color: #c46a10; }
+}
+:root[data-theme="light"] .mi-panel { background: #fff4e6; border-color: #c46a10; }
+:root[data-theme="dark"]  .mi-panel { background: #201408; border-color: #d9822b; }
+
 .mi-tiers-preview {
   font-size: .75rem; color: var(--ink-light);
-  margin: 8px 0;
+  margin: 8px 0; line-height: 1.7;
 }
 .mi-tier-dot { font-weight: 600; }
 .mi-activate-btn { margin-top: 10px; }
@@ -4791,9 +4911,13 @@ body {
 .mi-time-left { font-size: .8rem; color: var(--ink-light); }
 .mi-km-bar-wrap {
   height: 10px; border-radius: 5px;
-  background: rgba(255,255,255,.1);
+  background: rgba(0,0,0,.35);
   overflow: hidden; margin: 4px 0;
 }
+@media (prefers-color-scheme: light) {
+  .mi-km-bar-wrap { background: rgba(0,0,0,.12); }
+}
+:root[data-theme="light"] .mi-km-bar-wrap { background: rgba(0,0,0,.12); }
 .mi-km-bar {
   height: 100%; border-radius: 5px;
   background: linear-gradient(90deg, #d9822b, #f0aa50);
@@ -4805,10 +4929,15 @@ body {
 /* ═══════════════ La Serra del Viandante ═══════════════════════════════════ */
 .water-tank-panel {
   display: flex; align-items: center; gap: 12px;
-  background: linear-gradient(135deg, rgba(20,100,180,.2), rgba(10,50,90,.1));
-  border: 1px solid rgba(46,111,176,.5);
+  background: #162035;
+  border: 1px solid #2e6fb0;
   border-radius: 12px; padding: 12px 14px; margin-bottom: 16px;
 }
+@media (prefers-color-scheme: light) {
+  .water-tank-panel { background: #dceeff; border-color: #4a90c8; }
+}
+:root[data-theme="light"] .water-tank-panel { background: #dceeff; border-color: #4a90c8; }
+:root[data-theme="dark"]  .water-tank-panel { background: #162035; border-color: #2e6fb0; }
 .water-drop-icon {
   font-size: 2.5rem; line-height: 1;
   filter: drop-shadow(0 4px 6px rgba(0,0,0,.5));
@@ -4827,12 +4956,17 @@ body {
   gap: 12px;
 }
 .pot-card {
-  background: radial-gradient(ellipse at center top, rgba(255,255,255,.08), transparent), rgba(0,0,0,.3);
-  border: 2px solid var(--leather);
+  background: #1e2a14;
+  border: 2px solid #3a5020;
   border-radius: 14px; padding: 16px 10px;
   display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px;
-  box-shadow: inset 0 -10px 20px rgba(50,30,10,.5), 0 4px 10px rgba(0,0,0,.4);
+  box-shadow: 0 4px 12px rgba(0,0,0,.5);
 }
+@media (prefers-color-scheme: light) {
+  .pot-card { background: #fff; border-color: #b0cc80; box-shadow: 0 2px 8px rgba(0,0,0,.12); }
+}
+:root[data-theme="light"] .pot-card { background: #fff; border-color: #b0cc80; box-shadow: 0 2px 8px rgba(0,0,0,.12); }
+:root[data-theme="dark"]  .pot-card { background: #1e2a14; border-color: #3a5020; }
 .pot-card.locked { opacity: .5; filter: grayscale(1); }
 .pot-card.pickable { cursor: pointer; transition: transform .15s, border-color .2s; }
 .pot-card.pickable:hover { transform: translateY(-3px); border-color: var(--emerald); }
@@ -4846,8 +4980,13 @@ body {
   from { filter: drop-shadow(0 0 10px rgba(90,255,120,.4)); }
   to   { filter: drop-shadow(0 0 20px rgba(90,255,120,.8)); }
 }
-.pot-name       { font-family: 'Cinzel', serif; font-weight: 700; font-size: .8rem; color: var(--parchment); }
+.pot-name       { font-family: 'Cinzel', serif; font-weight: 700; font-size: .8rem; color: #c8e09a; }
 .pot-name.danger { color: #e05050; }
+@media (prefers-color-scheme: light) {
+  .pot-name { color: #2a4010; }
+}
+:root[data-theme="light"] .pot-name { color: #2a4010; }
+:root[data-theme="dark"]  .pot-name { color: #c8e09a; }
 
 .pot-stats { width: 100%; display: flex; flex-direction: column; gap: 3px; margin: 4px 0; }
 .pot-stat-label { font-size: .65rem; text-align: left; }
@@ -4860,13 +4999,53 @@ body {
 .pot-fill-xp  { height: 100%; background: linear-gradient(90deg, #60c8ff, var(--magic)); transition: width .3s; }
 .pot-water-info { font-size: .75rem; color: var(--ink-light); }
 .pot-img { width: 120px; height: 120px; object-fit: contain; display: block; margin: 0 auto; }
+
+/* Stagionatura */
+.matur-hint { font-size: .72rem; color: var(--ink-light); text-align: center; margin: 2px 0 4px; }
+.matur-ripe  { color: var(--gold-bright) !important; font-weight: 600; }
+
+/* Missioni Serra settimanali */
+.serra-missions-panel {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 12px;
+  margin: 14px 0 4px;
+}
+.serra-mission-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
+.serra-mission-card.done   { border-color: var(--emerald); }
+.serra-mission-card.claimed { opacity: .6; }
+.sm-label  { font-weight: 700; font-size: .85rem; margin-bottom: 2px; }
+.sm-desc   { margin-bottom: 6px; }
+.sm-progress-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.sm-bar    { flex: 1; height: 6px; background: rgba(0,0,0,.4); border-radius: 3px; overflow: hidden; }
+.sm-fill   { height: 100%; background: var(--emerald); border-radius: 3px; transition: width .4s; }
+.sm-fraction { font-size: .72rem; white-space: nowrap; color: var(--ink-light); }
+.sm-reward { margin-bottom: 6px; }
+.sm-claimed-badge { font-size: .75rem; font-weight: 700; color: var(--emerald); margin-top: 4px; }
 .pot-emoji.glow .pot-img { filter: drop-shadow(0 0 8px var(--gold-bright)); }
 .water-tank-img { width: 48px; height: 48px; object-fit: contain; flex-shrink: 0; }
 
 /* ── Serra hero banner ───────────────────────────────────────────────────── */
+/* ── Vista Serra: background solido sull'intera area ── */
+.in-serra {
+  background: #111a0c !important;
+}
+@media (prefers-color-scheme: light) {
+  .in-serra { background: #e8f0dc !important; }
+}
+:root[data-theme="light"] .in-serra { background: #e8f0dc !important; }
+:root[data-theme="dark"]  .in-serra { background: #111a0c !important; }
+
 .serra-hero-banner {
-  width: 100%; height: 160px;
-  background: url('assets/minigames/serra/SERRA.jpg') center/cover no-repeat;
+  width: 100%; height: 140px;
+  background: url('assets/minigames/serra/SERRA.jpg') center 40%/cover no-repeat;
   border-radius: 12px;
   margin-bottom: 14px;
   position: relative;
@@ -4879,23 +5058,28 @@ body {
 .serra-hero-banner::before {
   content: '';
   position: absolute; inset: 0;
-  background: linear-gradient(135deg, rgba(0,0,0,.55) 0%, rgba(0,0,0,.25) 100%);
-  border-radius: 12px;
+  background: linear-gradient(to bottom,
+    rgba(0,0,0,.08) 0%,
+    rgba(0,0,0,.60) 55%,
+    rgba(0,0,0,.85) 100%);
   pointer-events: none;
 }
 .serra-back-btn {
   position: relative; z-index: 1;
   background: rgba(0,0,0,.55) !important;
   color: #fff !important;
-  border: 1px solid rgba(255,255,255,.3) !important;
-  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255,255,255,.30) !important;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   align-self: flex-start;
+  font-size: .78rem;
 }
 .serra-banner-title {
   position: relative; z-index: 1;
   color: #fff !important;
-  text-shadow: 0 1px 6px rgba(0,0,0,.8);
+  text-shadow: 0 2px 8px rgba(0,0,0,.95), 0 1px 3px rgba(0,0,0,.7);
   margin: 0;
+  font-size: 1.05rem;
 }
 
 /* ── NPC Messer Ortica ────────────────────────────────────────────────────── */
