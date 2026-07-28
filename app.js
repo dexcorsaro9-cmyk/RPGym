@@ -1022,46 +1022,6 @@ function renderCamp(c) {
     c.appendChild(dmg);
   }
 
-  // Sfida stagionale
-  RPG.initSeasonalChallenge(HERO);
-  const sc = HERO.seasonalChallenge;
-  if (sc && !sc.claimed) {
-    const scPct = Math.min(100, Math.round(sc.progressKm / sc.km * 100));
-    const scPanel = el('div', 'panel season-challenge-panel');
-    scPanel.style.setProperty('--season-color', season.color);
-    scPanel.innerHTML = `
-      <div class="sc-header">
-        <span class="sc-season-tag">${season.icon} ${season.name}</span>
-        <span class="sc-label">${esc(sc.label)}</span>
-      </div>
-      <div class="sc-desc muted small">${esc(season.desc)}</div>
-      <div class="sc-progress-row">
-        <div class="sc-bar"><div class="sc-fill" style="width:${scPct}%"></div></div>
-        <span class="sc-fraction">${sc.progressKm.toFixed(1)} / ${sc.km} km</span>
-      </div>`;
-    if (scPct >= 100) {
-      const claimBtn = el('button', 'btn btn-primary wide', '🎁 Riscatta Ricompensa Stagionale');
-      claimBtn.addEventListener('click', () => {
-        const res = RPG.claimSeasonalChallenge(HERO);
-        if (typeof res === 'string') { toast(res); return; }
-        persist(); renderHUD(); setTab('camp');
-        modal(`<h3 class="panel-title">${season.icon} Sfida Stagionale Completata!</h3>
-          <p class="center muted small">Hai conquistato:</p>
-          <div class="loot rar-${res.item.rarity}" style="margin:12px 0">
-            <div class="loot-head"><b>${res.item.icon} ${esc(res.item.name)}</b>
-            <span class="tag">${RPG.RARITIES[res.item.rarity].label}</span></div>
-          </div>
-          <button class="btn btn-primary wide" onclick="closeModal()">Magnifico!</button>`);
-        sfx('coin'); vibrate([80, 40, 120]);
-      });
-      scPanel.appendChild(claimBtn);
-    } else {
-      const infoBtn = el('button', 'btn btn-small', '✨ Dettagli Stagione');
-      infoBtn.addEventListener('click', () => showSeasonModal());
-      scPanel.appendChild(infoBtn);
-    }
-    c.appendChild(scPanel);
-  }
 
   // Prima missione — visibile solo finché totalKm === 0
   if ((HERO.totalKm || 0) === 0) {
@@ -5017,8 +4977,24 @@ function showSeasonModal() {
       <div class="muted small" style="margin-top:4px">Ricompensa: oggetto ${RPG.RARITIES[season.challenge.reward].label} stagionale</div>
       ` : ''}
     </div>
-    <button class="btn wide" style="margin-top:12px" onclick="closeModal()">Chiudi</button>
+    ${sc && scPct >= 100 && !sc.claimed ? `<button class="btn btn-primary wide" style="margin-top:12px" id="sc-claim-btn">🎁 Riscatta Ricompensa Stagionale</button>` : ''}
+    <button class="btn wide" style="margin-top:8px" onclick="closeModal()">Chiudi</button>
   `);
+  if (sc && scPct >= 100 && !sc.claimed) {
+    document.getElementById('sc-claim-btn').addEventListener('click', () => {
+      const res = RPG.claimSeasonalChallenge(HERO);
+      if (typeof res === 'string') { toast(res); return; }
+      persist(); renderHUD(); closeModal();
+      modal(`<h3 class="panel-title">${season.icon} Sfida Stagionale Completata!</h3>
+        <p class="center muted small">Hai conquistato:</p>
+        <div class="loot rar-${res.item.rarity}" style="margin:12px 0">
+          <div class="loot-head"><b>${res.item.icon} ${esc(res.item.name)}</b>
+          <span class="tag">${RPG.RARITIES[res.item.rarity].label}</span></div>
+        </div>
+        <button class="btn btn-primary wide" onclick="closeModal()">Magnifico!</button>`);
+      sfx('coin'); vibrate([80, 40, 120]);
+    });
+  }
 }
 
 function showSeedPicker(potIndex) {
