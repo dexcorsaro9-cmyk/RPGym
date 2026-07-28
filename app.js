@@ -297,7 +297,7 @@ function show(id) {
   s.classList.remove('hidden');
   const tabbar = $('#tabbar');
   if (id === 'screen-game') {
-    tabbar.classList.remove('hidden');
+    setTimeout(() => tabbar.classList.remove('hidden'), 50);
   } else {
     tabbar.classList.add('hidden');
   }
@@ -763,8 +763,8 @@ document.addEventListener('touchend', e => {
   if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
   if (document.getElementById('modal').classList.contains('hidden') === false) return;
   const idx = _TAB_ORDER.indexOf(CURRENT_TAB);
-  if (dx < 0 && idx < _TAB_ORDER.length - 1) setTab(_TAB_ORDER[idx + 1], 'left');
-  if (dx > 0 && idx > 0) setTab(_TAB_ORDER[idx - 1], 'right');
+  if (dx < 0 && idx > 0) setTab(_TAB_ORDER[idx - 1], 'right');
+  if (dx > 0 && idx < _TAB_ORDER.length - 1) setTab(_TAB_ORDER[idx + 1], 'left');
 }, { passive: true });
 
 
@@ -778,7 +778,7 @@ function setTab(tab, dir) {
   const c = $('#tab-content');
   c.classList.remove('bg-parchment', 'bg-rifugio', 'bg-map', 'bg-train', 'bg-market');
   if (tab === 'hero')   c.classList.add('bg-parchment');
-  if (tab === 'camp')   c.classList.add('bg-rifugio');
+  if (tab === 'camp')   c.classList.add('bg-parchment');
   if (tab === 'map')    c.classList.add('bg-map');
   if (tab === 'train')  c.classList.add('bg-train');
   if (tab === 'market') c.classList.add('bg-market');
@@ -2062,6 +2062,9 @@ function _buildPvpActive(container, ch, refresh) {
     };
     container.appendChild(mkBar(myName, HERO.storyId || 'eroe1', myDelta, true));
     container.appendChild(mkBar(theirName, theirStory, theirDelta, false));
+    const refreshBtn = el('button', 'btn btn-small pvp-refresh-btn', '🔄 Aggiorna');
+    refreshBtn.addEventListener('click', refresh);
+    container.appendChild(refreshBtn);
   }
 
   const abandonBtn = el('button', 'btn btn-small pvp-abandon', '🏳️ Abbandona sfida');
