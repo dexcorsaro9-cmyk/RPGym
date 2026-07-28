@@ -287,6 +287,7 @@ const RPG = (() => {
   };
   // Immagine stabile per un oggetto (stesso oggetto → stessa icona)
   function itemImg(item) {
+    if (item.img) return item.img; // item con immagine fissa
     const pool = (LOOT_IMG[item.rarity] || {})[item.slot];
     if (!pool) return null;
     const h = [...String(item.id)].reduce((s, c) => (s * 33 + c.charCodeAt(0)) % 9973, 7);
@@ -3712,6 +3713,18 @@ const RPG = (() => {
     if (pData.rarity === 'raro')       reward.items.push(genItemFor(hero, 'raro'));
     if (pData.rarity === 'epico')      reward.items.push(genItemFor(hero, 'epico'));
     if (pData.rarity === 'divino')     reward.items.push(genItemFor(hero, 'divino'));
+
+    // Bonus: sacchetto di semi da ogni raccolto
+    const sacchetto = {
+      id: 'seme-sacchetto-' + Date.now(),
+      name: 'Sacchetto di Semi Magici',
+      icon: '🌱',
+      rarity: pData.rarity === 'comune' ? 'comune' : 'non_comune',
+      slot: 'amuleto',
+      img: 'assets/loot/seme-sacchetto.jpg',
+      atk:0, def:0, hp:0, xpBonus:0,
+    };
+    reward.items.push(sacchetto);
 
     reward.items.forEach(it => hero.items.push(it));
     hero.gold += reward.gold;

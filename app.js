@@ -1087,6 +1087,11 @@ function renderCamp(c) {
     const growingCount = HERO.greenhouse.pots.filter(p => p.status === 'growing' || p.status === 'ready').length;
     const readyCount   = HERO.greenhouse.pots.filter(p => p.status === 'ready').length;
     const gp = el('div', readyCount ? 'panel panel-featured' : 'panel');
+    const serraThumb = document.createElement('img');
+    serraThumb.src = 'assets/ui/rifugio/serra.jpg';
+    serraThumb.alt = '';
+    serraThumb.className = 'camp-panel-thumb';
+    gp.appendChild(serraThumb);
     gp.appendChild(el('h3', 'panel-title', '🌿 La Serra del Viandante'));
     gp.appendChild(el('p', 'muted small',
       readyCount
