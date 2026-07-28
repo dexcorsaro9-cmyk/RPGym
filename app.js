@@ -3956,8 +3956,15 @@ function renderCardsView(c) {
       const unlocked = HERO.level >= a.level;
       const isClaimed = claimed.includes(a.id);
       const row = el('div', 'achievement-row' + (unlocked ? '' : ' locked') + (a.epic ? ' epic' : ''));
+      const globalIdx = RPG.ACHIEVEMENTS.indexOf(a);
+      const cardImg = (typeof CARD_IMGS !== 'undefined')
+        ? CARD_IMGS[globalIdx % CARD_IMGS.length]
+        : null;
+      const iconHtml = unlocked && cardImg
+        ? `<img class="achievement-card-thumb" src="${cardImg}" alt="">`
+        : `<span class="achievement-icon-emoji">${unlocked ? a.icon : '🔒'}</span>`;
       row.innerHTML = `
-        <div class="achievement-icon">${unlocked ? a.icon : '🔒'}</div>
+        <div class="achievement-icon">${iconHtml}</div>
         <div class="achievement-mid">
           <b>${unlocked ? esc(a.name) : '???'}</b>
           <div class="small muted">${unlocked ? esc(a.desc) : `Sblocca al Livello ${a.level}`}</div>

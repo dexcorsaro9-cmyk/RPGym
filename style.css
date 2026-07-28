@@ -4611,3 +4611,74 @@ body {
 }
 .mgck-ammo-ic.ready { opacity: 1; }
 .mgck-shake { animation: shake-anim .3s ease-in-out; }
+
+/* ── Carte del Mercante (minigioco flip) ─────────────────────────────────── */
+.mg-cards-wrap { padding-top: 8px; }
+.mg-cards-row {
+  display: flex; justify-content: center; gap: 10px;
+  margin: 10px 0;
+}
+.mgc-card {
+  width: 30%; max-width: 110px;
+  aspect-ratio: 2/3;
+  perspective: 600px; cursor: pointer;
+}
+.mgc-inner {
+  width: 100%; height: 100%; position: relative;
+  transform-style: preserve-3d;
+  transition: transform .5s cubic-bezier(.4,0,.2,1);
+  border-radius: 10px;
+}
+.mgc-card.mgc-flipped .mgc-inner { transform: rotateY(180deg); }
+.mgc-back, .mgc-front {
+  position: absolute; inset: 0; border-radius: 10px;
+  backface-visibility: hidden;
+  border: 2px solid rgba(180,140,20,.4);
+  overflow: hidden;
+}
+.mgc-back {
+  background: linear-gradient(145deg,#2e1e0a,#140c02);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 6px;
+}
+.mgc-back-ornament {
+  width: 70%; height: 70%;
+  border: 2px solid rgba(212,184,134,.2);
+  border-radius: 6px;
+  background: repeating-linear-gradient(
+    45deg, transparent, transparent 6px,
+    rgba(212,184,134,.04) 6px, rgba(212,184,134,.04) 12px
+  );
+}
+.mgc-back-sym {
+  position: absolute;
+  font-size: 1.4rem; color: rgba(212,184,134,.4);
+}
+.mgc-front {
+  transform: rotateY(180deg);
+  border-color: var(--gold);
+  box-shadow: 0 0 14px rgba(180,140,20,.25);
+  display: flex; flex-direction: column;
+}
+.mgc-card-img {
+  width: 100%; flex: 1;
+  object-fit: cover;
+  display: block;
+}
+.mgc-front-label {
+  padding: 4px 6px;
+  font-size: .62rem; font-family: 'Cinzel', serif;
+  text-align: center; color: var(--gold-bright);
+  background: rgba(0,0,0,.7);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.mgc-trap-label { color: #e07070; }
+
+/* ── Imprese: card thumbnail ─────────────────────────────────────────────── */
+.achievement-card-thumb {
+  width: 42px; height: 58px;
+  object-fit: cover; border-radius: 5px;
+  border: 1.5px solid rgba(180,140,20,.4);
+  display: block;
+}
+.achievement-icon-emoji { font-size: 1.8rem; line-height: 1; }

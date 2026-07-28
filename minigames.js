@@ -139,6 +139,20 @@ function renderMiniGamesHub(c) {
 }
 
 /* ── 🃏 CARTE DEL MERCANTE ── */
+const CARD_IMGS = [
+  "assets/cards/caduta del generale goblin.png",
+  "assets/cards/ciclista del vento.png",
+  "assets/cards/cuore di pietra spento.png",
+  "assets/cards/esploratore delle terre selvagge.png",
+  "assets/cards/il cavaliere del drago.png",
+  "assets/cards/il lupo astrale.png",
+  "assets/cards/il primo passo.png",
+  "assets/cards/l'amuleto del viaggiatore esperto.png",
+  "assets/cards/lo stemma bruciato.png",
+  "assets/cards/oltre le mura.png",
+  "assets/cards/radici nuove.png",
+];
+
 function openCardsGame() {
   if (!mgCanPlay('cards')) return;
   const POOL = [
@@ -148,7 +162,11 @@ function openCardsGame() {
     { title:'Dono del Bosco',  reward:{ wood:20, stone:20 },trap:false },
     { title:'Maledizione!',    reward:{ gold:-10 },         trap:true  },
   ];
-  const cards = [...POOL].sort(()=>Math.random()-.5).slice(0,3);
+  // pick 3 pool items + assign 3 random unique card images
+  const cards    = [...POOL].sort(()=>Math.random()-.5).slice(0, 3);
+  const imgPool  = [...CARD_IMGS].sort(()=>Math.random()-.5);
+  cards.forEach((c, i) => { c.img = imgPool[i]; });
+
   const wrap = document.createElement('div');
   wrap.className = 'mg-cards-wrap';
   wrap.innerHTML = `
@@ -163,12 +181,15 @@ function openCardsGame() {
   const hint = document.getElementById('mgc-hint');
   const resEl = document.getElementById('mgc-res');
   const closeBtn = document.getElementById('mgc-close');
-  cards.forEach((card, i) => {
+  cards.forEach((card) => {
     const cel = document.createElement('div');
     cel.className = 'mgc-card';
     cel.innerHTML = `<div class="mgc-inner">
       <div class="mgc-back"><div class="mgc-back-ornament"></div><div class="mgc-back-sym">✦</div></div>
-      <div class="mgc-front"><div class="mgc-front-icon">${card.trap?'💀':'🎁'}</div><div class="mgc-front-label">${card.title}</div></div>
+      <div class="mgc-front">
+        <img class="mgc-card-img" src="${card.img}" alt="${card.title}">
+        <div class="mgc-front-label${card.trap ? ' mgc-trap-label' : ''}">${card.trap ? '☠️ Maledizione' : card.title}</div>
+      </div>
     </div>`;
     cel.addEventListener('click', () => {
       row.querySelectorAll('.mgc-card').forEach(c => c.style.pointerEvents = 'none');
@@ -185,7 +206,7 @@ function openCardsGame() {
         resEl.innerHTML = mgRewardHTML(
           card.trap ? {} : card.reward,
           card.trap ? '☠️ Maledizione del Mercante' : `✨ ${card.title}`,
-          card.trap ? 'Hai perso 15 Oro!' : ''
+          card.trap ? 'Hai perso 10 Oro!' : ''
         );
         resEl.classList.add('mg-res-in');
         closeBtn.classList.remove('hidden');
