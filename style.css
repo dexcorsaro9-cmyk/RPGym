@@ -2348,6 +2348,38 @@ body {
 .atlas-entry-title { font-family: 'Cinzel', serif; font-size: .88rem; font-weight: 700; color: var(--gold-bright); }
 .atlas-open-btn { flex-shrink: 0; }
 
+/* ── Pantheon dei Campioni: entry panel e subview ── */
+.pantheon-entry-panel {
+  border-color: #7b3fbf !important;
+  background: linear-gradient(135deg, rgba(123,63,191,.08), rgba(60,20,100,.04));
+  padding: 12px 14px;
+}
+.pantheon-entry-row { display: flex; align-items: center; gap: 12px; }
+.pantheon-entry-icon { font-size: 2rem; flex-shrink: 0; }
+.pantheon-entry-info { flex: 1; }
+.pantheon-entry-title {
+  font-family: 'Cinzel', serif; font-size: .9rem; font-weight: 700;
+  color: #b47fe8;
+}
+.pantheon-rank-chip {
+  display: inline-block; margin-top: 3px;
+  font-size: .68rem; font-weight: 700;
+  background: rgba(123,63,191,.18); border: 1px solid rgba(123,63,191,.4);
+  border-radius: 20px; padding: 1px 8px; color: #c09af0;
+}
+.pantheon-open-btn { flex-shrink: 0; }
+
+.pantheon-back-btn { margin-bottom: 12px; }
+.pantheon-header {
+  display: flex; align-items: center; gap: 14px;
+  background: linear-gradient(135deg, rgba(123,63,191,.15), rgba(60,20,100,.08));
+  border: 1px solid rgba(123,63,191,.35);
+  border-radius: 14px; padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.pantheon-header-icon { font-size: 2.4rem; flex-shrink: 0; }
+.pantheon-title { color: #c09af0 !important; }
+
 .clipboard-sync-banner {
   position: fixed; bottom: calc(72px + env(safe-area-inset-bottom)); left: 12px; right: 12px;
   background: linear-gradient(135deg, #1e3d12, #2d5a1b);

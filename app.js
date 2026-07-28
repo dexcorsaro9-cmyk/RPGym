@@ -1609,7 +1609,8 @@ function openFurnitureSetModal(setId) {
 
 /* ── TAB: Mappa ── */
 function renderMap(c) {
-  if (MAP_VIEW === 'atlas') { renderAtlasView(c); return; }
+  if (MAP_VIEW === 'atlas')    { renderAtlasView(c);    return; }
+  if (MAP_VIEW === 'pantheon') { renderPantheonView(c); return; }
   const biome = RPG.currentBiome(HERO.level);
 
   // ── Il bioma attuale, con progresso verso il prossimo ──
@@ -1945,11 +1946,24 @@ function renderMap(c) {
   c.appendChild(atlasEntry);
 
   // ── Classifica globale ──
-  c.appendChild(_renderLeaderboardPanel());
-  // ── Rivali ──
-  c.appendChild(_renderRivalsPanel());
-  // ── Sfida PvP ──
-  c.appendChild(_renderPvpPanel());
+  // ── Il Pantheon dei Campioni (entry) ──
+  const pvpEntry = el('div', 'panel pantheon-entry-panel');
+  const pvpWins = HERO.pvpWins || 0;
+  const pt = pvpTitle(pvpWins);
+  pvpEntry.innerHTML = `
+    <div class="pantheon-entry-row">
+      <div class="pantheon-entry-icon">🏛️</div>
+      <div class="pantheon-entry-info">
+        <div class="pantheon-entry-title">Il Pantheon dei Campioni</div>
+        <div class="small muted">Classifica · Rivali · Sfide PvP</div>
+        ${pt ? `<div class="pantheon-rank-chip">${pt.icon} ${pt.label}</div>` : ''}
+      </div>
+      <button class="btn btn-small pantheon-open-btn">Entra →</button>
+    </div>`;
+  pvpEntry.querySelector('.pantheon-open-btn').addEventListener('click', () => {
+    MAP_VIEW = 'pantheon'; setTab('map');
+  });
+  c.appendChild(pvpEntry);
 }
 
 /* ── Mappa Infuocata ─────────────────────────────────────────── */
@@ -2441,6 +2455,25 @@ function _buildPvpActive(container, ch, refresh) {
 }
 
 let MAP_VIEW = 'main';
+
+function renderPantheonView(c) {
+  const back = el('button', 'btn btn-small pantheon-back-btn', '← Mappa');
+  back.addEventListener('click', () => { MAP_VIEW = 'main'; setTab('map'); });
+  c.appendChild(back);
+
+  const hdr = el('div', 'pantheon-header');
+  hdr.innerHTML = `
+    <div class="pantheon-header-icon">🏛️</div>
+    <div>
+      <h2 class="section-title pantheon-title" style="margin:0">Il Pantheon dei Campioni</h2>
+      <div class="muted small">Dove gli eroi si misurano e la gloria è eterna</div>
+    </div>`;
+  c.appendChild(hdr);
+
+  c.appendChild(_renderLeaderboardPanel());
+  c.appendChild(_renderRivalsPanel());
+  c.appendChild(_renderPvpPanel());
+}
 
 function renderAtlasView(c) {
   const back = el('button', 'btn btn-small', '← Mappa');
