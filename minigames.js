@@ -8,7 +8,7 @@ function getMG(id) {
   HERO.miniGames[id] = d;
   return d;
 }
-const MG_MAX = { dice:1, cards:3, runes:3, forge:2, archery:3, wheel:1, memory:2, tap:3, wham:3, boccale:2, dadi:2, pesca:2, braccio:3 };
+const MG_MAX = { dice:1, cards:3, runes:3, forge:2, archery:3, wheel:1, memory:2, tap:3, wham:3, boccale:2, dadi:2, pesca:2, braccio:3, coltello:3 };
 // ── Bilanciamento economia ───────────────────────────────────────────────────
 // Allenamento base (5 km camminata): gold≈25  xp≈75  wood≈0  stone≈0
 // Target mini-giochi totale/die:     gold≈80  xp≈500 wood≈15 stone≈15
@@ -110,9 +110,10 @@ const MG_CATEGORIES = [
     { id:'forge',   emoji:'🔥', name:'Forgia',       open: openForgeGame },
   ]},
   { id:'taverna',    icon:'🍺', label:'Taverna',    games:[
-    { id:'boccale', emoji:'🍺', name:'Lancio Boccale', open: openBoccaleGame },
-    { id:'dadi',    emoji:'🎲', name:'Dadi del Bluff',  open: openDadiGame },
-    { id:'braccio', emoji:'💪', name:'Braccio di Ferro', open: openBraccioGame },
+    { id:'boccale',  emoji:'🍺', name:'Lancio Boccale',   open: openBoccaleGame },
+    { id:'dadi',     emoji:'🎲', name:'Dadi del Bluff',   open: openDadiGame },
+    { id:'braccio',  emoji:'💪', name:'Braccio di Ferro', open: openBraccioGame },
+    { id:'coltello', emoji:'🗡️', name:'Lancio Coltello',  open: openColtelloGame },
   ]},
 ];
 
@@ -1444,5 +1445,154 @@ function openBraccioGame() {
   tapEl.addEventListener('mousedown', tap);
 
   document.getElementById('mgbf-x').addEventListener('click', mgClose);
+  closeBtn.addEventListener('click', mgClose);
+}
+
+/* ── 🗡️ LANCIO DEL COLTELLO ── */
+function openColtelloGame() {
+  if (!mgCanPlay('coltello')) return;
+
+  const KNIVES_TOTAL = 5;
+  const COLLISION_DEG = 18;
+
+  let logAngle = 0;
+  let rotSpeed = 2.5;
+  let stuckAngles = [];
+  let knivesLeft = KNIVES_TOTAL;
+  let state = 'PLAYING'; // PLAYING | FLYING | END
+
+  const wrap = document.createElement('div');
+  wrap.className = 'mgck-wrap';
+  wrap.innerHTML = `
+    <button class="mg-x-btn" id="mgck-x">✕</button>
+    <div class="mg-game-title">🗡️ Bersaglio del Cacciatore</div>
+    <p class="mg-hint" id="mgck-msg">Pianta tutti e 5 i coltelli!</p>
+    <div class="mgck-arena" id="mgck-arena">
+      <div class="mgck-log-wrap" id="mgck-log-wrap">
+        <img src="assets/minigames/lancio-coltello/ceppo.png" class="mgck-log-img" alt="Ceppo">
+      </div>
+      <div class="mgck-knife-active" id="mgck-knife">🗡️</div>
+      <div class="mgck-ammo" id="mgck-ammo"></div>
+    </div>
+    <div class="mg-result-area" id="mgck-res"></div>
+    <button class="btn mg-close-btn hidden" id="mgck-close">Continua ›</button>`;
+
+  mgOverlay(wrap);
+
+  const msgEl    = document.getElementById('mgck-msg');
+  const arenaEl  = document.getElementById('mgck-arena');
+  const logWrap  = document.getElementById('mgck-log-wrap');
+  const knifeEl  = document.getElementById('mgck-knife');
+  const ammoEl   = document.getElementById('mgck-ammo');
+  const resEl    = document.getElementById('mgck-res');
+  const closeBtn = document.getElementById('mgck-close');
+
+  // build ammo icons
+  function refreshAmmo() {
+    ammoEl.innerHTML = '';
+    for (let i = 0; i < KNIVES_TOTAL; i++) {
+      const ic = document.createElement('span');
+      ic.className = 'mgck-ammo-ic' + (i < knivesLeft ? ' ready' : '');
+      ic.textContent = '🗡️';
+      ammoEl.appendChild(ic);
+    }
+  }
+  refreshAmmo();
+
+  function rotateLoop() {
+    if (state === 'END') return;
+    logAngle = (logAngle + rotSpeed) % 360;
+    logWrap.style.transform = `rotate(${logAngle}deg)`;
+    // occasionale cambio velocità / inversione
+    if (Math.random() < 0.01) rotSpeed = (1 + Math.random() * 3) * (Math.random() < 0.2 ? -1 : 1);
+    _mgRAF = requestAnimationFrame(rotateLoop);
+  }
+  _mgRAF = requestAnimationFrame(rotateLoop);
+
+  function throwKnife(e) {
+    if (e.type === 'touchstart') e.preventDefault();
+    if (state !== 'PLAYING') return;
+    state = 'FLYING';
+
+    // calcola distanza tra coltello e log center
+    const kRect = knifeEl.getBoundingClientRect();
+    const lRect = logWrap.getBoundingClientRect();
+    const dist  = -(lRect.top + lRect.height / 2 - (kRect.top + kRect.height / 2));
+    knifeEl.style.transition = 'transform .15s ease-in';
+    knifeEl.style.transform  = `translateX(-50%) translateY(${dist}px)`;
+
+    setTimeout(checkImpact, 155);
+  }
+
+  function checkImpact() {
+    // angolo di impatto = inverso dell'angolo log corrente
+    const impactAngle = (360 - logAngle % 360 + 360) % 360;
+
+    const collision = stuckAngles.some(a => {
+      let d = Math.abs(impactAngle - a);
+      if (d > 180) d = 360 - d;
+      return d < COLLISION_DEG;
+    });
+
+    if (collision) {
+      knifeEl.style.transform += ' rotate(45deg) translate(40px, 80px)';
+      wrap.classList.add('mgck-shake');
+      endGame(false);
+    } else {
+      stuckAngles.push(impactAngle);
+      // coltello piantato nel ceppo (ruota col log)
+      const stuck = document.createElement('span');
+      stuck.className = 'mgck-stuck';
+      stuck.textContent = '🗡️';
+      stuck.style.transform = `rotate(${impactAngle}deg) translateY(-68px)`;
+      logWrap.appendChild(stuck);
+
+      knivesLeft--;
+      refreshAmmo();
+
+      if (knivesLeft <= 0) {
+        knifeEl.style.opacity = '0';
+        endGame(true);
+      } else {
+        // ripristina coltello attivo
+        knifeEl.style.transition = 'none';
+        knifeEl.style.transform  = 'translateX(-50%) translateY(30px)';
+        knifeEl.style.opacity    = '0';
+        setTimeout(() => {
+          knifeEl.style.transition = 'transform .15s ease-in';
+          knifeEl.style.transform  = 'translateX(-50%) translateY(0px)';
+          knifeEl.style.opacity    = '1';
+          state = 'PLAYING';
+        }, 110);
+      }
+    }
+  }
+
+  function endGame(won) {
+    state = 'END';
+    mgRecord('coltello');
+    if (won) {
+      const gold = 50, xp = 80;
+      mgGiveReward({ gold, xp });
+      vibrate([80, 40, 200]); sfx('coin');
+      resEl.innerHTML = mgRewardHTML({ gold, xp }, '🎯 Infallibile!', 'Tutti e 5 nel segno!');
+    } else {
+      resEl.innerHTML = `<div class="mg-reward"><div class="mg-reward-title">⚔️ Clang!</div><div class="mg-reward-sub">Lame scontrate!</div></div>`;
+    }
+    resEl.classList.add('mg-res-in');
+    closeBtn.classList.remove('hidden');
+    if (!won && mgCanPlay('coltello')) {
+      const rb = document.createElement('button');
+      rb.className = 'btn btn-primary wide'; rb.style.marginTop = '8px';
+      rb.textContent = 'Riprova';
+      rb.addEventListener('click', () => { mgClose(); setTimeout(openColtelloGame, 300); });
+      resEl.appendChild(rb);
+    }
+  }
+
+  arenaEl.addEventListener('mousedown', throwKnife);
+  arenaEl.addEventListener('touchstart', throwKnife, { passive: false });
+
+  document.getElementById('mgck-x').addEventListener('click', mgClose);
   closeBtn.addEventListener('click', mgClose);
 }

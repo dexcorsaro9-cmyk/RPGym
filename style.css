@@ -4860,3 +4860,55 @@ body {
 }
 .mgbf-tap:active { background: rgba(76,175,80,.5); }
 .mgbf-shake { animation: shake-anim .3s ease-in-out; }
+
+/* ── Lancio del Coltello ────────────────────────────────────────────────── */
+.mgck-wrap {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 8px; padding: 12px 10px 10px;
+  min-height: 400px;
+}
+.mgck-arena {
+  position: relative;
+  width: 100%; flex: 1;
+  display: flex; flex-direction: column; align-items: center;
+  min-height: 260px;
+}
+.mgck-log-wrap {
+  position: relative;
+  width: 140px; height: 140px;
+  margin-top: 16px;
+  will-change: transform;
+}
+.mgck-log-img {
+  width: 100%; height: 100%;
+  border-radius: 50%; object-fit: cover;
+  border: 4px solid #8d6e63;
+  box-shadow: 0 0 20px rgba(0,0,0,.8);
+  display: block;
+}
+.mgck-stuck {
+  position: absolute; top: 50%; left: 50%;
+  font-size: 1.8rem;
+  transform-origin: bottom center;
+  /* actual position set inline via rotate+translateY */
+  margin-left: -14px; margin-top: -14px;
+  pointer-events: none;
+}
+.mgck-knife-active {
+  position: absolute; bottom: 50px; left: 50%;
+  transform: translateX(-50%) translateY(0px);
+  font-size: 2.4rem; text-align: center;
+  will-change: transform;
+  cursor: pointer;
+}
+.mgck-ammo {
+  position: absolute; bottom: 10px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; gap: 6px;
+}
+.mgck-ammo-ic {
+  font-size: 1.3rem; opacity: .25;
+  transition: opacity .3s;
+}
+.mgck-ammo-ic.ready { opacity: 1; }
+.mgck-shake { animation: shake-anim .3s ease-in-out; }
