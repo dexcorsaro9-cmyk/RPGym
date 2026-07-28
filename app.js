@@ -4724,11 +4724,13 @@ function msToMidnight() {
 }
 /* ── La Serra del Viandante ─────────────────────────────────────────────── */
 function renderSerraView(c) {
+  c.classList.add('in-serra');
+
   const serraBanner = el('div', 'serra-hero-banner');
   c.appendChild(serraBanner);
 
   const backBtn = el('button', 'btn btn-small serra-back-btn', '↩ Torna al Rifugio');
-  backBtn.addEventListener('click', () => { CAMP_VIEW = 'main'; setTab('camp'); });
+  backBtn.addEventListener('click', () => { c.classList.remove('in-serra'); CAMP_VIEW = 'main'; setTab('camp'); });
   serraBanner.appendChild(backBtn);
 
   const serraTitle = el('h2', 'section-title serra-banner-title', '🌿 La Serra del Viandante');

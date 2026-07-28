@@ -4861,10 +4861,15 @@ body {
 /* ═══════════════ La Serra del Viandante ═══════════════════════════════════ */
 .water-tank-panel {
   display: flex; align-items: center; gap: 12px;
-  background: linear-gradient(135deg, rgba(20,100,180,.2), rgba(10,50,90,.1));
-  border: 1px solid rgba(46,111,176,.5);
+  background: #162035;
+  border: 1px solid #2e6fb0;
   border-radius: 12px; padding: 12px 14px; margin-bottom: 16px;
 }
+@media (prefers-color-scheme: light) {
+  .water-tank-panel { background: #dceeff; border-color: #4a90c8; }
+}
+:root[data-theme="light"] .water-tank-panel { background: #dceeff; border-color: #4a90c8; }
+:root[data-theme="dark"]  .water-tank-panel { background: #162035; border-color: #2e6fb0; }
 .water-drop-icon {
   font-size: 2.5rem; line-height: 1;
   filter: drop-shadow(0 4px 6px rgba(0,0,0,.5));
@@ -4883,12 +4888,17 @@ body {
   gap: 12px;
 }
 .pot-card {
-  background: radial-gradient(ellipse at center top, rgba(255,255,255,.08), transparent), rgba(0,0,0,.3);
-  border: 2px solid var(--leather);
+  background: #1e2a14;
+  border: 2px solid #3a5020;
   border-radius: 14px; padding: 16px 10px;
   display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px;
-  box-shadow: inset 0 -10px 20px rgba(50,30,10,.5), 0 4px 10px rgba(0,0,0,.4);
+  box-shadow: 0 4px 12px rgba(0,0,0,.5);
 }
+@media (prefers-color-scheme: light) {
+  .pot-card { background: #fff; border-color: #b0cc80; box-shadow: 0 2px 8px rgba(0,0,0,.12); }
+}
+:root[data-theme="light"] .pot-card { background: #fff; border-color: #b0cc80; box-shadow: 0 2px 8px rgba(0,0,0,.12); }
+:root[data-theme="dark"]  .pot-card { background: #1e2a14; border-color: #3a5020; }
 .pot-card.locked { opacity: .5; filter: grayscale(1); }
 .pot-card.pickable { cursor: pointer; transition: transform .15s, border-color .2s; }
 .pot-card.pickable:hover { transform: translateY(-3px); border-color: var(--emerald); }
@@ -4902,8 +4912,13 @@ body {
   from { filter: drop-shadow(0 0 10px rgba(90,255,120,.4)); }
   to   { filter: drop-shadow(0 0 20px rgba(90,255,120,.8)); }
 }
-.pot-name       { font-family: 'Cinzel', serif; font-weight: 700; font-size: .8rem; color: var(--parchment); }
+.pot-name       { font-family: 'Cinzel', serif; font-weight: 700; font-size: .8rem; color: #c8e09a; }
 .pot-name.danger { color: #e05050; }
+@media (prefers-color-scheme: light) {
+  .pot-name { color: #2a4010; }
+}
+:root[data-theme="light"] .pot-name { color: #2a4010; }
+:root[data-theme="dark"]  .pot-name { color: #c8e09a; }
 
 .pot-stats { width: 100%; display: flex; flex-direction: column; gap: 3px; margin: 4px 0; }
 .pot-stat-label { font-size: .65rem; text-align: left; }
@@ -4950,6 +4965,16 @@ body {
 .water-tank-img { width: 48px; height: 48px; object-fit: contain; flex-shrink: 0; }
 
 /* ── Serra hero banner ───────────────────────────────────────────────────── */
+/* ── Vista Serra: background solido sull'intera area ── */
+.in-serra {
+  background: #111a0c !important;
+}
+@media (prefers-color-scheme: light) {
+  .in-serra { background: #e8f0dc !important; }
+}
+:root[data-theme="light"] .in-serra { background: #e8f0dc !important; }
+:root[data-theme="dark"]  .in-serra { background: #111a0c !important; }
+
 .serra-hero-banner {
   width: 100%; height: 140px;
   background: url('assets/minigames/serra/SERRA.jpg') center 40%/cover no-repeat;
@@ -4962,21 +4987,20 @@ body {
   justify-content: space-between;
   padding: 10px 12px;
 }
-/* Overlay: trasparente in alto (foto visibile), molto scuro in basso (testo leggibile) */
 .serra-hero-banner::before {
   content: '';
   position: absolute; inset: 0;
   background: linear-gradient(to bottom,
-    rgba(0,0,0,.10) 0%,
-    rgba(0,0,0,.55) 55%,
-    rgba(0,0,0,.82) 100%);
+    rgba(0,0,0,.08) 0%,
+    rgba(0,0,0,.60) 55%,
+    rgba(0,0,0,.85) 100%);
   pointer-events: none;
 }
 .serra-back-btn {
   position: relative; z-index: 1;
-  background: rgba(0,0,0,.52) !important;
+  background: rgba(0,0,0,.55) !important;
   color: #fff !important;
-  border: 1px solid rgba(255,255,255,.28) !important;
+  border: 1px solid rgba(255,255,255,.30) !important;
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   align-self: flex-start;
