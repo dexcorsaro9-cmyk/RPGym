@@ -1164,7 +1164,7 @@ function renderCamp(c) {
           ? `${growingCount} pianta${growingCount > 1 ? 'e' : ''} in crescita. Annaffiale con il tuo sudore.`
           : 'Coltiva piante magiche annaffiandole con i km percorsi. La costanza porta frutti leggendari.'));
     if (readyCount) gp.appendChild(el('span', 'mg-card-badge', String(readyCount)));
-    const enterGreenhouseBtn = el('button', readyCount ? 'btn btn-primary wide' : 'btn wide', '🌿 Entra nella Serra');
+    const enterGreenhouseBtn = el('button', 'btn btn-primary wide', '🌿 Entra nella Serra');
     enterGreenhouseBtn.addEventListener('click', () => { CAMP_VIEW = 'serra'; setTab('camp'); });
     gp.appendChild(enterGreenhouseBtn);
     c.appendChild(gp);
@@ -1193,7 +1193,7 @@ function renderCamp(c) {
   rp.appendChild(el('p', 'muted small',
     'Dichiara un Giorno di Riposo (max 2 a settimana): il prossimo allenamento varrà il DOPPIO.' +
     (HERO.restBonus ? '<br><b>✨ Bonus Riposo attivo: il prossimo allenamento vale x2!</b>' : '')));
-  const rbtn = el('button', 'btn wide', 'Riposa oggi');
+  const rbtn = el('button', 'btn btn-primary wide', 'Riposa oggi');
   rbtn.addEventListener('click', () => {
     const err = RPG.declareRestDay(HERO);
     persist();
@@ -1937,7 +1937,7 @@ function renderMap(c) {
     evp.appendChild(el('p', 'muted small',
       `Primo allenamento singolo da <b>${ev.km} km</b> della settimana vince: <b>${ev.skin}</b>.<br>` +
       `<b class="${cdClass}">⏳ <span data-cd="week">…</span> alla fine dell'evento</b>`));
-    const btn = el('button', 'btn wide btn-small', `🏆 Reclama la Taglia`);
+    const btn = el('button', 'btn btn-primary wide btn-small', `🏆 Reclama la Taglia`);
     btn.addEventListener('click', () => {
       const last = HERO.log[0];
       const today = new Date().toISOString().slice(0, 10);
@@ -1987,7 +1987,7 @@ function renderMap(c) {
   pvpEntry.appendChild(el('h3', 'panel-title pantheon-entry-title', '🏛️ Il Pantheon dei Campioni'));
   if (pt) pvpEntry.appendChild(el('div', 'pantheon-rank-chip', `${pt.icon} ${pt.label}`));
   pvpEntry.appendChild(el('p', 'muted small', 'Classifica globale · I tuoi Rivali · Sfide PvP'));
-  const enterPantheonBtn = el('button', 'btn wide', '⚔️ Entra nel Pantheon');
+  const enterPantheonBtn = el('button', 'btn btn-primary wide', '⚔️ Entra nel Pantheon');
   enterPantheonBtn.addEventListener('click', () => { MAP_VIEW = 'pantheon'; setTab('map'); });
   pvpEntry.appendChild(enterPantheonBtn);
   c.appendChild(pvpEntry);
@@ -2009,7 +2009,7 @@ function renderMap(c) {
   sanctEntry.appendChild(el('p', 'muted small santuario-teaser-quote',
     '«Nelle profondità della Foresta Sussurrante, qualcosa di antico attende di schiudersi. Una missione specifica ti condurrà a lui — se sarai pronto.»'));
 
-  const lockedBtn = el('button', 'btn wide santuario-locked-btn', '🔒 Ancora sigillato');
+  const lockedBtn = el('button', 'btn btn-primary wide santuario-locked-btn', '🔒 Ancora sigillato');
   lockedBtn.disabled = true;
   sanctEntry.appendChild(lockedBtn);
   c.appendChild(sanctEntry);
