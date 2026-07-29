@@ -1100,18 +1100,10 @@ function renderCamp(c) {
     cp.appendChild(el('h3', 'panel-title', '🏗️ Il Cantiere dell\'Eroe'));
     cp.appendChild(el('p', 'muted small', 'Costruisci edifici e arreda la tua dimora per sbloccare bonus permanenti.'));
 
-    // Tab bar
-    const cantTabBar = el('div', 'sync-tab-bar');
-    const tabEdifici  = el('button', 'sync-tab active', '🔨 Edifici');
-    const tabArreda   = el('button', 'sync-tab', '🏛️ Arredamento');
-    cantTabBar.appendChild(tabEdifici);
-    cantTabBar.appendChild(tabArreda);
-    cp.appendChild(cantTabBar);
-
-    // ── Pane Edifici ──
-    const edificiPane = el('div', 'sync-pane');
+    // ── Sezione Edifici ──
+    cp.appendChild(el('h4', 'cantiere-section-title', '🔨 Edifici'));
     if (HERO.level < 5) {
-      edificiPane.appendChild(el('p', 'muted',
+      cp.appendChild(el('p', 'muted',
         `Raggiungi il <b>Livello 5</b> per costruire la tua casa. (Ora sei al Lv ${HERO.level}.)`));
     } else {
       RPG.BUILDINGS.forEach(b => {
@@ -1139,29 +1131,17 @@ function renderCamp(c) {
           });
         } else { btn.textContent = '🔒'; btn.disabled = true; }
         row.appendChild(btn);
-        edificiPane.appendChild(row);
+        cp.appendChild(row);
       });
     }
-    cp.appendChild(edificiPane);
 
-    // ── Pane Arredamento ──
-    const arredaPane = el('div', 'sync-pane hidden');
-    arredaPane.appendChild(el('p', 'muted small',
+    // ── Sezione Arredamento ──
+    cp.appendChild(el('h4', 'cantiere-section-title', '🏛️ Arredamento'));
+    cp.appendChild(el('p', 'muted small',
       `${totalOwned} / 200 cimeli raccolti · ${setsComplete} / 20 set completi.`));
     const enterArredaBtn = el('button', 'btn btn-primary wide', '🏛️ Sfoglia la Bottega');
     enterArredaBtn.addEventListener('click', () => { CAMP_VIEW = 'arredamento'; setTab('camp'); });
-    arredaPane.appendChild(enterArredaBtn);
-    cp.appendChild(arredaPane);
-
-    // Tab switch
-    tabEdifici.addEventListener('click', () => {
-      tabEdifici.classList.add('active'); tabArreda.classList.remove('active');
-      edificiPane.classList.remove('hidden'); arredaPane.classList.add('hidden');
-    });
-    tabArreda.addEventListener('click', () => {
-      tabArreda.classList.add('active'); tabEdifici.classList.remove('active');
-      arredaPane.classList.remove('hidden'); edificiPane.classList.add('hidden');
-    });
+    cp.appendChild(enterArredaBtn);
 
     c.appendChild(cp);
   }

@@ -305,6 +305,12 @@ body {
   100% { transform: translateX(200%); }
 }
 
+.cantiere-section-title {
+  font-size: 1rem; font-weight: 700; color: var(--leather);
+  margin: 14px 0 8px; padding-bottom: 6px;
+  border-bottom: 1px solid rgba(90,61,36,.25);
+}
+
 .build-row, .mission-row {
   display: flex; align-items: center; gap: 10px;
   background: rgba(255,255,255,.35);
