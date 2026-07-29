@@ -3696,37 +3696,33 @@ body {
 /* ── Pozione del Giorno ─────────────────────────────────── */
 /* ── Pozione del Giorno ── */
 .potion-day-panel {
-  border-radius: 12px;
-  padding: 14px 16px 16px;
-  margin-bottom: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
-.potion-header-label {
-  font-size: .75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  color: var(--text-muted);
+.potion-day-panel .panel-title {
+  margin-bottom: 4px;
 }
 .potion-name {
   font-weight: 700;
-  font-size: 1.05rem;
-  color: var(--text);
+  font-size: 1.1rem;
+  color: var(--ink);
+  line-height: 1.3;
 }
 .potion-desc {
   font-size: .88rem;
-  color: var(--text-muted);
-  line-height: 1.45;
+  color: var(--ink-light);
+  line-height: 1.5;
 }
 .potion-claimed-note {
   font-size: .85rem;
-  color: var(--text-muted);
+  color: var(--ink-light);
+  font-style: italic;
+  padding-top: 4px;
+  border-top: 1px solid rgba(90,61,36,.15);
+  margin-top: 2px;
 }
 .potion-day-panel .btn {
   width: 100%;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 /* ── Mercante Itinerante ─────────────────────────────────── */
