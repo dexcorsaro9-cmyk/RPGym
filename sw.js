@@ -1,5 +1,6 @@
 /* RPGym service worker — network-first per aggiornamenti immediati */
-const CACHE = 'heropace-v178';
+const CACHE = 'heropace-v179';
+const NOTIF_CACHE = 'heropace-notif-v1'; // stato notifiche (non cancellare mai)
 
 /* File solo per fallback offline — NON pre-cachati all'install */
 const OFFLINE_ASSETS = [
@@ -14,19 +15,21 @@ const OFFLINE_ASSETS = [
 ];
 
 self.addEventListener('install', e => {
-  /* Precarica solo i file essenziali per offline */
   e.waitUntil(
     caches.open(CACHE).then(c => c.addAll(OFFLINE_ASSETS).catch(() => {}))
   );
-  /* Attiva subito — non aspettare che le vecchie tab si chiudano */
   self.skipWaiting();
 });
 
 self.addEventListener('activate', e => {
-  /* Elimina TUTTE le vecchie cache */
+  /* Elimina vecchie cache di app, ma preserva NOTIF_CACHE */
   e.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+      Promise.all(
+        keys
+          .filter(k => k !== CACHE && k !== NOTIF_CACHE)
+          .map(k => caches.delete(k))
+      )
     )
   );
   self.clients.claim();
@@ -38,8 +41,10 @@ self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   const isLocal = url.origin === self.location.origin;
 
-  /* Strategia network-first per tutti i file locali:
-     prova sempre la rete → aggiorna cache → se offline usa cache */
+  /* Richieste interne allo stato notifiche: gestite solo dalla Cache API, mai dalla rete */
+  if (isLocal && url.pathname.startsWith('/_notif')) return;
+
+  /* Strategia network-first per tutti i file locali */
   if (isLocal) {
     e.respondWith(
       fetch(e.request, { cache: 'no-store' })
@@ -67,6 +72,80 @@ self.addEventListener('fetch', e => {
     })
   );
 });
+
+/* ── Periodic Background Sync ── */
+self.addEventListener('periodicsync', e => {
+  if (e.tag === 'smart-notif-check') {
+    e.waitUntil(doSmartNotifCheck());
+  }
+});
+
+async function readNotifState() {
+  try {
+    const cache = await caches.open(NOTIF_CACHE);
+    const res = await cache.match('/_notif-state');
+    return res ? res.json() : null;
+  } catch { return null; }
+}
+
+async function showNotifSW(title, body, tag) {
+  /* Dedup: un tag per giorno, non ripetere */
+  try {
+    const cache = await caches.open(NOTIF_CACHE);
+    if (await cache.match('/_shown/' + tag)) return;
+    await cache.put('/_shown/' + tag, new Response('1'));
+  } catch {}
+
+  /* Non disturbare se l'utente ha l'app aperta in foreground */
+  const clientList = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+  if (clientList.some(c => c.visibilityState === 'visible')) return;
+
+  await self.registration.showNotification(title, {
+    body,
+    icon: 'assets/icons/icon.svg',
+    badge: 'assets/icons/icon.svg',
+    tag
+  });
+}
+
+async function doSmartNotifCheck() {
+  const state = await readNotifState();
+  if (!state) return;
+
+  const now = new Date();
+  const hour = now.getHours();
+  const today = now.toISOString().slice(0, 10);
+
+  /* Stato stale: l'app non è stata aperta oggi, skip */
+  if (state.date !== today) return;
+
+  /* ① Pozione — tra le 19:00 e le 22:00 se non riscattata */
+  if (hour >= 19 && hour < 22 && !state.potionClaimed) {
+    await showNotifSW(
+      '⚗️ Pozione non riscattata!',
+      'La Pozione del Giorno ti aspetta — riscattala prima di mezzanotte!',
+      'potion_unclaimed_' + today
+    );
+  }
+
+  /* ② Arena — dalle 22:00 se restano sfide */
+  if (hour >= 22 && state.battlesLeft > 0) {
+    await showNotifSW(
+      "⚔️ L'Arena chiude tra 2 ore!",
+      `Ti restano ancora ${state.battlesLeft} sfide oggi — non sprecarle!`,
+      'arena_closing_' + today
+    );
+  }
+
+  /* ③ Mappa — subito se a ≤5 km dalla prossima tappa */
+  if (state.mapKmLeft !== null && state.mapKmLeft <= 5) {
+    await showNotifSW(
+      '🗺️ Sei vicino a una tappa!',
+      `Ti mancano solo ${state.mapKmLeft} km per il prossimo medaglione. Forza!`,
+      'map_near_' + Math.round((state.mapKmLeft || 0) * 10)
+    );
+  }
+}
 
 /* Tap su notifica → apre/porta in primo piano l'app */
 self.addEventListener('notificationclick', e => {

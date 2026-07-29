@@ -286,7 +286,7 @@ un bottino alla volta. Il Re dei Predoni non chiede — conquista.`,
   },
 };
 
-function persist() { RPG.save(STATE); }
+function persist() { RPG.save(STATE); updateNotifState().catch(() => {}); }
 function vibrate(pattern) { try { navigator.vibrate && navigator.vibrate(pattern); } catch {} }
 
 /* ══════════════ Schermate ══════════════ */
@@ -4556,10 +4556,12 @@ function nextOpening() {
 /* ── Notifiche locali ── */
 async function setupNotifications() {
   if (!('Notification' in window) || !HERO) return;
+  updateNotifState().catch(() => {});
   checkAndNotify();
   checkMapNotify();
   checkPvpNotify();
   scheduleSmartNotifications();
+  registerPeriodicSync();
   // Il permesso viene chiesto dopo il primo allenamento (non all'avvio)
   // Eccezione: utenti che hanno già km ma non hanno mai risposto
   if (Notification.permission === 'default' && !HERO.notifAsked && (HERO.totalKm || 0) > 0) {
@@ -4635,6 +4637,45 @@ function checkMapNotify() {
   showNotif('🗺️ Sei vicino a una tappa!',
     `Ti mancano solo ${kmLeft} km per il prossimo medaglione. Forza!`,
     'map_close_' + Math.floor(progressKm * 10));
+}
+
+/* ── Periodic Background Sync ── */
+
+/* Scrive uno snapshot dello stato rilevante per le notifiche nella Cache API.
+   Il service worker lo legge durante periodicsync (senza accesso a localStorage). */
+async function updateNotifState() {
+  if (!('caches' in window) || !HERO) return;
+  const today = todayISO();
+  const tmStatus = RPG.treasureMapStatus(HERO);
+  let mapKmLeft = null;
+  if (tmStatus) {
+    const next = RPG.TREASURE_MAP_TIERS.find((t, i) =>
+      !tmStatus.claimed.includes(i) && tmStatus.progressKm < t.km);
+    if (next) mapKmLeft = +(next.km - tmStatus.progressKm).toFixed(1);
+  }
+  const state = {
+    date: today,
+    potionClaimed: !!(HERO.dailyPotion && HERO.dailyPotion.claimedDate === today),
+    battlesLeft: RPG.battlesLeft(HERO),
+    mapKmLeft,
+    heroName: HERO.name || ''
+  };
+  const cache = await caches.open('heropace-notif-v1');
+  await cache.put('/_notif-state', new Response(JSON.stringify(state),
+    { headers: { 'Content-Type': 'application/json' } }));
+}
+
+/* Registra il Periodic Background Sync (Chrome Android, PWA installata) */
+async function registerPeriodicSync() {
+  if (!('periodicSync' in ServiceWorkerRegistration.prototype)) return;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const perm = await navigator.permissions.query({ name: 'periodic-background-sync' });
+    if (perm.state !== 'granted') return;
+    await reg.periodicSync.register('smart-notif-check', {
+      minInterval: 6 * 60 * 60 * 1000 // chiede ogni 6h; il browser decide la freq reale
+    });
+  } catch {}
 }
 
 /* Mostra una notifica tramite service worker (funziona in background su mobile) */
