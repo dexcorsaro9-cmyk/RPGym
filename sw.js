@@ -1,5 +1,5 @@
 /* RPGym service worker — network-first per aggiornamenti immediati */
-const CACHE = 'heropace-v189';
+const CACHE = 'heropace-v190';
 const NOTIF_CACHE = 'heropace-notif-v1'; // stato notifiche (non cancellare mai)
 
 /* File solo per fallback offline — NON pre-cachati all'install */
@@ -143,6 +143,22 @@ async function doSmartNotifCheck() {
       '🗺️ Sei vicino a una tappa!',
       `Ti mancano solo ${state.mapKmLeft} km per il prossimo medaglione. Forza!`,
       'map_near_' + Math.round((state.mapKmLeft || 0) * 10)
+    );
+  }
+
+  /* ④ Famiglio — fame o umore bassi */
+  if (state.petName && state.petHunger !== null && state.petHunger < 30) {
+    await showNotifSW(
+      `🍖 ${state.petName} ha fame!`,
+      'Il tuo famiglio è quasi affamato — entra nell\'app e nutrilo!',
+      'pet_hunger_' + today
+    );
+  }
+  if (state.petName && state.petMood !== null && state.petMood < 30) {
+    await showNotifSW(
+      `🎾 ${state.petName} è triste!`,
+      'Il suo umore è al minimo — giocaci un po\'!',
+      'pet_mood_' + today
     );
   }
 }

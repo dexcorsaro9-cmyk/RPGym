@@ -1305,8 +1305,33 @@ function renderSantuarioView(c) {
   if (pet.accessory) portraitWrap.appendChild(el('div', 'pet-accessory-badge', RPG.PET_ACCESSORIES[pet.accessory].icon));
   head.appendChild(portraitWrap);
   head.appendChild(el('div', 'pet-stage-tag small', `${speciesInfo.icon} ${speciesInfo.name} · Stadio ${stage}/5`));
-  head.appendChild(el('h3', 'hero-name-plate center', `${esc(pet.name)} — Liv. ${pet.level}`));
+
+  // Nome + tasto rinomina
+  const nameRow = el('div', 'pet-name-row');
+  nameRow.appendChild(el('h3', 'hero-name-plate center', `${esc(pet.name)} — Liv. ${pet.level}`));
+  const renameBtn = el('button', 'btn btn-small pet-rename-btn', '✏️');
+  renameBtn.title = 'Rinomina';
+  renameBtn.addEventListener('click', () => {
+    const newName = prompt(`Nuovo nome per ${pet.name}:`, pet.name);
+    if (newName && newName.trim()) {
+      pet.name = newName.trim().slice(0, 20);
+      persist();
+      setTab('camp');
+    }
+  });
+  nameRow.appendChild(renameBtn);
+  head.appendChild(nameRow);
+
+  // Barra XP
+  const xpNeeded = RPG.petXpForLevel(pet.level);
+  const xpPct = Math.round((pet.xp / xpNeeded) * 100);
+  const xpWrap = el('div', 'pet-xp-wrap');
+  xpWrap.innerHTML = `<div class="pet-xp-label small muted">XP ${pet.xp}/${xpNeeded}</div>
+    <div class="membar slim"><div class="membar-fill gold" style="width:${xpPct}%"></div></div>`;
+  head.appendChild(xpWrap);
+
   head.appendChild(el('p', 'small muted', `${pers.icon} <b>${pers.name}</b><br>${pers.desc}`));
+  if (pet.restedBonusActive) head.appendChild(el('div', 'pet-rested-badge', '😴 Riposato! XP +20% oggi'));
   c.appendChild(head);
 
   if (RPG.packAuraActive(STATE, HERO)) {
@@ -1376,7 +1401,7 @@ function renderSantuarioView(c) {
   playBtn.addEventListener('click', () => {
     const r = RPG.playWithPet(HERO);
     persist();
-    if (r && r.ok) { toast('🎾 Che divertimento!'); sfx('coin'); } else toast(r);
+    if (r && r.ok) { checkPetEvolution(r); toast('🎾 Che divertimento!'); sfx('coin'); } else toast(r);
     setTab('camp');
   });
   grid.appendChild(playBtn);
@@ -1386,7 +1411,7 @@ function renderSantuarioView(c) {
   cleanBtn.addEventListener('click', () => {
     const r = RPG.cleanPet(HERO);
     persist();
-    if (r && r.ok) { toast('🛁 Pulito e profumato!'); sfx('coin'); } else toast(r);
+    if (r && r.ok) { checkPetEvolution(r); toast('🛁 Pulito e profumato!'); sfx('coin'); } else toast(r);
     setTab('camp');
   });
   grid.appendChild(cleanBtn);
@@ -1457,6 +1482,27 @@ function renderSantuarioView(c) {
   });
   shop.appendChild(shopGrid);
   c.appendChild(shop);
+}
+
+function checkPetEvolution(r) {
+  if (r && r.evolved) {
+    sfx('level');
+    vibrate([100, 50, 100, 50, 200]);
+    toast(`✨ ${esc(HERO.pet.name)} è evoluto! Stadio ${r.stage}/5 raggiunto!`);
+  }
+}
+
+function checkPetNotify() {
+  if (Notification.permission !== 'granted' || !HERO || !HERO.pet || !HERO.pet.hatched) return;
+  RPG.tickPet(HERO);
+  const p = HERO.pet;
+  const today = todayISO();
+  if (p.hunger < 30) {
+    showNotif(`🍖 ${esc(p.name)} ha fame!`, 'Il tuo famiglio è quasi affamato — nutrilo subito!', 'pet_hunger_' + today);
+  }
+  if (p.mood < 30) {
+    showNotif(`🎾 ${esc(p.name)} è triste!`, 'Il suo umore è al minimo — giocaci un po\'!', 'pet_mood_' + today);
+  }
 }
 
 function openFeedPicker() {
@@ -4540,6 +4586,7 @@ async function setupNotifications() {
   checkAndNotify();
   checkMapNotify();
   checkPvpNotify();
+  checkPetNotify();
   scheduleSmartNotifications();
   registerPeriodicSync();
   // Il permesso viene chiesto dopo il primo allenamento (non all'avvio)
@@ -4633,12 +4680,16 @@ async function updateNotifState() {
       !tmStatus.claimed.includes(i) && tmStatus.progressKm < t.km);
     if (next) mapKmLeft = +(next.km - tmStatus.progressKm).toFixed(1);
   }
+  const pet = HERO.pet && HERO.pet.hatched ? HERO.pet : null;
   const state = {
     date: today,
     potionClaimed: !!(HERO.dailyPotion && HERO.dailyPotion.claimedDate === today),
     battlesLeft: RPG.battlesLeft(HERO),
     mapKmLeft,
-    heroName: HERO.name || ''
+    heroName: HERO.name || '',
+    petName: pet ? (pet.name || '') : null,
+    petHunger: pet ? pet.hunger : null,
+    petMood: pet ? pet.mood : null,
   };
   const cache = await caches.open('heropace-notif-v1');
   await cache.put('/_notif-state', new Response(JSON.stringify(state),

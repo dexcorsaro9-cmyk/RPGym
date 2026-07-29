@@ -2469,11 +2469,14 @@ const RPG = (() => {
 
   function addPetXp(hero, amount) {
     if (!hero.pet || hero.pet.hunger <= 0) return; // affamato: non cresce
-    hero.pet.xp += amount;
+    const bonus = hero.pet.restedBonusActive ? 1.2 : 1;
+    hero.pet.xp += Math.round(amount * bonus);
+    const prevStage = petStage(hero.pet.level);
     while (hero.pet.xp >= petXpForLevel(hero.pet.level)) {
       hero.pet.xp -= petXpForLevel(hero.pet.level);
       hero.pet.level++;
     }
+    return petStage(hero.pet.level) > prevStage ? { evolved: true, stage: petStage(hero.pet.level) } : null;
   }
 
   function startExpedition(hero) {
