@@ -1720,18 +1720,20 @@ function renderMap(c) {
 
       const wp = el('div', 'tm-waypoint');
 
-      // medaglione
+      // wrapper separato dal medaglione così il badge non viene clippato dall'overflow:hidden
+      const medalWrap = el('div', 'tm-medal-wrap');
       const medal = el('div', 'tm-medal ' + (isClaimed ? 'claimed' : done ? 'done' : 'locked'));
       const img = document.createElement('img');
       img.src = WP_IMGS[i] || '';
       img.alt = '';
       medal.appendChild(img);
+      medalWrap.appendChild(medal);
       if (done || isClaimed) {
         const badge = el('div', 'tm-badge ' + (isClaimed ? 'claimed' : 'ready'));
         badge.textContent = isClaimed ? '✓' : '!';
-        medal.appendChild(badge);
+        medalWrap.appendChild(badge);
       }
-      wp.appendChild(medal);
+      wp.appendChild(medalWrap);
 
       // reward text
       const rewardEl = el('div', 'tm-reward' + (done && !isClaimed ? ' ready' : ''), rewardTxt);

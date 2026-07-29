@@ -3302,58 +3302,88 @@ body {
 .treasure-map-panel { border-color: #a0782a !important; }
 .treasure-map-panel .panel-title { color: #c9932e; }
 
-.tm-path-wrap { position: relative; padding: 0 4px; margin-bottom: 10px; }
+/* ── Mappa del Tesoro — layout percorso ── */
+.tm-path-wrap {
+  position: relative;
+  padding: 0 4px;
+  margin-bottom: 12px;
+}
 
-/* sentiero */
+/* sentiero: centrato verticalmente sui medaglioni (76px), allineato tra bordi medaglione 1 e 3 */
 .tm-road {
   position: absolute;
-  top: 44px; left: 13%; right: 13%;
+  top: 21px;                          /* (76 - 34) / 2 */
+  left: calc(16.66% + 34px);          /* centro waypoint 1 + raggio medaglione */
+  right: calc(16.66% + 34px);
   height: 34px;
-  border-radius: 4px;
+  border-radius: 3px;
   overflow: hidden;
+  z-index: 1;
 }
-.tm-road-img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
+.tm-road-img {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center;
+  display: block;
+}
 .tm-road-mask {
   position: absolute;
   top: 0; right: 0; bottom: 0;
-  background: rgba(15,8,2,.65);
-  transition: width .6s ease;
+  background: rgba(10,5,0,.72);
+  transition: width .5s ease;
 }
 
-/* waypoints row */
-.tm-waypoints { display: flex; justify-content: space-between; position: relative; z-index: 2; }
-.tm-waypoint { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 33%; }
+/* waypoints */
+.tm-waypoints {
+  display: flex; justify-content: space-between;
+  position: relative; z-index: 2;
+}
+.tm-waypoint {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 6px; width: 33%;
+}
 
-/* medaglione */
+/* wrapper medaglione: gestisce il badge senza clipping */
+.tm-medal-wrap {
+  position: relative;
+  width: 76px; height: 76px;
+  flex-shrink: 0;
+}
+
+/* cerchio immagine */
 .tm-medal {
   width: 76px; height: 76px;
   border-radius: 50%;
   overflow: hidden;
-  box-shadow: 0 3px 14px rgba(0,0,0,.45);
-  transition: all .3s;
-  flex-shrink: 0;
+  box-shadow: 0 3px 14px rgba(0,0,0,.5);
+  transition: box-shadow .3s;
 }
-.tm-medal img { width: 100%; height: 100%; object-fit: cover; display: block; transition: all .3s; }
-.tm-medal.locked img { filter: grayscale(1) brightness(.45); }
-.tm-medal.claimed img { filter: grayscale(.6) brightness(.6); }
-.tm-medal.done { box-shadow: 0 0 18px rgba(232,182,76,.55), 0 3px 14px rgba(0,0,0,.45); }
-.tm-medal { position: relative; }
+.tm-medal img {
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
+  transition: filter .3s;
+}
+.tm-medal.locked img   { filter: grayscale(1) brightness(.55); }
+.tm-medal.claimed img  { filter: grayscale(.5) brightness(.65); }
+.tm-medal.done         { box-shadow: 0 0 20px rgba(232,182,76,.6), 0 3px 14px rgba(0,0,0,.5); }
+
+/* badge: fuori dal medaglione, dentro il wrapper */
 .tm-badge {
-  position: absolute; top: 2px; right: 2px;
-  width: 20px; height: 20px; border-radius: 50%;
+  position: absolute; top: 1px; right: 1px;
+  width: 22px; height: 22px; border-radius: 50%;
   font-size: .65rem; font-weight: 700;
   display: flex; align-items: center; justify-content: center;
-  border: 2px solid var(--panel-bg, #1e1209);
+  border: 2px solid #1a1008;
+  z-index: 3;
 }
-.tm-badge.ready { background: #e8b64c; color: #3b2000; }
-.tm-badge.claimed { background: #777; color: #fff; }
+.tm-badge.ready   { background: #e8b64c; color: #3b2000; }
+.tm-badge.claimed { background: #777;    color: #fff; }
 
-/* reward / action */
-.tm-reward { font-size: .62rem; color: var(--muted); text-align: center; line-height: 1.4; }
+/* testi e pulsanti */
+.tm-reward { font-size: .6rem; color: var(--muted); text-align: center; line-height: 1.4; }
 .tm-reward.ready { color: #c9932e; font-weight: 700; }
-.tm-action { display: flex; justify-content: center; }
-.tm-km-label { font-size: .68rem; font-weight: 700; color: var(--muted); }
-.tm-claimed-label { font-size: .6rem; color: #777; }
+.tm-action { display: flex; justify-content: center; min-height: 22px; align-items: center; }
+.tm-km-label    { font-size: .68rem; font-weight: 700; color: var(--muted); }
+.tm-claimed-label { font-size: .6rem; color: #666; }
 .tm-claim-btn {
   font-size: .6rem; padding: 4px 10px;
   background: linear-gradient(135deg, #b8860b, #e8b64c);
@@ -3363,9 +3393,9 @@ body {
   box-shadow: 0 2px 6px rgba(0,0,0,.3);
 }
 .tm-progress-label {
-  text-align: center; font-size: .72rem; color: var(--muted);
+  text-align: center; font-size: .7rem; color: var(--muted);
   padding-top: 8px; border-top: 1px solid rgba(255,255,255,.07);
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 /* ── Recap mensile ── */
