@@ -3729,32 +3729,32 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 8px 20px 56px; /* 56px bottom: lascia spazio al bordo decorativo in basso */
+  padding: 70px 24px 70px;
   gap: 4px;
   width: 100%;
 }
 .potion-bottle-img {
-  width: 200px;
-  height: 200px;
+  width: 160px;
+  height: 160px;
   object-fit: contain;
   margin-bottom: 4px;
 }
 .potion-name {
   font-weight: 700;
-  font-size: 1.15rem;
+  font-size: 1rem;
   color: #3b2000;
   text-align: center;
   margin-top: 0;
 }
 .potion-desc {
-  font-size: .92rem;
+  font-size: .82rem;
   color: #6b4a20;
-  line-height: 1.45;
+  line-height: 1.35;
   text-align: center;
 }
 .potion-claimed-note {
   text-align: center;
-  font-size: .88rem;
+  font-size: .8rem;
   color: #6b4a20;
 }
 .potion-content .btn {
