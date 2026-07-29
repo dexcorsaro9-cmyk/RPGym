@@ -3389,13 +3389,13 @@ body {
 }
 
 /* testi e pulsanti */
-.tm-reward { font-size: .58rem; color: var(--muted); text-align: center; line-height: 1.35; }
+.tm-reward { font-size: .8rem; color: var(--muted); text-align: center; line-height: 1.35; }
 .tm-reward.ready { color: #c9932e; font-weight: 700; }
 .tm-action { display: flex; justify-content: center; align-items: center; }
-.tm-km-label    { font-size: .62rem; font-weight: 700; color: var(--muted); }
-.tm-claimed-label { font-size: .58rem; color: #666; }
+.tm-km-label    { font-size: .82rem; font-weight: 700; color: var(--muted); }
+.tm-claimed-label { font-size: .78rem; color: #666; }
 .tm-claim-btn {
-  font-size: .58rem; padding: 3px 8px;
+  font-size: .78rem; padding: 5px 12px;
   background: linear-gradient(135deg, #b8860b, #e8b64c);
   border: none; border-radius: 20px;
   color: #3b2000; font-weight: 700; cursor: pointer;
@@ -3404,7 +3404,7 @@ body {
   white-space: nowrap;
 }
 .tm-progress-label {
-  text-align: center; font-size: .7rem; color: var(--muted);
+  text-align: center; font-size: .85rem; color: var(--muted);
   padding-top: 8px; border-top: 1px solid rgba(255,255,255,.07);
 }
 
