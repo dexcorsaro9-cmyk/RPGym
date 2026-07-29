@@ -3399,13 +3399,13 @@ function renderHero(c) {
   titleH2.appendChild(settingsBtn);
   c.appendChild(titleH2);
 
-  // Eroe con i 6 slot: 3 a sinistra, 3 a destra
+  // Eroe: 3 slot sx, avatar al centro, 3 slot dx + seme/consumabile sotto
   const rig = el('div', 'hero-rig');
   const leftCol = el('div', 'slot-col');
   const rightCol = el('div', 'slot-col');
-  const slotKeys = Object.keys(RPG.SLOTS);
-  const leftSlots = slotKeys.slice(0, 3);
-  const rightSlots = slotKeys.slice(3);
+  const equipSlots = ['arma', 'scudo', 'elmo', 'armatura', 'anello', 'amuleto'];
+  const leftSlots  = equipSlots.slice(0, 3);
+  const rightSlots = equipSlots.slice(3);
 
   const EMPTY_SLOT_IMG = {
     elmo: 'assets/ui/eroe/slot_elmo.png',
@@ -3434,9 +3434,8 @@ function renderHero(c) {
   rightSlots.forEach(k => rightCol.appendChild(makeSlot(k)));
 
   const center = el('div', 'hero-center');
-  const BIG_CLASSES = { alchimista: 'hero-fullbody-big', maga: 'hero-fullbody-big', principe: 'hero-fullbody-big' };
   const heroCls = isImageAvatar(HERO)
-    ? 'hero-fullbody hero-idle' + (BIG_CLASSES[HERO.storyId] ? ' ' + BIG_CLASSES[HERO.storyId] : '')
+    ? 'hero-fullbody hero-fullbody-big hero-idle'
     : 'hero-avatar hero-idle';
   const av = avatarEl(HERO, heroCls);
   center.appendChild(av);
@@ -3444,6 +3443,11 @@ function renderHero(c) {
   rig.appendChild(center);
   rig.appendChild(rightCol);
   c.appendChild(rig);
+
+  // Slot seme + consumabile sotto i piedi
+  const bottomSlots = el('div', 'hero-bottom-slots');
+  ['seme', 'consumabile'].forEach(k => bottomSlots.appendChild(makeSlot(k)));
+  c.appendChild(bottomSlots);
 
   c.appendChild(el('h3', 'hero-name-plate center', esc(HERO.name)));
   const mount = HERO.mount ? RPG.mountById(HERO.mount) : null;

@@ -534,15 +534,15 @@ body {
 }
 .hero-showcase { padding: 12px 0 4px; }
 .hero-fullbody {
-  max-width: 68%;
-  max-height: 46dvh;
+  max-width: 90%;
+  max-height: 54dvh;
   object-fit: contain;
   filter: drop-shadow(0 10px 18px rgba(0,0,0,.45));
   animation: heroIn .5s ease;
 }
 .hero-fullbody-big {
-  max-width: 84%;
-  max-height: 56dvh;
+  max-width: 100%;
+  max-height: 58dvh;
 }
 @keyframes heroIn {
   from { transform: translateY(14px) scale(.96); opacity: 0; }
@@ -1328,10 +1328,14 @@ body {
 
 .hero-rig {
   display: flex; align-items: center; justify-content: center;
-  gap: 8px; margin: 10px 0;
+  gap: 8px; margin: 10px 0 4px;
 }
 .slot-col { display: flex; flex-direction: column; gap: 12px; }
-.hero-center { flex: 1; display: flex; justify-content: center; }
+.hero-center { flex: 1; display: flex; justify-content: center; align-items: flex-end; }
+.hero-bottom-slots {
+  display: flex; justify-content: center; gap: 16px;
+  margin: 0 0 10px;
+}
 .equip-slot {
   width: 64px; height: 64px; border-radius: 12px;
   border: 2px solid var(--leather);

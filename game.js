@@ -273,7 +273,7 @@ const RPG = (() => {
     anello:   { label: 'Anello',   icon: '💍' },
     amuleto:  { label: 'Amuleto',  icon: '📿' },
     seme:        { label: 'Seme',        icon: '🌰' },
-    consumabile: { label: 'Consumabile', icon: '🧪' },
+    consumabile: { label: 'Consumabile', icon: '🫧' },
   };
 
   /* ── Icone del loot (generate con l'IA, in assets/loot/) ──── */
