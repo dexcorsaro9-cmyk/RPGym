@@ -1784,13 +1784,33 @@ function renderMap(c) {
     const potion = RPG.getDailyPotion();
     const already = HERO.dailyPotion && HERO.dailyPotion.claimedDate === todayISO();
     const used = already && HERO.dailyPotion.used;
+
     const pp = el('div', 'panel potion-day-panel');
-    pp.appendChild(el('h3', 'panel-title', '⚗️ Pozione del Giorno'));
-    pp.appendChild(el('p', 'center', `<span style="font-size:2rem">${potion.icon}</span><br><b>${esc(potion.name)}</b><br><span class="muted small">${esc(potion.desc)}</span>`));
+
+    // stazione calderone in cima
+    const station = document.createElement('img');
+    station.src = 'assets/ui/pozione-del-giorno.jpg';
+    station.className = 'potion-station-img';
+    station.alt = '';
+    pp.appendChild(station);
+
+    // riga icona bottiglia + testo
+    const row = el('div', 'potion-info-row');
+    const bottle = document.createElement('img');
+    bottle.src = 'assets/ui/pozione.jpg';
+    bottle.className = 'potion-bottle-img';
+    bottle.alt = '';
+    row.appendChild(bottle);
+
+    const info = el('div', 'potion-info-text');
+    info.innerHTML = `<div class="potion-name">${esc(potion.name)}</div><div class="potion-desc">${esc(potion.desc)}</div>`;
+    row.appendChild(info);
+    pp.appendChild(row);
+
     if (used) {
       pp.appendChild(el('div', 'done-strip', '✅ Pozione usata oggi'));
     } else if (already) {
-      pp.appendChild(el('div', 'done-strip muted', `${potion.icon} Riscattata · si attiva al prossimo allenamento`));
+      pp.appendChild(el('div', 'potion-claimed-note', `${potion.icon} Riscattata · si attiva al prossimo allenamento`));
     } else {
       const btn = el('button', 'btn btn-primary wide', `${potion.icon} Riscuoti pozione`);
       btn.addEventListener('click', () => {
