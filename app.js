@@ -5000,7 +5000,7 @@ function renderSerraView(c) {
     HERO.greenhouse.metNpc = true;
     persist();
     modal(`<div class="npc-dialogue-modal">
-      <img src="assets/minigames/serra/npc.png" class="npc-portrait-fullbody" alt="Messer Ortica">
+      <img src="assets/minigames/serra/messer-ortica.png" class="npc-portrait-fullbody" alt="Messer Ortica">
       <h3 class="panel-title" style="margin-top:8px">Messer Ortica</h3>
       <p class="muted small center" style="margin-bottom:12px"><i>Gnomo giardiniere della Serra</i></p>
       <p>"Benvenuto, Viandante! Questa è la tua Serra personale. Ogni km che corri diventa Sudore Vitale — la nostra acqua magica."</p>
@@ -5015,7 +5015,7 @@ function renderSerraView(c) {
   }
 
   // Banner permanente Messer Ortica
-  c.appendChild(npcBanner('assets/minigames/serra/npc.png', 'Messer Ortica',
+  c.appendChild(npcBanner('assets/minigames/serra/messer-ortica.png', 'Messer Ortica',
     '"Corri, annaffia, raccogli. La Serra non dimentica chi la cura."'));
 
   const kmToday = RPG.todayKm(HERO);
