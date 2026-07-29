@@ -1534,14 +1534,15 @@ function renderArredamentoView(c) {
   backBtn.addEventListener('click', () => { CAMP_VIEW = 'main'; setTab('camp'); });
   c.appendChild(backBtn);
 
+  const headerPanel = el('div', 'panel');
   const thumb = el('img', 'camp-panel-thumb');
   thumb.src = 'assets/ui/rifugio/bottega-arredamento.jpg';
   thumb.alt = '';
-  c.appendChild(thumb);
-
-  c.appendChild(el('h2', 'section-title', '🏛️ Bottega dell\'Arredamento'));
+  headerPanel.appendChild(thumb);
+  headerPanel.appendChild(el('h2', 'section-title', '🏛️ Bottega dell\'Arredamento'));
   const totalOwned = (HERO.furniture && HERO.furniture.owned.length) || 0;
-  c.appendChild(el('p', 'muted small center', `${totalOwned} / 200 cimeli raccolti in tutto il regno`));
+  headerPanel.appendChild(el('p', 'muted small center', `${totalOwned} / 200 cimeli raccolti in tutto il regno`));
+  c.appendChild(headerPanel);
 
   RPG.FURNITURE_SETS.slice()
     .sort((a, b) => RPG.BIOMES[a.biomeIdx].min - RPG.BIOMES[b.biomeIdx].min)
