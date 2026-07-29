@@ -1569,8 +1569,9 @@ function openFurnitureSetModal(setId) {
 
 /* ── TAB: Mappa ── */
 function renderMap(c) {
-  if (MAP_VIEW === 'atlas')    { renderAtlasView(c);    return; }
-  if (MAP_VIEW === 'pantheon') { renderPantheonView(c); return; }
+  if (MAP_VIEW === 'atlas')      { renderAtlasView(c);      return; }
+  if (MAP_VIEW === 'pantheon')   { renderPantheonView(c);   return; }
+  if (MAP_VIEW === 'avamposto')  { renderAvampostoView(c);  return; }
   const biome = RPG.currentBiome(HERO.level);
 
   // ── Il bioma attuale, con progresso verso il prossimo ──
@@ -1780,72 +1781,27 @@ function renderMap(c) {
     }
   }
 
-  // ── Missione attiva ──
-  if (HERO.activeMission) {
-    const m = RPG.MISSIONS.find(x => x.id === HERO.activeMission.id);
-    const p = el('div', 'panel panel-featured active-mission');
-    p.appendChild(el('h3', 'panel-title', `🐎 In Viaggio: ${m.name}`));
-    const done = HERO.activeMission.progressKm;
-    const pct = Math.min(100, Math.round(done / m.km * 100));
-    const remaining = Math.max(0, m.km - done);
-    // Boss image + cinematic progress
-    const boss = RPG.BESTIARY.find(b => b.mission === m.id);
-    const prog = el('div', 'active-mission-prog');
-    if (boss) {
-      const bossImg = el('img', 'mission-boss-img');
-      bossImg.src = `assets/bestiario/${boss.id}.png`;
-      bossImg.alt = boss.name;
-      bossImg.onerror = () => bossImg.remove();
-      prog.appendChild(bossImg);
-    }
-    const progWrap = el('div', 'mission-prog-wrap');
-    progWrap.innerHTML = `<div class="mission-prog-bar">
-      <div class="mission-prog-fill" style="width:${pct}%"></div>
-      <div class="mission-prog-label">${done.toFixed(1)} / ${m.km} km · ${pct}%</div>
-    </div>
-    <div class="mission-prog-remaining">⚔️ Mancano <b>${remaining.toFixed(1)} km</b> alla destinazione${boss ? ` · ${boss.name} ti aspetta` : ''}</div>`;
-    prog.appendChild(progWrap);
-    p.appendChild(prog);
-    const abandon = el('button', 'btn btn-small', 'Abbandona');
-    abandon.addEventListener('click', () => { HERO.activeMission = null; persist(); setTab('map'); });
-    p.appendChild(abandon);
-    c.appendChild(p);
-  }
-
-  // ── Missioni disponibili (un solo pannello ordinato) ──
-  const avail = RPG.availableMissions(HERO);
-  if (avail.length) {
-    const mp = el('div', 'panel');
-    mp.appendChild(el('h3', 'panel-title', '⚔️ Missioni'));
-    avail.forEach(m => {
-      const row = el('div', 'mission-row');
-      row.appendChild(el('div', 'mission-zone-icon', zoneIcon(m.zone)));
-      const diffColor = m.km <= 10 ? 'var(--rar-comune)' : m.km <= 25 ? 'var(--rar-raro)' : m.km <= 50 ? 'var(--rar-epico)' : 'var(--rar-leggendario)';
-      const diffLabel = m.km <= 10 ? 'Breve' : m.km <= 25 ? 'Media' : m.km <= 50 ? 'Lunga' : 'Epica';
-      const diffPct = Math.min(100, Math.round(m.km / 60 * 100));
-      row.appendChild(el('div', 'mission-mid',
-        `<b>${m.name}</b> <span class="tag">${m.km} km</span><br>` +
-        `<span class="small muted">${zoneShort(m.zone)} — ${m.desc}</span>` +
-        `<div class="mission-difficulty"><span style="font-size:.6rem;color:${diffColor}">${diffLabel}</span><div style="flex:1;height:4px;background:rgba(0,0,0,.25);border-radius:2px;overflow:hidden"><div style="width:${diffPct}%;height:100%;background:${diffColor};border-radius:2px"></div></div></div>`));
-      const btn = el('button', 'btn btn-small btn-primary', 'Parti');
-      const vimg = new Image();
-      vimg.onload = () => {
-        btn.classList.add('btn-plaque-small');
-        btn.innerHTML = '';
-        vimg.className = 'plaque-img-small';
-        btn.appendChild(vimg);
-      };
-      vimg.src = 'assets/ui/btn-viaggio.png';
-      btn.disabled = !!HERO.activeMission;
-      btn.addEventListener('click', () => {
-        RPG.startMission(HERO, m.id); persist();
-        toast(`🐎 In sella! Destinazione: ${m.name} (${m.km} km)`);
-        setTab('map');
-      });
-      row.appendChild(btn);
-      mp.appendChild(row);
-    });
-    c.appendChild(mp);
+  // ── Avamposto delle Spedizioni (entry) ──
+  {
+    const avail = RPG.availableMissions(HERO);
+    const active = HERO.activeMission ? RPG.MISSIONS.find(x => x.id === HERO.activeMission.id) : null;
+    const avamposto = el('div', 'panel avamposto-entry-panel');
+    const thumb = document.createElement('img');
+    thumb.src = 'assets/ui/avamposto.jpg';
+    thumb.alt = '';
+    thumb.className = 'camp-panel-thumb';
+    avamposto.appendChild(thumb);
+    avamposto.appendChild(el('h3', 'panel-title', '🏕️ Avamposto delle Spedizioni'));
+    avamposto.appendChild(el('p', 'muted small',
+      active
+        ? `🐎 In viaggio: ${active.name} — ${HERO.activeMission.progressKm.toFixed(1)} / ${active.km} km`
+        : avail.length
+          ? `${avail.length} missioni disponibili. Parti e conquista nuovi territori.`
+          : 'Nessuna missione disponibile al momento.'));
+    const enterBtn = el('button', active ? 'btn btn-primary wide' : 'btn wide', active ? '🐎 Controlla spedizione' : '⚔️ Scegli una missione');
+    enterBtn.addEventListener('click', () => { MAP_VIEW = 'avamposto'; setTab('map'); });
+    avamposto.appendChild(enterBtn);
+    c.appendChild(avamposto);
   }
 
   // ── Taglia Unica settimanale (compatta) ──
@@ -2413,6 +2369,87 @@ function _buildPvpActive(container, ch, refresh) {
 }
 
 let MAP_VIEW = 'main';
+
+function renderAvampostoView(c) {
+  const back = el('button', 'btn btn-small avamposto-back-btn', '← Mappa');
+  back.addEventListener('click', () => { MAP_VIEW = 'main'; setTab('map'); });
+  c.appendChild(back);
+
+  const hdr = el('div', 'avamposto-header');
+  hdr.innerHTML = `<div class="avamposto-header-icon">🏕️</div>
+    <div><h2 class="section-title" style="margin:0">Avamposto delle Spedizioni</h2>
+    <div class="muted small">Scegli la tua destinazione e parti</div></div>`;
+  c.appendChild(hdr);
+
+  // Missione attiva
+  if (HERO.activeMission) {
+    const m = RPG.MISSIONS.find(x => x.id === HERO.activeMission.id);
+    const p = el('div', 'panel panel-featured active-mission');
+    p.appendChild(el('h3', 'panel-title', `🐎 In Viaggio: ${m.name}`));
+    const done = HERO.activeMission.progressKm;
+    const pct = Math.min(100, Math.round(done / m.km * 100));
+    const remaining = Math.max(0, m.km - done);
+    const boss = RPG.BESTIARY.find(b => b.mission === m.id);
+    const prog = el('div', 'active-mission-prog');
+    if (boss) {
+      const bossImg = el('img', 'mission-boss-img');
+      bossImg.src = `assets/bestiario/${boss.id}.png`;
+      bossImg.alt = boss.name;
+      bossImg.onerror = () => bossImg.remove();
+      prog.appendChild(bossImg);
+    }
+    const progWrap = el('div', 'mission-prog-wrap');
+    progWrap.innerHTML = `<div class="mission-prog-bar">
+      <div class="mission-prog-fill" style="width:${pct}%"></div>
+      <div class="mission-prog-label">${done.toFixed(1)} / ${m.km} km · ${pct}%</div>
+    </div>
+    <div class="mission-prog-remaining">⚔️ Mancano <b>${remaining.toFixed(1)} km</b> alla destinazione${boss ? ` · ${boss.name} ti aspetta` : ''}</div>`;
+    prog.appendChild(progWrap);
+    p.appendChild(prog);
+    const abandon = el('button', 'btn btn-small', 'Abbandona');
+    abandon.addEventListener('click', () => { HERO.activeMission = null; persist(); setTab('map'); });
+    p.appendChild(abandon);
+    c.appendChild(p);
+  }
+
+  // Missioni disponibili
+  const avail = RPG.availableMissions(HERO);
+  if (avail.length) {
+    const mp = el('div', 'panel');
+    mp.appendChild(el('h3', 'panel-title', '⚔️ Missioni Disponibili'));
+    avail.forEach(m => {
+      const row = el('div', 'mission-row');
+      row.appendChild(el('div', 'mission-zone-icon', zoneIcon(m.zone)));
+      const diffColor = m.km <= 10 ? 'var(--rar-comune)' : m.km <= 25 ? 'var(--rar-raro)' : m.km <= 50 ? 'var(--rar-epico)' : 'var(--rar-leggendario)';
+      const diffLabel = m.km <= 10 ? 'Breve' : m.km <= 25 ? 'Media' : m.km <= 50 ? 'Lunga' : 'Epica';
+      const diffPct = Math.min(100, Math.round(m.km / 60 * 100));
+      row.appendChild(el('div', 'mission-mid',
+        `<b>${m.name}</b> <span class="tag">${m.km} km</span><br>` +
+        `<span class="small muted">${zoneShort(m.zone)} — ${m.desc}</span>` +
+        `<div class="mission-difficulty"><span style="font-size:.6rem;color:${diffColor}">${diffLabel}</span><div style="flex:1;height:4px;background:rgba(0,0,0,.25);border-radius:2px;overflow:hidden"><div style="width:${diffPct}%;height:100%;background:${diffColor};border-radius:2px"></div></div></div>`));
+      const btn = el('button', 'btn btn-small btn-primary', 'Parti');
+      const vimg = new Image();
+      vimg.onload = () => {
+        btn.classList.add('btn-plaque-small');
+        btn.innerHTML = '';
+        vimg.className = 'plaque-img-small';
+        btn.appendChild(vimg);
+      };
+      vimg.src = 'assets/ui/btn-viaggio.png';
+      btn.disabled = !!HERO.activeMission;
+      btn.addEventListener('click', () => {
+        RPG.startMission(HERO, m.id); persist();
+        toast(`🐎 In sella! Destinazione: ${m.name} (${m.km} km)`);
+        setTab('map');
+      });
+      row.appendChild(btn);
+      mp.appendChild(row);
+    });
+    c.appendChild(mp);
+  } else if (!HERO.activeMission) {
+    c.appendChild(el('div', 'panel', '<p class="muted small center">Nessuna missione disponibile al momento. Esplora nuovi biomi per sbloccarle.</p>'));
+  }
+}
 
 function renderPantheonView(c) {
   const back = el('button', 'btn btn-small pantheon-back-btn', '← Mappa');

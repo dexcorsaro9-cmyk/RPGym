@@ -2358,6 +2358,18 @@ body {
   border-radius: 20px; padding: 1px 8px; color: #7b3fbf;
 }
 
+/* ── Avamposto delle Spedizioni ── */
+.avamposto-entry-panel { border-color: #8a6a30 !important; }
+.avamposto-back-btn { margin-bottom: 12px; }
+.avamposto-header {
+  display: flex; align-items: center; gap: 14px;
+  background: linear-gradient(135deg, rgba(138,106,48,.15), rgba(80,55,15,.08));
+  border: 1px solid rgba(138,106,48,.35);
+  border-radius: 14px; padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.avamposto-header-icon { font-size: 2.4rem; flex-shrink: 0; }
+
 .pantheon-back-btn { margin-bottom: 12px; }
 .pantheon-header {
   display: flex; align-items: center; gap: 14px;
