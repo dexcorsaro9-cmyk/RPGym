@@ -1688,38 +1688,82 @@ function renderMap(c) {
   const tmStatus = RPG.treasureMapStatus(HERO);
   if (tmStatus) {
     const { progressKm, claimed } = tmStatus;
+    const maxKm = RPG.TREASURE_MAP_TIERS[RPG.TREASURE_MAP_TIERS.length - 1].km;
+    const roadPct = Math.min(100, Math.round(progressKm / maxKm * 100));
     const allClaimed = claimed.length >= RPG.TREASURE_MAP_TIERS.length;
+    const WP_IMGS = ['assets/map/waypoint-1.png', 'assets/map/waypoint-2.png', 'assets/map/waypoint-3.png'];
+
     const tp = el('div', 'panel treasure-map-panel');
     tp.appendChild(el('h3', 'panel-title', '🗺️ Mappa del Tesoro'));
+
+    // road + waypoints container
+    const pathWrap = el('div', 'tm-path-wrap');
+
+    // sentiero con maschera progresso
+    const road = el('div', 'tm-road');
+    const roadImg = document.createElement('img');
+    roadImg.src = 'assets/map/sentiero.png';
+    roadImg.className = 'tm-road-img';
+    roadImg.alt = '';
+    const roadMask = el('div', 'tm-road-mask');
+    roadMask.style.width = (100 - roadPct) + '%';
+    road.appendChild(roadImg);
+    road.appendChild(roadMask);
+    pathWrap.appendChild(road);
+
+    // waypoints
+    const wps = el('div', 'tm-waypoints');
     RPG.TREASURE_MAP_TIERS.forEach((tier, i) => {
       const done = progressKm >= tier.km;
       const isClaimed = claimed.includes(i);
-      const row = el('div', 'treasure-tier-row' + (isClaimed ? ' claimed' : done ? ' ready' : ''));
-      const pct = Math.min(100, Math.round(progressKm / tier.km * 100));
-      const rewardTxt = `🪙${tier.gold}${tier.wood ? ` 🪵${tier.wood}` : ''}${tier.item ? ' + 🎒 item' : ''}`;
-      row.innerHTML = `<div class="treasure-tier-info"><span class="treasure-tier-km">${tier.km} km</span><span class="treasure-tier-reward muted small">${rewardTxt}</span></div>`;
+      const rewardTxt = `🪙${tier.gold}${tier.wood ? ` 🪵${tier.wood}` : ''}${tier.item ? ' + 🎒' : ''}`;
+
+      const wp = el('div', 'tm-waypoint');
+
+      // medaglione
+      const medal = el('div', 'tm-medal ' + (isClaimed ? 'claimed' : done ? 'done' : 'locked'));
+      const img = document.createElement('img');
+      img.src = WP_IMGS[i] || '';
+      img.alt = '';
+      medal.appendChild(img);
+      if (done || isClaimed) {
+        const badge = el('div', 'tm-badge ' + (isClaimed ? 'claimed' : 'ready'));
+        badge.textContent = isClaimed ? '✓' : '!';
+        medal.appendChild(badge);
+      }
+      wp.appendChild(medal);
+
+      // reward text
+      const rewardEl = el('div', 'tm-reward' + (done && !isClaimed ? ' ready' : ''), rewardTxt);
+      wp.appendChild(rewardEl);
+
+      // action area
+      const action = el('div', 'tm-action');
       if (isClaimed) {
-        row.innerHTML += `<span class="treasure-tier-state done-strip">✅</span>`;
+        action.appendChild(el('span', 'tm-claimed-label', 'Riscosso'));
       } else if (done) {
-        const btn = el('button', 'btn btn-primary', '🎁 Riscuoti');
+        const btn = el('button', 'tm-claim-btn', '🎁 Riscuoti');
         btn.addEventListener('click', () => {
           const reward = RPG.claimTreasureTier(HERO, i);
           if (!reward) return;
           persist(); renderHUD();
-          vibrate([80,40,120]);
+          vibrate([80, 40, 120]);
           const itemEl = reward.item ? `<div class="loot-list" style="margin:.5rem 0">${itemHtml(reward.item)}</div>` : '';
-          modal(`<h3 class="center">🗺️ Tappa ${i+1} completata!</h3>
+          modal(`<h3 class="center">🗺️ Tappa ${i + 1} completata!</h3>
             <p class="center">🪙 +${reward.gold}${reward.wood ? ` 🪵 +${reward.wood}` : ''}${itemEl}</p>
             <button class="btn btn-primary wide" onclick="closeModal();setTab('camp')">Ottimo!</button>`);
         });
-        row.appendChild(btn);
+        action.appendChild(btn);
       } else {
-        const bar = el('div', 'membar slim');
-        bar.innerHTML = `<div class="membar-fill" style="width:${pct}%"></div><span>${progressKm.toFixed(1)} / ${tier.km} km</span>`;
-        row.appendChild(bar);
+        action.appendChild(el('span', 'tm-km-label', tier.km + ' km'));
       }
-      tp.appendChild(row);
+      wp.appendChild(action);
+      wps.appendChild(wp);
     });
+    pathWrap.appendChild(wps);
+    tp.appendChild(pathWrap);
+
+    tp.appendChild(el('div', 'tm-progress-label', `${progressKm.toFixed(1)} km percorsi questa settimana`));
     if (allClaimed) tp.appendChild(el('div', 'done-strip', '✅ <b>Mappa completata questa settimana!</b>'));
     c.appendChild(tp);
   }
