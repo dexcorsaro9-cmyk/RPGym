@@ -2450,11 +2450,23 @@ body {
   border: 1.5px solid rgba(85,94,204,.3);
   font-size: .8rem; margin-bottom: 12px;
 }
+/* ── Tab iOS / Android ── */
+.sync-tab-bar { display: flex; gap: 6px; margin-bottom: 12px; }
+.sync-tab {
+  flex: 1; padding: 8px; border-radius: 8px; cursor: pointer;
+  border: 2px solid var(--leather); background: rgba(90,61,36,.1);
+  font-family: 'Crimson Pro', serif; font-size: .9rem; color: var(--ink);
+  font-weight: 600; transition: all .2s;
+}
+.sync-tab.active { background: #555ecc; border-color: #555ecc; color: #fff; }
+.sync-pane { display: flex; flex-direction: column; gap: 8px; }
+.sync-pane.hidden { display: none; }
+
 .shortcut-manual-toggle {
   width: 100%; background: rgba(90,61,36,.15); border: 1.5px solid var(--leather);
   border-radius: 8px; padding: 9px 12px; cursor: pointer;
   font-family: 'Crimson Pro', serif; font-size: .9rem; color: var(--ink);
-  color: var(--ink); text-align: left; display: flex; justify-content: space-between; align-items: center;
+  text-align: left; display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 0;
 }
 .shortcut-manual-body { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }

@@ -2904,7 +2904,7 @@ function renderTrain(c) {
 }
 
 
-/* ── Pannello Comandi Rapidi / Apple Salute ── */
+/* ── Pannello Sincronizzazione Salute ── */
 const SHORTCUT_NAME = "Hero's Pace";
 const APP_BASE_URL   = 'https://dexcorsaro9-cmyk.github.io/RPGym/';
 
@@ -2913,65 +2913,149 @@ function renderShortcutPanel() {
 
   // Titolo
   const titleRow = el('div', 'shortcut-title-row');
-  titleRow.innerHTML = `<span class="shortcut-apple-icon">🍎</span>
-    <div><b>Comandi Rapidi & Salute</b>
-    <div class="small muted">Sincronizza automaticamente i km dal tuo iPhone</div></div>`;
+  titleRow.innerHTML = `<span class="shortcut-apple-icon">📱</span>
+    <div><b>Sincronizzazione Salute</b>
+    <div class="small muted">Importa i km direttamente dalla tua app fitness</div></div>`;
   p.appendChild(titleRow);
 
-  // Pulsante principale: lancia il Comando Rapido (se già configurato)
+  // ── Tab iOS / Android ──
+  const tabBar = el('div', 'sync-tab-bar');
+  const tabIos = el('button', 'sync-tab active', '🍎 iOS');
+  const tabAnd = el('button', 'sync-tab', '🤖 Android');
+  tabBar.appendChild(tabIos);
+  tabBar.appendChild(tabAnd);
+  p.appendChild(tabBar);
+
+  // ═══ PANNELLO iOS ═══
+  const iosPane = el('div', 'sync-pane');
+
   const launchBtn = el('button', 'btn shortcut-launch-btn wide');
   launchBtn.innerHTML = `<span class="shortcut-icon">⚡</span> Lancia "Hero's Pace" (già configurato)`;
   launchBtn.addEventListener('click', () => {
     window.location.href = `shortcuts://run-shortcut?name=${encodeURIComponent(SHORTCUT_NAME)}`;
   });
-  p.appendChild(launchBtn);
+  iosPane.appendChild(launchBtn);
 
-  // ── Guida passo-passo per creare il Comando Rapido ──
-  const guideToggle = el('button', 'shortcut-manual-toggle');
-  guideToggle.innerHTML = '📋 Come configurare il Comando Rapido <span>▼</span>';
-  p.appendChild(guideToggle);
+  const iosGuideToggle = el('button', 'shortcut-manual-toggle');
+  iosGuideToggle.innerHTML = '📋 Come configurare il Comando Rapido <span>▼</span>';
+  iosPane.appendChild(iosGuideToggle);
 
-  const guideBody = el('div', 'shortcut-manual-body collapsed');
-
-  guideBody.innerHTML = `
+  const iosGuideBody = el('div', 'shortcut-manual-body collapsed');
+  iosGuideBody.innerHTML = `
     <div class="shortcut-steps">
-      <div class="shortcut-step">
-        <span class="step-num">1</span>
-        <div>Apri <b>Comandi Rapidi</b> → tocca <b>+</b> per creare un nuovo comando.</div>
-      </div>
-      <div class="shortcut-step">
-        <span class="step-num">2</span>
-        <div>Aggiungi <b>"Trova campioni di salute"</b> → tipo: <b>Passi</b> → Data di inizio: <b>è oggi</b>.</div>
-      </div>
-      <div class="shortcut-step">
-        <span class="step-num">3</span>
-        <div>Aggiungi <b>"Calcola statistiche"</b> → <i>Campioni di dati sanitari</i> → funzione: <b>Somma</b>.</div>
-      </div>
-      <div class="shortcut-step">
-        <span class="step-num">4</span>
-        <div>Aggiungi <b>"Copia negli appunti"</b> → input: variabile <b>Somma</b> del passo 3.</div>
-      </div>
-      <div class="shortcut-step">
-        <span class="step-num">5</span>
-        <div>Salva con nome <b>Hero's Pace</b>. Dopo averlo lanciato, apri Hero's Pace: apparirà un campo verde — toccalo e incolla. Fatto.</div>
-      </div>
+      <div class="shortcut-step"><span class="step-num">1</span>
+        <div>Apri <b>Comandi Rapidi</b> → tocca <b>+</b> per creare un nuovo comando.</div></div>
+      <div class="shortcut-step"><span class="step-num">2</span>
+        <div>Aggiungi <b>"Trova campioni di salute"</b> → tipo: <b>Passi</b> → Data di inizio: <b>è oggi</b>.</div></div>
+      <div class="shortcut-step"><span class="step-num">3</span>
+        <div>Aggiungi <b>"Calcola statistiche"</b> → <i>Campioni di dati sanitari</i> → funzione: <b>Somma</b>.</div></div>
+      <div class="shortcut-step"><span class="step-num">4</span>
+        <div>Aggiungi <b>"Copia negli appunti"</b> → input: variabile <b>Somma</b> del passo 3.</div></div>
+      <div class="shortcut-step"><span class="step-num">5</span>
+        <div>Salva con nome <b>Hero's Pace</b>. Dopo averlo lanciato, apri l'app: incolla nel campo verde ⚡. Fatto!</div></div>
     </div>`;
-
   const openShortcuts = el('button', 'btn btn-small wide shortcut-open-app');
   openShortcuts.innerHTML = '📱 Apri Comandi Rapidi';
   openShortcuts.addEventListener('click', () => { window.location.href = 'shortcuts://'; });
-  guideBody.appendChild(openShortcuts);
+  iosGuideBody.appendChild(openShortcuts);
 
-  guideToggle.addEventListener('click', () => {
-    const open = !guideBody.classList.contains('collapsed');
-    guideBody.classList.toggle('collapsed', open);
-    guideToggle.querySelector('span').textContent = open ? '▼' : '▲';
+  iosGuideToggle.addEventListener('click', () => {
+    const open = !iosGuideBody.classList.contains('collapsed');
+    iosGuideBody.classList.toggle('collapsed', open);
+    iosGuideToggle.querySelector('span').textContent = open ? '▼' : '▲';
   });
-  p.appendChild(guideBody);
+  iosPane.appendChild(iosGuideBody);
+  p.appendChild(iosPane);
 
-  // ── Accordion: inserimento manuale ──
+  // ═══ PANNELLO ANDROID ═══
+  const andPane = el('div', 'sync-pane hidden');
+
+  // Metodo manuale
+  const andManualToggle = el('button', 'shortcut-manual-toggle');
+  andManualToggle.innerHTML = '👆 Metodo 1 — Copia & Incolla (tutti i dispositivi) <span>▼</span>';
+  andPane.appendChild(andManualToggle);
+
+  const andManualBody = el('div', 'shortcut-manual-body collapsed');
+  andManualBody.innerHTML = `
+    <div class="shortcut-steps">
+      <div class="shortcut-step"><span class="step-num">1</span>
+        <div>Apri <b>Google Fit</b>, <b>Samsung Health</b> o qualsiasi app fitness e guarda i passi di oggi.</div></div>
+      <div class="shortcut-step"><span class="step-num">2</span>
+        <div>Torna su Hero's Pace → schermata <b>Allenati</b>.</div></div>
+      <div class="shortcut-step"><span class="step-num">3</span>
+        <div>Digita i passi nel campo verde <b>⚡ Passi da Salute</b> e premi <b>Invio</b>. Il gioco calcola i km automaticamente.</div></div>
+    </div>`;
+  andManualToggle.addEventListener('click', () => {
+    const open = !andManualBody.classList.contains('collapsed');
+    andManualBody.classList.toggle('collapsed', open);
+    andManualToggle.querySelector('span').textContent = open ? '▼' : '▲';
+  });
+  andPane.appendChild(andManualBody);
+
+  // Metodo MacroDroid
+  const andAutoToggle = el('button', 'shortcut-manual-toggle');
+  andAutoToggle.innerHTML = '🤖 Metodo 2 — MacroDroid (automatico, gratis) <span>▼</span>';
+  andPane.appendChild(andAutoToggle);
+
+  const andAutoBody = el('div', 'shortcut-manual-body collapsed');
+  andAutoBody.innerHTML = `
+    <div class="shortcut-steps">
+      <div class="shortcut-step"><span class="step-num">1</span>
+        <div>Installa <b>MacroDroid</b> dal Play Store (gratuita).</div></div>
+      <div class="shortcut-step"><span class="step-num">2</span>
+        <div>Crea una nuova <b>Macro</b>: Trigger → <b>Ora del giorno</b> (es. ogni sera alle 21:00).</div></div>
+      <div class="shortcut-step"><span class="step-num">3</span>
+        <div>Azione → <b>Variabile</b> → leggi passi da <b>Health Connect</b> di oggi → salva in variabile <code>passi</code>.</div></div>
+      <div class="shortcut-step"><span class="step-num">4</span>
+        <div>Azione → <b>Apri URL</b>:<br><code style="font-size:.75rem;word-break:break-all">${APP_BASE_URL}?sync_steps=[passi]</code></div></div>
+      <div class="shortcut-step"><span class="step-num">5</span>
+        <div>Salva la macro. Ogni sera alle 21 aprirà l'app e sincronizzerà i passi automaticamente.</div></div>
+    </div>`;
+  andAutoToggle.addEventListener('click', () => {
+    const open = !andAutoBody.classList.contains('collapsed');
+    andAutoBody.classList.toggle('collapsed', open);
+    andAutoToggle.querySelector('span').textContent = open ? '▼' : '▲';
+  });
+  andPane.appendChild(andAutoBody);
+
+  // Metodo Tasker
+  const andTaskerToggle = el('button', 'shortcut-manual-toggle');
+  andTaskerToggle.innerHTML = '⚙️ Metodo 3 — Tasker (avanzato, ~3€) <span>▼</span>';
+  andPane.appendChild(andTaskerToggle);
+
+  const andTaskerBody = el('div', 'shortcut-manual-body collapsed');
+  andTaskerBody.innerHTML = `
+    <div class="shortcut-steps">
+      <div class="shortcut-step"><span class="step-num">1</span>
+        <div>Installa <b>Tasker</b> dal Play Store.</div></div>
+      <div class="shortcut-step"><span class="step-num">2</span>
+        <div>Crea un nuovo <b>Task</b>: Azione → <b>Health Connect</b> → Leggi <b>Passi</b> di oggi → salva in <code>%passi</code>.</div></div>
+      <div class="shortcut-step"><span class="step-num">3</span>
+        <div>Aggiungi azione <b>"Apri URL"</b>:<br><code style="font-size:.75rem;word-break:break-all">${APP_BASE_URL}?sync_steps=%passi</code></div></div>
+      <div class="shortcut-step"><span class="step-num">4</span>
+        <div>Crea un <b>Profilo</b> con trigger orario (es. 21:00) e collega il task. Oppure aggiungi un <b>widget</b> sul desktop per lanciarlo manualmente.</div></div>
+    </div>`;
+  andTaskerToggle.addEventListener('click', () => {
+    const open = !andTaskerBody.classList.contains('collapsed');
+    andTaskerBody.classList.toggle('collapsed', open);
+    andTaskerToggle.querySelector('span').textContent = open ? '▼' : '▲';
+  });
+  andPane.appendChild(andTaskerBody);
+  p.appendChild(andPane);
+
+  // ── Logica tab switch ──
+  tabIos.addEventListener('click', () => {
+    tabIos.classList.add('active'); tabAnd.classList.remove('active');
+    iosPane.classList.remove('hidden'); andPane.classList.add('hidden');
+  });
+  tabAnd.addEventListener('click', () => {
+    tabAnd.classList.add('active'); tabIos.classList.remove('active');
+    andPane.classList.remove('hidden'); iosPane.classList.add('hidden');
+  });
+
+  // ── Accordion: inserimento manuale km ──
   const toggleBtn = el('button', 'shortcut-manual-toggle');
-  toggleBtn.innerHTML = '📥 Inserisci km manualmente (senza Comandi Rapidi) <span>▼</span>';
+  toggleBtn.innerHTML = '📥 Inserisci km manualmente <span>▼</span>';
   p.appendChild(toggleBtn);
 
   const manualBody = el('div', 'shortcut-manual-body collapsed');
