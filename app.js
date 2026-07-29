@@ -1080,18 +1080,90 @@ function renderCamp(c) {
     c.appendChild(sp);
   }
 
-  // Bottega dell'Arredamento (Espansione del Rifugio)
+  // ── Il Cantiere dell'Eroe (Edifici + Arredamento) ──
   {
-    const totalOwned = (HERO.furniture && HERO.furniture.owned.length) || 0;
+    const totalOwned   = (HERO.furniture && HERO.furniture.owned.length) || 0;
     const setsComplete = RPG.FURNITURE_SETS.filter(s => RPG.furnitureSetComplete(HERO, s.id)).length;
-    const ap = el('div', 'panel');
-    ap.appendChild(el('h3', 'panel-title', '🏛️ Bottega dell\'Arredamento'));
-    ap.appendChild(el('p', 'muted small',
-      `${totalOwned} / 200 cimeli raccolti · ${setsComplete} / 20 set completi. Arreda il Rifugio e sblocca bonus permanenti!`));
-    const enterBtn2 = el('button', 'btn btn-primary wide', 'Sfoglia la Bottega');
-    enterBtn2.addEventListener('click', () => { CAMP_VIEW = 'arredamento'; setTab('camp'); });
-    ap.appendChild(enterBtn2);
-    c.appendChild(ap);
+    const BUILD_ICON_FILES = {
+      fondamenta: 'torre-mago', baule: 'baule', letto: null,
+      muro: 'muro', fucina: 'fucina', lab: 'laboratorio',
+    };
+
+    const cp = el('div', 'panel cantiere-panel');
+
+    // Header immagine
+    const cantThumb = el('img', 'camp-panel-thumb');
+    cantThumb.src = 'assets/ui/rifugio/cantiere-eroe.jpg';
+    cantThumb.alt = '';
+    cp.appendChild(cantThumb);
+
+    cp.appendChild(el('h3', 'panel-title', '🏗️ Il Cantiere dell\'Eroe'));
+    cp.appendChild(el('p', 'muted small', 'Costruisci edifici e arreda la tua dimora per sbloccare bonus permanenti.'));
+
+    // Tab bar
+    const cantTabBar = el('div', 'sync-tab-bar');
+    const tabEdifici  = el('button', 'sync-tab active', '🔨 Edifici');
+    const tabArreda   = el('button', 'sync-tab', '🏛️ Arredamento');
+    cantTabBar.appendChild(tabEdifici);
+    cantTabBar.appendChild(tabArreda);
+    cp.appendChild(cantTabBar);
+
+    // ── Pane Edifici ──
+    const edificiPane = el('div', 'sync-pane');
+    if (HERO.level < 5) {
+      edificiPane.appendChild(el('p', 'muted',
+        `Raggiungi il <b>Livello 5</b> per costruire la tua casa. (Ora sei al Lv ${HERO.level}.)`));
+    } else {
+      RPG.BUILDINGS.forEach(b => {
+        const status = RPG.canBuild(HERO, b);
+        const row = el('div', 'build-row' + (status === 'costruito' ? ' built' : ''));
+        const iconFile = BUILD_ICON_FILES[b.id];
+        const iconHolder = el('div', 'build-icon', b.icon);
+        if (iconFile) {
+          const bimg = new Image();
+          bimg.onload = () => { iconHolder.textContent = ''; bimg.className = 'build-icon-img'; iconHolder.appendChild(bimg); };
+          bimg.src = `assets/ui/rifugio/${iconFile}.png`;
+        }
+        row.appendChild(iconHolder);
+        row.appendChild(el('div', 'build-mid',
+          `<b>${b.name}</b><br><span class="small muted">${b.desc}</span><br>` +
+          `<span class="small">🪵 ${b.cost.wood} · 🪨 ${b.cost.stone} · Liv. ${b.minLevel}</span>`));
+        const btn = el('button', 'btn btn-small');
+        if (status === 'costruito') { btn.textContent = '✅'; btn.disabled = true; }
+        else if (status === 'ok') {
+          btn.textContent = 'Costruisci';
+          btn.classList.add('btn-primary');
+          btn.addEventListener('click', () => {
+            RPG.build(HERO, b.id); persist(); renderHUD(); setTab('camp');
+            toast(`${b.icon} ${b.name} costruito!`);
+          });
+        } else { btn.textContent = '🔒'; btn.disabled = true; }
+        row.appendChild(btn);
+        edificiPane.appendChild(row);
+      });
+    }
+    cp.appendChild(edificiPane);
+
+    // ── Pane Arredamento ──
+    const arredaPane = el('div', 'sync-pane hidden');
+    arredaPane.appendChild(el('p', 'muted small',
+      `${totalOwned} / 200 cimeli raccolti · ${setsComplete} / 20 set completi.`));
+    const enterArredaBtn = el('button', 'btn btn-primary wide', '🏛️ Sfoglia la Bottega');
+    enterArredaBtn.addEventListener('click', () => { CAMP_VIEW = 'arredamento'; setTab('camp'); });
+    arredaPane.appendChild(enterArredaBtn);
+    cp.appendChild(arredaPane);
+
+    // Tab switch
+    tabEdifici.addEventListener('click', () => {
+      tabEdifici.classList.add('active'); tabArreda.classList.remove('active');
+      edificiPane.classList.remove('hidden'); arredaPane.classList.add('hidden');
+    });
+    tabArreda.addEventListener('click', () => {
+      tabArreda.classList.add('active'); tabEdifici.classList.remove('active');
+      arredaPane.classList.remove('hidden'); edificiPane.classList.add('hidden');
+    });
+
+    c.appendChild(cp);
   }
 
   // Serra del Viandante
@@ -1100,16 +1172,12 @@ function renderCamp(c) {
     const readyCount   = HERO.greenhouse.pots.filter(p => p.status === 'ready').length;
     const dangerCount  = HERO.greenhouse.pots.filter(p => p.status === 'growing' && p.health < 40).length;
     const gp = el('div', readyCount ? 'panel panel-featured' : 'panel');
-    const serraThumb = document.createElement('img');
+    const serraThumb = el('img', 'camp-panel-thumb');
     serraThumb.src = 'assets/minigames/serra/SERRA.jpg';
     serraThumb.alt = '';
-    serraThumb.className = 'camp-panel-thumb';
     gp.appendChild(serraThumb);
     gp.appendChild(el('h3', 'panel-title', '🌿 La Serra del Viandante'));
-    if (dangerCount) {
-      const warn = el('p', 'serra-danger-warn', `⚠️ ${dangerCount} pianta${dangerCount > 1 ? 'e in pericolo' : ' in pericolo'}! Annaffia subito.`);
-      gp.appendChild(warn);
-    }
+    if (dangerCount) gp.appendChild(el('p', 'serra-danger-warn', `⚠️ ${dangerCount} pianta${dangerCount > 1 ? 'e in pericolo' : ' in pericolo'}! Annaffia subito.`));
     gp.appendChild(el('p', 'muted small',
       readyCount
         ? `🎁 ${readyCount} pianta${readyCount > 1 ? 'e' : ''} pronta${readyCount > 1 ? '' : 'e'} per il raccolto!`
@@ -1122,53 +1190,6 @@ function renderCamp(c) {
     gp.appendChild(enterGreenhouseBtn);
     c.appendChild(gp);
   }
-
-  // Costruzione
-  const BUILD_ICON_FILES = {
-    fondamenta: 'torre-mago', baule: 'baule', letto: null,
-    muro: 'muro', fucina: 'fucina', lab: 'laboratorio',
-  };
-  const bpanel = el('div', 'panel');
-  const bTitle = el('h3', 'panel-title', '🔨 Costruisci');
-  bpanel.appendChild(bTitle);
-  const hammerImg = new Image();
-  hammerImg.onload = () => { bTitle.innerHTML = `<img class="panel-title-icon" src="assets/ui/rifugio/costruisci.png"> Costruisci`; };
-  hammerImg.src = 'assets/ui/rifugio/costruisci.png';
-  if (HERO.level < 5) {
-    bpanel.appendChild(el('p', 'muted',
-      `Raggiungi il <b>Livello 5</b> per piantare le radici e costruire la tua casa. (Ora sei al ${HERO.level}.)`));
-  } else {
-    RPG.BUILDINGS.forEach(b => {
-      const status = RPG.canBuild(HERO, b);
-      const row = el('div', 'build-row' + (status === 'costruito' ? ' built' : ''));
-      const iconFile = BUILD_ICON_FILES[b.id];
-      const iconHolder = el('div', 'build-icon', b.icon);
-      if (iconFile) {
-        const bimg = new Image();
-        bimg.onload = () => { iconHolder.textContent = ''; bimg.className = 'build-icon-img'; iconHolder.appendChild(bimg); };
-        bimg.src = `assets/ui/rifugio/${iconFile}.png`;
-      }
-      row.appendChild(iconHolder);
-      row.appendChild(el('div', 'build-mid',
-        `<b>${b.name}</b><br><span class="small muted">${b.desc}</span><br>` +
-        `<span class="small">🪵 ${b.cost.wood} · 🪨 ${b.cost.stone} · Liv. ${b.minLevel}</span>`));
-      const btn = el('button', 'btn btn-small');
-      if (status === 'costruito') { btn.textContent = '✅'; btn.disabled = true; }
-      else if (status === 'ok') {
-        btn.textContent = 'Costruisci';
-        btn.classList.add('btn-primary');
-        btn.addEventListener('click', () => {
-          RPG.build(HERO, b.id); persist(); renderHUD(); setTab('camp');
-          toast(`${b.icon} ${b.name} costruito!`);
-        });
-      } else {
-        btn.textContent = '🔒'; btn.disabled = true;
-      }
-      row.appendChild(btn);
-      bpanel.appendChild(row);
-    });
-  }
-  c.appendChild(bpanel);
 
   // Visita alleato
   const others = STATE.heroes.filter(h => h.id !== HERO.id);
