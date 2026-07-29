@@ -288,6 +288,9 @@ un bottino alla volta. Il Re dei Predoni non chiede — conquista.`,
 
 function persist() { RPG.save(STATE); updateNotifState().catch(() => {}); }
 function vibrate(pattern) { try { navigator.vibrate && navigator.vibrate(pattern); } catch {} }
+function maybeSyncChallenge() {
+  if (HERO && HERO.cloud && HERO.cloud.activeChallenge) FB.updateChallenge(HERO).catch(() => {});
+}
 
 /* ══════════════ Schermate ══════════════ */
 
@@ -542,7 +545,7 @@ function enterGame() {
 
   // Sincronizzazione automatica da Apple Salute (URL params o clipboard)
   const healthReport = applyHealthSyncFromURL(HERO);
-  if (healthReport) { persist(); renderHUD(); }
+  if (healthReport) { persist(); renderHUD(); maybeSyncChallenge(); }
 
   // Coda dei popup di apertura
   OPEN_QUEUE = [];
@@ -2760,7 +2763,7 @@ function renderTrain(c) {
     if (km < 0.05) { toast(`${steps} passi (${km} km) — troppo pochi.`); sssInput.value = ''; return; }
     const report = RPG.logHealthSync(HERO, chosen, km);
     sssInput.value = '';
-    if (report) { persist(); renderHUD(); showHealthSyncResult(report); checkMapNotify(); }
+    if (report) { persist(); renderHUD(); showHealthSyncResult(report); checkMapNotify(); maybeSyncChallenge(); }
     else toast('Attività già sincronizzata per oggi.');
   };
   sssInput.addEventListener('paste', () => setTimeout(applySss, 150));
@@ -3002,6 +3005,7 @@ function renderShortcutPanel() {
     sfx(report.levelsGained.length ? 'level' : 'coin');
     showHealthSyncResult(report);
     checkMapNotify();
+    maybeSyncChallenge();
   });
   manualBody.appendChild(syncBtn);
 
@@ -4553,7 +4557,7 @@ function applyStepsSync(steps, banner) {
   const km = Math.round(steps * 0.00075 * 100) / 100;
   if (km < 0.05) { toast(`${steps} passi (${km} km) — troppo pochi.`); return; }
   const report = RPG.logHealthSync(HERO, 'camminata', km);
-  if (report) { persist(); renderHUD(); showHealthSyncResult(report); }
+  if (report) { persist(); renderHUD(); showHealthSyncResult(report); maybeSyncChallenge(); }
   else toast('Attività già sincronizzata per oggi.');
 }
 
