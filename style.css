@@ -5206,30 +5206,30 @@ body {
   font-size: 1.05rem;
 }
 
-/* ── NPC Messer Ortica ────────────────────────────────────────────────────── */
+/* ── NPC Messer Ortica (Serra) ────────────────────────────────────────────── */
 .npc-dialogue-modal { text-align: center; padding: 4px 0; }
 .npc-portrait-big {
   width: 90px; height: 90px; border-radius: 50%;
-  background: var(--surface2); border: 3px solid var(--emerald);
+  background: rgba(0,0,0,.25); border: 3px solid var(--emerald);
   display: flex; align-items: center; justify-content: center;
   margin: 0 auto 4px;
 }
 .npc-emoji-fallback { font-size: 2.8rem; line-height: 1; }
 .npc-portrait-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .npc-img-real { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-.npc-banner {
+.in-serra .npc-banner {
   display: flex; align-items: center; gap: 10px;
-  background: var(--surface2); border-radius: 10px;
+  background: rgba(0,0,0,.25); border-radius: 10px;
   border-left: 4px solid var(--emerald);
   padding: 10px 14px; margin-bottom: 12px;
 }
-.npc-img {
+.in-serra .npc-img {
   width: 44px; height: 44px; border-radius: 50%;
-  background: var(--surface3); border: 2px solid var(--emerald);
+  background: rgba(0,0,0,.35); border: 2px solid var(--emerald);
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
-.npc-img .npc-emoji-fallback { font-size: 1.5rem; }
-.npc-quote { flex: 1; font-size: .85rem; line-height: 1.4; }
+.in-serra .npc-img .npc-emoji-fallback { font-size: 1.5rem; }
+.in-serra .npc-quote { flex: 1; font-size: .85rem; line-height: 1.4; color: #e8d9b0; }
 .panel-title-icon { width: 28px; height: 28px; object-fit: contain; vertical-align: -6px; margin-right: 4px; }
 .loot .item-icon-big[src*="seme-sacchetto"] { filter: drop-shadow(0 4px 6px rgba(0,0,0,.3)); }
