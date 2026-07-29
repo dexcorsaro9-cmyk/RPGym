@@ -1785,16 +1785,9 @@ function renderMap(c) {
     const already = HERO.dailyPotion && HERO.dailyPotion.claimedDate === todayISO();
     const used = already && HERO.dailyPotion.used;
 
-    const pp = el('div', 'panel potion-day-panel');
+    const pp = el('div', 'potion-day-panel');
 
-    // pergamena come img assoluta che copre fisicamente tutto il panel
-    const parchBg = document.createElement('img');
-    parchBg.src = 'assets/ui/pergamena-card.jpg';
-    parchBg.className = 'potion-parchment-bg';
-    parchBg.alt = '';
-    pp.appendChild(parchBg);
-
-    // contenuto sopra la pergamena
+    // contenuto centrato sopra la pergamena
     const content = el('div', 'potion-content');
 
     const station = document.createElement('img');
@@ -1809,10 +1802,11 @@ function renderMap(c) {
     bottle.alt = '';
     content.appendChild(bottle);
 
-    content.innerHTML += `<div class="potion-name">${esc(potion.name)}</div><div class="potion-desc">${esc(potion.desc)}</div>`;
+    content.appendChild(el('div', 'potion-name', potion.name));
+    content.appendChild(el('div', 'potion-desc', potion.desc));
 
     if (used) {
-      content.appendChild(el('div', 'done-strip', '✅ Pozione usata oggi'));
+      content.appendChild(el('div', 'potion-claimed-note', '✅ Pozione usata oggi'));
     } else if (already) {
       content.appendChild(el('div', 'potion-claimed-note', `${potion.icon} Riscattata · si attiva al prossimo allenamento`));
     } else {
