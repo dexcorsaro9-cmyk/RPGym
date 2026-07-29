@@ -1100,8 +1100,15 @@ function renderCamp(c) {
     cp.appendChild(el('h3', 'panel-title', '🏗️ Il Cantiere dell\'Eroe'));
     cp.appendChild(el('p', 'muted small', 'Costruisci edifici e arreda la tua dimora per sbloccare bonus permanenti.'));
 
-    // ── Sezione Edifici ──
-    cp.appendChild(el('h4', 'cantiere-section-title', '🔨 Edifici'));
+    // ── Sezione Arredamento ──
+    cp.appendChild(el('h4', 'cantiere-section-title', '🏛️ Arredamento'));
+    cp.appendChild(el('p', 'muted small',
+      `${totalOwned} / 200 cimeli raccolti · ${setsComplete} / 20 set completi.`));
+    const enterArredaBtn = el('button', 'btn btn-primary wide', '🏛️ Sfoglia la Bottega');
+    enterArredaBtn.addEventListener('click', () => { CAMP_VIEW = 'arredamento'; setTab('camp'); });
+    cp.appendChild(enterArredaBtn);
+
+    // ── Edifici (dentro Arredamento) ──
     if (HERO.level < 5) {
       cp.appendChild(el('p', 'muted',
         `Raggiungi il <b>Livello 5</b> per costruire la tua casa. (Ora sei al Lv ${HERO.level}.)`));
@@ -1134,14 +1141,6 @@ function renderCamp(c) {
         cp.appendChild(row);
       });
     }
-
-    // ── Sezione Arredamento ──
-    cp.appendChild(el('h4', 'cantiere-section-title', '🏛️ Arredamento'));
-    cp.appendChild(el('p', 'muted small',
-      `${totalOwned} / 200 cimeli raccolti · ${setsComplete} / 20 set completi.`));
-    const enterArredaBtn = el('button', 'btn btn-primary wide', '🏛️ Sfoglia la Bottega');
-    enterArredaBtn.addEventListener('click', () => { CAMP_VIEW = 'arredamento'; setTab('camp'); });
-    cp.appendChild(enterArredaBtn);
 
     c.appendChild(cp);
   }
