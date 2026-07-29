@@ -1688,58 +1688,65 @@ function renderMap(c) {
   const tmStatus = RPG.treasureMapStatus(HERO);
   if (tmStatus) {
     const { progressKm, claimed } = tmStatus;
-    const maxKm = RPG.TREASURE_MAP_TIERS[RPG.TREASURE_MAP_TIERS.length - 1].km;
-    const roadPct = Math.min(100, Math.round(progressKm / maxKm * 100));
     const allClaimed = claimed.length >= RPG.TREASURE_MAP_TIERS.length;
+    const TIERS = RPG.TREASURE_MAP_TIERS;
     const WP_IMGS = ['assets/map/waypoint-1.png', 'assets/map/waypoint-2.png', 'assets/map/waypoint-3.png'];
 
     const tp = el('div', 'panel treasure-map-panel');
     tp.appendChild(el('h3', 'panel-title', '🗺️ Mappa del Tesoro'));
 
-    // road + waypoints container
-    const pathWrap = el('div', 'tm-path-wrap');
+    // ── riga track: medal – segmento – medal – segmento – medal ──
+    const track = el('div', 'tm-track');
 
-    // sentiero con maschera progresso
-    const road = el('div', 'tm-road');
-    const roadImg = document.createElement('img');
-    roadImg.src = 'assets/map/sentiero.png';
-    roadImg.className = 'tm-road-img';
-    roadImg.alt = '';
-    const roadMask = el('div', 'tm-road-mask');
-    roadMask.style.width = (100 - roadPct) + '%';
-    road.appendChild(roadImg);
-    road.appendChild(roadMask);
-    pathWrap.appendChild(road);
+    TIERS.forEach((tier, i) => {
+      const done = progressKm >= tier.km;
+      const isClaimed = claimed.includes(i);
 
-    // waypoints
-    const wps = el('div', 'tm-waypoints');
-    RPG.TREASURE_MAP_TIERS.forEach((tier, i) => {
+      // medaglione con wrapper (badge fuori da overflow:hidden)
+      const wrap = el('div', 'tm-medal-wrap');
+      const medal = el('div', 'tm-medal ' + (isClaimed ? 'claimed' : done ? 'done' : 'locked'));
+      const img = document.createElement('img');
+      img.src = WP_IMGS[i];
+      img.alt = '';
+      medal.appendChild(img);
+      wrap.appendChild(medal);
+      if (done || isClaimed) {
+        const badge = el('div', 'tm-badge ' + (isClaimed ? 'claimed' : 'ready'));
+        badge.textContent = isClaimed ? '✓' : '!';
+        wrap.appendChild(badge);
+      }
+      track.appendChild(wrap);
+
+      // segmento di sentiero tra questo e il prossimo waypoint
+      if (i < TIERS.length - 1) {
+        const fromKm = tier.km;
+        const toKm = TIERS[i + 1].km;
+        const segPct = Math.min(100, Math.max(0,
+          Math.round((progressKm - fromKm) / (toKm - fromKm) * 100)
+        ));
+        const seg = el('div', 'tm-segment');
+        const sImg = document.createElement('img');
+        sImg.src = 'assets/map/sentiero.png';
+        sImg.alt = '';
+        seg.appendChild(sImg);
+        const mask = el('div', 'tm-segment-mask');
+        mask.style.width = (100 - segPct) + '%';
+        seg.appendChild(mask);
+        track.appendChild(seg);
+      }
+    });
+    tp.appendChild(track);
+
+    // ── riga etichette: allineata ai 3 medaglioni ──
+    const labels = el('div', 'tm-labels');
+    TIERS.forEach((tier, i) => {
       const done = progressKm >= tier.km;
       const isClaimed = claimed.includes(i);
       const rewardTxt = `🪙${tier.gold}${tier.wood ? ` 🪵${tier.wood}` : ''}${tier.item ? ' + 🎒' : ''}`;
 
-      const wp = el('div', 'tm-waypoint');
+      const lbl = el('div', 'tm-label');
+      lbl.appendChild(el('div', 'tm-reward' + (done && !isClaimed ? ' ready' : ''), rewardTxt));
 
-      // wrapper separato dal medaglione così il badge non viene clippato dall'overflow:hidden
-      const medalWrap = el('div', 'tm-medal-wrap');
-      const medal = el('div', 'tm-medal ' + (isClaimed ? 'claimed' : done ? 'done' : 'locked'));
-      const img = document.createElement('img');
-      img.src = WP_IMGS[i] || '';
-      img.alt = '';
-      medal.appendChild(img);
-      medalWrap.appendChild(medal);
-      if (done || isClaimed) {
-        const badge = el('div', 'tm-badge ' + (isClaimed ? 'claimed' : 'ready'));
-        badge.textContent = isClaimed ? '✓' : '!';
-        medalWrap.appendChild(badge);
-      }
-      wp.appendChild(medalWrap);
-
-      // reward text
-      const rewardEl = el('div', 'tm-reward' + (done && !isClaimed ? ' ready' : ''), rewardTxt);
-      wp.appendChild(rewardEl);
-
-      // action area
       const action = el('div', 'tm-action');
       if (isClaimed) {
         action.appendChild(el('span', 'tm-claimed-label', 'Riscosso'));
@@ -1759,11 +1766,10 @@ function renderMap(c) {
       } else {
         action.appendChild(el('span', 'tm-km-label', tier.km + ' km'));
       }
-      wp.appendChild(action);
-      wps.appendChild(wp);
+      lbl.appendChild(action);
+      labels.appendChild(lbl);
     });
-    pathWrap.appendChild(wps);
-    tp.appendChild(pathWrap);
+    tp.appendChild(labels);
 
     tp.appendChild(el('div', 'tm-progress-label', `${progressKm.toFixed(1)} km percorsi questa settimana`));
     if (allClaimed) tp.appendChild(el('div', 'done-strip', '✅ <b>Mappa completata questa settimana!</b>'));
