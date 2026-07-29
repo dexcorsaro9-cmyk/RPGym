@@ -42,6 +42,7 @@ function mgRewardHTML(r, title, sub) {
 let _mgRAF = null;
 
 function mgOverlay(inner, bgUrl) {
+  if (_mgRAF) { cancelAnimationFrame(_mgRAF); _mgRAF = null; }
   let ov = document.getElementById('mg-ov');
   if (!ov) { ov = document.createElement('div'); ov.id = 'mg-ov'; document.body.appendChild(ov); }
   ov.className = 'mg-overlay' + (bgUrl ? ' mg-has-bg' : '');

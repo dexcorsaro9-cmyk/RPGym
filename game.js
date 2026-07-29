@@ -333,7 +333,6 @@ const RPG = (() => {
     return usable[usable.length - 1];
   }
 
-  let itemSeq = 0;
   function genItem(level, minRarity, forcedSlot, forcedRarity) {
     const rarity = forcedRarity || rollRarity(level, minRarity);
     const slot = forcedSlot ||
@@ -342,7 +341,7 @@ const RPG = (() => {
     const suf = RARITY_SUFFIX[rarity][Math.floor(Math.random() * RARITY_SUFFIX[rarity].length)];
     const r = RARITIES[rarity];
     return {
-      id: 'i' + Date.now() + '_' + (itemSeq++),
+      id: 'i' + Math.random().toString(36).slice(2, 11) + Date.now().toString(36),
       slot, rarity,
       name: `${base} ${suf}`,
       icon: SLOTS[slot].icon,

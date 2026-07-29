@@ -136,7 +136,7 @@ const FB = (() => {
         const cDelta = (data.creatorKmNow  || 0) - (data.creatorKmStart  || 0);
         const oDelta = (data.opponentKmNow || 0) - (data.opponentKmStart || 0);
         updates.status   = 'completed';
-        updates.winnerId = cDelta >= oDelta ? data.creatorId : data.opponentId;
+        updates.winnerId = cDelta > oDelta ? data.creatorId : cDelta < oDelta ? data.opponentId : null;
       }
       await db.collection('challenges').doc(id).update(updates);
     } catch (e) { console.warn('[FB] updateChallenge:', e.message); }
@@ -184,10 +184,13 @@ const FB = (() => {
   async function clearPendingInvite(heroId, challengeId) {
     if (!ok() || !heroId) return;
     try {
-      const doc = await db.collection('heroes').doc(heroId).get();
-      if (!doc.exists) return;
-      const remaining = (doc.data().pendingInvites || []).filter(i => i.challengeId !== challengeId);
-      await db.collection('heroes').doc(heroId).update({ pendingInvites: remaining });
+      const ref = db.collection('heroes').doc(heroId);
+      await db.runTransaction(async tx => {
+        const doc = await tx.get(ref);
+        if (!doc.exists) return;
+        const remaining = (doc.data().pendingInvites || []).filter(i => i.challengeId !== challengeId);
+        tx.update(ref, { pendingInvites: remaining });
+      });
     } catch (e) {}
   }
 
