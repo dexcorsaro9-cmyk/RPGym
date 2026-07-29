@@ -1794,18 +1794,17 @@ function renderMap(c) {
     station.alt = '';
     pp.appendChild(station);
 
-    // riga icona bottiglia + testo
-    const row = el('div', 'potion-info-row');
+    // bottiglia centrata
     const bottle = document.createElement('img');
     bottle.src = 'assets/ui/pozione.jpg';
     bottle.className = 'potion-bottle-img';
     bottle.alt = '';
-    row.appendChild(bottle);
+    pp.appendChild(bottle);
 
+    // testo centrato
     const info = el('div', 'potion-info-text');
     info.innerHTML = `<div class="potion-name">${esc(potion.name)}</div><div class="potion-desc">${esc(potion.desc)}</div>`;
-    row.appendChild(info);
-    pp.appendChild(row);
+    pp.appendChild(info);
 
     if (used) {
       pp.appendChild(el('div', 'done-strip', '✅ Pozione usata oggi'));
