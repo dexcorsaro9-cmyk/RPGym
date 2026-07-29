@@ -2296,7 +2296,7 @@ body {
 .stats-diary-lbl { font-size: .7rem; color: var(--ink-light); text-align: center; }
 
 /* ── Pannello Comandi Rapidi ── */
-.shortcut-panel { border: 2px solid #555ecc; background: rgba(85,94,204,.06); }
+.shortcut-panel { border: 2px solid #555ecc; }
 .shortcut-title-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .shortcut-apple-icon { font-size: 2rem; flex-shrink: 0; }
 .shortcut-launch-btn {
