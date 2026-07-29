@@ -2360,6 +2360,15 @@ body {
 /* ── Pantheon dei Campioni: entry panel e subview ── */
 .pantheon-entry-panel { border-color: #7b3fbf !important; }
 .pantheon-entry-title { color: #7b3fbf; }
+
+/* ── Santuario dei Famigli (teaser bloccato) ── */
+.santuario-entry-panel { border-color: rgba(80,200,120,.5) !important; opacity: .85; }
+.santuario-entry-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.santuario-entry-title { color: #3a9e60; }
+.santuario-lock-badge { font-size: 1.3rem; }
+.santuario-teaser-quote { font-style: italic; line-height: 1.5; margin-bottom: 8px; }
+.santuario-locked-btn { opacity: .5; cursor: not-allowed; }
+.santuario-thumb { filter: brightness(.75) saturate(.6); }
 .pantheon-rank-chip {
   display: inline-block; margin-bottom: 4px;
   font-size: .68rem; font-weight: 700;

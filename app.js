@@ -1982,6 +1982,28 @@ function renderMap(c) {
   enterPantheonBtn.addEventListener('click', () => { MAP_VIEW = 'pantheon'; setTab('map'); });
   pvpEntry.appendChild(enterPantheonBtn);
   c.appendChild(pvpEntry);
+
+  // ── Il Santuario dei Famigli (teaser bloccato) ──
+  const sanctEntry = el('div', 'panel santuario-entry-panel');
+  const sanctThumb = document.createElement('img');
+  sanctThumb.src = 'assets/ui/santuario-famigli.jpg';
+  sanctThumb.alt = '';
+  sanctThumb.className = 'camp-panel-thumb santuario-thumb';
+  sanctThumb.onerror = () => sanctThumb.remove();
+  sanctEntry.appendChild(sanctThumb);
+
+  const sanctHead = el('div', 'santuario-entry-head');
+  sanctHead.appendChild(el('h3', 'panel-title santuario-entry-title', '🥚 Il Santuario dei Famigli'));
+  sanctHead.appendChild(el('span', 'santuario-lock-badge', '🔒'));
+  sanctEntry.appendChild(sanctHead);
+
+  sanctEntry.appendChild(el('p', 'muted small santuario-teaser-quote',
+    '«Nelle profondità della Foresta Sussurrante, qualcosa di antico attende di schiudersi. Una missione specifica ti condurrà a lui — se sarai pronto.»'));
+
+  const lockedBtn = el('button', 'btn wide santuario-locked-btn', '🔒 Ancora sigillato');
+  lockedBtn.disabled = true;
+  sanctEntry.appendChild(lockedBtn);
+  c.appendChild(sanctEntry);
 }
 
 /* ── Mappa Infuocata ─────────────────────────────────────────── */
