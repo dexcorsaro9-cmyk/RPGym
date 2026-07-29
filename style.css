@@ -568,7 +568,7 @@ body {
   text-shadow: 0 1px 0 rgba(255,255,255,.4);
 }
 .panel.on-parchment {
-  background: rgba(255, 250, 238, .55);
+  background: rgba(255, 250, 238, .93);
   border-color: rgba(90,61,36,.55);
   box-shadow: 0 2px 10px rgba(0,0,0,.2);
   backdrop-filter: blur(2px);
@@ -756,7 +756,7 @@ body {
 }
 .panel.on-parchment {
   background-image: none;
-  background-color: rgba(255, 250, 238, .55);
+  background-color: rgba(255, 250, 238, .93);
 }
 
 /* ── Pannelli: doppio bordo con filo dorato interno ── */
@@ -5264,3 +5264,32 @@ body {
 .in-serra .npc-quote { flex: 1; font-size: .85rem; line-height: 1.4; }
 .panel-title-icon { width: 28px; height: 28px; object-fit: contain; vertical-align: -6px; margin-right: 4px; }
 .loot .item-icon-big[src*="seme-sacchetto"] { filter: drop-shadow(0 4px 6px rgba(0,0,0,.3)); }
+
+/* ── Panel on-parchment: dark theme ── */
+@media (prefers-color-scheme: dark) {
+  .panel.on-parchment {
+    background-color: rgba(22, 14, 6, .92) !important;
+    --ink: #e8d5b0;
+    --ink-light: #c4a470;
+  }
+  .panel.on-parchment .stat-row { border-bottom-color: rgba(200,160,80,.18); }
+  .panel.on-parchment .log-row  { border-bottom-color: rgba(200,160,80,.18); }
+  .panel.on-parchment .week-bar-wrap { background: rgba(255,255,255,.09); }
+  .panel.on-parchment .trophy-locked { border-color: rgba(255,255,255,.14); background: rgba(255,255,255,.03); }
+  .panel.on-parchment .skill-cell { border-color: rgba(255,255,255,.14); }
+}
+:root[data-theme="dark"] .panel.on-parchment {
+  background-color: rgba(22, 14, 6, .92) !important;
+  --ink: #e8d5b0;
+  --ink-light: #c4a470;
+}
+:root[data-theme="dark"] .panel.on-parchment .stat-row { border-bottom-color: rgba(200,160,80,.18); }
+:root[data-theme="dark"] .panel.on-parchment .log-row  { border-bottom-color: rgba(200,160,80,.18); }
+:root[data-theme="dark"] .panel.on-parchment .week-bar-wrap { background: rgba(255,255,255,.09); }
+:root[data-theme="dark"] .panel.on-parchment .trophy-locked { border-color: rgba(255,255,255,.14); background: rgba(255,255,255,.03); }
+:root[data-theme="dark"] .panel.on-parchment .skill-cell { border-color: rgba(255,255,255,.14); }
+:root[data-theme="light"] .panel.on-parchment {
+  background-color: rgba(255, 250, 238, .93) !important;
+  --ink: #3b2a1a;
+  --ink-light: #6b543a;
+}
