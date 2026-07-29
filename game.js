@@ -408,7 +408,7 @@ const RPG = (() => {
       desc: 'Gli alberi sussurrano segreti antichi. Raccogli legname pregiato.',
       reward: { gold: 60, wood: 40, items: 1 } },
     { id: 'santuario', zone: 'Foresta Sussurrante', name: 'Il Santuario Dimenticato',
-      km: 15, minLevel: 1,
+      km: 15, minLevel: 9,
       desc: 'L\'Orda vuole corrompere il Santuario delle creature magiche. Arriva prima tu!',
       reward: { gold: 100, unlocks: 'companion', card: 'card_lupo' } },
     { id: 'miniera',   zone: 'Foresta Sussurrante', name: 'La Miniera dei Goblin',
