@@ -3696,7 +3696,8 @@ body {
 /* ── Pozione del Giorno ─────────────────────────────────── */
 /* ── Pozione del Giorno ── */
 .potion-day-panel {
-  display: block;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   border-radius: 12px;
   margin-bottom: 14px;
@@ -3704,28 +3705,47 @@ body {
   box-shadow: 0 4px 16px rgba(0,0,0,.4);
   background: url('assets/ui/pergamena-card.jpg') center/cover no-repeat;
 }
+.potion-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px 6px;
+  background: rgba(0,0,0,.25);
+  border-bottom: 1px solid rgba(255,200,100,.25);
+}
+.potion-station-img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.potion-title {
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: #3b1a00;
+  text-shadow: 0 1px 0 rgba(255,220,120,.5);
+  line-height: 1.2;
+}
 .potion-content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 16px 28px 20px;
-  gap: 8px;
+  padding: 10px 20px 18px;
+  gap: 4px;
   width: 100%;
 }
-.potion-station-img {
-  width: 38%;
-  max-width: 140px;
-  object-fit: contain;
-}
 .potion-bottle-img {
-  width: 110px; height: 110px;
+  width: 140px;
+  height: 140px;
   object-fit: contain;
+  margin-bottom: 2px;
 }
 .potion-name {
   font-weight: 700;
   font-size: 1.15rem;
   color: #3b2000;
   text-align: center;
+  margin-top: 0;
 }
 .potion-desc {
   font-size: .92rem;
@@ -3740,7 +3760,7 @@ body {
 }
 .potion-content .btn {
   width: 100%;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 /* ── Mercante Itinerante ─────────────────────────────────── */

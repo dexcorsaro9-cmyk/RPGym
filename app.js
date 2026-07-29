@@ -1787,14 +1787,18 @@ function renderMap(c) {
 
     const pp = el('div', 'potion-day-panel');
 
-    // contenuto centrato sopra la pergamena
-    const content = el('div', 'potion-content');
-
+    // header: pentolone sx + titolo
+    const header = el('div', 'potion-header');
     const station = document.createElement('img');
     station.src = 'assets/ui/pozione-del-giorno.jpg';
     station.className = 'potion-station-img';
     station.alt = '';
-    content.appendChild(station);
+    header.appendChild(station);
+    header.appendChild(el('span', 'potion-title', '⚗️ Pozione del Giorno'));
+    pp.appendChild(header);
+
+    // contenuto centrato sopra la pergamena
+    const content = el('div', 'potion-content');
 
     const bottle = document.createElement('img');
     bottle.src = 'assets/ui/pozione.jpg';
