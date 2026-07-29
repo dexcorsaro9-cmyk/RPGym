@@ -3333,8 +3333,8 @@ body {
   object-fit: cover; display: block;
   transition: filter .3s;
 }
-.tm-medal.locked  img { filter: grayscale(1) brightness(.5); }
-.tm-medal.claimed img { filter: grayscale(.4) brightness(.6); }
+.tm-medal.locked  img { filter: grayscale(.85) brightness(.75); }
+.tm-medal.claimed img { filter: grayscale(.3) brightness(.7); }
 .tm-medal.done        { box-shadow: 0 0 18px rgba(232,182,76,.65), 0 3px 12px rgba(0,0,0,.55); }
 
 /* badge nell'angolo del wrapper (non clippato da overflow:hidden del cerchio) */
@@ -3366,7 +3366,7 @@ body {
 .tm-segment-mask {
   position: absolute;
   top: 0; right: 0; bottom: 0;
-  background: rgba(8,4,0,.75);
+  background: linear-gradient(to right, transparent 0%, rgba(8,4,0,.82) 18%, rgba(8,4,0,.82) 100%);
   transition: width .5s ease;
 }
 
