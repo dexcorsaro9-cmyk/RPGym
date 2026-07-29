@@ -1098,7 +1098,7 @@ function renderCamp(c) {
     const dangerCount  = HERO.greenhouse.pots.filter(p => p.status === 'growing' && p.health < 40).length;
     const gp = el('div', readyCount ? 'panel panel-featured' : 'panel');
     const serraThumb = document.createElement('img');
-    serraThumb.src = 'assets/ui/rifugio/serra.jpg';
+    serraThumb.src = 'assets/minigames/serra/SERRA.jpg';
     serraThumb.alt = '';
     serraThumb.className = 'camp-panel-thumb';
     gp.appendChild(serraThumb);
@@ -1971,7 +1971,7 @@ function renderMap(c) {
   const pt = pvpTitle(pvpWins);
   const pvpEntry = el('div', 'panel pantheon-entry-panel');
   const pantheonThumb = document.createElement('img');
-  pantheonThumb.src = 'assets/ui/pantheon.jpg';
+  pantheonThumb.src = 'assets/ui/pantheon-header.jpg';
   pantheonThumb.alt = '';
   pantheonThumb.className = 'camp-panel-thumb';
   pvpEntry.appendChild(pantheonThumb);
