@@ -1585,8 +1585,8 @@ function renderMap(c) {
   const slug = RPG.biomeSlug(biome);
   if (slug) {
     const bg = new Image();
-    bg.onload = () => { hdr.style.backgroundImage = `linear-gradient(180deg, rgba(28,18,9,.25), rgba(28,18,9,.85)), url('assets/biomi/${slug}.png')`; hdr.classList.add('has-diorama'); };
-    bg.src = `assets/biomi/${slug}.png`;
+    bg.onload = () => { hdr.style.backgroundImage = `linear-gradient(180deg, rgba(28,18,9,.25), rgba(28,18,9,.85)), url('assets/biomi/${slug}.jpg')`; hdr.classList.add('has-diorama'); };
+    bg.src = `assets/biomi/${slug}.jpg`;
   }
   c.appendChild(hdr);
 
@@ -2477,7 +2477,7 @@ function renderAtlasView(c) {
     const card = el('div', cls);
     if (open && slug) {
       const bg = el('img', 'bac-bg');
-      bg.src = `assets/biomi/${slug}.png`;
+      bg.src = `assets/biomi/${slug}.jpg`;
       bg.alt = '';
       bg.loading = 'lazy';
       card.appendChild(bg);
@@ -5126,7 +5126,7 @@ function showBiomePreview(b, open) {
   }
   const slug = RPG.biomeSlug(b);
   const figHtml = slug
-    ? `<img class="preview-diorama${open ? '' : ' locked-diorama'}" src="assets/biomi/${slug}.png" onerror="this.outerHTML='<p class=&quot;center&quot; style=&quot;font-size:3rem&quot;>${b.icon}</p>'">`
+    ? `<img class="preview-diorama${open ? '' : ' locked-diorama'}" src="assets/biomi/${slug}.jpg" onerror="this.outerHTML='<p class=&quot;center&quot; style=&quot;font-size:3rem&quot;>${b.icon}</p>'">`
     : `<p class="center" style="font-size:3rem">${b.icon}</p>`;
   modal(`
     ${figHtml}
