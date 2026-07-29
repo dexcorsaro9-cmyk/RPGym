@@ -3353,16 +3353,28 @@ body {
   flex: 1;
   height: 30px;
   position: relative;
-  overflow: hidden;
-  border-radius: 2px;
+  overflow: visible;
   z-index: 1;
 }
 .tm-segment img {
   width: 100%; height: 100%;
   object-fit: cover; object-position: center;
   display: block;
+  border-radius: 2px;
 }
 .tm-segment-mask { display: none; }
+
+/* bandierina posizione corrente */
+.tm-flag {
+  position: absolute;
+  top: -14px;
+  transform: translateX(-50%);
+  font-size: 1.3rem;
+  line-height: 1;
+  z-index: 10;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 4px rgba(0,0,0,.7));
+}
 
 /* riga etichette: 3 colonne allineate ai medaglioni */
 .tm-labels {

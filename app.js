@@ -1721,17 +1721,20 @@ function renderMap(c) {
       if (i < TIERS.length - 1) {
         const fromKm = tier.km;
         const toKm = TIERS[i + 1].km;
-        const segPct = Math.min(100, Math.max(0,
-          Math.round((progressKm - fromKm) / (toKm - fromKm) * 100)
-        ));
         const seg = el('div', 'tm-segment');
         const sImg = document.createElement('img');
         sImg.src = 'assets/map/sentiero.png';
         sImg.alt = '';
         seg.appendChild(sImg);
-        const mask = el('div', 'tm-segment-mask');
-        mask.style.width = (100 - segPct) + '%';
-        seg.appendChild(mask);
+
+        // bandierina di posizione corrente nel segmento attivo
+        if (progressKm >= fromKm && progressKm < toKm) {
+          const flagPct = (progressKm - fromKm) / (toKm - fromKm) * 100;
+          const flag = el('div', 'tm-flag', '🚩');
+          flag.style.left = flagPct + '%';
+          seg.appendChild(flag);
+        }
+
         track.appendChild(seg);
       }
     });
