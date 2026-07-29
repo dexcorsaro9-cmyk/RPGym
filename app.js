@@ -2371,15 +2371,12 @@ function _buildPvpActive(container, ch, refresh) {
 let MAP_VIEW = 'main';
 
 function renderAvampostoView(c) {
-  const back = el('button', 'btn btn-small avamposto-back-btn', '← Mappa');
-  back.addEventListener('click', () => { MAP_VIEW = 'main'; setTab('map'); });
-  c.appendChild(back);
-
-  const hdr = el('div', 'avamposto-header');
-  hdr.innerHTML = `<div class="avamposto-header-icon">🏕️</div>
-    <div><h2 class="section-title" style="margin:0">Avamposto delle Spedizioni</h2>
-    <div class="muted small">Scegli la tua destinazione e parti</div></div>`;
-  c.appendChild(hdr);
+  const banner = el('div', 'subview-hero-banner avamposto-hero-banner');
+  const backBtn = el('button', 'btn btn-small subview-back-btn', '← Mappa');
+  backBtn.addEventListener('click', () => { MAP_VIEW = 'main'; setTab('map'); });
+  banner.appendChild(backBtn);
+  banner.appendChild(el('h2', 'section-title subview-banner-title', '🏕️ Avamposto delle Spedizioni'));
+  c.appendChild(banner);
 
   // Missione attiva
   if (HERO.activeMission) {
@@ -2452,18 +2449,12 @@ function renderAvampostoView(c) {
 }
 
 function renderPantheonView(c) {
-  const back = el('button', 'btn btn-small pantheon-back-btn', '← Mappa');
-  back.addEventListener('click', () => { MAP_VIEW = 'main'; setTab('map'); });
-  c.appendChild(back);
-
-  const hdr = el('div', 'pantheon-header');
-  hdr.innerHTML = `
-    <div class="pantheon-header-icon">🏛️</div>
-    <div>
-      <h2 class="section-title pantheon-title" style="margin:0">Il Pantheon dei Campioni</h2>
-      <div class="muted small">Dove gli eroi si misurano e la gloria è eterna</div>
-    </div>`;
-  c.appendChild(hdr);
+  const banner = el('div', 'subview-hero-banner pantheon-hero-banner');
+  const backBtn = el('button', 'btn btn-small subview-back-btn', '← Mappa');
+  backBtn.addEventListener('click', () => { MAP_VIEW = 'main'; setTab('map'); });
+  banner.appendChild(backBtn);
+  banner.appendChild(el('h2', 'section-title subview-banner-title pantheon-title', '🏛️ Il Pantheon dei Campioni'));
+  c.appendChild(banner);
 
   c.appendChild(_renderLeaderboardPanel());
   c.appendChild(_renderRivalsPanel());

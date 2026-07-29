@@ -2358,28 +2358,56 @@ body {
   border-radius: 20px; padding: 1px 8px; color: #7b3fbf;
 }
 
+/* ── Shared subview hero banner (Avamposto, Pantheon, …) ── */
+.subview-hero-banner {
+  width: 100%; height: 140px;
+  border-radius: 12px;
+  margin-bottom: 14px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: #1a1008 center/cover no-repeat;
+}
+.subview-hero-banner::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom,
+    rgba(0,0,0,.08) 0%,
+    rgba(0,0,0,.60) 55%,
+    rgba(0,0,0,.85) 100%);
+  pointer-events: none;
+}
+.subview-back-btn {
+  position: relative; z-index: 1;
+  background: rgba(0,0,0,.55) !important;
+  color: #fff !important;
+  border-color: rgba(255,255,255,.25) !important;
+  align-self: flex-start;
+}
+.subview-banner-title {
+  position: relative; z-index: 1;
+  color: #fff !important;
+  text-shadow: 0 2px 8px rgba(0,0,0,.8);
+  margin: 0;
+}
+
 /* ── Avamposto delle Spedizioni ── */
 .avamposto-entry-panel { border-color: #8a6a30 !important; }
-.avamposto-back-btn { margin-bottom: 12px; }
-.avamposto-header {
-  display: flex; align-items: center; gap: 14px;
-  background: linear-gradient(135deg, rgba(138,106,48,.15), rgba(80,55,15,.08));
-  border: 1px solid rgba(138,106,48,.35);
-  border-radius: 14px; padding: 14px 16px;
-  margin-bottom: 16px;
+.avamposto-hero-banner {
+  background-image: url('assets/ui/avamposto-header.jpg');
+  background-position: center 30%;
 }
-.avamposto-header-icon { font-size: 2.4rem; flex-shrink: 0; }
 
-.pantheon-back-btn { margin-bottom: 12px; }
-.pantheon-header {
-  display: flex; align-items: center; gap: 14px;
-  background: linear-gradient(135deg, rgba(123,63,191,.15), rgba(60,20,100,.08));
-  border: 1px solid rgba(123,63,191,.35);
-  border-radius: 14px; padding: 14px 16px;
-  margin-bottom: 16px;
+/* ── Pantheon dei Campioni ── */
+.pantheon-hero-banner {
+  background-image: url('assets/ui/pantheon-header.jpg');
+  background-position: center 40%;
 }
-.pantheon-header-icon { font-size: 2.4rem; flex-shrink: 0; }
-.pantheon-title { color: #c09af0 !important; }
+
+.pantheon-title { color: #fff !important; }
 
 .clipboard-sync-banner {
   position: fixed; bottom: calc(72px + env(safe-area-inset-bottom)); left: 12px; right: 12px;
