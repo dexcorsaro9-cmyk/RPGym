@@ -1794,7 +1794,7 @@ function renderMap(c) {
     station.className = 'potion-station-img';
     station.alt = '';
     header.appendChild(station);
-    header.appendChild(el('span', 'potion-title', '⚗️ Pozione del Giorno'));
+    header.appendChild(el('span', 'potion-title', 'Pozione del Giorno'));
     pp.appendChild(header);
 
     // contenuto centrato sopra la pergamena
