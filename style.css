@@ -5271,7 +5271,10 @@ body {
     background-color: rgba(22, 14, 6, .92) !important;
     --ink: #e8d5b0;
     --ink-light: #c4a470;
+    color: #e8d5b0;
   }
+  .panel.on-parchment .muted,
+  .panel.on-parchment .small { color: #c4a470; }
   .panel.on-parchment .stat-row { border-bottom-color: rgba(200,160,80,.18); }
   .panel.on-parchment .log-row  { border-bottom-color: rgba(200,160,80,.18); }
   .panel.on-parchment .week-bar-wrap { background: rgba(255,255,255,.09); }
@@ -5282,7 +5285,10 @@ body {
   background-color: rgba(22, 14, 6, .92) !important;
   --ink: #e8d5b0;
   --ink-light: #c4a470;
+  color: #e8d5b0;
 }
+:root[data-theme="dark"] .panel.on-parchment .muted,
+:root[data-theme="dark"] .panel.on-parchment .small { color: #c4a470; }
 :root[data-theme="dark"] .panel.on-parchment .stat-row { border-bottom-color: rgba(200,160,80,.18); }
 :root[data-theme="dark"] .panel.on-parchment .log-row  { border-bottom-color: rgba(200,160,80,.18); }
 :root[data-theme="dark"] .panel.on-parchment .week-bar-wrap { background: rgba(255,255,255,.09); }
@@ -5292,4 +5298,5 @@ body {
   background-color: rgba(255, 250, 238, .93) !important;
   --ink: #3b2a1a;
   --ink-light: #6b543a;
+  color: #3b2a1a;
 }
