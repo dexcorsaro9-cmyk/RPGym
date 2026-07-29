@@ -2712,7 +2712,7 @@ function renderTrain(c) {
     if (km < 0.05) { toast(`${steps} passi (${km} km) — troppo pochi.`); sssInput.value = ''; return; }
     const report = RPG.logHealthSync(HERO, chosen, km);
     sssInput.value = '';
-    if (report) { persist(); renderHUD(); showHealthSyncResult(report); }
+    if (report) { persist(); renderHUD(); showHealthSyncResult(report); checkMapNotify(); }
     else toast('Attività già sincronizzata per oggi.');
   };
   sssInput.addEventListener('paste', () => setTimeout(applySss, 150));
@@ -2953,6 +2953,7 @@ function renderShortcutPanel() {
     persist(); renderHUD();
     sfx(report.levelsGained.length ? 'level' : 'coin');
     showHealthSyncResult(report);
+    checkMapNotify();
   });
   manualBody.appendChild(syncBtn);
 
@@ -4556,14 +4557,16 @@ function nextOpening() {
 async function setupNotifications() {
   if (!('Notification' in window) || !HERO) return;
   checkAndNotify();
+  checkMapNotify();
   checkPvpNotify();
+  scheduleSmartNotifications();
   // Il permesso viene chiesto dopo il primo allenamento (non all'avvio)
   // Eccezione: utenti che hanno già km ma non hanno mai risposto
   if (Notification.permission === 'default' && !HERO.notifAsked && (HERO.totalKm || 0) > 0) {
     setTimeout(async () => {
       const perm = await Notification.requestPermission();
       HERO.notifAsked = true; persist();
-      if (perm === 'granted') { checkAndNotify(); checkPvpNotify(); }
+      if (perm === 'granted') { checkAndNotify(); checkMapNotify(); checkPvpNotify(); scheduleSmartNotifications(); }
     }, 4000);
   }
 }
@@ -4573,8 +4576,65 @@ function askNotifPermissionAfterWorkout() {
   setTimeout(async () => {
     const perm = await Notification.requestPermission();
     HERO.notifAsked = true; persist();
-    if (perm === 'granted') { checkAndNotify(); checkPvpNotify(); }
+    if (perm === 'granted') { checkAndNotify(); checkMapNotify(); checkPvpNotify(); scheduleSmartNotifications(); }
   }, 3500);
+}
+
+/* ── Notifiche schedulate (Phase 1 — locali via setTimeout) ── */
+function scheduleSmartNotifications() {
+  if (Notification.permission !== 'granted' || !HERO) return;
+  const today = todayISO();
+  // Evita di riSchedulare se l'app viene riaperta più volte nella stessa giornata
+  const schedKey = 'notif_sched_' + today;
+  if (localStorage.getItem(schedKey)) return;
+  localStorage.setItem(schedKey, '1');
+
+  // Pulisce chiavi di schedulazione dei giorni precedenti
+  for (const k of Object.keys(localStorage)) {
+    if (k.startsWith('notif_sched_') && k !== schedKey) localStorage.removeItem(k);
+  }
+
+  function scheduleAt(hour, min, fn) {
+    const now = new Date();
+    const fire = new Date();
+    fire.setHours(hour, min, 0, 0);
+    const delay = fire - now;
+    if (delay > 0) setTimeout(fn, delay);
+  }
+
+  // ① Pozione del Giorno — alle 19:00 se non ancora riscattata
+  scheduleAt(19, 0, () => {
+    const already = HERO.dailyPotion && HERO.dailyPotion.claimedDate === todayISO();
+    if (!already)
+      showNotif('⚗️ Pozione non riscattata!',
+        'La Pozione del Giorno ti aspetta — riscattala prima di mezzanotte!',
+        'potion_unclaimed_' + todayISO());
+  });
+
+  // ② Arena — alle 22:00 se restano sfide inutilizzate
+  scheduleAt(22, 0, () => {
+    const left = RPG.battlesLeft(HERO);
+    if (left > 0)
+      showNotif("⚔️ L'Arena chiude tra 2 ore!",
+        `Ti restano ancora ${left} sfide oggi — non sprecarle!`,
+        'arena_closing_' + todayISO());
+  });
+}
+
+/* ③ Mappa del Tesoro — controllo immediato: sei vicino a una tappa? */
+function checkMapNotify() {
+  if (Notification.permission !== 'granted' || !HERO) return;
+  const tmStatus = RPG.treasureMapStatus(HERO);
+  if (!tmStatus) return;
+  const { progressKm, claimed } = tmStatus;
+  const TIERS = RPG.TREASURE_MAP_TIERS;
+  const nextTier = TIERS.find((t, i) => !claimed.includes(i) && progressKm < t.km);
+  if (!nextTier) return;
+  const kmLeft = +(nextTier.km - progressKm).toFixed(1);
+  if (kmLeft > 5) return;
+  showNotif('🗺️ Sei vicino a una tappa!',
+    `Ti mancano solo ${kmLeft} km per il prossimo medaglione. Forza!`,
+    'map_close_' + Math.floor(progressKm * 10));
 }
 
 /* Mostra una notifica tramite service worker (funziona in background su mobile) */
