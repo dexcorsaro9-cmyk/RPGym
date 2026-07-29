@@ -3771,6 +3771,9 @@ const RPG = (() => {
     const today = todayStamp();
     if (!hero.greenhouse) { initGreenhouse(hero); return []; }
     if (hero.greenhouse.lastTick === today) return [];
+    const daysDelta = hero.greenhouse.lastTick
+      ? Math.max(1, Math.round((new Date(today) - new Date(hero.greenhouse.lastTick)) / 86400000))
+      : 1;
 
     rolloverSerraMissions(hero);
 
@@ -3807,7 +3810,7 @@ const RPG = (() => {
 
       const diff = water - pData.water;
       let healthHit = 0;
-      let growth = currentSeason().id === 'primavera' ? 2 : 1;
+      let growthPerDay = currentSeason().id === 'primavera' ? 2 : 1;
 
       if (diff >= -0.5 && diff <= 1.0) {
         pot.health = Math.min(100, pot.health + 10);
@@ -3823,13 +3826,13 @@ const RPG = (() => {
       } else {
         // Eccesso
         if      (pData.trait === 'rinfrescante' && water > 5) healthHit = 100;
-        else if (pData.trait === 'fotosintesi'  && water >= 10) { growth = 2; healthHit = 0; }
+        else if (pData.trait === 'fotosintesi'  && water >= 10) { growthPerDay = 2; healthHit = 0; }
         else { healthHit = Math.round(15 + diff * 5); }
       }
 
-      pot.health = Math.max(0, pot.health - healthHit);
+      pot.health = Math.max(0, pot.health - healthHit * daysDelta);
       if (pot.health < 90) allHealthy = false;
-      pot.daysGrown += growth;
+      pot.daysGrown += growthPerDay * daysDelta;
       pot.water = 0;
 
       if (pot.health <= 0) {
@@ -3930,7 +3933,7 @@ const RPG = (() => {
     const pot = hero.greenhouse.pots[potIndex];
     if (!pot || pot.status !== 'empty') return 'Vaso non disponibile.';
     if (!PLANTS[seedId]) return 'Seme sconosciuto.';
-    pot.status = 'growing'; pot.seedId = seedId; pot.daysGrown = 0; pot.health = 100; pot.water = 0; pot.readyDays = 0;
+    pot.status = 'growing'; pot.seedId = seedId; pot.daysGrown = 0; pot.health = 100; pot.water = 0; pot.readyDays = 0; pot.plantedAt = Date.now();
     // Missione: riempi vasi
     const wm = hero.greenhouse && hero.greenhouse.weeklyMissions;
     if (wm) {

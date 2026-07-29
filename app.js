@@ -5341,6 +5341,16 @@ setInterval(() => {
   });
 }, 1000);
 
+/* Rollover automatico se l'app resta aperta a cavallo della mezzanotte */
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible' || !HERO) return;
+  const serraLogs = RPG.rolloverGreenhouse(HERO);
+  RPG.rolloverIncursion(HERO);
+  if (serraLogs && serraLogs.length) { persist(); renderHUD(); }
+  else if (HERO.greenhouse && HERO.greenhouse.lastTick === todayISO()) { /* già aggiornato */ }
+  else { persist(); renderHUD(); }
+});
+
 /* ── Anteprima dei biomi (anche bloccati: hype!) ── */
 function showBiomePreview(b, open) {
   const enemies = RPG.BESTIARY.filter(x => x.zone === b.name);
