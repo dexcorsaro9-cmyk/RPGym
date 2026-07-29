@@ -3996,11 +3996,12 @@ function _settingsNotifPanel() {
 function _settingsRefreshPanel() {
   const p = el('div', 'panel shortcut-panel');
   p.appendChild(el('h3', 'panel-title', '🔄 Aggiornamenti'));
-  p.appendChild(el('p', 'guide-text', 'Se il gioco non mostra le ultime novità, forza il refresh per scaricare la versione più recente.'));
-  const btn = el('button', 'btn btn-primary', '🔄 Forza aggiornamento');
-  btn.addEventListener('click', async () => {
-    btn.disabled = true;
-    btn.textContent = 'Aggiornamento in corso…';
+  p.appendChild(el('p', 'guide-text', 'Se il gioco non mostra le ultime novità, svuota la cache per scaricare tutto da capo.'));
+
+  const clearBtn = el('button', 'btn btn-primary', '🗑️ Svuota cache e ricarica');
+  clearBtn.addEventListener('click', async () => {
+    clearBtn.disabled = true;
+    clearBtn.textContent = '⏳ Pulizia in corso…';
     try {
       if ('serviceWorker' in navigator) {
         const reg = await navigator.serviceWorker.getRegistration();
@@ -4011,7 +4012,7 @@ function _settingsRefreshPanel() {
       location.reload(true);
     } catch { location.reload(true); }
   });
-  p.appendChild(btn);
+  p.appendChild(clearBtn);
   return p;
 }
 
