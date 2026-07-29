@@ -1785,29 +1785,15 @@ function renderMap(c) {
     const already = HERO.dailyPotion && HERO.dailyPotion.claimedDate === todayISO();
     const used = already && HERO.dailyPotion.used;
 
-    // titolo sezione sopra la pergamena
-    const sectionHdr = el('div', 'potion-section-header');
-    sectionHdr.appendChild(el('span', 'potion-title', '⚗️ Pozione del Giorno'));
-    c.appendChild(sectionHdr);
-
     const pp = el('div', 'potion-day-panel');
-
-    // contenuto dentro la pergamena
-    const content = el('div', 'potion-content');
-
-    const bottle = document.createElement('img');
-    bottle.src = 'assets/ui/pozione.jpg';
-    bottle.className = 'potion-bottle-img';
-    bottle.alt = '';
-    content.appendChild(bottle);
-
-    content.appendChild(el('div', 'potion-name', potion.name));
-    content.appendChild(el('div', 'potion-desc', potion.desc));
+    pp.appendChild(el('div', 'potion-header-label', `⚗️ Pozione del Giorno`));
+    pp.appendChild(el('div', 'potion-name', `${potion.icon} ${potion.name}`));
+    pp.appendChild(el('div', 'potion-desc', potion.desc));
 
     if (used) {
-      content.appendChild(el('div', 'potion-claimed-note', '✅ Pozione usata oggi'));
+      pp.appendChild(el('div', 'potion-claimed-note', '✅ Pozione usata oggi'));
     } else if (already) {
-      content.appendChild(el('div', 'potion-claimed-note', `${potion.icon} Riscattata · si attiva al prossimo allenamento`));
+      pp.appendChild(el('div', 'potion-claimed-note', `${potion.icon} Riscattata · si attiva al prossimo allenamento`));
     } else {
       const btn = el('button', 'btn btn-primary wide', `${potion.icon} Riscuoti pozione`);
       btn.addEventListener('click', () => {
@@ -1817,9 +1803,8 @@ function renderMap(c) {
         vibrate([60, 30, 100]);
         setTab('camp');
       });
-      content.appendChild(btn);
+      pp.appendChild(btn);
     }
-    pp.appendChild(content);
     c.appendChild(pp);
   }
 
