@@ -3696,8 +3696,6 @@ body {
 /* ── Pozione del Giorno ─────────────────────────────────── */
 /* ── Pozione del Giorno ── */
 .potion-day-panel {
-  background: var(--card);
-  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 14px 16px 16px;
   margin-bottom: 14px;

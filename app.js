@@ -1785,7 +1785,7 @@ function renderMap(c) {
     const already = HERO.dailyPotion && HERO.dailyPotion.claimedDate === todayISO();
     const used = already && HERO.dailyPotion.used;
 
-    const pp = el('div', 'potion-day-panel');
+    const pp = el('div', 'potion-day-panel panel');
     pp.appendChild(el('div', 'potion-header-label', `⚗️ Pozione del Giorno`));
     pp.appendChild(el('div', 'potion-name', `${potion.icon} ${potion.name}`));
     pp.appendChild(el('div', 'potion-desc', potion.desc));
