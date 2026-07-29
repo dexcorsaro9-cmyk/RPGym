@@ -1785,14 +1785,9 @@ function renderMap(c) {
     const already = HERO.dailyPotion && HERO.dailyPotion.claimedDate === todayISO();
     const used = already && HERO.dailyPotion.used;
 
-    // titolo sezione sopra la pergamena (non dentro il panel)
+    // titolo sezione sopra la pergamena
     const sectionHdr = el('div', 'potion-section-header');
-    const station = document.createElement('img');
-    station.src = 'assets/ui/pozione-del-giorno.jpg';
-    station.className = 'potion-station-img';
-    station.alt = '';
-    sectionHdr.appendChild(station);
-    sectionHdr.appendChild(el('span', 'potion-title', 'Pozione del Giorno'));
+    sectionHdr.appendChild(el('span', 'potion-title', '⚗️ Pozione del Giorno'));
     c.appendChild(sectionHdr);
 
     const pp = el('div', 'potion-day-panel');

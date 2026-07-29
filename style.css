@@ -3703,7 +3703,8 @@ body {
   margin-bottom: 14px;
   overflow: hidden;
   box-shadow: 0 4px 16px rgba(0,0,0,.4);
-  background: url('assets/ui/pergamena-card.jpg') center/cover no-repeat;
+  background: url('assets/ui/pergamena-card.jpg') no-repeat;
+  background-size: 100% 100%;
 }
 .potion-section-header {
   display: flex;
