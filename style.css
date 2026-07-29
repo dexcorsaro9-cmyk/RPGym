@@ -5162,29 +5162,40 @@ body {
 
 /* Missioni Serra settimanali */
 .serra-missions-panel {
-  background: var(--surface2);
-  border: 1px solid var(--border);
+  background: rgba(90,61,36,.08);
+  border: 2px solid var(--leather);
   border-radius: 12px;
   padding: 14px 12px;
   margin: 14px 0 4px;
 }
 .serra-mission-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: rgba(239,224,195,.75);
+  border: 1.5px solid var(--parchment-dark);
   border-radius: 10px;
   padding: 10px 12px;
   margin-bottom: 10px;
+  color: var(--ink);
 }
-.serra-mission-card.done   { border-color: var(--emerald); }
+.serra-mission-card.done   { border-color: #3a8c5c; background: rgba(58,140,92,.1); }
 .serra-mission-card.claimed { opacity: .6; }
-.sm-label  { font-weight: 700; font-size: .85rem; margin-bottom: 2px; }
-.sm-desc   { margin-bottom: 6px; }
-.sm-progress-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-.sm-bar    { flex: 1; height: 6px; background: rgba(0,0,0,.4); border-radius: 3px; overflow: hidden; }
-.sm-fill   { height: 100%; background: var(--emerald); border-radius: 3px; transition: width .4s; }
-.sm-fraction { font-size: .72rem; white-space: nowrap; color: var(--ink-light); }
-.sm-reward { margin-bottom: 6px; }
-.sm-claimed-badge { font-size: .75rem; font-weight: 700; color: var(--emerald); margin-top: 4px; }
+.sm-label  { font-weight: 700; font-size: .9rem; margin-bottom: 3px; color: var(--ink); }
+.sm-desc   { margin-bottom: 6px; color: var(--ink-light); }
+.sm-progress-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.sm-bar    { flex: 1; height: 8px; background: rgba(90,61,36,.2); border-radius: 4px; overflow: hidden; }
+.sm-fill   { height: 100%; background: #3a8c5c; border-radius: 4px; transition: width .4s; }
+.sm-fraction { font-size: .75rem; white-space: nowrap; color: var(--ink-light); font-weight: 600; }
+.sm-reward { margin-bottom: 6px; font-size: .8rem; color: var(--ink-light); }
+.sm-claimed-badge { font-size: .75rem; font-weight: 700; color: #3a8c5c; margin-top: 4px; }
+
+@media (prefers-color-scheme: dark) {
+  .serra-missions-panel { background: rgba(0,0,0,.35); border-color: #7a6040; }
+  .serra-mission-card { background: rgba(50,35,20,.7); border-color: #6a5030; color: #e8d5b0; }
+  .serra-mission-card.done { background: rgba(58,140,92,.15); border-color: #3a8c5c; }
+  .sm-label { color: #e8d5b0; }
+  .sm-desc, .sm-reward { color: #a08060; }
+  .sm-fraction { color: #a08060; }
+  .sm-bar { background: rgba(255,255,255,.1); }
+}
 .pot-emoji.glow .pot-img { filter: drop-shadow(0 0 8px var(--gold-bright)); }
 .water-tank-img { width: 48px; height: 48px; object-fit: contain; flex-shrink: 0; }
 
