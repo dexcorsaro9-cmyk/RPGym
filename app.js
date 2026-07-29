@@ -1785,19 +1785,19 @@ function renderMap(c) {
     const already = HERO.dailyPotion && HERO.dailyPotion.claimedDate === todayISO();
     const used = already && HERO.dailyPotion.used;
 
-    const pp = el('div', 'potion-day-panel');
-
-    // header: pentolone sx + titolo
-    const header = el('div', 'potion-header');
+    // titolo sezione sopra la pergamena (non dentro il panel)
+    const sectionHdr = el('div', 'potion-section-header');
     const station = document.createElement('img');
     station.src = 'assets/ui/pozione-del-giorno.jpg';
     station.className = 'potion-station-img';
     station.alt = '';
-    header.appendChild(station);
-    header.appendChild(el('span', 'potion-title', 'Pozione del Giorno'));
-    pp.appendChild(header);
+    sectionHdr.appendChild(station);
+    sectionHdr.appendChild(el('span', 'potion-title', 'Pozione del Giorno'));
+    c.appendChild(sectionHdr);
 
-    // contenuto centrato sopra la pergamena
+    const pp = el('div', 'potion-day-panel');
+
+    // contenuto dentro la pergamena
     const content = el('div', 'potion-content');
 
     const bottle = document.createElement('img');

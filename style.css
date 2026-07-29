@@ -3705,25 +3705,24 @@ body {
   box-shadow: 0 4px 16px rgba(0,0,0,.4);
   background: url('assets/ui/pergamena-card.jpg') center/cover no-repeat;
 }
-.potion-header {
+.potion-section-header {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 16px 6px;
-  background: rgba(0,0,0,.25);
-  border-bottom: 1px solid rgba(255,200,100,.25);
+  padding: 0 2px 8px;
 }
 .potion-station-img {
   width: 48px;
   height: 48px;
-  object-fit: contain;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 8px;
   flex-shrink: 0;
 }
 .potion-title {
   font-weight: 800;
   font-size: 1.1rem;
-  color: #3b1a00;
-  text-shadow: 0 1px 0 rgba(255,220,120,.5);
+  color: var(--text);
   line-height: 1.2;
 }
 .potion-content {
