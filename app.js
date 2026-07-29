@@ -1787,29 +1787,34 @@ function renderMap(c) {
 
     const pp = el('div', 'panel potion-day-panel');
 
-    // stazione calderone in cima
+    // pergamena come img assoluta che copre fisicamente tutto il panel
+    const parchBg = document.createElement('img');
+    parchBg.src = 'assets/ui/pergamena-card.jpg';
+    parchBg.className = 'potion-parchment-bg';
+    parchBg.alt = '';
+    pp.appendChild(parchBg);
+
+    // contenuto sopra la pergamena
+    const content = el('div', 'potion-content');
+
     const station = document.createElement('img');
     station.src = 'assets/ui/pozione-del-giorno.jpg';
     station.className = 'potion-station-img';
     station.alt = '';
-    pp.appendChild(station);
+    content.appendChild(station);
 
-    // bottiglia centrata
     const bottle = document.createElement('img');
     bottle.src = 'assets/ui/pozione.jpg';
     bottle.className = 'potion-bottle-img';
     bottle.alt = '';
-    pp.appendChild(bottle);
+    content.appendChild(bottle);
 
-    // testo centrato
-    const info = el('div', 'potion-info-text');
-    info.innerHTML = `<div class="potion-name">${esc(potion.name)}</div><div class="potion-desc">${esc(potion.desc)}</div>`;
-    pp.appendChild(info);
+    content.innerHTML += `<div class="potion-name">${esc(potion.name)}</div><div class="potion-desc">${esc(potion.desc)}</div>`;
 
     if (used) {
-      pp.appendChild(el('div', 'done-strip', '✅ Pozione usata oggi'));
+      content.appendChild(el('div', 'done-strip', '✅ Pozione usata oggi'));
     } else if (already) {
-      pp.appendChild(el('div', 'potion-claimed-note', `${potion.icon} Riscattata · si attiva al prossimo allenamento`));
+      content.appendChild(el('div', 'potion-claimed-note', `${potion.icon} Riscattata · si attiva al prossimo allenamento`));
     } else {
       const btn = el('button', 'btn btn-primary wide', `${potion.icon} Riscuoti pozione`);
       btn.addEventListener('click', () => {
@@ -1819,8 +1824,9 @@ function renderMap(c) {
         vibrate([60, 30, 100]);
         setTab('camp');
       });
-      pp.appendChild(btn);
+      content.appendChild(btn);
     }
+    pp.appendChild(content);
     c.appendChild(pp);
   }
 
