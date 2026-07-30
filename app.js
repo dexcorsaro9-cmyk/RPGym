@@ -1306,14 +1306,6 @@ function renderCamp(c) {
   seasonEl.addEventListener('click', () => showSeasonModal());
   panorama.appendChild(seasonEl);
 
-  // Descrizione companion/mount — testo sotto
-  const descParts = [];
-  if (HERO.companion && petSpeciesInfo && HERO.pet?.hatched)
-    descParts.push(`${esc(HERO.pet.name)} ${petSpeciesInfo.icon} sonnecchia accanto al fuoco.`);
-  if (HERO.companion && petSpeciesInfo && HERO.pet && !HERO.pet.hatched)
-    descParts.push(`Un uovo di ${petSpeciesInfo.name} si scalda accanto al fuoco.`);
-  if (mount) descParts.push(`${mount.name} riposa nelle vicinanze.`);
-  if (descParts.length) c.appendChild(el('p', 'camp-desc', descParts.join(' ')));
 
   // Avviso Rifugio Danneggiato
   if (HERO.buildingsDamaged && HERO.buildings.length) {
