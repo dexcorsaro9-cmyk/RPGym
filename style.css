@@ -1427,6 +1427,7 @@ body {
   box-shadow: 0 3px 10px rgba(0,0,0,.35);
 }
 .npc-img { height: 84px; max-width: 90px; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,.35)); }
+.npc-banner-lg .npc-img { height: 130px; max-width: 130px; }
 .npc-quote { flex: 1; font-style: italic; color: var(--ink); }
 
 /* ── Talenti di classe ── */

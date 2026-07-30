@@ -2047,11 +2047,13 @@ function renderTavernaView(c) {
   heroImg.onerror = () => heroImg.remove();
   c.appendChild(heroImg);
 
-  c.appendChild(npcBanner(
+  const grukBanner = npcBanner(
     'assets/avatars/npc/locandiere-orco.png',
     'Gruk il Bonaccione',
     '«Il nome è Gruk. Se perdi, paghi. Se vinci, offro io un boccale. Parola di oste.»'
-  ));
+  );
+  grukBanner.classList.add('npc-banner-lg');
+  c.appendChild(grukBanner);
 
   renderMiniGamesHub(c);
 }
