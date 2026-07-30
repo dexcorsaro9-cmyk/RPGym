@@ -899,7 +899,7 @@ body {
   background: #0a1020;
 }
 
-/* Background stage — figlio z:3, sopra il cielo (z:1), dimensioni esplicite */
+/* Background stage — figlio z:3 */
 .camp-bg-img {
   position: absolute;
   top: 0; left: 0;
@@ -909,6 +909,15 @@ body {
   background-repeat: no-repeat;
   z-index: 3;
 }
+
+/* Filtro giorno/notte sull'immagine di sfondo — tutti gli stage */
+.camp-bg-stage-img {
+  transition: filter 4s ease;
+}
+.camp-panorama[data-phase="day"]   .camp-bg-stage-img { filter: brightness(1.0)  saturate(1.0); }
+.camp-panorama[data-phase="dawn"]  .camp-bg-stage-img { filter: brightness(0.82) saturate(0.85) hue-rotate(-12deg); }
+.camp-panorama[data-phase="dusk"]  .camp-bg-stage-img { filter: brightness(0.58) saturate(0.75) hue-rotate(12deg) sepia(0.15); }
+.camp-panorama[data-phase="night"] .camp-bg-stage-img { filter: brightness(0.42) saturate(0.4)  hue-rotate(195deg); }
 
 /* Sky gradient — cambia con data-phase */
 .camp-sky {
@@ -923,7 +932,7 @@ body {
 /* Canvas stelle */
 .camp-stars {
   position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%;
-  z-index: 2; pointer-events: none;
+  z-index: 6; pointer-events: none;
 }
 
 
@@ -985,6 +994,55 @@ img.camp-layer {
   cursor: grabbing !important;
   filter: drop-shadow(0 10px 24px rgba(0,0,0,.85)) brightness(1.12) !important;
   animation: none !important;
+}
+
+/* Tap-to-resize bubble */
+.camp-resize-bubble {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(10, 8, 4, 0.9);
+  border: 1.5px solid rgba(201, 147, 46, 0.65);
+  border-radius: 24px;
+  padding: 5px 10px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 18px rgba(0,0,0,.7);
+  animation: camp-layer-in .18s ease-out both;
+}
+.crb-btn, .crb-close {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  font-size: 1.05rem;
+  flex-shrink: 0;
+}
+.crb-btn {
+  border-color: rgba(201, 147, 46, 0.7);
+  background: rgba(201, 147, 46, 0.15);
+  color: #f0c04a;
+}
+.crb-btn:active { background: rgba(201, 147, 46, 0.4); }
+.crb-close {
+  border-color: rgba(80, 200, 80, 0.7);
+  background: rgba(80, 200, 80, 0.15);
+  color: #6de66d;
+  font-size: .85rem;
+}
+.crb-close:active { background: rgba(80, 200, 80, 0.4); }
+.crb-label {
+  font-size: .72rem;
+  color: rgba(255,255,255,.65);
+  min-width: 28px;
+  text-align: center;
+  user-select: none;
 }
 
 /* Barra hint layout */
