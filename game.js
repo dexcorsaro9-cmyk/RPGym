@@ -363,7 +363,7 @@ const RPG = (() => {
 
   /* Layers che appaiono solo di notte/tramonto — universali per tutti gli stage */
   const CAMP_NIGHT_LAYERS = [
-    { id: 'moon',      left: 75, bottom: 55, width: 12, z: 23 },
+    { id: 'moon',      left: 75, bottom: 72, width: 12, z: 23 },
     { id: 'fire_glow', left: 38, bottom: 2,  width: 24, z: 11 },
   ];
 
