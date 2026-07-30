@@ -847,6 +847,8 @@ const RPG = (() => {
       desc: '+15% Danni contro i Boss in Arena' },
     predone:    { name: 'Bottino da Razzia',          icon: '💰',
       desc: '+25% oro da missioni e forzieri' },
+    principessa_ghiacci: { name: 'Lama del Gelo',    icon: '❄️',
+      desc: '+20% Danni in Arena · le vittorie in Arena danno il 30% di oro in più' },
   };
   function talentOf(hero) { return CLASS_TALENTS[hero.storyId] || null; }
   function isClass(hero, id) { return hero.storyId === id; }
@@ -1950,7 +1952,9 @@ const RPG = (() => {
     h.cloud = h.cloud || { activeChallenge: null };
     h.buildings = h.buildings || [];
     if (h.buildingsDamaged === undefined) h.buildingsDamaged = false;
-    h.fugitiveMerchant = h.fugitiveMerchant || null;
+    h.fugitiveMerchant  = h.fugitiveMerchant  || null;
+    h.merchantBought    = h.merchantBought    || {};
+    h.merchantOffers    = h.merchantOffers    || null;
     h.cloud.claimedChallenges = h.cloud.claimedChallenges || [];
     h.cloud.friends = h.cloud.friends || [];
     h.pvpWins = h.pvpWins || 0;
@@ -2846,6 +2850,7 @@ const RPG = (() => {
       items: [],
       consumable: null,
     };
+    if (isClass(hero, 'principessa_ghiacci')) chest.gold = Math.round(chest.gold * 1.30);
     hero.gold += chest.gold;
     const dropChance = boss ? 0.65 : 0.40;
     const dropBoostActive = hero.consumableBuffs && hero.consumableBuffs.dropBoost && hero.consumableBuffs.dropBoost.expiresAt > Date.now();
@@ -3047,6 +3052,7 @@ const RPG = (() => {
     const out = { dmgBonus: 0, hpBonus: 0 };
     if (isClass(hero, 'paladino')) { out.dmgBonus = Math.round(34 * 0.12); out.hpBonus = Math.round(100 * 0.12); }
     if (isClass(hero, 'regina') && villain && villain.boss) { out.dmgBonus += Math.round(34 * 0.15); }
+    if (isClass(hero, 'principessa_ghiacci')) { out.dmgBonus += Math.round(34 * 0.20); }
     return out;
   }
 
@@ -4179,6 +4185,10 @@ const RPG = (() => {
   function getTravelingMerchant(hero) {
     if (!isMerchantWeekend()) return null;
     const ws = weekStamp();
+    /* Ritorna le offerte già generate questa settimana (stabili) */
+    if (hero.merchantOffers && hero.merchantOffers.weekStamp === ws) {
+      return { weekStamp: ws, offers: hero.merchantOffers.offers };
+    }
     const seed = dateSeed(ws + '-merchant');
     const slots = Object.keys(SLOTS);
     const rarityKeys = Object.keys(RARITIES);
@@ -4194,7 +4204,14 @@ const RPG = (() => {
       const baseVal = RARITIES[finalR].value;
       offers.push({ item, price: Math.round(baseVal * 2.5 / 10) * 10 });
     }
+    /* Persiste le offerte nell'eroe così rimangono stabili per tutta la settimana */
+    hero.merchantOffers = { weekStamp: ws, offers };
     return { weekStamp: ws, offers };
+  }
+  function merchantEffectivePrice(hero, basePrice) {
+    const furn = furnitureAggregate(hero);
+    const discount = Math.min(0.6, furn.marketDiscount + skillBonus(hero, 'marketDiscount'));
+    return Math.max(1, Math.round(basePrice * (1 - discount) / 5) * 5);
   }
   function buyFromMerchant(hero, offerIdx) {
     const m = getTravelingMerchant(hero);
@@ -4203,8 +4220,9 @@ const RPG = (() => {
     if (!o) return 'Offerta non trovata.';
     hero.merchantBought = hero.merchantBought || {};
     if (hero.merchantBought[m.weekStamp + '-' + offerIdx]) return 'Hai già acquistato questo oggetto.';
-    if (hero.gold < o.price) return 'Oro insufficiente!';
-    hero.gold -= o.price;
+    const price = merchantEffectivePrice(hero, o.price);
+    if (hero.gold < price) return 'Oro insufficiente!';
+    hero.gold -= price;
     hero.items.push(o.item);
     hero.merchantBought[m.weekStamp + '-' + offerIdx] = true;
     return null;
@@ -4760,7 +4778,7 @@ const RPG = (() => {
     getDailyWeather, WEATHER_TYPES,
     TREASURE_MAP_TIERS, rolloverTreasureMap, treasureMapStatus, claimTreasureTier,
     canPrestige, prestige, getMonthlyRecap, monthStamp,
-    isMerchantWeekend, getTravelingMerchant, buyFromMerchant,
+    isMerchantWeekend, getTravelingMerchant, buyFromMerchant, merchantEffectivePrice,
     SKILL_TREE, skillById, learnSkill, skillBonus, earnSkillPoints,
     LORE_FRAGMENTS, checkLoreUnlock,
     DAILY_POTIONS, getDailyPotion, claimDailyPotion,

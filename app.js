@@ -32,6 +32,7 @@ const AVATARS = [
   { path: 'assets/avatars/principessa.png',       storyId: 'principessa',      label: 'La Principessa Farfallosa' },
   { path: 'assets/avatars/regina.png',            storyId: 'regina',           label: 'La Regina Oscura' },
   { path: 'assets/avatars/predone.png',           storyId: 'predone',          label: 'Il Re dei Predoni' },
+  { path: 'assets/avatars/principessa-ghiacci.png', storyId: 'principessa_ghiacci', label: 'La Principessa dei Ghiacci' },
 ];
 
 /* ── Le storie dei protagonisti ── */
@@ -268,6 +269,28 @@ eroe possiede: sai ESATTAMENTE cosa serve per fermare un mostro fatto della tua
 stessa magia. Il Cavaliere del Drago ha rubato qualcosa che ti appartiene.
 Vuoi indietro l'oscurità — e vuoi indietro Oakhaven.`,
   },
+  principessa_ghiacci: {
+    title: 'La Principessa dei Ghiacci Eterni',
+    text: `Oltre la Vetta Innevata, dove i cartografi scrivono solo "nulla" e si fermano,
+c'è un palazzo di ghiaccio antico quanto il mondo. Non hai mai vissuto altrove: sei
+cresciuta tra corridoi trasparenti che riflettono la luce del sole e la moltiplicano
+in mille frammenti, e hai imparato a leggere le crepe nel ghiaccio come altri leggono
+i libri. Tua madre ti insegnò che il ghiaccio non mente mai: conserva tutto ciò che
+tocca esattamente com'era, senza abbellirlo e senza peggiorarlo.
+La tua spada è stata forgiata da tuo padre con il ghiaccio antico del cuore del
+palazzo — più duro del diamante, più tagliente di qualsiasi lama — e le rune incise
+sul filo cantano quando soffia il vento del nord. L'hai impugnata per la prima volta
+a dodici anni per difendere il palazzo da un branco di lupi ghiacciati; non hai mai
+smesso di tenerla in mano da allora.
+Il Cavaliere del Drago arrivò in un'alba di fiamma. Il fuoco incontrò il ghiaccio e
+perse — ma non prima di spezzare la sigillatura che teneva il palazzo in piedi da
+secoli. Hai visto le mura trasparenti diventare acqua, le torri crollare lentamente
+come lacrime, e tua madre sciogliersi nel caos prima che tu potessi raggiungerla.
+Di lei ti è rimasta solo la corona di ghiaccio vivo che porti — che non si scioglie
+mai, perché il suo amore per te è già diventato qualcosa di più permanente del freddo.
+Ora scendi dalle montagne per la prima volta nella tua vita, e il mondo scoprirà cosa
+succede quando il gelo incontra la determinazione: il fuoco dell'Orda spegnerà se stesso.`,
+  },
   predone: {
     title: 'Il Re dei Predoni',
     text: `Non hai mai chiesto il permesso a nessuno, e non hai intenzione di cominciare
@@ -398,6 +421,7 @@ const AVATAR_LORE = {
   principessa: 'Una corona non si eredita. Si conquista.',
   regina:      'Ha visto crollare regni. Il suo è ancora in piedi.',
   predone:     'Nessuna legge. Nessuna bandiera. Solo la strada e il bottino.',
+  principessa_ghiacci: 'Il ghiaccio non mente. E lei nemmeno.',
 };
 const AVATAR_DIMS = {
   eroe1:{w:417,h:700}, eroe2:{w:535,h:535}, fabbro:{w:535,h:535},
@@ -405,6 +429,7 @@ const AVATAR_DIMS = {
   maga:{w:535,h:535}, paladino:{w:401,h:535}, fata:{w:601,h:700},
   principe:{w:529,h:700}, principessa:{w:542,h:700}, ranger:{w:368,h:700},
   regina:{w:558,h:700},
+  principessa_ghiacci:{w:700,h:700},
 };
 const AVATAR_COLORS = {
   eroe1:       { bg: '#0d2215', glow: '#2e8b57' },
@@ -420,7 +445,8 @@ const AVATAR_COLORS = {
   principe:    { bg: '#1a1008', glow: '#c9882e' },
   principessa: { bg: '#22081a', glow: '#cf5aaf' },
   regina:      { bg: '#0d0218', glow: '#8a30cf' },
-  predone:     { bg: '#1a0e00', glow: '#c97a2e' },
+  predone:                { bg: '#1a0e00', glow: '#c97a2e' },
+  principessa_ghiacci:   { bg: '#071a2e', glow: '#60c8f5' },
 };
 let pickedAvatar = AVATARS[0];
 let createIdx = 0;
@@ -2417,12 +2443,18 @@ function renderMap(c) {
       merchant.offers.forEach((o, i) => {
         const boughtKey = merchant.weekStamp + '-' + i;
         const bought = HERO.merchantBought && HERO.merchantBought[boughtKey];
+        const effectivePrice = RPG.merchantEffectivePrice(HERO, o.price);
+        const hasDiscount = effectivePrice < o.price;
         const row = el('div', 'merchant-offer-row' + (bought ? ' bought' : ''));
         row.innerHTML = `<div class="merchant-offer-info">${itemHtml(o.item)}</div>`;
         if (bought) {
           row.innerHTML += `<span class="done-strip">✅</span>`;
         } else {
-          const btn = el('button', 'btn' + (HERO.gold >= o.price ? ' btn-primary' : ''), `🪙 ${o.price}`);
+          const priceLabel = hasDiscount
+            ? `🪙 <s style="opacity:.5">${o.price}</s> ${effectivePrice}`
+            : `🪙 ${effectivePrice}`;
+          const btn = el('button', 'btn' + (HERO.gold >= effectivePrice ? ' btn-primary' : ''));
+          btn.innerHTML = priceLabel;
           btn.addEventListener('click', () => {
             const err = RPG.buyFromMerchant(HERO, i);
             if (err) { toast(err); return; }
@@ -2600,28 +2632,41 @@ function renderTavernaView(c) {
 }
 
 function renderBiscaView(c) {
+  const wrap = el('div', 'bisca-view-wrap');
+
+  const headerImg = document.createElement('img');
+  headerImg.src = 'assets/ui/bisca-header.jpg';
+  headerImg.className = 'bisca-header-img';
+  headerImg.alt = '';
+  headerImg.onerror = () => headerImg.remove();
+  wrap.appendChild(headerImg);
+
+  const inner = el('div', 'bisca-inner');
+  wrap.appendChild(inner);
+  c.appendChild(wrap);
+
   const backBtn = el('button', 'btn btn-back', '← Torna alla Mappa');
   backBtn.addEventListener('click', () => { MAP_VIEW = 'main'; setTab('map'); });
-  c.appendChild(backBtn);
+  inner.appendChild(backBtn);
 
-  c.appendChild(el('h2', 'bisca-title', '🃏 La Bisca Oscura'));
-  c.appendChild(el('p', 'muted small center bisca-subtitle', '«Scegli il tuo campione. Punta l\'oro. Prega che regga.»'));
+  inner.appendChild(el('h2', 'bisca-title', '🃏 La Bisca Oscura'));
+  inner.appendChild(el('p', 'muted small center bisca-subtitle', '«Scegli il tuo campione. Punta l\'oro. Prega che regga.»'));
 
   RPG.biscaResetIfNeeded(HERO);
   const betsLeft = (HERO.bisca && HERO.bisca.betsLeft !== undefined) ? HERO.bisca.betsLeft : 0;
 
   const goldRow = el('div', 'bisca-gold-row');
   goldRow.innerHTML = `<span>🪙 Oro: <b id="bisca-gold-val">${HERO.gold || 0}</b></span><span class="bisca-bets-left" id="bisca-bets-counter">${betsLeft} / ${RPG.BISCA_DAILY_BETS} scommesse</span>`;
-  c.appendChild(goldRow);
+  inner.appendChild(goldRow);
 
   if (betsLeft <= 0) {
-    c.appendChild(el('div', 'panel bisca-empty', '⛔ Hai esaurito le scommesse di oggi. Torna domani.'));
+    inner.appendChild(el('div', 'panel bisca-empty', '⛔ Hai esaurito le scommesse di oggi. Torna domani.'));
     return;
   }
 
   const fighters = RPG.biscaPickFighters();
   if (!fighters) {
-    c.appendChild(el('div', 'panel bisca-empty', 'Nessun combattente disponibile.'));
+    inner.appendChild(el('div', 'panel bisca-empty', 'Nessun combattente disponibile.'));
     return;
   }
   const { a, b } = fighters;
@@ -2663,7 +2708,7 @@ function renderBiscaView(c) {
   arena.appendChild(cardA);
   arena.appendChild(vsEl);
   arena.appendChild(cardB);
-  c.appendChild(arena);
+  inner.appendChild(arena);
 
   const betPanel = el('div', 'panel bisca-bet-panel');
   betPanel.appendChild(el('div', 'bisca-bet-label', 'Puntata:'));
@@ -2687,11 +2732,11 @@ function renderBiscaView(c) {
   actionRow.appendChild(betABtn);
   actionRow.appendChild(betBBtn);
   betPanel.appendChild(actionRow);
-  c.appendChild(betPanel);
+  inner.appendChild(betPanel);
 
   const resultEl = el('div', 'bisca-result');
   resultEl.style.display = 'none';
-  c.appendChild(resultEl);
+  inner.appendChild(resultEl);
 
   async function placeBet(pick) {
     betABtn.disabled = true;
@@ -2858,7 +2903,7 @@ function pvpTitle(wins) {
 const CLASS_EMOJI = {
   eroe1:'🧑',eroe2:'👩',fabbro:'⚒️',stregone:'🧙',alchimista:'⚗️',
   furfante:'🗡️',maga:'🔮',paladino:'🛡️',ranger:'🏹',fata:'🧚',
-  principe:'🦅',principessa:'🦋',regina:'👑',predone:'💀',
+  principe:'🦅',principessa:'🦋',regina:'👑',predone:'💀',principessa_ghiacci:'❄️',
 };
 
 function _renderLeaderboardPanel() {
@@ -5298,7 +5343,7 @@ function avatarEmojiFor(hero) {
   const map = {
     eroe1:'🧑',eroe2:'👩',fabbro:'⚒️',stregone:'🧙',alchimista:'⚗️',
     furfante:'🗡️',maga:'🔮',paladino:'🛡️',ranger:'🏹',fata:'🧚',
-    principe:'🦅',principessa:'🦋',regina:'👑',predone:'💀',
+    principe:'🦅',principessa:'🦋',regina:'👑',predone:'💀',principessa_ghiacci:'❄️',
   };
   return map[hero.storyId] || '🧑';
 }
