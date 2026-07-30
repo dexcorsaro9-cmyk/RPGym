@@ -973,6 +973,28 @@ img.camp-layer {
 }
 .camp-layer-appear { animation: camp-layer-in .5s ease-out both; }
 
+/* Drag & pinch-to-resize */
+.camp-layer-draggable {
+  pointer-events: auto !important;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.camp-drag-active {
+  cursor: grabbing !important;
+  filter: drop-shadow(0 10px 24px rgba(0,0,0,.85)) brightness(1.12) !important;
+  animation: none !important;
+}
+
+/* Barra hint layout */
+.camp-layout-bar {
+  display: flex; align-items: center; justify-content: center;
+  gap: 10px; margin: 2px 0 6px;
+}
+.camp-layout-hint { font-size: .68rem; color: var(--gold-dim, #8a7040); opacity: .8; }
+.camp-layout-reset { font-size: .7rem; padding: 2px 10px; opacity: .75; }
+
 /* Lucciole */
 @keyframes ff-drift {
   0%   { transform: translate(0,0); opacity: 0; }

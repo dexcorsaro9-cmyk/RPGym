@@ -957,6 +957,91 @@ function drawCampStars(canvas, phase) {
   ctx.globalAlpha = 1;
 }
 
+function makeCampLayerDraggable(elem, key, panorama, baseZ, baseWidth) {
+  elem.classList.add('camp-layer-draggable');
+  let dragging = false, pinching = false;
+  let startCX, startCY, startL, startB, startPinchDist, startWidth;
+
+  function getW() { return parseFloat(elem.style.width) || baseWidth || 15; }
+
+  function beginDrag(cx, cy) {
+    dragging = true;
+    startCX = cx; startCY = cy;
+    startL  = parseFloat(elem.style.left)   || 0;
+    startB  = parseFloat(elem.style.bottom) || 0;
+    elem.style.zIndex = 99;
+    elem.classList.add('camp-drag-active');
+  }
+  function moveDrag(cx, cy) {
+    if (!dragging) return;
+    const r = panorama.getBoundingClientRect();
+    elem.style.left   = Math.max(0, Math.min(90, startL + (cx - startCX) / r.width  * 100)) + '%';
+    elem.style.bottom = Math.max(0, Math.min(80, startB - (cy - startCY) / r.height * 100)) + '%';
+  }
+
+  function beginPinch(t0, t1) {
+    pinching = true; dragging = false;
+    startPinchDist = Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY);
+    startWidth = getW();
+    startCX = (t0.clientX + t1.clientX) / 2;
+    startCY = (t0.clientY + t1.clientY) / 2;
+    startL  = parseFloat(elem.style.left)   || 0;
+    startB  = parseFloat(elem.style.bottom) || 0;
+    elem.style.zIndex = 99;
+    elem.classList.add('camp-drag-active');
+  }
+  function movePinch(t0, t1) {
+    if (!pinching) return;
+    const dist  = Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY);
+    const scale = dist / (startPinchDist || 1);
+    const newW  = Math.max(5, Math.min(55, startWidth * scale));
+    const cx    = (t0.clientX + t1.clientX) / 2;
+    const cy    = (t0.clientY + t1.clientY) / 2;
+    const r     = panorama.getBoundingClientRect();
+    elem.style.width  = newW + '%';
+    elem.style.left   = Math.max(0, Math.min(90, startL + (cx - startCX) / r.width  * 100)) + '%';
+    elem.style.bottom = Math.max(0, Math.min(80, startB - (cy - startCY) / r.height * 100)) + '%';
+  }
+
+  function endAll() {
+    if (!dragging && !pinching) return;
+    dragging = false; pinching = false;
+    elem.style.zIndex = baseZ;
+    elem.classList.remove('camp-drag-active');
+    HERO.campLayout = HERO.campLayout || {};
+    HERO.campLayout[key] = {
+      left:   parseFloat(elem.style.left),
+      bottom: parseFloat(elem.style.bottom),
+      width:  parseFloat(elem.style.width) || baseWidth
+    };
+    persist();
+  }
+
+  // Touch
+  elem.addEventListener('touchstart', e => {
+    e.stopPropagation();
+    if (e.touches.length === 2) beginPinch(e.touches[0], e.touches[1]);
+    else if (e.touches.length === 1) beginDrag(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive: true });
+  elem.addEventListener('touchmove', e => {
+    if (!dragging && !pinching) return;
+    e.preventDefault(); e.stopPropagation();
+    if (e.touches.length === 2 && pinching) movePinch(e.touches[0], e.touches[1]);
+    else if (e.touches.length === 1 && dragging) moveDrag(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive: false });
+  elem.addEventListener('touchend', () => endAll(), { passive: true });
+
+  // Mouse (desktop)
+  elem.addEventListener('mousedown', e => {
+    e.preventDefault();
+    beginDrag(e.clientX, e.clientY);
+    const mm = e2 => moveDrag(e2.clientX, e2.clientY);
+    const mu = () => { endAll(); document.removeEventListener('mousemove', mm); document.removeEventListener('mouseup', mu); };
+    document.addEventListener('mousemove', mm);
+    document.addEventListener('mouseup', mu);
+  });
+}
+
 function renderCamp(c) {
   if (CAMP_VIEW === 'santuario') { renderSantuarioView(c); return; }
   if (CAMP_VIEW === 'arredamento') { renderArredamentoView(c); return; }
@@ -984,9 +1069,9 @@ function renderCamp(c) {
   starsCanvas.className = 'camp-stars';
   panorama.appendChild(starsCanvas);
 
-  // 3. Background stage — div figlio z:3, sopra il cielo, top/left/width/height espliciti
-  const bgImg = el('div', 'camp-bg-img');
-  bgImg.style.backgroundImage = `url('assets/rifugio/scene/bg_stage${stageIdx}.jpg')`;
+  // 3. Background stage — stili inline per robustezza su iOS Safari (bypass cache CSS)
+  const bgImg = document.createElement('div');
+  bgImg.style.cssText = `position:absolute;inset:0;background-image:url("assets/rifugio/scene/bg_stage${stageIdx}.jpg");background-size:cover;background-position:center center;background-repeat:no-repeat;z-index:3`;
   panorama.appendChild(bgImg);
 
   // 4. Night veil overlay (z:5)
@@ -998,7 +1083,10 @@ function renderCamp(c) {
     if (layer.id === 'campfire') {
       // Campfire: prova PNG, fallback SVG animato inline
       const cfWrap = el('div', 'camp-layer camp-campfire-wrap camp-layer-appear');
-      cfWrap.style.cssText = `left:${layer.left}%;bottom:${layer.bottom}%;width:${layer.width}%;z-index:${layer.z}`;
+      const cfSv = HERO.campLayout?.campfire;
+      const cfL  = cfSv ? cfSv.left   : layer.left;
+      const cfB  = cfSv ? cfSv.bottom : layer.bottom;
+      cfWrap.style.cssText = `left:${cfL}%;bottom:${cfB}%;width:${layer.width}%;z-index:${layer.z}`;
       const cfImg = document.createElement('img');
       cfImg.className = 'camp-campfire-img';
       cfImg.src = `assets/rifugio/scene/campfire_${isNightTime ? 'night' : 'day'}.png`;
@@ -1022,36 +1110,45 @@ function renderCamp(c) {
       };
       cfWrap.appendChild(cfImg);
       panorama.appendChild(cfWrap);
+      makeCampLayerDraggable(cfWrap, 'campfire', panorama, layer.z, layer.width);
     } else {
       const img = el('img', 'camp-layer camp-layer-appear');
       img.src = `assets/rifugio/scene/${layer.id}.png`;
       img.alt = '';
-      img.style.cssText = `left:${layer.left}%;bottom:${layer.bottom}%;width:${layer.width}%;z-index:${layer.z}`;
+      const sv = HERO.campLayout?.[layer.id];
+      const lL = sv ? sv.left   : layer.left;
+      const lB = sv ? sv.bottom : layer.bottom;
+      const lW = sv ? sv.width  : layer.width;
+      img.style.cssText = `left:${lL}%;bottom:${lB}%;width:${lW}%;z-index:${layer.z}`;
       img.onerror = () => img.remove();
+      makeCampLayerDraggable(img, layer.id, panorama, layer.z, layer.width);
       panorama.appendChild(img);
     }
   }
 
   // 6. Cavalcatura — zona dedicata per stage, sempre in primo piano (z:21)
   if (mount) {
-    // Posizione per stage: zona aperta a destra della struttura principale
-    // St0: dopo supply_sack | St1: dopo well/prima blacksmith | St2-4: centro-destra libero
     const mountWidths = [11, 14, 16, 18, 20];
     const mountLeft   = [75, 57, 62, 62, 62];
     const mw = mountWidths[stageIdx] ?? 14;
     const ml = mountLeft[stageIdx] ?? 62;
+    const mSv = HERO.campLayout?.mount;
+    const mL  = mSv ? mSv.left   : ml;
+    const mB  = mSv ? mSv.bottom : 5;
+    const mW  = mSv ? mSv.width  : mw;
     const mountLayer = el('img', 'camp-layer camp-mount-layer camp-layer-appear');
     mountLayer.src = mount.img;
     mountLayer.alt = mount.name || '';
-    mountLayer.style.cssText = `left:${ml}%;bottom:5%;width:${mw}%;z-index:21`;
+    mountLayer.style.cssText = `left:${mL}%;bottom:${mB}%;width:${mW}%;z-index:21`;
     mountLayer.title = mount.name || '';
     mountLayer.onerror = () => {
       mountLayer.remove();
       const mountEmoji = el('div', 'camp-layer camp-mount-emoji');
       mountEmoji.textContent = mount.emoji || '🐴';
-      mountEmoji.style.cssText = `left:${ml+3}%;bottom:5%;width:${Math.round(mw*0.6)}%;z-index:21;font-size:clamp(1.2rem,4vw,2rem);display:flex;align-items:flex-end;justify-content:center`;
+      mountEmoji.style.cssText = `left:${mL}%;bottom:${mB}%;width:${Math.round(mW*0.6)}%;z-index:21;font-size:clamp(1.2rem,4vw,2rem);display:flex;align-items:flex-end;justify-content:center`;
       panorama.appendChild(mountEmoji);
     };
+    makeCampLayerDraggable(mountLayer, 'mount', panorama, 21, mw);
     panorama.appendChild(mountLayer);
   }
 
@@ -1075,19 +1172,24 @@ function renderCamp(c) {
     }
   }
 
-  // 8. Famiglio thumbnail (in basso a sinistra nella scena, sopra tutto)
+  // 8. Famiglio thumbnail (trascinabile come gli altri layer)
   if (HERO.companion && HERO.pet && HERO.pet.hatched) {
+    const pSv = HERO.campLayout?.pet;
+    const pL  = pSv ? pSv.left   : 2;
+    const pB  = pSv ? pSv.bottom : 5;
+    const pW  = pSv ? pSv.width  : 16;
     const petLayer = el('img', 'camp-layer camp-pet-layer camp-layer-appear');
     petLayer.src = petImageSrc(HERO.pet);
     petLayer.alt = HERO.pet.name || '';
-    petLayer.style.cssText = `left:2%;bottom:5%;width:16%;z-index:18`;
+    petLayer.style.cssText = `left:${pL}%;bottom:${pB}%;width:${pW}%;z-index:18`;
     petLayer.onerror = () => {
       petLayer.remove();
       const petEmoji = el('div', 'camp-layer camp-pet-emoji');
       petEmoji.textContent = petSpeciesInfo ? petSpeciesInfo.icon : '🐺';
-      petEmoji.style.cssText = `left:2%;bottom:5%;width:10%;z-index:18;font-size:clamp(1rem,3.5vw,1.8rem);display:flex;align-items:flex-end;justify-content:center`;
+      petEmoji.style.cssText = `left:${pL}%;bottom:${pB}%;width:10%;z-index:18;font-size:clamp(1rem,3.5vw,1.8rem);display:flex;align-items:flex-end;justify-content:center`;
       panorama.appendChild(petEmoji);
     };
+    makeCampLayerDraggable(petLayer, 'pet', panorama, 18, 16);
     panorama.appendChild(petLayer);
   }
 
@@ -1108,6 +1210,16 @@ function renderCamp(c) {
   panorama.appendChild(stageBadge);
 
   c.appendChild(panorama);
+
+  // Hint drag + reset layout
+  const hasCustomLayout = HERO.campLayout && Object.keys(HERO.campLayout).length > 0;
+  const layoutBar = el('div', 'camp-layout-bar');
+  layoutBar.innerHTML = hasCustomLayout
+    ? `<span class="camp-layout-hint">✋ Trascina · 🤌 Pizzica per ridimensionare</span><button class="btn btn-small camp-layout-reset">↺ Reset</button>`
+    : `<span class="camp-layout-hint">✋ Trascina · 🤌 Pizzica per ridimensionare</span>`;
+  const resetBtn = layoutBar.querySelector('.camp-layout-reset');
+  if (resetBtn) resetBtn.addEventListener('click', () => { delete HERO.campLayout; persist(); setTab('camp'); });
+  c.appendChild(layoutBar);
 
   // Disegna stelle dopo che il canvas è nel DOM
   requestAnimationFrame(() => drawCampStars(starsCanvas, phase));
