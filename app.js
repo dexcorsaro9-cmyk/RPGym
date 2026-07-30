@@ -2600,28 +2600,41 @@ function renderTavernaView(c) {
 }
 
 function renderBiscaView(c) {
+  const wrap = el('div', 'bisca-view-wrap');
+
+  const headerImg = document.createElement('img');
+  headerImg.src = 'assets/ui/bisca-header.jpg';
+  headerImg.className = 'bisca-header-img';
+  headerImg.alt = '';
+  headerImg.onerror = () => headerImg.remove();
+  wrap.appendChild(headerImg);
+
+  const inner = el('div', 'bisca-inner');
+  wrap.appendChild(inner);
+  c.appendChild(wrap);
+
   const backBtn = el('button', 'btn btn-back', '← Torna alla Mappa');
   backBtn.addEventListener('click', () => { MAP_VIEW = 'main'; setTab('map'); });
-  c.appendChild(backBtn);
+  inner.appendChild(backBtn);
 
-  c.appendChild(el('h2', 'bisca-title', '🃏 La Bisca Oscura'));
-  c.appendChild(el('p', 'muted small center bisca-subtitle', '«Scegli il tuo campione. Punta l\'oro. Prega che regga.»'));
+  inner.appendChild(el('h2', 'bisca-title', '🃏 La Bisca Oscura'));
+  inner.appendChild(el('p', 'muted small center bisca-subtitle', '«Scegli il tuo campione. Punta l\'oro. Prega che regga.»'));
 
   RPG.biscaResetIfNeeded(HERO);
   const betsLeft = (HERO.bisca && HERO.bisca.betsLeft !== undefined) ? HERO.bisca.betsLeft : 0;
 
   const goldRow = el('div', 'bisca-gold-row');
   goldRow.innerHTML = `<span>🪙 Oro: <b id="bisca-gold-val">${HERO.gold || 0}</b></span><span class="bisca-bets-left" id="bisca-bets-counter">${betsLeft} / ${RPG.BISCA_DAILY_BETS} scommesse</span>`;
-  c.appendChild(goldRow);
+  inner.appendChild(goldRow);
 
   if (betsLeft <= 0) {
-    c.appendChild(el('div', 'panel bisca-empty', '⛔ Hai esaurito le scommesse di oggi. Torna domani.'));
+    inner.appendChild(el('div', 'panel bisca-empty', '⛔ Hai esaurito le scommesse di oggi. Torna domani.'));
     return;
   }
 
   const fighters = RPG.biscaPickFighters();
   if (!fighters) {
-    c.appendChild(el('div', 'panel bisca-empty', 'Nessun combattente disponibile.'));
+    inner.appendChild(el('div', 'panel bisca-empty', 'Nessun combattente disponibile.'));
     return;
   }
   const { a, b } = fighters;
@@ -2663,7 +2676,7 @@ function renderBiscaView(c) {
   arena.appendChild(cardA);
   arena.appendChild(vsEl);
   arena.appendChild(cardB);
-  c.appendChild(arena);
+  inner.appendChild(arena);
 
   const betPanel = el('div', 'panel bisca-bet-panel');
   betPanel.appendChild(el('div', 'bisca-bet-label', 'Puntata:'));
@@ -2687,11 +2700,11 @@ function renderBiscaView(c) {
   actionRow.appendChild(betABtn);
   actionRow.appendChild(betBBtn);
   betPanel.appendChild(actionRow);
-  c.appendChild(betPanel);
+  inner.appendChild(betPanel);
 
   const resultEl = el('div', 'bisca-result');
   resultEl.style.display = 'none';
-  c.appendChild(resultEl);
+  inner.appendChild(resultEl);
 
   async function placeBet(pick) {
     betABtn.disabled = true;
