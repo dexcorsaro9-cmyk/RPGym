@@ -4052,7 +4052,7 @@ function renderDiaryView(c) {
     const hm = el('div', 'km-heatmap');
     for (let i = 83; i >= 0; i--) {
       const d = new Date(today); d.setDate(d.getDate() - i);
-      const key = d.toISOString().slice(0, 10);
+      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
       const km = kmByDay[key] || 0;
       const intensity = km === 0 ? 0 : km < 2 ? 1 : km < 5 ? 2 : km < 10 ? 3 : 4;
       const cell = el('div', 'hm-cell');
