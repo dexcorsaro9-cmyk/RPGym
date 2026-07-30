@@ -500,6 +500,9 @@ function showDungeonChoice() {
 function showDungeonReward(reward) {
   sfx('level');
   vibrate([100, 50, 100, 50, 200]);
+  /* Consumabile bonus dal dungeon: 50% raro, 50% epico */
+  const consBonus = RPG.dropConsumable(HERO, Math.random() < 0.5 ? 'raro' : 'epico');
+  persist();
   let html = `<div class="dungeon-reward">
     <div class="dungeon-reward-star">⭐</div>
     <h3 class="panel-title center">SPEDIZIONE COMPLETATA!</h3>
@@ -510,6 +513,9 @@ function showDungeonReward(reward) {
   if (reward.item) {
     html += `<div class="dungeon-epic-label">Oggetto Epico Garantito</div>
       ${itemHtml(reward.item)}`;
+  }
+  if (consBonus) {
+    html += `<p class="center small" style="margin-top:8px">💰 ${consBonus.icon} <b>${esc(consBonus.name)}</b> aggiunto alla Sacca!</p>`;
   }
   html += `<button class="btn btn-primary wide" onclick="closeModal(); setTab('train')">Fantastico!</button>
   </div>`;

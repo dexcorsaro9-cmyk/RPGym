@@ -1932,16 +1932,28 @@ function openStruttureStageModal(stage) {
         }</div>
       </div>`;
     if (!has && !locked) {
+      const hasFreeLayer = HERO.consumableBuffs && HERO.consumableBuffs.freeLayer;
+      if (hasFreeLayer) {
+        const freeTag = el('span', 'free-layer-tag', '🏰 GRATIS (Progetto)');
+        row.querySelector('.loot-body').appendChild(freeTag);
+      }
       row.classList.add('pickable');
       row.addEventListener('click', () => {
+        if (hasFreeLayer) {
+          /* bypass costo: aggiungi direttamente e consuma il buff */
+          HERO.consumableBuffs.freeLayer = false;
+          if (!HERO.furniture) HERO.furniture = { owned: [] };
+          HERO.furniture.owned.push(it.id);
+          persist(); renderHUD(); sfx('coin');
+          toast(`🏰 ${it.name} costruita gratis grazie al Progetto del Castello!`);
+          closeModal(); openStruttureStageModal(stage);
+          return;
+        }
         const r = RPG.buyCampLayer(HERO, it.id);
         persist();
         if (r && r.ok) {
           toast(`${it.icon} ${it.name} costruita!`);
-          sfx('coin');
-          renderHUD();
-          closeModal();
-          openStruttureStageModal(stage);
+          sfx('coin'); renderHUD(); closeModal(); openStruttureStageModal(stage);
         } else {
           toast(r);
         }
@@ -2234,8 +2246,24 @@ function renderMap(c) {
       if (isClaimed) {
         action.appendChild(el('span', 'tm-claimed-label', 'Riscosso'));
       } else if (done) {
-        const btn = el('button', 'tm-claim-btn', '🎁 Riscuoti');
+        const hasReveal = HERO.consumableBuffs && HERO.consumableBuffs.chestReveal;
+        const btnLabel = hasReveal ? '🕯️ Rivela & Riscuoti' : '🎁 Riscuoti';
+        const btn = el('button', 'tm-claim-btn' + (hasReveal ? ' reveal-active' : ''), btnLabel);
         btn.addEventListener('click', () => {
+          if (hasReveal) {
+            /* mostra preview prima di sbloccare */
+            const t = RPG.TREASURE_MAP_TIERS[i];
+            HERO.consumableBuffs.chestReveal = false;
+            persist();
+            const previewHtml = `<h3 class="center">🕯️ Contenuto Forziere</h3>
+              <p class="center">🪙 ${t.gold}${t.wood ? ` 🪵 ${t.wood}` : ''}${t.item ? ' + <b>Oggetto</b>' : ''}</p>
+              <p class="center small muted">Riscuoti per ottenerlo!</p>
+              <button class="btn btn-primary wide" onclick="closeModal()">Riscuoti ora</button>`;
+            modal(previewHtml);
+            btn.textContent = '🎁 Riscuoti';
+            btn.classList.remove('reveal-active');
+            return;
+          }
           const reward = RPG.claimTreasureTier(HERO, i);
           if (!reward) return;
           persist(); renderHUD();
@@ -3290,16 +3318,49 @@ function renderTrain(c) {
     const bff = HERO.consumableBuffs || {};
     const now = Date.now();
     const chips = [];
-    if (bff.xpMult)       chips.push(`✨ +${Math.round(bff.xpMult.value * 100)}% XP (${bff.xpMult.sessions} sessioni)`);
-    if (bff.goldMult && bff.goldMult.expiresAt > now) chips.push(`💰 +${Math.round(bff.goldMult.value * 100)}% oro`);
-    if (bff.allBoost && bff.allBoost.expiresAt > now) chips.push(`⚡ Tutti i bonus ×${1+bff.allBoost.value}`);
-    if (bff.streakShield) chips.push(`🛡️ Streak protetta ${bff.streakShield}gg`);
-    if (bff.arenaShield)  chips.push(`⚔️ Scudo Arena`);
-    if (bff.dropBoost && bff.dropBoost.expiresAt > now) chips.push(`🎁 +${Math.round(bff.dropBoost.value * 100)}% drop`);
+    const hLeft = ms => { const h = Math.round(ms / 3600000); return h <= 1 ? '< 1h' : `${h}h`; };
+    if (bff.xpMult)       chips.push(`✨ +${Math.round(bff.xpMult.value * 100)}% XP · ancora ${bff.xpMult.sessions} ${bff.xpMult.sessions === 1 ? 'sessione' : 'sessioni'}`);
+    if (bff.goldMult && bff.goldMult.expiresAt > now) chips.push(`💰 +${Math.round(bff.goldMult.value * 100)}% oro · scade in ${hLeft(bff.goldMult.expiresAt - now)}`);
+    if (bff.allBoost && bff.allBoost.expiresAt > now) chips.push(`⚡ Tutti i bonus ×${1+bff.allBoost.value} · scade in ${hLeft(bff.allBoost.expiresAt - now)}`);
+    if (bff.streakShield) chips.push(`🛡️ Streak protetta · ${bff.streakShield}gg rimasti`);
+    if (bff.arenaShield)  chips.push(`⚔️ Scudo Arena · ${bff.arenaShield}gg rimasti`);
+    if (bff.dropBoost && bff.dropBoost.expiresAt > now) chips.push(`🎁 +${Math.round(bff.dropBoost.value * 100)}% drop · scade in ${hLeft(bff.dropBoost.expiresAt - now)}`);
     if (chips.length) {
       const strip = el('div', 'buff-strip');
       chips.forEach(t => strip.appendChild(el('span', 'buff-chip', t)));
       c.appendChild(strip);
+    }
+  }
+
+  // ── Consumabile rapido pre-allenamento ──
+  {
+    const owned = HERO.consumables || {};
+    const quickCons = RPG.CONSUMABLES.filter(co => (owned[co.id] || 0) > 0).slice(0, 6);
+    if (quickCons.length) {
+      const qp = el('div', 'quick-cons-strip');
+      qp.appendChild(el('div', 'quick-cons-label', '💊 Potenzia prima di allenarti:'));
+      const row = el('div', 'quick-cons-row');
+      quickCons.forEach(co => {
+        const btn = el('button', `quick-cons-btn rarity-${co.rarity}`, '');
+        btn.title = `${co.name} (×${owned[co.id]}) — ${co.desc}`;
+        const img = el('img', 'quick-cons-img');
+        img.src = `assets/consumables/${encodeURIComponent(RPG.CONSUMABLE_IMG[co.id] || co.id)}.png`;
+        img.alt = co.name;
+        img.addEventListener('error', () => { img.style.display = 'none'; btn.prepend(el('span', '', co.icon)); });
+        const badge = el('span', 'quick-cons-badge', `×${owned[co.id]}`);
+        btn.appendChild(img);
+        btn.appendChild(badge);
+        btn.addEventListener('click', () => {
+          const err = RPG.useConsumable(HERO, co.id);
+          if (err) { toast(err); return; }
+          persist(); renderHUD();
+          toast(`${co.icon} ${co.name} usato! ${co.desc}`);
+          setTab('train');
+        });
+        row.appendChild(btn);
+      });
+      qp.appendChild(row);
+      c.appendChild(qp);
     }
   }
 
@@ -3372,6 +3433,43 @@ function renderTrain(c) {
   if (dungeonAvail) {
     dp.querySelector('#btn-dungeon-open').addEventListener('click', openDungeon);
   }
+  ap.appendChild(dp);
+
+  /* Extra Boss — Contratto dei Mostri */
+  if (HERO.consumableBuffs && HERO.consumableBuffs.extraBoss) {
+    const xbp = el('div', 'dungeon-strip extra-boss-strip');
+    xbp.innerHTML = `<div class="dungeon-strip-left">
+      <span class="dungeon-strip-icon">📋</span>
+      <div>
+        <div class="dungeon-strip-title">Boss Straordinario <span class="tag tag-boss" style="font-size:.65rem;vertical-align:middle">CONTRATTO</span></div>
+        <div class="dungeon-strip-sub small muted">Il Contratto dei Mostri è attivo — sfida un boss extra!</div>
+      </div>
+    </div>
+    <button class="btn btn-primary dungeon-strip-btn" id="btn-extra-boss">▶ Sfida</button>`;
+    ap.appendChild(xbp);
+    xbp.querySelector('#btn-extra-boss').addEventListener('click', () => {
+      const bosses = RPG.BESTIARY.filter(b => b.boss && !b.final);
+      const v = bosses[Math.floor(Math.random() * bosses.length)];
+      if (!v) { toast('Nessun boss disponibile.'); return; }
+      const fig = `<img class="arena-intro-img" src="assets/bestiario/${v.id}.png" onerror="this.style.display='none'">`;
+      modal(`<div class="arena-intro">
+        <p class="center big-news">📋 Boss Straordinario!</p>
+        ${fig}
+        <h3 class="panel-title center">${v.name} <span class="tag tag-boss">BOSS</span></h3>
+        <p class="center small muted">Debolezza: <b>${v.weakness}</b></p>
+        <p class="center small">Il Contratto dei Mostri ti permette di sfidare questo boss fuori calendario. Vinci <b>3 round su 5</b>!</p>
+        <button class="btn btn-primary wide big" id="btn-extra-boss-fight">🔥 COMBATTI!</button>
+        <button class="btn wide" onclick="closeModal()">Rinuncia al contratto</button>
+      </div>`);
+      const fb = document.getElementById('btn-extra-boss-fight');
+      if (fb) fb.addEventListener('click', () => {
+        delete HERO.consumableBuffs.extraBoss;
+        persist();
+        beginBattle(v.id);
+      });
+    });
+  }
+
   c.appendChild(ap);
 
   renderDailyChallenges(c);
@@ -4149,8 +4247,54 @@ const ERBORISTA_CATS = [
 ];
 let ERBORISTA_CAT = 'tutti';
 
+function _erboristaOffers() {
+  /* 3 offerte giornaliere seeded per data, 30% sconto */
+  const seed = (s => { let h = 0; for (let i = 0; i < s.length; i++) h = Math.imul(31, h) + s.charCodeAt(i) | 0; return h >>> 0; })(new Date().toISOString().slice(0, 10));
+  const forSale = RPG.CONSUMABLES.filter(c => c.rarity !== 'leggendario');
+  const picks = [];
+  let s = seed;
+  while (picks.length < 3) {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    const co = forSale[s % forSale.length];
+    if (!picks.find(p => p.id === co.id)) picks.push(co);
+  }
+  return picks.map(co => ({ co, price: Math.floor(RPG.buyPriceConsumable(co.id) * 0.7) }));
+}
+
 function renderErborista(c) {
   c.appendChild(npcBanner(`assets/consumables/${encodeURIComponent(RPG.CONSUMABLE_IMG['spirito_foresta'] || 'spirito_foresta')}.png`, 'Madre Radice', '"Ogni seme vuole germogliare. Ogni eroe ha bisogno di carburante."'));
+
+  /* Offerta del Giorno */
+  const offerPanel = el('div', 'panel erborista-offer-panel');
+  offerPanel.appendChild(el('h3', 'panel-title', '🌅 Offerta del Giorno · -30%'));
+  const offerRow = el('div', 'erborista-offer-row');
+  _erboristaOffers().forEach(({ co, price }) => {
+    const card = el('div', `consumable-card rarity-${co.rarity} erborista-offer-card`);
+    const imgWrap = el('div', 'consumable-img-wrap');
+    const img = el('img', 'consumable-img');
+    img.src = `assets/consumables/${encodeURIComponent(RPG.CONSUMABLE_IMG[co.id] || co.id)}.png`;
+    img.alt = co.name;
+    img.addEventListener('error', () => { img.style.display = 'none'; imgWrap.appendChild(el('span', 'consumable-emoji', co.icon)); });
+    imgWrap.appendChild(img);
+    card.appendChild(imgWrap);
+    card.appendChild(el('div', 'consumable-name', co.name));
+    const priceEl = el('div', 'erborista-offer-price');
+    priceEl.innerHTML = `<s class="muted">${RPG.buyPriceConsumable(co.id)}🪙</s> <b>${price}🪙</b>`;
+    card.appendChild(priceEl);
+    const buyBtn = el('button', `btn btn-primary btn-small${HERO.gold < price ? ' disabled' : ''}`, 'Acquista');
+    buyBtn.disabled = HERO.gold < price;
+    buyBtn.addEventListener('click', () => {
+      if (HERO.gold < price) { toast('Oro insufficiente!'); return; }
+      HERO.gold -= price; RPG.addConsumable(HERO, co.id, 1);
+      persist(); renderHUD();
+      toast(`${co.icon} ${co.name} acquistato in offerta!`);
+      setTab('market');
+    });
+    card.appendChild(buyBtn);
+    offerRow.appendChild(card);
+  });
+  offerPanel.appendChild(offerRow);
+  c.appendChild(offerPanel);
 
   const sw = el('div', 'coll-switch');
   ERBORISTA_CATS.forEach(cat => {
@@ -5476,6 +5620,14 @@ async function updateNotifState() {
     if (next) mapKmLeft = +(next.km - tmStatus.progressKm).toFixed(1);
   }
   const pet = HERO.pet && HERO.pet.hatched ? HERO.pet : null;
+  const bff = HERO.consumableBuffs || {};
+  const now = Date.now();
+  const hasActiveBuff = !!(
+    (bff.xpMult && bff.xpMult.sessions > 0) ||
+    (bff.goldMult && bff.goldMult.expiresAt > now) ||
+    (bff.allBoost && bff.allBoost.expiresAt > now) ||
+    bff.streakShield || bff.extraBoss || bff.dropBoost
+  );
   const state = {
     date: today,
     potionClaimed: !!(HERO.dailyPotion && HERO.dailyPotion.claimedDate === today),
@@ -5485,6 +5637,7 @@ async function updateNotifState() {
     petName: pet ? (pet.name || '') : null,
     petHunger: pet ? pet.hunger : null,
     petMood: pet ? pet.mood : null,
+    hasActiveBuff,
   };
   const cache = await caches.open('heropace-notif-v1');
   await cache.put('/_notif-state', new Response(JSON.stringify(state),
@@ -5842,6 +5995,66 @@ function renderZainoView(c) {
       grid.appendChild(card);
     });
     c.appendChild(grid);
+  }
+
+  // ── Crafting ──
+  {
+    const owned2 = HERO.consumables || {};
+    const countByRarity = r => RPG.CONSUMABLES.filter(co => co.rarity === r).reduce((s, co) => s + (owned2[co.id] || 0), 0);
+    const comuniN = countByRarity('comune');
+    const rariN   = countByRarity('raro');
+    const cp = el('div', 'panel crafting-panel');
+    cp.appendChild(el('h3', 'panel-title', '⚗️ Alchimia della Sacca'));
+    cp.appendChild(el('p', 'muted small', 'Combina 3 consumabili della stessa rarità per ottenerne uno della rarità superiore.'));
+    const rows = [
+      { from: 'comune', to: 'raro',   count: comuniN, label: '3 Comuni → 1 Raro',   canDo: comuniN >= 3 },
+      { from: 'raro',   to: 'epico',  count: rariN,   label: '3 Rari → 1 Epico',    canDo: rariN >= 3   },
+    ];
+    rows.forEach(row => {
+      const r = el('div', 'crafting-row');
+      r.innerHTML = `<span class="crafting-label">${row.label}</span><span class="crafting-have muted small">(ne hai ${row.count})</span>`;
+      const btn = el('button', `btn btn-small${row.canDo ? ' btn-primary' : ''}`, '⚗️ Crea');
+      btn.disabled = !row.canDo;
+      btn.addEventListener('click', () => {
+        const result = RPG.craftConsumable(HERO, row.from);
+        if (typeof result === 'string') { toast(result); return; }
+        persist(); renderHUD();
+        toast(`⚗️ Creato: ${result.icon} ${result.name}!`);
+        setTab('hero');
+      });
+      r.appendChild(btn);
+      cp.appendChild(r);
+    });
+    c.appendChild(cp);
+  }
+
+  // ── Achievements consumabili ──
+  {
+    const unlocked = RPG.consumableAchievementsUnlocked(HERO);
+    if (unlocked.length) {
+      const ap = el('div', 'panel crafting-panel');
+      ap.appendChild(el('h3', 'panel-title', '🏅 Traguardi della Sacca'));
+      unlocked.forEach(a => {
+        const claimed = (HERO.achievementsClaimed || []).includes(a.id);
+        const row = el('div', 'crafting-row');
+        row.innerHTML = `<span class="crafting-label">${a.icon} ${esc(a.name)}</span><span class="muted small">${esc(a.desc)}</span>`;
+        if (!claimed) {
+          const btn = el('button', 'btn btn-primary btn-small', `🎁 +${a.reward.gold}🪙`);
+          btn.addEventListener('click', () => {
+            const r = RPG.claimAchievement(HERO, a.id);
+            if (typeof r === 'string') { toast(r); return; }
+            persist(); renderHUD();
+            toast(`🏅 ${a.name} riscattato! +${a.reward.gold}🪙 +${a.reward.xp}⭐`);
+            setTab('hero');
+          });
+          row.appendChild(btn);
+        } else {
+          row.appendChild(el('span', 'challenge-check', '✓'));
+        }
+        ap.appendChild(row);
+      });
+      c.appendChild(ap);
+    }
   }
 
   // Tutti i consumabili esistenti (catalogo) se zaino vuoto

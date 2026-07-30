@@ -5869,9 +5869,93 @@ img.camp-layer {
   padding: 0 16px 14px 16px;
   font-size: .88rem;
   line-height: 1.6;
-  color: var(--muted, #888);
+  color: var(--text, #1a1a1a);
+  font-weight: 600;
 }
-.guida-body b { color: var(--text, inherit); }
-.guida-body i { opacity: .8; }
+.guida-body b { color: var(--text, inherit); font-weight: 700; }
+.guida-body i { opacity: .85; }
 .guida-tips { margin: 6px 0 0 0; padding-left: 18px; }
 .guida-tips li { margin-bottom: 6px; }
+
+/* ── Quick Consumable Strip (pre-allenamento) ── */
+.quick-cons-strip { margin: 12px 0 4px; }
+.quick-cons-label { font-size: .8rem; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+.quick-cons-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+.quick-cons-btn {
+  position: relative; flex-shrink: 0;
+  width: 56px; height: 56px; padding: 0;
+  border: 2px solid transparent; border-radius: 10px;
+  background: var(--card, rgba(255,255,255,.07));
+  cursor: pointer; transition: transform .1s, border-color .15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.quick-cons-btn:active { transform: scale(.92); }
+.quick-cons-btn.rarity-raro   { border-color: #4a90d9; }
+.quick-cons-btn.rarity-epico  { border-color: #9b59b6; }
+.quick-cons-btn.rarity-leggendario { border-color: #f1c40f; }
+.quick-cons-img { width: 38px; height: 38px; object-fit: contain; }
+.quick-cons-badge {
+  position: absolute; bottom: -4px; right: -4px;
+  background: var(--accent, #e67e22); color: #fff;
+  font-size: .65rem; font-weight: 700;
+  border-radius: 8px; padding: 1px 4px;
+  line-height: 1.3;
+}
+
+/* ── Crafting Panel ── */
+.crafting-panel { margin-bottom: 16px; }
+.crafting-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; padding: 8px 0;
+  border-bottom: 1px solid var(--divider, rgba(255,255,255,.08));
+}
+.crafting-row:last-child { border-bottom: none; }
+.crafting-label { font-weight: 600; font-size: .9rem; }
+.crafting-have { margin-left: auto; white-space: nowrap; }
+
+/* ── Erborista Offerta del Giorno ── */
+.erborista-offer-panel { margin-bottom: 16px; }
+.erborista-offer-row {
+  display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px;
+}
+.erborista-offer-card {
+  flex-shrink: 0; min-width: 110px; position: relative;
+}
+.erborista-offer-price {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 4px; margin-top: 6px; font-size: .8rem;
+}
+.erborista-offer-price .original-price {
+  text-decoration: line-through; opacity: .55; font-size: .75rem;
+}
+.erborista-offer-price .discount-badge {
+  background: #27ae60; color: #fff;
+  font-size: .65rem; font-weight: 700;
+  border-radius: 6px; padding: 1px 5px;
+}
+
+/* ── Free Layer Tag ── */
+.free-layer-tag {
+  display: inline-block;
+  background: #27ae60; color: #fff;
+  font-size: .7rem; font-weight: 700;
+  border-radius: 6px; padding: 2px 7px;
+  margin-left: 6px; vertical-align: middle;
+}
+
+/* ── Reveal Active Button ── */
+.tm-claim-btn.reveal-active {
+  background: linear-gradient(135deg, #9b59b6, #6c3483);
+  border-color: #9b59b6;
+  animation: reveal-pulse 1.6s infinite;
+}
+@keyframes reveal-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(155,89,182,.5); }
+  50%       { box-shadow: 0 0 0 6px rgba(155,89,182,0); }
+}
+
+/* ── Extra Boss Strip ── */
+.extra-boss-strip {
+  border: 1px solid #9b59b6;
+  background: linear-gradient(135deg, rgba(155,89,182,.12), rgba(155,89,182,.04));
+}
