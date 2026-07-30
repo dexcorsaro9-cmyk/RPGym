@@ -926,100 +926,204 @@ function setTab(tab, dir) {
 /* ── TAB: Rifugio ── */
 let CAMP_VIEW = 'main';
 
+function getCampTimePhase() {
+  const now  = new Date();
+  const t    = now.getHours() + now.getMinutes() / 60;
+  if (t >= 5.5 && t < 8)    return 'dawn';
+  if (t >= 8   && t < 18)   return 'day';
+  if (t >= 18  && t < 20.5) return 'dusk';
+  return 'night';
+}
+
+function drawCampStars(canvas, phase) {
+  const w = canvas.offsetWidth, h = canvas.offsetHeight;
+  if (!w || !h) return;
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, w, h);
+  if (phase === 'day') return;
+  const alpha = phase === 'night' ? 1 : phase === 'dawn' ? 0.5 : 0.25;
+  const count = phase === 'night' ? 90 : 30;
+  for (let i = 0; i < count; i++) {
+    const x = Math.random() * w;
+    const y = Math.random() * h * 0.62;
+    const r = Math.random() * 1.3 + 0.3;
+    ctx.globalAlpha = (Math.random() * 0.55 + 0.45) * alpha;
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
 function renderCamp(c) {
   if (CAMP_VIEW === 'santuario') { renderSantuarioView(c); return; }
   if (CAMP_VIEW === 'arredamento') { renderArredamentoView(c); return; }
   if (CAMP_VIEW === 'serra') { renderSerraView(c); return; }
 
-  const scene = el('div', 'camp-scene');
-  const hasHouse = HERO.buildings.includes('fondamenta');
-  let sceneEmoji = hasHouse ? '🛖' : '🔥';
-  let sceneDesc = hasHouse
-    ? 'La tua casa nella radura. Il fumo del camino sale tranquillo tra gli alberi.'
-    : 'Un falò tremolante in una radura. Dormi sotto le stelle… per ora.';
-  if (HERO.buildings.length >= 4) { sceneEmoji = '🏡'; sceneDesc = 'Il tuo rifugio è ormai una vera dimora fortificata!'; }
-  const mount = HERO.mount ? RPG.mountById(HERO.mount) : null;
+  /* ── Panorama scena campo con ciclo giorno/notte ── */
+  const phase       = getCampTimePhase();
+  const campLevel   = HERO.level || 1;
+  const stageIdx    = RPG.campStageForLevel(campLevel);
+  const stageLabel  = RPG.CAMP_STAGES[stageIdx]?.label || 'Accampamento';
+  const layers      = RPG.campUnlockedLayers(HERO);
+  const mount       = HERO.mount ? RPG.mountById(HERO.mount) : null;
   const petSpeciesInfo = HERO.pet ? RPG.PET_SPECIES[HERO.pet.species] : null;
-  const emojiDiv = el('div', 'camp-emoji');
-  if (sceneEmoji === '🔥') {
-    emojiDiv.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" width="130" height="156" style="display:block;margin:auto;overflow:visible">
-      <defs>
-        <radialGradient id="fg1" cx="50%" cy="85%" r="55%">
-          <stop offset="0%" stop-color="#ff7700" stop-opacity=".5"/>
-          <stop offset="100%" stop-color="#ff4400" stop-opacity="0"/>
-        </radialGradient>
-      </defs>
-      <ellipse cx="50" cy="105" rx="42" ry="10" fill="url(#fg1)"/>
-      <rect x="16" y="90" width="68" height="11" rx="5.5" fill="#3b1e05" transform="rotate(-14 50 95)"/>
-      <rect x="16" y="90" width="68" height="11" rx="5.5" fill="#4a2608" transform="rotate(14 50 95)"/>
-      <ellipse cx="28" cy="97" rx="8" ry="6" fill="#2e2926"/>
-      <ellipse cx="72" cy="97" rx="8" ry="6" fill="#2e2926"/>
-      <ellipse cx="50" cy="101" rx="8" ry="5" fill="#242120"/>
-      <path d="M50,84 C36,76 28,56 36,40 C39,52 43,53 46,46 C48,38 44,25 50,12 C56,25 52,38 54,46 C57,53 61,52 64,40 C72,56 64,76 50,84Z" fill="#e85000" opacity=".85">
-        <animateTransform attributeName="transform" type="scale" values="1,1;.96,1.05;1.02,.98;1,1" dur="1.3s" repeatCount="indefinite" additive="sum" transformOrigin="50 84"/>
-        <animateTransform attributeName="transform" type="translate" values="0,0;1.5,-2;-1,-1;0,0" dur=".95s" repeatCount="indefinite" additive="sum"/>
-      </path>
-      <path d="M50,78 C40,70 35,54 41,42 C43,51 46,52 47.5,46 C49,40 47,30 50,20 C53,30 51,40 52.5,46 C54,52 57,51 59,42 C65,54 60,70 50,78Z" fill="#ff7700">
-        <animateTransform attributeName="transform" type="scale" values="1,1;.93,1.07;1.03,.97;1,1" dur="1.0s" repeatCount="indefinite" additive="sum" transformOrigin="50 78"/>
-        <animateTransform attributeName="transform" type="translate" values="0,0;-1.5,-2;1,-1;0,0" dur=".8s" repeatCount="indefinite" additive="sum"/>
-      </path>
-      <path d="M50,70 C43,63 40,51 44,42 C45.5,49 47,50 48,46 C49,41 47.5,34 50,26 C52.5,34 51,41 52,46 C53,50 54.5,49 56,42 C60,51 57,63 50,70Z" fill="#ffa020">
-        <animateTransform attributeName="transform" type="scale" values="1,1;.94,1.07;1,1" dur=".85s" repeatCount="indefinite" additive="sum" transformOrigin="50 70"/>
-      </path>
-      <path d="M50,62 C45,57 43,48 46,41 C47,47 48,48 49,45 C49.5,41 48.5,35 50,29 C51.5,35 50.5,41 51,45 C52,48 53,47 54,41 C57,48 55,57 50,62Z" fill="#ffcc30">
-        <animateTransform attributeName="transform" type="scale" values="1,1;.95,1.08;1,1" dur=".7s" repeatCount="indefinite" additive="sum" transformOrigin="50 62"/>
-      </path>
-      <circle cx="43" cy="50" r="1.5" fill="#ffe060" opacity="0">
-        <animate attributeName="cy" values="88;22" dur="2.2s" repeatCount="indefinite"/>
-        <animate attributeName="cx" values="43;39;43" dur="2.2s" repeatCount="indefinite"/>
-        <animate attributeName="opacity" values="0;.9;.9;0" dur="2.2s" repeatCount="indefinite"/>
-      </circle>
-      <circle cx="57" cy="50" r="1" fill="#ffaa30" opacity="0">
-        <animate attributeName="cy" values="85;18" dur="1.8s" begin=".6s" repeatCount="indefinite"/>
-        <animate attributeName="cx" values="57;61;57" dur="1.8s" begin=".6s" repeatCount="indefinite"/>
-        <animate attributeName="opacity" values="0;.8;.8;0" dur="1.8s" begin=".6s" repeatCount="indefinite"/>
-      </circle>
-      <circle cx="50" cy="50" r="1.2" fill="#fff0a0" opacity="0">
-        <animate attributeName="cy" values="82;12" dur="2.0s" begin="1.1s" repeatCount="indefinite"/>
-        <animate attributeName="cx" values="50;47;50" dur="2.0s" begin="1.1s" repeatCount="indefinite"/>
-        <animate attributeName="opacity" values="0;1;1;0" dur="2.0s" begin="1.1s" repeatCount="indefinite"/>
-      </circle>
-    </svg>`;
-  } else {
-    emojiDiv.textContent = sceneEmoji;
-  }
-  scene.appendChild(emojiDiv);
-  if (HERO.companion && HERO.pet) {
-    const petThumb = el('img', 'camp-companion-img');
-    petThumb.src = petImageSrc(HERO.pet);
-    petThumb.onerror = () => { petThumb.outerHTML = `<span class="camp-companion-emoji">${petSpeciesInfo ? petSpeciesInfo.icon : '🐺'}</span>`; };
-    scene.appendChild(petThumb);
-  }
-  if (mount) {
-    const mountThumb = el('img', 'camp-companion-img');
-    mountThumb.src = mount.img;
-    mountThumb.onerror = () => { mountThumb.outerHTML = `<span class="camp-companion-emoji">${mount.emoji}</span>`; };
-    scene.appendChild(mountThumb);
-  }
-  // Meteo dinamico
-  const wx = RPG.getDailyWeather();
-  const wxEl = el('div', 'camp-weather');
-  wxEl.innerHTML = `${wx.icon} <span class="camp-weather-label">${wx.label}</span>${wx.xpBonus > 0 ? ` · <b class="camp-weather-bonus">+${Math.round(wx.xpBonus*100)}% XP</b>` : ''}`;
-  scene.appendChild(wxEl);
+  const isNightTime = phase === 'night' || phase === 'dusk';
 
-  // Stagione corrente
+  const panorama = el('div', 'camp-panorama');
+  panorama.dataset.phase = phase;
+  panorama.dataset.stage = stageIdx;
+
+  // 1. Sky gradient (CSS-driven, zero asset)
+  panorama.appendChild(el('div', 'camp-sky'));
+
+  // 2. Stelle — canvas, disegnato dopo mount in DOM
+  const starsCanvas = document.createElement('canvas');
+  starsCanvas.className = 'camp-stars';
+  panorama.appendChild(starsCanvas);
+
+  // 3. Background PNG per stage (fallback: trasparente → sky visibile)
+  const bgImg = el('img', 'camp-bg-img');
+  bgImg.src = `assets/rifugio/scene/bg_stage${stageIdx}.jpg`;
+  bgImg.alt = '';
+  bgImg.onerror = () => bgImg.remove();
+  panorama.appendChild(bgImg);
+
+  // 4. Night veil overlay
+  panorama.appendChild(el('div', 'camp-night-veil'));
+
+  // 5. Layer PNG da CAMP_LAYERS (ordinati per z)
+  const sortedLayers = [...layers].sort((a, b) => a.z - b.z);
+  for (const layer of sortedLayers) {
+    if (layer.id === 'campfire') {
+      // Campfire: prova PNG, fallback SVG animato inline
+      const cfWrap = el('div', 'camp-layer camp-campfire-wrap camp-layer-appear');
+      cfWrap.style.cssText = `left:${layer.left}%;bottom:${layer.bottom}%;width:${layer.width}%;z-index:${layer.z}`;
+      const cfImg = document.createElement('img');
+      cfImg.className = 'camp-campfire-img';
+      cfImg.src = `assets/rifugio/scene/campfire_${isNightTime ? 'night' : 'day'}.png`;
+      cfImg.alt = '';
+      cfImg.onerror = () => {
+        cfImg.remove();
+        cfWrap.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" style="width:100%;height:auto;display:block;overflow:visible">
+          <defs><radialGradient id="fg1" cx="50%" cy="85%" r="55%"><stop offset="0%" stop-color="#ff7700" stop-opacity=".5"/><stop offset="100%" stop-color="#ff4400" stop-opacity="0"/></radialGradient></defs>
+          <ellipse cx="50" cy="105" rx="42" ry="10" fill="url(#fg1)"/>
+          <rect x="16" y="90" width="68" height="11" rx="5.5" fill="#3b1e05" transform="rotate(-14 50 95)"/>
+          <rect x="16" y="90" width="68" height="11" rx="5.5" fill="#4a2608" transform="rotate(14 50 95)"/>
+          <ellipse cx="28" cy="97" rx="8" ry="6" fill="#2e2926"/><ellipse cx="72" cy="97" rx="8" ry="6" fill="#2e2926"/>
+          <ellipse cx="50" cy="101" rx="8" ry="5" fill="#242120"/>
+          <path d="M50,84 C36,76 28,56 36,40 C39,52 43,53 46,46 C48,38 44,25 50,12 C56,25 52,38 54,46 C57,53 61,52 64,40 C72,56 64,76 50,84Z" fill="#e85000" opacity=".85"><animateTransform attributeName="transform" type="scale" values="1,1;.96,1.05;1.02,.98;1,1" dur="1.3s" repeatCount="indefinite" additive="sum" transformOrigin="50 84"/><animateTransform attributeName="transform" type="translate" values="0,0;1.5,-2;-1,-1;0,0" dur=".95s" repeatCount="indefinite" additive="sum"/></path>
+          <path d="M50,78 C40,70 35,54 41,42 C43,51 46,52 47.5,46 C49,40 47,30 50,20 C53,30 51,40 52.5,46 C54,52 57,51 59,42 C65,54 60,70 50,78Z" fill="#ff7700"><animateTransform attributeName="transform" type="scale" values="1,1;.93,1.07;1.03,.97;1,1" dur="1.0s" repeatCount="indefinite" additive="sum" transformOrigin="50 78"/><animateTransform attributeName="transform" type="translate" values="0,0;-1.5,-2;1,-1;0,0" dur=".8s" repeatCount="indefinite" additive="sum"/></path>
+          <path d="M50,70 C43,63 40,51 44,42 C45.5,49 47,50 48,46 C49,41 47.5,34 50,26 C52.5,34 51,41 52,46 C53,50 54.5,49 56,42 C60,51 57,63 50,70Z" fill="#ffa020"><animateTransform attributeName="transform" type="scale" values="1,1;.94,1.07;1,1" dur=".85s" repeatCount="indefinite" additive="sum" transformOrigin="50 70"/></path>
+          <path d="M50,62 C45,57 43,48 46,41 C47,47 48,48 49,45 C49.5,41 48.5,35 50,29 C51.5,35 50.5,41 51,45 C52,48 53,47 54,41 C57,48 55,57 50,62Z" fill="#ffcc30"><animateTransform attributeName="transform" type="scale" values="1,1;.95,1.08;1,1" dur=".7s" repeatCount="indefinite" additive="sum" transformOrigin="50 62"/></path>
+          <circle cx="43" cy="50" r="1.5" fill="#ffe060" opacity="0"><animate attributeName="cy" values="88;22" dur="2.2s" repeatCount="indefinite"/><animate attributeName="cx" values="43;39;43" dur="2.2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;.9;.9;0" dur="2.2s" repeatCount="indefinite"/></circle>
+          <circle cx="57" cy="50" r="1" fill="#ffaa30" opacity="0"><animate attributeName="cy" values="85;18" dur="1.8s" begin=".6s" repeatCount="indefinite"/><animate attributeName="cx" values="57;61;57" dur="1.8s" begin=".6s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;.8;.8;0" dur="1.8s" begin=".6s" repeatCount="indefinite"/></circle>
+        </svg>`;
+      };
+      cfWrap.appendChild(cfImg);
+      panorama.appendChild(cfWrap);
+    } else {
+      const img = el('img', 'camp-layer camp-layer-appear');
+      img.src = `assets/rifugio/scene/${layer.id}.png`;
+      img.alt = '';
+      img.style.cssText = `left:${layer.left}%;bottom:${layer.bottom}%;width:${layer.width}%;z-index:${layer.z}`;
+      img.onerror = () => img.remove();
+      panorama.appendChild(img);
+    }
+  }
+
+  // 6. Cavalcatura nella scena (posizione dinamica a destra, z sopra edifici ma sotto overlay)
+  if (mount) {
+    const mountLayer = el('img', 'camp-layer camp-mount-layer camp-layer-appear');
+    mountLayer.src = mount.img;
+    mountLayer.alt = mount.name || '';
+    mountLayer.style.cssText = `left:62%;bottom:5%;width:22%;z-index:17`;
+    mountLayer.title = mount.name || '';
+    mountLayer.onerror = () => {
+      mountLayer.remove();
+      const mountEmoji = el('div', 'camp-layer camp-mount-emoji');
+      mountEmoji.textContent = mount.emoji || '🐴';
+      mountEmoji.style.cssText = `left:68%;bottom:5%;width:12%;z-index:17;font-size:clamp(1.2rem,4vw,2rem);display:flex;align-items:flex-end;justify-content:center`;
+      panorama.appendChild(mountEmoji);
+    };
+    panorama.appendChild(mountLayer);
+  }
+
+  // 7. Layer notturni (luna + fire_glow) — solo dusk/night
+  if (isNightTime) {
+    for (const nl of RPG.CAMP_NIGHT_LAYERS) {
+      const nImg = el('img', 'camp-layer camp-night-layer camp-layer-appear');
+      nImg.src = `assets/rifugio/scene/${nl.id}.png`;
+      nImg.alt = '';
+      nImg.style.cssText = `left:${nl.left}%;bottom:${nl.bottom}%;width:${nl.width}%;z-index:${nl.z}`;
+      nImg.onerror = () => nImg.remove();
+      panorama.appendChild(nImg);
+    }
+    // Lucciole CSS (solo notte piena)
+    if (phase === 'night') {
+      [[22,55],[45,42],[68,60],[35,70],[80,48],[12,65],[58,35]].forEach(([x,y], i) => {
+        const ff = el('div', 'camp-firefly');
+        ff.style.cssText = `left:${x}%;top:${y}%;--ff-delay:${(i*0.6).toFixed(1)}s;--ff-dx:${(Math.random()*12-6).toFixed(1)}%;--ff-dy:${(Math.random()*8-4).toFixed(1)}%`;
+        panorama.appendChild(ff);
+      });
+    }
+  }
+
+  // 8. Famiglio thumbnail (in basso a sinistra nella scena, sopra tutto)
+  if (HERO.companion && HERO.pet && HERO.pet.hatched) {
+    const petLayer = el('img', 'camp-layer camp-pet-layer camp-layer-appear');
+    petLayer.src = petImageSrc(HERO.pet);
+    petLayer.alt = HERO.pet.name || '';
+    petLayer.style.cssText = `left:2%;bottom:5%;width:16%;z-index:18`;
+    petLayer.onerror = () => {
+      petLayer.remove();
+      const petEmoji = el('div', 'camp-layer camp-pet-emoji');
+      petEmoji.textContent = petSpeciesInfo ? petSpeciesInfo.icon : '🐺';
+      petEmoji.style.cssText = `left:2%;bottom:5%;width:10%;z-index:18;font-size:clamp(1rem,3.5vw,1.8rem);display:flex;align-items:flex-end;justify-content:center`;
+      panorama.appendChild(petEmoji);
+    };
+    panorama.appendChild(petLayer);
+  }
+
+  // 9. Overlay badge: meteo (basso sx) + fase (basso dx)
+  const wx = RPG.getDailyWeather();
+  const wxBadge = el('div', 'camp-overlay-badge camp-wx-badge');
+  wxBadge.innerHTML = `${wx.icon} <span>${wx.label}</span>${wx.xpBonus > 0 ? ` <b class="camp-xp-bonus">+${Math.round(wx.xpBonus*100)}%</b>` : ''}`;
+  panorama.appendChild(wxBadge);
+
+  const phaseLabels = { dawn:'🌅 Alba', day:'☀️ Giorno', dusk:'🌇 Tramonto', night:'🌙 Notte' };
+  const phaseBadge = el('div', 'camp-overlay-badge camp-phase-badge');
+  phaseBadge.textContent = phaseLabels[phase] || '';
+  panorama.appendChild(phaseBadge);
+
+  // 10. Stage label (alto sx)
+  const stageBadge = el('div', 'camp-stage-label');
+  stageBadge.textContent = `${stageLabel} · Lv.${campLevel}`;
+  panorama.appendChild(stageBadge);
+
+  c.appendChild(panorama);
+
+  // Disegna stelle dopo che il canvas è nel DOM
+  requestAnimationFrame(() => drawCampStars(starsCanvas, phase));
+
+  // Stagione corrente — chip sotto il panorama
   const season = RPG.currentSeason();
   const seasonEl = el('div', 'camp-season-chip');
   seasonEl.innerHTML = `${season.icon} <b>${season.name}</b>`;
   seasonEl.style.setProperty('--season-color', season.color);
   seasonEl.addEventListener('click', () => showSeasonModal());
-  scene.appendChild(seasonEl);
+  c.appendChild(seasonEl);
 
-  scene.appendChild(el('p', 'camp-desc', sceneDesc +
-    (HERO.companion && petSpeciesInfo && HERO.pet.hatched ? `<br>${esc(HERO.pet.name)} ${petSpeciesInfo.icon} sonnecchia accanto a te.` : '') +
-    (HERO.companion && petSpeciesInfo && !HERO.pet.hatched ? `<br>Un uovo di ${petSpeciesInfo.name} si scalda accanto al fuoco.` : '') +
-    (mount ? `<br>${mount.name} riposa nella stalla.` : '')));
-  c.appendChild(scene);
+  // Descrizione companion/mount — testo sotto
+  const descParts = [];
+  if (HERO.companion && petSpeciesInfo && HERO.pet?.hatched)
+    descParts.push(`${esc(HERO.pet.name)} ${petSpeciesInfo.icon} sonnecchia accanto al fuoco.`);
+  if (HERO.companion && petSpeciesInfo && HERO.pet && !HERO.pet.hatched)
+    descParts.push(`Un uovo di ${petSpeciesInfo.name} si scalda accanto al fuoco.`);
+  if (mount) descParts.push(`${mount.name} riposa nelle vicinanze.`);
+  if (descParts.length) c.appendChild(el('p', 'camp-desc', descParts.join(' ')));
 
   // Avviso Rifugio Danneggiato
   if (HERO.buildingsDamaged && HERO.buildings.length) {

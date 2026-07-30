@@ -310,6 +310,77 @@ const RPG = (() => {
     return WORLD_LETTERS.filter(l => !received.includes(l.id) && l.check(hero));
   }
 
+  /* ── Camp Evolution ──
+   * Panorama 2:1 (width:height). Coordinate: left%, bottom%, width% relativi al contenitore.
+   * Background PNG: assets/rifugio/scene/bg_stage{0-4}.png  (2000×1000px consigliato)
+   * Layer PNG:      assets/rifugio/scene/{id}.png            (PNG con trasparenza)
+   */
+  const CAMP_STAGES = [
+    { id: 0, minLevel: 0,  label: 'Accampamento' },
+    { id: 1, minLevel: 10, label: 'Avamposto'    },
+    { id: 2, minLevel: 20, label: 'Rifugio'      },
+    { id: 3, minLevel: 30, label: 'Fortilizio'   },
+    { id: 4, minLevel: 40, label: 'Cittadella'   },
+    { id: 5, minLevel: 50, label: 'Leggenda'     },
+  ];
+
+  const CAMP_LAYERS = [
+    // ── Stage 0: Accampamento ──
+    { id: 'campfire',      stage: 0, minLevel: 0,  left: 45, bottom: 8,  width: 20, z: 10 },
+    { id: 'bedroll',       stage: 0, minLevel: 2,  left: 26, bottom: 4,  width: 20, z: 8  },
+    { id: 'supply_sack',   stage: 0, minLevel: 4,  left: 64, bottom: 5,  width: 16, z: 8  },
+    { id: 'tent_small',    stage: 0, minLevel: 6,  left: 10, bottom: 8,  width: 37, z: 9  },
+    { id: 'banner_worn',   stage: 0, minLevel: 8,  left: 74, bottom: 12, width: 12, z: 7  },
+    // ── Stage 1: Avamposto ──
+    { id: 'log_cabin',     stage: 1, minLevel: 10, left: 15, bottom: 8,  width: 48, z: 12 },
+    { id: 'stockade',      stage: 1, minLevel: 12, left: 59, bottom: 5,  width: 39, z: 9  },
+    { id: 'blacksmith',    stage: 1, minLevel: 14, left: 67, bottom: 8,  width: 30, z: 11 },
+    { id: 'well',          stage: 1, minLevel: 16, left: 44, bottom: 5,  width: 16, z: 8  },
+    { id: 'watchtower_s',  stage: 1, minLevel: 18, left: 1,  bottom: 12, width: 23, z: 13 },
+    // ── Stage 2: Rifugio ──
+    { id: 'stone_hall',    stage: 2, minLevel: 20, left: 17, bottom: 10, width: 55, z: 14 },
+    { id: 'stable',        stage: 2, minLevel: 22, left: 63, bottom: 8,  width: 32, z: 12 },
+    { id: 'forge',         stage: 2, minLevel: 24, left: 3,  bottom: 8,  width: 25, z: 11 },
+    { id: 'market_stall',  stage: 2, minLevel: 26, left: 51, bottom: 5,  width: 23, z: 10 },
+    { id: 'banner_guild',  stage: 2, minLevel: 28, left: 36, bottom: 22, width: 12, z: 15 },
+    // ── Stage 3: Fortilizio ──
+    { id: 'fortress_wall', stage: 3, minLevel: 30, left: 0,  bottom: 0,  width: 100, z: 6 },
+    { id: 'keep',          stage: 3, minLevel: 32, left: 25, bottom: 12, width: 60, z: 16 },
+    { id: 'armory',        stage: 3, minLevel: 34, left: 1,  bottom: 10, width: 30, z: 14 },
+    { id: 'library',       stage: 3, minLevel: 36, left: 67, bottom: 10, width: 30, z: 14 },
+    { id: 'siege_engine',  stage: 3, minLevel: 38, left: 49, bottom: 4,  width: 30, z: 13 },
+    // ── Stage 4: Cittadella ──
+    { id: 'citadel',       stage: 4, minLevel: 40, left: 13, bottom: 15, width: 69, z: 18 },
+    { id: 'arcane_tower',  stage: 4, minLevel: 42, left: 67, bottom: 18, width: 28, z: 17 },
+    { id: 'barracks',      stage: 4, minLevel: 44, left: 0,  bottom: 8,  width: 32, z: 15 },
+    { id: 'monument',      stage: 4, minLevel: 46, left: 42, bottom: 5,  width: 21, z: 16 },
+    { id: 'dragon_banner', stage: 4, minLevel: 48, left: 35, bottom: 36, width: 14, z: 20 },
+    /* ── Stage 5: Leggenda (lv 50–58) ── */
+    { id: 'throne_hall',    stage: 5, minLevel: 50, left: 11, bottom: 12, width: 76, z: 22 },
+    { id: 'colosseum',      stage: 5, minLevel: 52, left: 63, bottom: 6,  width: 39, z: 20 },
+    { id: 'triumphal_arch', stage: 5, minLevel: 54, left: 32, bottom: 0,  width: 28, z: 25 },
+    { id: 'grand_obelisk',  stage: 5, minLevel: 56, left: 1,  bottom: 5,  width: 16, z: 18 },
+    { id: 'celestial_beacon', stage: 5, minLevel: 58, left: 73, bottom: 20, width: 21, z: 24 },
+  ];
+
+  /* Layers che appaiono solo di notte/tramonto — universali per tutti gli stage */
+  const CAMP_NIGHT_LAYERS = [
+    { id: 'moon',      left: 75, bottom: 55, width: 12, z: 4  },
+    { id: 'fire_glow', left: 38, bottom: 2,  width: 24, z: 11 },
+  ];
+
+  function campStageForLevel(level) {
+    let s = 0;
+    for (const st of CAMP_STAGES) { if ((level || 1) >= st.minLevel) s = st.id; }
+    return s;
+  }
+
+  function campUnlockedLayers(hero) {
+    const lv = hero.level || 1;
+    const st = campStageForLevel(lv);
+    return CAMP_LAYERS.filter(l => l.stage === st && lv >= l.minLevel);
+  }
+
   function accessibleZones(hero) {
     return BIOMES.filter(b => hero.level >= b.min).map(b => b.name);
   }
@@ -4268,5 +4339,6 @@ const RPG = (() => {
     rolloverSerraMissions, claimSerraMission,
     SEASONS, currentSeason, initSeasonalChallenge, claimSeasonalChallenge,
     BIOME_LORE, BIOME_ARTIFACTS, WORLD_LETTERS, checkPendingLetters,
+    CAMP_STAGES, CAMP_LAYERS, CAMP_NIGHT_LAYERS, campStageForLevel, campUnlockedLayers,
   };
 })();
