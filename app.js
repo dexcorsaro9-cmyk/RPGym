@@ -985,7 +985,7 @@ function renderCamp(c) {
 
   // 3. Background PNG per stage (fallback: trasparente → sky visibile)
   const bgImg = el('img', 'camp-bg-img');
-  bgImg.src = `assets/rifugio/scene/bg_stage${stageIdx}.png`;
+  bgImg.src = `assets/rifugio/scene/bg_stage${stageIdx}.jpg`;
   bgImg.alt = '';
   bgImg.onerror = () => bgImg.remove();
   panorama.appendChild(bgImg);
