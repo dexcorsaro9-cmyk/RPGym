@@ -975,19 +975,15 @@ function renderCamp(c) {
   const panorama = el('div', 'camp-panorama');
   panorama.dataset.phase = phase;
   panorama.dataset.stage = stageIdx;
+  panorama.style.backgroundImage = `url('assets/rifugio/scene/bg_stage${stageIdx}.jpg')`;
 
-  // 1. Sky gradient (CSS-driven, zero asset)
+  // 1. Sky gradient (CSS-driven, zero asset) — visibile solo se il bg non carica
   panorama.appendChild(el('div', 'camp-sky'));
 
   // 2. Stelle — canvas, disegnato dopo mount in DOM
   const starsCanvas = document.createElement('canvas');
   starsCanvas.className = 'camp-stars';
   panorama.appendChild(starsCanvas);
-
-  // 3. Background per stage via background-image (cover affidabile su tutti i browser)
-  const bgImg = el('div', 'camp-bg-img');
-  bgImg.style.backgroundImage = `url('assets/rifugio/scene/bg_stage${stageIdx}.jpg')`;
-  panorama.appendChild(bgImg);
 
   // 4. Night veil overlay
   panorama.appendChild(el('div', 'camp-night-veil'));

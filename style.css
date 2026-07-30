@@ -896,7 +896,10 @@ body {
   border: 1.5px solid rgba(201,147,46,.35);
   box-shadow: 0 6px 28px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,220,140,.08);
   margin-bottom: 10px;
-  background: #0a1020;
+  background-color: #0a1020;
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
 }
 
 /* Sky gradient — cambia con data-phase */
@@ -915,14 +918,6 @@ body {
   z-index: 2; pointer-events: none;
 }
 
-/* Background per stage */
-.camp-bg-img {
-  position: absolute; inset: 0;
-  background-size: cover;
-  background-position: center bottom;
-  background-repeat: no-repeat;
-  z-index: 3;
-}
 
 /* Velo notturno */
 .camp-night-veil {
