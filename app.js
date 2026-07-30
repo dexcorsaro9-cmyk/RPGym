@@ -1490,14 +1490,14 @@ function renderCamp(c) {
     zThumb.alt = '';
     zThumb.addEventListener('error', () => zThumb.remove());
     zp.appendChild(zThumb);
-    zp.appendChild(el('h3', 'panel-title', '🎒 Lo Zaino dell\'Avventuriero'));
+    zp.appendChild(el('h3', 'panel-title', '💰 Sacca del Viandante'));
     if (activeBuff) zp.appendChild(el('p', 'small', '✨ Hai buff consumabile attivo!'));
     zp.appendChild(el('p', 'muted small',
       consCount > 0
-        ? `${consCount} consumabil${consCount === 1 ? 'e' : 'i'} in zaino · usa prima di allenarti per potenziare le ricompense.`
-        : 'Zaino vuoto — ottieni consumabili dall\'Arena, dai boss e dall\'Erborista nel Mercato.'));
+        ? `${consCount} consumabil${consCount === 1 ? 'e' : 'i'} in sacca · usa prima di allenarti per potenziare le ricompense.`
+        : 'Sacca vuota — ottieni consumabili dall\'Arena, dai boss e dall\'Erborista nel Mercato.'));
     if (consCount > 0) zp.appendChild(el('span', 'mg-card-badge', String(consCount)));
-    const zBtn = el('button', 'btn btn-primary wide', '🎒 Apri lo Zaino');
+    const zBtn = el('button', 'btn btn-primary wide', '💰 Apri la Sacca');
     zBtn.addEventListener('click', () => { CAMP_VIEW = 'zaino'; setTab('camp'); });
     zp.appendChild(zBtn);
     c.appendChild(zp);
@@ -4204,7 +4204,7 @@ function renderErborista(c) {
     card.appendChild(imgWrap);
     card.appendChild(el('div', 'consumable-name', co.name));
     card.appendChild(el('div', 'consumable-desc muted small', co.desc));
-    if (qty > 0) card.appendChild(el('span', 'consumable-qty', `×${qty} in zaino`));
+    if (qty > 0) card.appendChild(el('span', 'consumable-qty', `×${qty} in sacca`));
     const buyBtn = el('button', `btn btn-primary btn-small${HERO.gold < price ? ' disabled' : ''}`, `${price} 🪙`);
     buyBtn.disabled = HERO.gold < price;
     buyBtn.addEventListener('click', () => {
@@ -5772,7 +5772,7 @@ function renderZainoView(c) {
   const backBtn = el('button', 'btn btn-small', '↩ Torna al Rifugio');
   backBtn.addEventListener('click', () => { CAMP_VIEW = 'main'; setTab('camp'); });
   c.appendChild(backBtn);
-  c.appendChild(el('h2', 'section-title', '🎒 Lo Zaino dell\'Avventuriero'));
+  c.appendChild(el('h2', 'section-title', '💰 Sacca del Viandante'));
 
   // Buff attivi
   const bff = HERO.consumableBuffs || {};
@@ -5809,8 +5809,8 @@ function renderZainoView(c) {
 
   if (!cons.length) {
     const empty = el('div', 'panel muted', ZAINO_CAT === 'tutti'
-      ? 'Zaino vuoto — combatti nell\'Arena, sconfiggi boss e visita l\'Erborista nel Mercato per ottenere consumabili.'
-      : 'Nessun consumabile di questa categoria nel tuo zaino.');
+      ? 'Sacca vuota — combatti nell\'Arena, sconfiggi boss e visita l\'Erborista nel Mercato per ottenere consumabili.'
+      : 'Nessun consumabile di questa categoria nella tua sacca.');
     c.appendChild(empty);
   } else {
     const grid = el('div', 'consumable-grid');
