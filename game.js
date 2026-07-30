@@ -367,6 +367,57 @@ const RPG = (() => {
     { id: 'fire_glow', left: 38, bottom: 2,  width: 24, z: 11 },
   ];
 
+  /* Catalogo acquisti per i layer — legno + pietra, nessun costo oro */
+  const CAMP_LAYER_SHOP = [
+    // ── Stage 0: Accampamento ──
+    { id: 'campfire',      stage: 0, minLevel: 0,  name: 'Fuoco da Campo',          icon: '🔥', price: { wood: 8,   stone: 0   } },
+    { id: 'bedroll',       stage: 0, minLevel: 2,  name: 'Giaciglio dell\'Eroe',     icon: '🛏️', price: { wood: 10,  stone: 4   } },
+    { id: 'supply_sack',   stage: 0, minLevel: 4,  name: 'Sacchi dei Rifornimenti', icon: '🎒', price: { wood: 12,  stone: 6   } },
+    { id: 'tent_small',    stage: 0, minLevel: 6,  name: 'Tenda da Campo',          icon: '⛺', price: { wood: 18,  stone: 8   } },
+    { id: 'banner_worn',   stage: 0, minLevel: 8,  name: 'Stendardo Consumato',     icon: '🚩', price: { wood: 15,  stone: 12  } },
+    // ── Stage 1: Avamposto ──
+    { id: 'log_cabin',     stage: 1, minLevel: 10, name: 'Capanna di Tronchi',      icon: '🏠', price: { wood: 30,  stone: 15  } },
+    { id: 'stockade',      stage: 1, minLevel: 12, name: 'Palizzata',               icon: '🪵', price: { wood: 25,  stone: 30  } },
+    { id: 'blacksmith',    stage: 1, minLevel: 14, name: 'Fucina del Fabbro',       icon: '⚒️', price: { wood: 20,  stone: 40  } },
+    { id: 'well',          stage: 1, minLevel: 16, name: 'Pozzo del Villaggio',     icon: '🪣', price: { wood: 15,  stone: 45  } },
+    { id: 'watchtower_s',  stage: 1, minLevel: 18, name: 'Torre di Guardia',        icon: '🗼', price: { wood: 35,  stone: 35  } },
+    // ── Stage 2: Rifugio ──
+    { id: 'stone_hall',    stage: 2, minLevel: 20, name: 'Sala di Pietra',          icon: '🏛️', price: { wood: 40,  stone: 80  } },
+    { id: 'stable',        stage: 2, minLevel: 22, name: 'Scuderia',                icon: '🐴', price: { wood: 60,  stone: 50  } },
+    { id: 'forge',         stage: 2, minLevel: 24, name: 'Grande Forgia',           icon: '🔨', price: { wood: 35,  stone: 90  } },
+    { id: 'market_stall',  stage: 2, minLevel: 26, name: 'Bancarella del Mercato',  icon: '🏪', price: { wood: 50,  stone: 65  } },
+    { id: 'banner_guild',  stage: 2, minLevel: 28, name: 'Stendardo della Gilda',   icon: '🏴', price: { wood: 30,  stone: 60  } },
+    // ── Stage 3: Fortilizio ──
+    { id: 'fortress_wall', stage: 3, minLevel: 30, name: 'Mura Difensive',          icon: '🧱', price: { wood: 60,  stone: 120 } },
+    { id: 'keep',          stage: 3, minLevel: 32, name: 'Mastio Centrale',         icon: '🏰', price: { wood: 80,  stone: 150 } },
+    { id: 'armory',        stage: 3, minLevel: 34, name: 'Arsenale',                icon: '⚔️', price: { wood: 90,  stone: 130 } },
+    { id: 'library',       stage: 3, minLevel: 36, name: 'Biblioteca Arcana',       icon: '📚', price: { wood: 100, stone: 120 } },
+    { id: 'siege_engine',  stage: 3, minLevel: 38, name: 'Macchina d\'Assedio',     icon: '🪃', price: { wood: 120, stone: 140 } },
+    // ── Stage 4: Cittadella ──
+    { id: 'citadel',       stage: 4, minLevel: 40, name: 'Cittadella',              icon: '🏯', price: { wood: 150, stone: 200 } },
+    { id: 'arcane_tower',  stage: 4, minLevel: 42, name: 'Torre Arcana',            icon: '🔮', price: { wood: 120, stone: 250 } },
+    { id: 'barracks',      stage: 4, minLevel: 44, name: 'Caserma',                 icon: '🛡️', price: { wood: 180, stone: 180 } },
+    { id: 'monument',      stage: 4, minLevel: 46, name: 'Monumento agli Eroi',     icon: '🗿', price: { wood: 130, stone: 220 } },
+    { id: 'dragon_banner', stage: 4, minLevel: 48, name: 'Stendardo del Drago',     icon: '🐉', price: { wood: 200, stone: 180 } },
+  ];
+
+  function campLayerShopItem(id) { return CAMP_LAYER_SHOP.find(l => l.id === id); }
+
+  function buyCampLayer(hero, layerId) {
+    const item = campLayerShopItem(layerId);
+    if (!item) return 'Struttura sconosciuta.';
+    hero.furniture = hero.furniture || { owned: [] };
+    if (hero.furniture.owned.includes(layerId)) return 'Già costruita.';
+    if (hero.level < item.minLevel) return `Richiede Livello ${item.minLevel}.`;
+    const p = item.price;
+    if (hero.wood < p.wood || hero.stone < p.stone) {
+      return `Risorse insufficienti (servono 🪵${p.wood} 🪨${p.stone}).`;
+    }
+    hero.wood -= p.wood; hero.stone -= p.stone;
+    hero.furniture.owned.push(layerId);
+    return { ok: true };
+  }
+
   function campStageForLevel(level) {
     let s = 0;
     for (const st of CAMP_STAGES) { if ((level || 1) >= st.minLevel) s = st.id; }
@@ -376,7 +427,8 @@ const RPG = (() => {
   function campUnlockedLayers(hero) {
     const lv = hero.level || 1;
     const st = campStageForLevel(lv);
-    return CAMP_LAYERS.filter(l => l.stage === st && lv >= l.minLevel);
+    const owned = (hero.furniture && hero.furniture.owned) || [];
+    return CAMP_LAYERS.filter(l => l.stage === st && owned.includes(l.id));
   }
 
   function accessibleZones(hero) {
@@ -4338,5 +4390,6 @@ const RPG = (() => {
     SEASONS, currentSeason, initSeasonalChallenge, claimSeasonalChallenge,
     BIOME_LORE, BIOME_ARTIFACTS, WORLD_LETTERS, checkPendingLetters,
     CAMP_STAGES, CAMP_LAYERS, CAMP_NIGHT_LAYERS, campStageForLevel, campUnlockedLayers,
+    CAMP_LAYER_SHOP, campLayerShopItem, buyCampLayer,
   };
 })();
