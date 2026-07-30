@@ -887,10 +887,16 @@ document.addEventListener('touchend', e => {
 document.querySelector('.hud-right').addEventListener('click', () => { if (HERO) showResources(); });
 
 function setTab(tab, dir) {
+  const c = $('#tab-content');
+  const prevTab      = CURRENT_TAB;
+  const prevScroll   = c.scrollTop;
+  const prevCampView = CAMP_VIEW;
+  const prevMapView  = MAP_VIEW;
+  const prevHeroView = HERO_VIEW;
+
   CURRENT_TAB = tab;
   document.querySelectorAll('#tabbar .tab').forEach(t =>
     t.classList.toggle('active', t.dataset.tab === tab));
-  const c = $('#tab-content');
   c.classList.remove('bg-parchment', 'bg-rifugio', 'bg-map', 'bg-train', 'bg-market');
   if (tab === 'hero')   c.classList.add('bg-parchment');
   if (tab === 'camp')   c.classList.add('bg-parchment');
@@ -900,7 +906,13 @@ function setTab(tab, dir) {
   c.classList.remove('tab-in', 'tab-slide-left', 'tab-slide-right');
   c.innerHTML = '';
   ({ camp: renderCamp, map: renderMap, train: renderTrain, market: renderMarket, hero: renderHero }[tab])(c);
-  c.scrollTop = 0;
+
+  const sameSubView = tab === prevTab && !dir &&
+    (tab !== 'camp'   || CAMP_VIEW === prevCampView) &&
+    (tab !== 'map'    || MAP_VIEW  === prevMapView)  &&
+    (tab !== 'hero'   || HERO_VIEW === prevHeroView);
+  c.scrollTop = sameSubView ? prevScroll : 0;
+
   requestAnimationFrame(() => {
     if (dir === 'left')       c.classList.add('tab-slide-left');
     else if (dir === 'right') c.classList.add('tab-slide-right');
