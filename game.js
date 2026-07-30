@@ -325,35 +325,40 @@ const RPG = (() => {
 
   const CAMP_LAYERS = [
     // ── Stage 0: Accampamento ──
-    { id: 'campfire',      stage: 0, minLevel: 0,  left: 45, bottom: 8,  width: 20, z: 10 },
-    { id: 'bedroll',       stage: 0, minLevel: 2,  left: 26, bottom: 4,  width: 20, z: 8  },
-    { id: 'supply_sack',   stage: 0, minLevel: 4,  left: 64, bottom: 5,  width: 16, z: 8  },
-    { id: 'tent_small',    stage: 0, minLevel: 6,  left: 10, bottom: 8,  width: 37, z: 9  },
-    { id: 'banner_worn',   stage: 0, minLevel: 8,  left: 74, bottom: 12, width: 12, z: 7  },
+    // Zone: [tent 1-37] gap [campfire 39-57] [bedroll 58-74] [supply 75-88] [banner 85-95]
+    { id: 'campfire',      stage: 0, minLevel: 0,  left: 39, bottom: 7,  width: 18, z: 10 },
+    { id: 'bedroll',       stage: 0, minLevel: 2,  left: 58, bottom: 3,  width: 16, z: 8  },
+    { id: 'supply_sack',   stage: 0, minLevel: 4,  left: 75, bottom: 4,  width: 13, z: 8  },
+    { id: 'tent_small',    stage: 0, minLevel: 6,  left: 1,  bottom: 8,  width: 36, z: 9  },
+    { id: 'banner_worn',   stage: 0, minLevel: 8,  left: 85, bottom: 12, width: 10, z: 7  },
     // ── Stage 1: Avamposto ──
-    { id: 'log_cabin',     stage: 1, minLevel: 10, left: 15, bottom: 8,  width: 48, z: 12 },
-    { id: 'stockade',      stage: 1, minLevel: 12, left: 59, bottom: 5,  width: 39, z: 9  },
-    { id: 'blacksmith',    stage: 1, minLevel: 14, left: 67, bottom: 8,  width: 30, z: 11 },
-    { id: 'well',          stage: 1, minLevel: 16, left: 44, bottom: 5,  width: 16, z: 8  },
-    { id: 'watchtower_s',  stage: 1, minLevel: 18, left: 1,  bottom: 12, width: 23, z: 13 },
+    // Zone: [tower 0-20] [cabin 19-59] [well 59-71] [blacksmith 71-95] | stockade bg [54-98]
+    { id: 'log_cabin',     stage: 1, minLevel: 10, left: 19, bottom: 8,  width: 40, z: 12 },
+    { id: 'stockade',      stage: 1, minLevel: 12, left: 54, bottom: 2,  width: 44, z: 9  },
+    { id: 'blacksmith',    stage: 1, minLevel: 14, left: 71, bottom: 8,  width: 24, z: 11 },
+    { id: 'well',          stage: 1, minLevel: 16, left: 59, bottom: 4,  width: 12, z: 10 },
+    { id: 'watchtower_s',  stage: 1, minLevel: 18, left: 0,  bottom: 10, width: 20, z: 13 },
     // ── Stage 2: Rifugio ──
-    { id: 'stone_hall',    stage: 2, minLevel: 20, left: 17, bottom: 10, width: 55, z: 14 },
-    { id: 'stable',        stage: 2, minLevel: 22, left: 63, bottom: 8,  width: 32, z: 12 },
-    { id: 'forge',         stage: 2, minLevel: 24, left: 3,  bottom: 8,  width: 25, z: 11 },
-    { id: 'market_stall',  stage: 2, minLevel: 26, left: 51, bottom: 5,  width: 23, z: 10 },
-    { id: 'banner_guild',  stage: 2, minLevel: 28, left: 36, bottom: 22, width: 12, z: 15 },
+    // Zone: [forge 1-23] [stone_hall 21-65] [market 64-80] [stable 68-94] + banner su hall
+    { id: 'stone_hall',    stage: 2, minLevel: 20, left: 21, bottom: 10, width: 44, z: 14 },
+    { id: 'stable',        stage: 2, minLevel: 22, left: 68, bottom: 8,  width: 26, z: 12 },
+    { id: 'forge',         stage: 2, minLevel: 24, left: 1,  bottom: 8,  width: 22, z: 11 },
+    { id: 'market_stall',  stage: 2, minLevel: 26, left: 64, bottom: 4,  width: 16, z: 10 },
+    { id: 'banner_guild',  stage: 2, minLevel: 28, left: 40, bottom: 22, width: 10, z: 15 },
     // ── Stage 3: Fortilizio ──
-    { id: 'fortress_wall', stage: 3, minLevel: 30, left: 0,  bottom: 0,  width: 100, z: 6 },
-    { id: 'keep',          stage: 3, minLevel: 32, left: 25, bottom: 12, width: 60, z: 16 },
-    { id: 'armory',        stage: 3, minLevel: 34, left: 1,  bottom: 10, width: 30, z: 14 },
-    { id: 'library',       stage: 3, minLevel: 36, left: 67, bottom: 10, width: 30, z: 14 },
-    { id: 'siege_engine',  stage: 3, minLevel: 38, left: 49, bottom: 4,  width: 30, z: 13 },
+    // Zone: [armory 1-25] [keep 24-68] [library 70-96] | siege fg [70-92] | wall bg
+    { id: 'fortress_wall', stage: 3, minLevel: 30, left: 0,  bottom: 0,  width: 100, z: 6  },
+    { id: 'keep',          stage: 3, minLevel: 32, left: 24, bottom: 14, width: 44, z: 16 },
+    { id: 'armory',        stage: 3, minLevel: 34, left: 1,  bottom: 10, width: 24, z: 14 },
+    { id: 'library',       stage: 3, minLevel: 36, left: 70, bottom: 10, width: 26, z: 14 },
+    { id: 'siege_engine',  stage: 3, minLevel: 38, left: 70, bottom: 4,  width: 22, z: 17 },
     // ── Stage 4: Cittadella ──
-    { id: 'citadel',       stage: 4, minLevel: 40, left: 13, bottom: 15, width: 69, z: 18 },
-    { id: 'arcane_tower',  stage: 4, minLevel: 42, left: 67, bottom: 18, width: 28, z: 17 },
-    { id: 'barracks',      stage: 4, minLevel: 44, left: 0,  bottom: 8,  width: 32, z: 15 },
-    { id: 'monument',      stage: 4, minLevel: 46, left: 42, bottom: 5,  width: 21, z: 16 },
-    { id: 'dragon_banner', stage: 4, minLevel: 48, left: 35, bottom: 36, width: 14, z: 20 },
+    // Zone: [barracks 1-27] [citadel 25-69] [arcane_tower 70-96] | monument fg | banner alto
+    { id: 'citadel',       stage: 4, minLevel: 40, left: 25, bottom: 15, width: 44, z: 18 },
+    { id: 'arcane_tower',  stage: 4, minLevel: 42, left: 70, bottom: 18, width: 26, z: 17 },
+    { id: 'barracks',      stage: 4, minLevel: 44, left: 1,  bottom: 8,  width: 26, z: 15 },
+    { id: 'monument',      stage: 4, minLevel: 46, left: 44, bottom: 4,  width: 15, z: 19 },
+    { id: 'dragon_banner', stage: 4, minLevel: 48, left: 38, bottom: 38, width: 12, z: 22 },
   ];
 
   /* Layers che appaiono solo di notte/tramonto — universali per tutti gli stage */

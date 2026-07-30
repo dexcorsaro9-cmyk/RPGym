@@ -1028,21 +1028,24 @@ function renderCamp(c) {
     }
   }
 
-  // 6. Cavalcatura nella scena — dimensione proporzionale allo stage
+  // 6. Cavalcatura — zona dedicata per stage, sempre in primo piano (z:21)
   if (mount) {
-    // Stage 0→4: la cavalcatura scala con le strutture, mai più grande del tetto principale
+    // Posizione per stage: zona aperta a destra della struttura principale
+    // St0: dopo supply_sack | St1: dopo well/prima blacksmith | St2-4: centro-destra libero
     const mountWidths = [11, 14, 16, 18, 20];
+    const mountLeft   = [75, 57, 62, 62, 62];
     const mw = mountWidths[stageIdx] ?? 14;
+    const ml = mountLeft[stageIdx] ?? 62;
     const mountLayer = el('img', 'camp-layer camp-mount-layer camp-layer-appear');
     mountLayer.src = mount.img;
     mountLayer.alt = mount.name || '';
-    mountLayer.style.cssText = `left:62%;bottom:5%;width:${mw}%;z-index:17`;
+    mountLayer.style.cssText = `left:${ml}%;bottom:5%;width:${mw}%;z-index:21`;
     mountLayer.title = mount.name || '';
     mountLayer.onerror = () => {
       mountLayer.remove();
       const mountEmoji = el('div', 'camp-layer camp-mount-emoji');
       mountEmoji.textContent = mount.emoji || '🐴';
-      mountEmoji.style.cssText = `left:68%;bottom:5%;width:${Math.round(mw*0.6)}%;z-index:17;font-size:clamp(1.2rem,4vw,2rem);display:flex;align-items:flex-end;justify-content:center`;
+      mountEmoji.style.cssText = `left:${ml+3}%;bottom:5%;width:${Math.round(mw*0.6)}%;z-index:21;font-size:clamp(1.2rem,4vw,2rem);display:flex;align-items:flex-end;justify-content:center`;
       panorama.appendChild(mountEmoji);
     };
     panorama.appendChild(mountLayer);
