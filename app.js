@@ -957,15 +957,77 @@ function drawCampStars(canvas, phase) {
   ctx.globalAlpha = 1;
 }
 
+function showResizeBubble(elem, key, panorama, baseZ, baseWidth) {
+  document.querySelectorAll('.camp-resize-bubble').forEach(b => b.remove());
+
+  const bubble = document.createElement('div');
+  bubble.className = 'camp-resize-bubble';
+
+  function getW() { return parseFloat(elem.style.width) || baseWidth || 15; }
+  function applyWidth(newW) {
+    newW = Math.max(5, Math.min(55, newW));
+    elem.style.width = newW + '%';
+    lbl.textContent = Math.round(newW) + '%';
+    HERO.campLayout = HERO.campLayout || {};
+    HERO.campLayout[key] = {
+      left:   parseFloat(elem.style.left)   || 0,
+      bottom: parseFloat(elem.style.bottom) || 0,
+      width:  newW
+    };
+    persist();
+  }
+
+  const minusBtn = document.createElement('button');
+  minusBtn.className = 'crb-btn';
+  minusBtn.textContent = '−';
+  minusBtn.addEventListener('click', e => { e.stopPropagation(); applyWidth(getW() - 3); });
+
+  const lbl = document.createElement('span');
+  lbl.className = 'crb-label';
+  lbl.textContent = Math.round(getW()) + '%';
+
+  const plusBtn = document.createElement('button');
+  plusBtn.className = 'crb-btn';
+  plusBtn.textContent = '+';
+  plusBtn.addEventListener('click', e => { e.stopPropagation(); applyWidth(getW() + 3); });
+
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'crb-close';
+  closeBtn.textContent = '✓';
+  closeBtn.addEventListener('click', e => { e.stopPropagation(); bubble.remove(); });
+
+  bubble.append(minusBtn, lbl, plusBtn, closeBtn);
+
+  const eRect = elem.getBoundingClientRect();
+  const pRect = panorama.getBoundingClientRect();
+  const bLeft = Math.max(4, Math.min(eRect.left - pRect.left + eRect.width / 2 - 80, pRect.width - 170));
+  const bTop  = Math.max(4, eRect.top - pRect.top - 50);
+  bubble.style.cssText = `position:absolute;left:${bLeft}px;top:${bTop}px;z-index:50`;
+
+  panorama.appendChild(bubble);
+
+  const dismiss = e => {
+    if (!bubble.contains(e.target) && e.target !== elem) {
+      bubble.remove();
+      document.removeEventListener('touchstart', dismiss);
+      document.removeEventListener('mousedown', dismiss);
+    }
+  };
+  setTimeout(() => {
+    document.addEventListener('touchstart', dismiss, { passive: true });
+    document.addEventListener('mousedown', dismiss);
+  }, 0);
+}
+
 function makeCampLayerDraggable(elem, key, panorama, baseZ, baseWidth) {
   elem.classList.add('camp-layer-draggable');
-  let dragging = false, pinching = false;
+  let dragging = false, pinching = false, hasMoved = false;
   let startCX, startCY, startL, startB, startPinchDist, startWidth;
 
   function getW() { return parseFloat(elem.style.width) || baseWidth || 15; }
 
   function beginDrag(cx, cy) {
-    dragging = true;
+    dragging = true; hasMoved = false;
     startCX = cx; startCY = cy;
     startL  = parseFloat(elem.style.left)   || 0;
     startB  = parseFloat(elem.style.bottom) || 0;
@@ -974,13 +1036,15 @@ function makeCampLayerDraggable(elem, key, panorama, baseZ, baseWidth) {
   }
   function moveDrag(cx, cy) {
     if (!dragging) return;
+    const dx = cx - startCX, dy = cy - startCY;
+    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) hasMoved = true;
     const r = panorama.getBoundingClientRect();
-    elem.style.left   = Math.max(0, Math.min(90, startL + (cx - startCX) / r.width  * 100)) + '%';
-    elem.style.bottom = Math.max(0, Math.min(80, startB - (cy - startCY) / r.height * 100)) + '%';
+    elem.style.left   = Math.max(0, Math.min(90, startL + dx / r.width  * 100)) + '%';
+    elem.style.bottom = Math.max(0, Math.min(80, startB - dy / r.height * 100)) + '%';
   }
 
   function beginPinch(t0, t1) {
-    pinching = true; dragging = false;
+    pinching = true; dragging = false; hasMoved = true;
     startPinchDist = Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY);
     startWidth = getW();
     startCX = (t0.clientX + t1.clientX) / 2;
@@ -1005,9 +1069,14 @@ function makeCampLayerDraggable(elem, key, panorama, baseZ, baseWidth) {
 
   function endAll() {
     if (!dragging && !pinching) return;
-    dragging = false; pinching = false;
+    const wasDragging = dragging, didMove = hasMoved;
+    dragging = false; pinching = false; hasMoved = false;
     elem.style.zIndex = baseZ;
     elem.classList.remove('camp-drag-active');
+    if (wasDragging && !didMove) {
+      showResizeBubble(elem, key, panorama, baseZ, baseWidth);
+      return;
+    }
     HERO.campLayout = HERO.campLayout || {};
     HERO.campLayout[key] = {
       left:   parseFloat(elem.style.left),
@@ -1029,7 +1098,8 @@ function makeCampLayerDraggable(elem, key, panorama, baseZ, baseWidth) {
     if (e.touches.length === 2 && pinching) movePinch(e.touches[0], e.touches[1]);
     else if (e.touches.length === 1 && dragging) moveDrag(e.touches[0].clientX, e.touches[0].clientY);
   }, { passive: false });
-  elem.addEventListener('touchend', () => endAll(), { passive: true });
+  elem.addEventListener('touchend',    () => endAll(), { passive: true });
+  elem.addEventListener('touchcancel', () => endAll(), { passive: true });
 
   // Mouse (desktop)
   elem.addEventListener('mousedown', e => {
@@ -1088,7 +1158,8 @@ function renderCamp(c) {
       const cfSv = HERO.campLayout?.campfire;
       const cfL  = cfSv ? cfSv.left   : layer.left;
       const cfB  = cfSv ? cfSv.bottom : layer.bottom;
-      cfWrap.style.cssText = `left:${cfL}%;bottom:${cfB}%;width:${layer.width}%;z-index:${layer.z}`;
+      const cfW  = cfSv ? cfSv.width  : layer.width;
+      cfWrap.style.cssText = `left:${cfL}%;bottom:${cfB}%;width:${cfW}%;z-index:${layer.z}`;
       const cfImg = document.createElement('img');
       cfImg.className = 'camp-campfire-img';
       cfImg.src = `assets/rifugio/scene/campfire_${isNightTime ? 'night' : 'day'}.png`;
