@@ -1094,7 +1094,7 @@ img.camp-layer {
   white-space: nowrap;
 }
 .camp-wx-badge    { left: 7px; }
-.camp-phase-badge { right: 7px; }
+.camp-phase-badge { bottom: auto; top: 30px; left: 8px; right: auto; }
 .camp-xp-bonus    { color: #ffe96e; font-weight: 700; }
 
 /* Stage label in alto a sx */
