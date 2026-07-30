@@ -5,7 +5,7 @@
 
 
 
-const CACHE = 'heropace-v276';
+const CACHE = 'heropace-v277';
 const NOTIF_CACHE = 'heropace-notif-v1'; // stato notifiche (non cancellare mai)
 
 /* File solo per fallback offline — NON pre-cachati all'install */
@@ -125,7 +125,16 @@ async function doSmartNotifCheck() {
   /* Stato stale: l'app non è stata aperta oggi, skip */
   if (state.date !== today) return;
 
-  /* ① Pozione — tra le 19:00 e le 22:00 se non riscattata */
+  /* ① Buff attivo — mattino (9-11) ricordati di allenarti */
+  if (hour >= 9 && hour < 11 && state.hasActiveBuff) {
+    await showNotifSW(
+      '💊 Hai un buff attivo!',
+      'Un consumabile è pronto — allenati oggi per non sprecarlo!',
+      'buff_active_' + today
+    );
+  }
+
+  /* ② Pozione — tra le 19:00 e le 22:00 se non riscattata */
   if (hour >= 19 && hour < 22 && !state.potionClaimed) {
     await showNotifSW(
       '⚗️ Pozione non riscattata!',

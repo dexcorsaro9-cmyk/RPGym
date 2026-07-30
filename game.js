@@ -723,7 +723,31 @@ const RPG = (() => {
     if (err) return err;
     hero.consumables[id]--;
     if (hero.consumables[id] <= 0) delete hero.consumables[id];
+    hero.consumablesUsed = (hero.consumablesUsed || 0) + 1;
     return null;
+  }
+
+  /* Crafting: 3 comuni → 1 raro, 3 rari → 1 epico */
+  function craftConsumable(hero, fromRarity) {
+    const order = ['comune', 'raro', 'epico', 'leggendario'];
+    const toRarity = order[order.indexOf(fromRarity) + 1];
+    if (!toRarity || toRarity === 'leggendario') return 'Non puoi creare leggendari.';
+    const owned = hero.consumables || {};
+    const pool = CONSUMABLES.filter(c => c.rarity === fromRarity && (owned[c.id] || 0) > 0);
+    let cost = { ...owned };
+    let needed = 3;
+    const spent = [];
+    for (const c of pool) {
+      while (needed > 0 && (cost[c.id] || 0) > 0) {
+        cost[c.id]--;
+        spent.push(c.id);
+        needed--;
+      }
+      if (!needed) break;
+    }
+    if (needed > 0) return `Ti servono 3 consumabili ${fromRarity}.`;
+    spent.forEach(id => { hero.consumables[id] = (hero.consumables[id] || 0) - 1; if (hero.consumables[id] <= 0) delete hero.consumables[id]; });
+    return dropConsumable(hero, toRarity);
   }
 
   function dropConsumable(hero, minRarity) {
@@ -1851,6 +1875,7 @@ const RPG = (() => {
       furniture: { owned: [] },
       consumables: {},
       consumableBuffs: {},
+      consumablesUsed: 0,
       achievementsClaimed: [],
       ascended: false,
       restBonus: false,
@@ -1937,6 +1962,7 @@ const RPG = (() => {
     // ── v6: consumabili ───────────────────────────────────────
     h.consumables     = h.consumables     || {};
     h.consumableBuffs = h.consumableBuffs || {};
+    h.consumablesUsed = h.consumablesUsed || 0;
 
     h.schemaVersion = SCHEMA_VERSION;
     return h;
@@ -4066,12 +4092,26 @@ const RPG = (() => {
     return levelsGained;
   }
 
+  const CONSUMABLE_ACHIEVEMENTS = [
+    { id:'con001', name:'Primo Sorso',        icon:'⚗️', desc:'Usa il tuo primo consumabile.',         threshold:1,   reward:{gold:50,  xp:80}  },
+    { id:'con002', name:'Erborista Dilettante',icon:'🌿', desc:'Usa 5 consumabili.',                   threshold:5,   reward:{gold:100, xp:150} },
+    { id:'con003', name:'Alchimista Curioso',  icon:'🔮', desc:'Usa 10 consumabili.',                  threshold:10,  reward:{gold:180, xp:250} },
+    { id:'con004', name:'Viandante Rifornito', icon:'🎒', desc:'Usa 25 consumabili.',                  threshold:25,  reward:{gold:300, xp:400} },
+    { id:'con005', name:'Maestro delle Pozioni',icon:'💰',desc:'Usa 50 consumabili.',                  threshold:50,  reward:{gold:500, xp:700} },
+    { id:'con006', name:'Sacca Leggendaria',   icon:'👑', desc:'Usa 100 consumabili. Un\'impresa epica.',threshold:100,reward:{gold:900, xp:1200}},
+  ];
+
+  function consumableAchievementsUnlocked(hero) {
+    const used = hero.consumablesUsed || 0;
+    return CONSUMABLE_ACHIEVEMENTS.filter(a => used >= a.threshold);
+  }
+
   function achievementsUnlocked(hero) {
     return ACHIEVEMENTS.filter(a => hero.level >= a.level);
   }
 
   function claimAchievement(hero, id) {
-    const a = ACHIEVEMENTS.find(x => x.id === id);
+    const a = ACHIEVEMENTS.find(x => x.id === id) || CONSUMABLE_ACHIEVEMENTS.find(x => x.id === id);
     if (!a) return 'Impresa sconosciuta.';
     hero.achievementsClaimed = hero.achievementsClaimed || [];
     if (hero.achievementsClaimed.includes(id)) return 'Ricompensa già ritirata.';
@@ -4747,6 +4787,7 @@ const RPG = (() => {
     FURNITURE_SETS, furnitureSetById, furnitureSetOwnedCount, furnitureSetComplete,
     furnitureUnlockedSets, furnitureAggregate, buyFurniture,
     ACHIEVEMENTS, achievementsUnlocked, claimAchievement,
+    CONSUMABLE_ACHIEVEMENTS, consumableAchievementsUnlocked, craftConsumable,
     applyXp,
     DAILY_CHALLENGES_BONUS, getDailyChallenges, updateChallengeProgress, claimChallenge,
     WEEKLY_CHALLENGES_BONUS, getWeeklyChallenges, updateWeeklyProgress, claimWeeklyChallenge,
