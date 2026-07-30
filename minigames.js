@@ -58,7 +58,7 @@ function mgClose() {
   const ov = document.getElementById('mg-ov');
   if (!ov) return;
   ov.classList.add('mg-out');
-  setTimeout(() => { ov.className = ''; ov.innerHTML = ''; setTab('train'); }, 280);
+  setTimeout(() => { ov.className = ''; ov.innerHTML = ''; MAP_VIEW = 'taverna'; setTab('map'); }, 280);
 }
 
 /* Hub */
@@ -84,7 +84,7 @@ function renderMiniGamesHub(c) {
 
   const hdrRow = document.createElement('div');
   hdrRow.className = 'mg-hub-hdr';
-  hdrRow.innerHTML = `<h3 class="panel-title" style="margin:0">🎮 Taverna delle Sfide</h3>`;
+  hdrRow.innerHTML = `<h3 class="panel-title" style="margin:0">🎮 Taverna delle Sfide <span class="mg-hub-subtitle">— Sette giochi. Un banco. Mostra cosa sei fatto.</span></h3>`;
   // badge totale giocate disponibili
   const totalRem = MG_CATEGORIES.flatMap(cat => cat.games).reduce((s, g) => {
     const m = getMG(g.id);
