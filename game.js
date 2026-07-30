@@ -1950,7 +1950,9 @@ const RPG = (() => {
     h.cloud = h.cloud || { activeChallenge: null };
     h.buildings = h.buildings || [];
     if (h.buildingsDamaged === undefined) h.buildingsDamaged = false;
-    h.fugitiveMerchant = h.fugitiveMerchant || null;
+    h.fugitiveMerchant  = h.fugitiveMerchant  || null;
+    h.merchantBought    = h.merchantBought    || {};
+    h.merchantOffers    = h.merchantOffers    || null;
     h.cloud.claimedChallenges = h.cloud.claimedChallenges || [];
     h.cloud.friends = h.cloud.friends || [];
     h.pvpWins = h.pvpWins || 0;
@@ -4179,6 +4181,10 @@ const RPG = (() => {
   function getTravelingMerchant(hero) {
     if (!isMerchantWeekend()) return null;
     const ws = weekStamp();
+    /* Ritorna le offerte già generate questa settimana (stabili) */
+    if (hero.merchantOffers && hero.merchantOffers.weekStamp === ws) {
+      return { weekStamp: ws, offers: hero.merchantOffers.offers };
+    }
     const seed = dateSeed(ws + '-merchant');
     const slots = Object.keys(SLOTS);
     const rarityKeys = Object.keys(RARITIES);
@@ -4194,7 +4200,14 @@ const RPG = (() => {
       const baseVal = RARITIES[finalR].value;
       offers.push({ item, price: Math.round(baseVal * 2.5 / 10) * 10 });
     }
+    /* Persiste le offerte nell'eroe così rimangono stabili per tutta la settimana */
+    hero.merchantOffers = { weekStamp: ws, offers };
     return { weekStamp: ws, offers };
+  }
+  function merchantEffectivePrice(hero, basePrice) {
+    const furn = furnitureAggregate(hero);
+    const discount = Math.min(0.6, furn.marketDiscount + skillBonus(hero, 'marketDiscount'));
+    return Math.max(1, Math.round(basePrice * (1 - discount) / 5) * 5);
   }
   function buyFromMerchant(hero, offerIdx) {
     const m = getTravelingMerchant(hero);
@@ -4203,8 +4216,9 @@ const RPG = (() => {
     if (!o) return 'Offerta non trovata.';
     hero.merchantBought = hero.merchantBought || {};
     if (hero.merchantBought[m.weekStamp + '-' + offerIdx]) return 'Hai già acquistato questo oggetto.';
-    if (hero.gold < o.price) return 'Oro insufficiente!';
-    hero.gold -= o.price;
+    const price = merchantEffectivePrice(hero, o.price);
+    if (hero.gold < price) return 'Oro insufficiente!';
+    hero.gold -= price;
     hero.items.push(o.item);
     hero.merchantBought[m.weekStamp + '-' + offerIdx] = true;
     return null;
@@ -4760,7 +4774,7 @@ const RPG = (() => {
     getDailyWeather, WEATHER_TYPES,
     TREASURE_MAP_TIERS, rolloverTreasureMap, treasureMapStatus, claimTreasureTier,
     canPrestige, prestige, getMonthlyRecap, monthStamp,
-    isMerchantWeekend, getTravelingMerchant, buyFromMerchant,
+    isMerchantWeekend, getTravelingMerchant, buyFromMerchant, merchantEffectivePrice,
     SKILL_TREE, skillById, learnSkill, skillBonus, earnSkillPoints,
     LORE_FRAGMENTS, checkLoreUnlock,
     DAILY_POTIONS, getDailyPotion, claimDailyPotion,

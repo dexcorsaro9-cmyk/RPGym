@@ -2417,12 +2417,18 @@ function renderMap(c) {
       merchant.offers.forEach((o, i) => {
         const boughtKey = merchant.weekStamp + '-' + i;
         const bought = HERO.merchantBought && HERO.merchantBought[boughtKey];
+        const effectivePrice = RPG.merchantEffectivePrice(HERO, o.price);
+        const hasDiscount = effectivePrice < o.price;
         const row = el('div', 'merchant-offer-row' + (bought ? ' bought' : ''));
         row.innerHTML = `<div class="merchant-offer-info">${itemHtml(o.item)}</div>`;
         if (bought) {
           row.innerHTML += `<span class="done-strip">✅</span>`;
         } else {
-          const btn = el('button', 'btn' + (HERO.gold >= o.price ? ' btn-primary' : ''), `🪙 ${o.price}`);
+          const priceLabel = hasDiscount
+            ? `🪙 <s style="opacity:.5">${o.price}</s> ${effectivePrice}`
+            : `🪙 ${effectivePrice}`;
+          const btn = el('button', 'btn' + (HERO.gold >= effectivePrice ? ' btn-primary' : ''));
+          btn.innerHTML = priceLabel;
           btn.addEventListener('click', () => {
             const err = RPG.buyFromMerchant(HERO, i);
             if (err) { toast(err); return; }
