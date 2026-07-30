@@ -2846,6 +2846,7 @@ body {
 .hm-month-row {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
+  column-gap: 3px;
   margin-bottom: 3px;
   height: 12px;
 }

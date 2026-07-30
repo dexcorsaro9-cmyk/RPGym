@@ -3751,69 +3751,6 @@ function renderHero(c) {
   });
   c.appendChild(sub);
 
-  // Riepilogo settimana
-  const now2 = new Date();
-  const mondayStart = new Date(now2);
-  mondayStart.setHours(0, 0, 0, 0);
-  mondayStart.setDate(now2.getDate() - ((now2.getDay() + 6) % 7));
-  const weekLogs = HERO.log.filter(l => new Date(l.date) >= mondayStart);
-  const weekKm = { cyclette: 0, camminata: 0, corsa: 0 };
-  weekLogs.forEach(l => { weekKm[l.type] = (weekKm[l.type] || 0) + l.km; });
-  const totalWeek = Object.values(weekKm).reduce((s, v) => s + v, 0);
-  const maxKm = Math.max(...Object.values(weekKm), 0.1);
-  const actColors = { cyclette: '#5a9fd4', camminata: '#5abf7a', corsa: '#e07040' };
-  const weekPanel = el('div', 'panel on-parchment');
-  weekPanel.appendChild(el('h3', 'panel-title', '📅 Questa Settimana'));
-  Object.entries(RPG.ACTIVITIES).forEach(([key, a]) => {
-    const km = weekKm[key] || 0;
-    const pct = Math.round(km / maxKm * 100);
-    const row = el('div', 'week-row');
-    row.innerHTML = `<span class="week-row-label">${a.icon} ${a.label}</span>
-      <div class="week-bar-wrap"><div class="week-bar-fill" style="width:${pct}%;background:${actColors[key]}"></div></div>
-      <span class="week-row-val">${km.toFixed(1)}</span>`;
-    weekPanel.appendChild(row);
-  });
-  weekPanel.appendChild(el('p', 'center small', `Totale: <b>${totalWeek.toFixed(1)} km</b> questa settimana`));
-  c.appendChild(weekPanel);
-
-  // Trofei km
-  const trophyPanel = el('div', 'panel on-parchment');
-  trophyPanel.appendChild(el('h3', 'panel-title', '🏆 Trofei'));
-  const trophyGrid = el('div', 'trophy-grid');
-  const earnedTrophies = HERO.trophies || [];
-  RPG.TROPHIES.forEach(t => {
-    const unlocked = earnedTrophies.includes(t.id);
-    const cell = el('div', 'trophy-cell' + (unlocked ? ' trophy-unlocked' : ' trophy-locked'));
-    cell.title = unlocked ? `${t.name} — ${t.desc}` : `Sblocca a ${t.km} km`;
-    cell.innerHTML = `<span class="trophy-icon">${unlocked ? t.icon : '🔒'}</span><span class="trophy-name">${t.name}</span><span class="trophy-km">${t.km} km</span>`;
-    trophyGrid.appendChild(cell);
-  });
-  trophyPanel.appendChild(trophyGrid);
-  c.appendChild(trophyPanel);
-
-  // Statistiche
-  const stats = el('div', 'panel on-parchment');
-  const impreseTitle = el('h3', 'panel-title', '📊 Imprese');
-  stats.appendChild(impreseTitle);
-  const shieldImg = new Image();
-  shieldImg.onload = () => { impreseTitle.innerHTML = `<img class="panel-title-icon" src="assets/ui/eroe/imprese_spade.png"> Imprese`; };
-  shieldImg.src = 'assets/ui/eroe/imprese_spade.png';
-  const impreseRows = [
-    ['stivale', 'Km totali', `${HERO.totalKm.toFixed(1)}`],
-    ['cavallo', 'In sella', `${(HERO.kmByType.cyclette || 0).toFixed(1)} km`],
-    ['pellegrino', 'A piedi', `${(HERO.kmByType.camminata || 0).toFixed(1)} km`],
-    ['cavaliere', 'Di corsa', `${(HERO.kmByType.corsa || 0).toFixed(1)} km`],
-    ['chiave', 'Streak login', `${HERO.streak.count} giorni`],
-    ['spade', 'Missioni compiute', `${HERO.missionsDone.length}`],
-    ['zaino', 'Oggetti nello zaino', `${HERO.items.length}`],
-  ];
-  impreseRows.forEach(([file, label, val]) => {
-    const row = el('div', 'stat-row');
-    row.innerHTML = `<span class="stat-row-label"><img class="stat-row-icon" src="assets/ui/eroe/imprese_${file}.png" onerror="this.style.display='none'">${label}</span><b>${val}</b>`;
-    stats.appendChild(row);
-  });
-  c.appendChild(stats);
-
   // Prestige (Rinascita)
   if (RPG.canPrestige(HERO)) {
     const pc = el('div', 'panel prestige-panel');
@@ -3933,6 +3870,75 @@ function renderDiaryView(c) {
   sp.appendChild(sd);
   c.appendChild(sp);
 
+  // Riepilogo settimana
+  {
+    const now2 = new Date();
+    const mondayStart = new Date(now2);
+    mondayStart.setHours(0, 0, 0, 0);
+    mondayStart.setDate(now2.getDate() - ((now2.getDay() + 6) % 7));
+    const weekLogs = HERO.log.filter(l => new Date(l.date) >= mondayStart);
+    const weekKm = { cyclette: 0, camminata: 0, corsa: 0 };
+    weekLogs.forEach(l => { weekKm[l.type] = (weekKm[l.type] || 0) + l.km; });
+    const totalWeek = Object.values(weekKm).reduce((s, v) => s + v, 0);
+    const maxKm = Math.max(...Object.values(weekKm), 0.1);
+    const actColors = { cyclette: '#5a9fd4', camminata: '#5abf7a', corsa: '#e07040' };
+    const weekPanel = el('div', 'panel');
+    weekPanel.appendChild(el('h3', 'panel-title', '📅 Questa Settimana'));
+    Object.entries(RPG.ACTIVITIES).forEach(([key, a]) => {
+      const km = weekKm[key] || 0;
+      const pct = Math.round(km / maxKm * 100);
+      const row = el('div', 'week-row');
+      row.innerHTML = `<span class="week-row-label">${a.icon} ${a.label}</span>
+        <div class="week-bar-wrap"><div class="week-bar-fill" style="width:${pct}%;background:${actColors[key]}"></div></div>
+        <span class="week-row-val">${km.toFixed(1)}</span>`;
+      weekPanel.appendChild(row);
+    });
+    weekPanel.appendChild(el('p', 'center small', `Totale: <b>${totalWeek.toFixed(1)} km</b> questa settimana`));
+    c.appendChild(weekPanel);
+  }
+
+  // Trofei km
+  {
+    const trophyPanel = el('div', 'panel');
+    trophyPanel.appendChild(el('h3', 'panel-title', '🏆 Trofei'));
+    const trophyGrid = el('div', 'trophy-grid');
+    const earnedTrophies = HERO.trophies || [];
+    RPG.TROPHIES.forEach(t => {
+      const unlocked = earnedTrophies.includes(t.id);
+      const cell = el('div', 'trophy-cell' + (unlocked ? ' trophy-unlocked' : ' trophy-locked'));
+      cell.title = unlocked ? `${t.name} — ${t.desc}` : `Sblocca a ${t.km} km`;
+      cell.innerHTML = `<span class="trophy-icon">${unlocked ? t.icon : '🔒'}</span><span class="trophy-name">${t.name}</span><span class="trophy-km">${t.km} km</span>`;
+      trophyGrid.appendChild(cell);
+    });
+    trophyPanel.appendChild(trophyGrid);
+    c.appendChild(trophyPanel);
+  }
+
+  // Imprese
+  {
+    const stats = el('div', 'panel');
+    const impreseTitle = el('h3', 'panel-title', '📊 Imprese');
+    stats.appendChild(impreseTitle);
+    const shieldImg = new Image();
+    shieldImg.onload = () => { impreseTitle.innerHTML = `<img class="panel-title-icon" src="assets/ui/eroe/imprese_spade.png"> Imprese`; };
+    shieldImg.src = 'assets/ui/eroe/imprese_spade.png';
+    const impreseRows = [
+      ['stivale', 'Km totali', `${HERO.totalKm.toFixed(1)}`],
+      ['cavallo', 'In sella', `${(HERO.kmByType.cyclette || 0).toFixed(1)} km`],
+      ['pellegrino', 'A piedi', `${(HERO.kmByType.camminata || 0).toFixed(1)} km`],
+      ['cavaliere', 'Di corsa', `${(HERO.kmByType.corsa || 0).toFixed(1)} km`],
+      ['chiave', 'Streak login', `${HERO.streak.count} giorni`],
+      ['spade', 'Missioni compiute', `${HERO.missionsDone.length}`],
+      ['zaino', 'Oggetti nello zaino', `${HERO.items.length}`],
+    ];
+    impreseRows.forEach(([file, label, val]) => {
+      const row = el('div', 'stat-row');
+      row.innerHTML = `<span class="stat-row-label"><img class="stat-row-icon" src="assets/ui/eroe/imprese_${file}.png" onerror="this.style.display='none'">${label}</span><b>${val}</b>`;
+      stats.appendChild(row);
+    });
+    c.appendChild(stats);
+  }
+
   // Calendario mensile + Heatmap
   if (HERO.log.length) {
     const kmByDay = {};
@@ -4046,7 +4052,7 @@ function renderDiaryView(c) {
     const hm = el('div', 'km-heatmap');
     for (let i = 83; i >= 0; i--) {
       const d = new Date(today); d.setDate(d.getDate() - i);
-      const key = d.toISOString().slice(0, 10);
+      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
       const km = kmByDay[key] || 0;
       const intensity = km === 0 ? 0 : km < 2 ? 1 : km < 5 ? 2 : km < 10 ? 3 : 4;
       const cell = el('div', 'hm-cell');
