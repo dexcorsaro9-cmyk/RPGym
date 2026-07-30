@@ -1964,6 +1964,12 @@ const RPG = (() => {
     h.consumableBuffs = h.consumableBuffs || {};
     h.consumablesUsed = h.consumablesUsed || 0;
 
+    // ── v7: onboarding step ───────────────────────────────────
+    // 0=tutorial da vedere, 1=tutorial visto/0 workout, 2=1°workout fatto, 3+=completato
+    if (h.onboardingStep === undefined) {
+      h.onboardingStep = (h.tutorialDone || (h.totalKm || 0) > 0) ? 3 : 0;
+    }
+
     h.schemaVersion = SCHEMA_VERSION;
     return h;
   }

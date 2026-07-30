@@ -4054,6 +4054,95 @@ img.camp-layer {
 .tutorial-dot.active { background: var(--gold); }
 .tutorial-btn { width: 100%; }
 
+/* ── Tutorial: elementi art ── */
+.tut-art {
+  font-size: 2.4rem; letter-spacing: .2rem;
+  margin: .4rem 0 .8rem;
+  min-height: 52px; display: flex; align-items: center; justify-content: center;
+}
+.tut-art-tabs {
+  display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;
+}
+.tut-tab {
+  width: 38px; height: 38px; border-radius: 10px;
+  background: var(--card, rgba(0,0,0,.08));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem;
+  border: 2px solid transparent;
+}
+.tut-tab-active {
+  border-color: var(--gold);
+  background: rgba(230,126,34,.15);
+}
+.tut-art-camp { position: relative; display: inline-block; font-size: 2.8rem; }
+.tut-art-sparkles { position: absolute; top: -6px; right: -10px; font-size: 1rem; animation: tut-sparkle 1.4s infinite alternate; }
+@keyframes tut-sparkle { from { opacity: .4; transform: scale(.8) rotate(-10deg); } to { opacity: 1; transform: scale(1.1) rotate(10deg); } }
+.tut-art-arena { font-size: 1.6rem; gap: 12px; }
+.tut-art-items { gap: 8px; font-size: 1.8rem; }
+.tut-start-pulse {
+  display: inline-block; font-size: 2.8rem;
+  animation: tut-startpulse 1s infinite alternate;
+}
+@keyframes tut-startpulse { from { transform: scale(1); } to { transform: scale(1.18); } }
+
+/* ── Tab onboarding pulse ── */
+.tab.tab-onboarding-pulse {
+  position: relative;
+}
+.tab.tab-onboarding-pulse::after {
+  content: '';
+  position: absolute;
+  top: 4px; right: 4px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--accent, #e67e22);
+  animation: ob-pulse 1.2s infinite;
+}
+@keyframes ob-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(230,126,34,.7); }
+  70%  { box-shadow: 0 0 0 8px rgba(230,126,34,0); }
+  100% { box-shadow: 0 0 0 0 rgba(230,126,34,0); }
+}
+
+/* ── Primo allenamento overlay ── */
+.first-workout-overlay {
+  position: fixed; inset: 0; z-index: 9998;
+  background: rgba(0,0,0,.75);
+  display: flex; align-items: center; justify-content: center;
+  padding: 1.5rem;
+  opacity: 0; transition: opacity .3s;
+}
+.first-workout-overlay.fwo-in  { opacity: 1; }
+.first-workout-overlay.fwo-out { opacity: 0; }
+.fwo-card {
+  background: var(--parchment, #fdf6e3);
+  color: var(--ink, #1a1a1a);
+  border-radius: 20px;
+  padding: 2rem 1.6rem 1.6rem;
+  max-width: 360px; width: 100%;
+  text-align: center;
+  box-shadow: 0 12px 48px rgba(0,0,0,.5);
+}
+.fwo-sparkles { font-size: 1.4rem; letter-spacing: 6px; margin-bottom: .4rem; animation: tut-sparkle 1.4s infinite alternate; }
+.fwo-icon { font-size: 3.4rem; margin-bottom: .5rem; }
+.fwo-title { font-family: 'Cinzel', serif; font-size: 1.3rem; font-weight: 700; margin-bottom: .4rem; }
+.fwo-sub { font-size: .9rem; line-height: 1.5; color: var(--ink-light, #555); margin-bottom: 1.2rem; }
+.fwo-hints { text-align: left; display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.4rem; }
+.fwo-hint { display: flex; align-items: flex-start; gap: 10px; }
+.fwo-hint-icon { font-size: 1.4rem; line-height: 1; flex-shrink: 0; }
+.fwo-btn { width: 100%; }
+
+/* ── Banner onboarding nel Rifugio ── */
+.onboarding-banner {
+  border: 2px solid var(--gold, #e67e22);
+  background: rgba(230,126,34,.08);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.ob-row { display: flex; align-items: flex-start; gap: 12px; }
+.ob-icon { font-size: 1.5rem; flex-shrink: 0; }
+.ob-btn { align-self: stretch; }
+.ob-btn-dismiss { background: none; border: 1px solid var(--divider); color: var(--muted); font-size: .85rem; border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+
 /* ── Backup import UI ── */
 .backup-hero-list {
   display: flex;

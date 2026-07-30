@@ -625,14 +625,40 @@ function enterGame() {
 /* ══════════════ Tutorial ══════════════ */
 const TUTORIAL_SLIDES = [
   {
+    icon: '🌟',
+    title: 'Benvenuto ad Oakhaven',
+    text: 'Hero\'s Pace trasforma ogni km che percorri nella vita reale in XP, oro e avventure. Più ti alleni, più il tuo eroe diventa leggendario.',
+    art: `<div class="tut-art tut-art-world">🏔️🌲🗺️</div>`,
+  },
+  {
     icon: '🏃',
-    title: 'Cammina. Corri. Pedala.',
-    text: 'Ogni km che percorri nella vita reale diventa XP, oro e bottino nel gioco. Più ti alleni, più il tuo eroe cresce.',
+    title: 'Allenati. Cresci. Conquista.',
+    text: 'Registra camminata, corsa o cyclette nella scheda <b>Allenati</b>. Ogni sessione porta XP, oro, risorse e oggetti rari.',
+    art: `<div class="tut-art tut-art-tabs"><span class="tut-tab">🏕️</span><span class="tut-tab">🗺️</span><span class="tut-tab tut-tab-active">⚔️</span><span class="tut-tab">🏪</span><span class="tut-tab">👤</span></div>`,
+  },
+  {
+    icon: '🏕️',
+    title: 'Il tuo Rifugio',
+    text: 'Il Rifugio è la tua base. Costruisci strutture che danno bonus permanenti, alleva un <b>Famiglio</b> e gestisci la tua <b>Serra</b>.',
+    art: `<div class="tut-art tut-art-camp">🏕️<div class="tut-art-sparkles">✨</div></div>`,
   },
   {
     icon: '⚔️',
-    title: 'Il primo passo è tuo',
-    text: 'Registra subito la tua prima attività: scegli il tipo, inserisci i km e guarda cosa succede. Il viaggio inizia adesso.',
+    title: 'L\'Arena & la Mappa',
+    text: 'Sfida i villain nell\'<b>Arena</b> ogni giorno per oro e bottino. Percorri km sulla <b>Mappa</b> per sbloccare boss e forzieri del tesoro.',
+    art: `<div class="tut-art tut-art-arena">⚔️ vs 👹</div>`,
+  },
+  {
+    icon: '💊',
+    title: 'Consumabili & Sacca',
+    text: 'Trova consumabili nell\'Arena, nei forzieri e dall\'<b>Erborista</b> nel Mercato. Usali prima di allenarti per moltiplicare le ricompense.',
+    art: `<div class="tut-art tut-art-items">⚗️🌿🔮🎒</div>`,
+  },
+  {
+    icon: '🔥',
+    title: 'Inizia il tuo viaggio!',
+    text: 'Il primo passo è registrare il tuo primo allenamento. Vai nella scheda <b>Allenati</b>, inserisci tipo e km — e che la leggenda abbia inizio!',
+    art: `<div class="tut-art tut-art-start"><span class="tut-start-pulse">⚔️</span></div>`,
   },
 ];
 
@@ -650,12 +676,12 @@ function showTutorial() {
     overlay.innerHTML = `
       <div class="tutorial-card">
         <button class="tutorial-skip" aria-label="Salta">✕</button>
-        <div class="tutorial-icon">${s.icon}</div>
+        ${s.art || `<div class="tutorial-icon">${s.icon}</div>`}
         <div class="tutorial-title">${s.title}</div>
         <div class="tutorial-text">${s.text}</div>
         <div class="tutorial-dots">${dots}</div>
         <button class="btn btn-primary tutorial-btn">
-          ${isLast ? '🔥 Inizia l\'avventura' : 'Avanti →'}
+          ${isLast ? '🔥 Inizia l\'avventura!' : 'Avanti →'}
         </button>
       </div>`;
     overlay.querySelector('.tutorial-skip').addEventListener('click', close);
@@ -668,7 +694,9 @@ function showTutorial() {
     overlay.classList.add('tutorial-out');
     setTimeout(() => { overlay.remove(); }, 300);
     HERO.tutorialDone = true;
+    if (HERO.onboardingStep < 1) HERO.onboardingStep = 1;
     persist();
+    updateTabOnboardingPulse();
     nextOpening();
     setTab('train');
   }
@@ -676,6 +704,39 @@ function showTutorial() {
   render();
   document.body.appendChild(overlay);
   requestAnimationFrame(() => overlay.classList.add('tutorial-in'));
+}
+
+function updateTabOnboardingPulse() {
+  const trainTab = document.querySelector('#tabbar .tab[data-tab="train"]');
+  if (!trainTab) return;
+  const showPulse = HERO && HERO.onboardingStep === 1;
+  trainTab.classList.toggle('tab-onboarding-pulse', showPulse);
+}
+
+function showFirstWorkoutCelebration() {
+  const ov = document.createElement('div');
+  ov.className = 'first-workout-overlay';
+  ov.innerHTML = `
+    <div class="fwo-card">
+      <div class="fwo-sparkles" aria-hidden="true">✨ ⭐ ✨</div>
+      <div class="fwo-icon">🏆</div>
+      <h2 class="fwo-title">Primo Allenamento!</h2>
+      <p class="fwo-sub">Hai mosso il tuo eroe per la prima volta.<br>La leggenda di Oakhaven è iniziata.</p>
+      <div class="fwo-hints">
+        <div class="fwo-hint"><span class="fwo-hint-icon">🏕️</span><div><b>Rifugio</b><br><span class="small">Costruisci strutture per avere bonus permanenti.</span></div></div>
+        <div class="fwo-hint"><span class="fwo-hint-icon">⚔️</span><div><b>Arena</b><br><span class="small">Sfida i villain ogni giorno per oro e bottino.</span></div></div>
+        <div class="fwo-hint"><span class="fwo-hint-icon">🌿</span><div><b>Erborista</b><br><span class="small">Acquista consumabili per potenziare i tuoi allenamenti.</span></div></div>
+      </div>
+      <button class="btn btn-primary wide fwo-btn">🔥 Vai al Rifugio!</button>
+    </div>`;
+  document.body.appendChild(ov);
+  sfx('level');
+  requestAnimationFrame(() => ov.classList.add('fwo-in'));
+  ov.querySelector('.fwo-btn').addEventListener('click', () => {
+    ov.classList.add('fwo-out');
+    setTimeout(() => ov.remove(), 300);
+    setTab('camp');
+  });
 }
 
 function showDailyLogin() {
@@ -923,6 +984,7 @@ function setTab(tab, dir) {
     else                      c.classList.add('tab-in');
   });
   updateBadges();
+  if (HERO) updateTabOnboardingPulse();
 }
 
 /* ── TAB: Rifugio ── */
@@ -1291,6 +1353,24 @@ function renderCamp(c) {
   panorama.appendChild(stageBadge);
 
   c.appendChild(panorama);
+
+  /* ── Banner onboarding (solo primi passi) ── */
+  const obStep = HERO.onboardingStep || 0;
+  if (obStep === 1) {
+    const ob = el('div', 'panel onboarding-banner');
+    ob.innerHTML = `<div class="ob-row"><span class="ob-icon">⚔️</span><div><b>Prima missione!</b><br><span class="small">Vai nella scheda <b>Allenati</b> e registra il tuo primo allenamento. Il tuo eroe ti aspetta.</span></div></div>
+      <button class="btn btn-primary ob-btn">Vai ad allenarmi →</button>`;
+    ob.querySelector('.ob-btn').addEventListener('click', () => setTab('train'));
+    c.appendChild(ob);
+  } else if (obStep === 2) {
+    const ob = el('div', 'panel onboarding-banner');
+    ob.innerHTML = `<div class="ob-row"><span class="ob-icon">⚔️</span><div><b>Sfida l\'Arena!</b><br><span class="small">Hai ${RPG.battlesLeft(HERO)} sfide disponibili oggi. Combatti nella scheda <b>Allenati</b> per guadagnare oro e oggetti rari.</span></div></div>
+      <button class="btn ob-btn-dismiss" id="ob-dismiss-2">Capito ✓</button>`;
+    ob.querySelector('#ob-dismiss-2').addEventListener('click', () => {
+      HERO.onboardingStep = 3; persist(); setTab('camp');
+    });
+    c.appendChild(ob);
+  }
 
   // Hint drag + reset layout
   const hasCustomLayout = HERO.campLayout && Object.keys(HERO.campLayout).length > 0;
@@ -3254,9 +3334,17 @@ function renderTrain(c) {
     if (!(steps > 0)) return;
     const km = Math.round(steps * 0.00075 * 100) / 100;
     if (km < 0.05) { toast(`${steps} passi (${km} km) — troppo pochi.`); sssInput.value = ''; return; }
+    const isFirst = (HERO.onboardingStep || 0) <= 1;
     const report = RPG.logHealthSync(HERO, chosen, km);
     sssInput.value = '';
-    if (report) { persist(); renderHUD(); showHealthSyncResult(report); checkMapNotify(); maybeSyncChallenge(); }
+    if (report) {
+      if (isFirst) HERO.onboardingStep = 2;
+      persist(); renderHUD();
+      showHealthSyncResult(report);
+      if (isFirst) OPEN_QUEUE.push(showFirstWorkoutCelebration);
+      checkMapNotify(); maybeSyncChallenge();
+      updateTabOnboardingPulse();
+    }
     else toast('Attività già sincronizzata per oggi.');
   };
   sssInput.addEventListener('paste', () => setTimeout(applySss, 150));
