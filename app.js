@@ -1028,18 +1028,21 @@ function renderCamp(c) {
     }
   }
 
-  // 6. Cavalcatura nella scena (posizione dinamica a destra, z sopra edifici ma sotto overlay)
+  // 6. Cavalcatura nella scena — dimensione proporzionale allo stage
   if (mount) {
+    // Stage 0→4: la cavalcatura scala con le strutture, mai più grande del tetto principale
+    const mountWidths = [11, 14, 16, 18, 20];
+    const mw = mountWidths[stageIdx] ?? 14;
     const mountLayer = el('img', 'camp-layer camp-mount-layer camp-layer-appear');
     mountLayer.src = mount.img;
     mountLayer.alt = mount.name || '';
-    mountLayer.style.cssText = `left:62%;bottom:5%;width:22%;z-index:17`;
+    mountLayer.style.cssText = `left:62%;bottom:5%;width:${mw}%;z-index:17`;
     mountLayer.title = mount.name || '';
     mountLayer.onerror = () => {
       mountLayer.remove();
       const mountEmoji = el('div', 'camp-layer camp-mount-emoji');
       mountEmoji.textContent = mount.emoji || '🐴';
-      mountEmoji.style.cssText = `left:68%;bottom:5%;width:12%;z-index:17;font-size:clamp(1.2rem,4vw,2rem);display:flex;align-items:flex-end;justify-content:center`;
+      mountEmoji.style.cssText = `left:68%;bottom:5%;width:${Math.round(mw*0.6)}%;z-index:17;font-size:clamp(1.2rem,4vw,2rem);display:flex;align-items:flex-end;justify-content:center`;
       panorama.appendChild(mountEmoji);
     };
     panorama.appendChild(mountLayer);
