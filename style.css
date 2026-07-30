@@ -4550,41 +4550,19 @@ body {
 /* ── 4. Mercante Fuggiasco ── */
 .fugitive-merchant-panel {
   border-color: #f5a623 !important;
-  background: linear-gradient(135deg, #f7e8b8 0%, #e8d080 100%) !important;
-  color: #3b2a1a;
 }
-.fm-subtitle { text-align: center; font-size: .8rem; color: #6b543a; margin: .2rem 0 .6rem; }
+.fm-subtitle { text-align: center; font-size: .8rem; color: var(--ink-light); margin: .2rem 0 .6rem; }
 .fm-item { margin: .4rem 0; }
 .fm-prices {
   display: flex; align-items: center; justify-content: center; gap: .5rem;
   margin: .3rem 0 .6rem;
 }
-.fm-price-full { font-size: .82rem; color: #6b543a; text-decoration: line-through; }
+.fm-price-full { font-size: .82rem; color: var(--ink-light); text-decoration: line-through; }
 .fm-price-sale { font-size: 1.1rem; font-weight: 700; color: var(--gold); }
 .fm-discount {
   background: #e85020; color: #fff;
   font-size: .7rem; font-weight: 700; padding: .15rem .45rem; border-radius: 12px;
 }
-
-@media (prefers-color-scheme: dark) {
-  .fugitive-merchant-panel {
-    background: linear-gradient(135deg, #2a1a04 0%, #3d2608 100%) !important;
-    color: #e8d5b0;
-  }
-  .fm-subtitle, .fm-price-full { color: #c4a470; }
-}
-:root[data-theme="dark"] .fugitive-merchant-panel {
-  background: linear-gradient(135deg, #2a1a04 0%, #3d2608 100%) !important;
-  color: #e8d5b0;
-}
-:root[data-theme="dark"] .fm-subtitle,
-:root[data-theme="dark"] .fm-price-full { color: #c4a470; }
-:root[data-theme="light"] .fugitive-merchant-panel {
-  background: linear-gradient(135deg, #f7e8b8 0%, #e8d080 100%) !important;
-  color: #3b2a1a;
-}
-:root[data-theme="light"] .fm-subtitle,
-:root[data-theme="light"] .fm-price-full { color: #6b543a; }
 
 /* ═══════════════ Minigioco: Lancio del Boccale ═══════════════ */
 .mg-boccale-wrap { width: 100%; }
