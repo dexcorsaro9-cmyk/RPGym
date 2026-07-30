@@ -1069,9 +1069,11 @@ function renderCamp(c) {
   starsCanvas.className = 'camp-stars';
   panorama.appendChild(starsCanvas);
 
-  // 3. Background stage — stili inline per robustezza su iOS Safari (bypass cache CSS)
-  const bgImg = document.createElement('div');
-  bgImg.style.cssText = `position:absolute;inset:0;background-image:url("assets/rifugio/scene/bg_stage${stageIdx}.jpg");background-size:cover;background-position:center center;background-repeat:no-repeat;z-index:3`;
+  // 3. Background stage — <img> object-fit:cover, no inset shorthand (compatibilità iOS Safari < 14.5)
+  const bgImg = document.createElement('img');
+  bgImg.src = `assets/rifugio/scene/bg_stage${stageIdx}.jpg`;
+  bgImg.alt = '';
+  bgImg.style.cssText = 'position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;object-fit:cover;object-position:center center;display:block;z-index:3';
   panorama.appendChild(bgImg);
 
   // 4. Night veil overlay (z:5)
