@@ -847,8 +847,12 @@ const RPG = (() => {
       desc: '+15% Danni contro i Boss in Arena' },
     predone:    { name: 'Bottino da Razzia',          icon: '💰',
       desc: '+25% oro da missioni e forzieri' },
-    principessa_ghiacci: { name: 'Lama del Gelo',    icon: '❄️',
+    principessa_ghiacci: { name: 'Lama del Gelo',      icon: '❄️',
       desc: '+20% Danni in Arena · le vittorie in Arena danno il 30% di oro in più' },
+    sacerdotessa_sole:   { name: 'Benedizione Solare', icon: '☀️',
+      desc: '+15% XP da ogni allenamento · la Pozione del Giorno ha un 20% in più di efficacia' },
+    principessa_draghi:  { name: 'Sangue dei Draghi',  icon: '🐉',
+      desc: '+25% Danni contro i Boss · +15% probabilità loot raro dai Boss' },
   };
   function talentOf(hero) { return CLASS_TALENTS[hero.storyId] || null; }
   function isClass(hero, id) { return hero.storyId === id; }
@@ -2288,6 +2292,7 @@ const RPG = (() => {
     if (isClass(hero, 'eroe2')) resMult += 0.25;
     if (isClass(hero, 'maga')) { resMult += 0.15; xpMult += 0.05; }
     if (isClass(hero, 'principe') && type === 'cyclette') xpMult += 0.15;
+    if (isClass(hero, 'sacerdotessa_sole')) xpMult += 0.15;
     // Streak bonus: +5% XP per giorno consecutivo (cap 30%+skill)
     const streakCap = 0.30 + skillBonus(hero, 'streakCap');
     const streakBonus = Math.min(streakCap, Math.max(0, (hero.streak ? hero.streak.count - 1 : 0)) * 0.05);
@@ -2324,8 +2329,10 @@ const RPG = (() => {
     // Pozione del giorno
     if (hero.dailyPotion && !hero.dailyPotion.used) {
       const pid = hero.dailyPotion.id;
-      if (pid === 'xp_boost')   { xpMult += 0.50; report.potionUsed = pid; }
-      if (pid === 'gold_rush')  { goldMult += 1.00; report.potionUsed = pid; }
+      const potionXpBoost = isClass(hero, 'sacerdotessa_sole') ? 0.70 : 0.50; // +20% efficacia
+      const potionGoldBoost = isClass(hero, 'sacerdotessa_sole') ? 1.20 : 1.00;
+      if (pid === 'xp_boost')   { xpMult += potionXpBoost; report.potionUsed = pid; }
+      if (pid === 'gold_rush')  { goldMult += potionGoldBoost; report.potionUsed = pid; }
       if (pid === 'rest_echo' && !hero.restBonus) { mult = 2; report.potionUsed = pid; }
       hero.dailyPotion.used = true;
     }
@@ -2854,7 +2861,8 @@ const RPG = (() => {
     hero.gold += chest.gold;
     const dropChance = boss ? 0.65 : 0.40;
     const dropBoostActive = hero.consumableBuffs && hero.consumableBuffs.dropBoost && hero.consumableBuffs.dropBoost.expiresAt > Date.now();
-    const finalChance = dropChance + (dropBoostActive ? hero.consumableBuffs.dropBoost.value : 0);
+    const dragonBossBonus = (boss && isClass(hero, 'principessa_draghi')) ? 0.15 : 0;
+    const finalChance = dropChance + (dropBoostActive ? hero.consumableBuffs.dropBoost.value : 0) + dragonBossBonus;
     if (Math.random() < finalChance) {
       const it = genItemFor(hero, boss ? 'raro' : null);
       hero.items.push(it);
@@ -3053,6 +3061,7 @@ const RPG = (() => {
     if (isClass(hero, 'paladino')) { out.dmgBonus = Math.round(34 * 0.12); out.hpBonus = Math.round(100 * 0.12); }
     if (isClass(hero, 'regina') && villain && villain.boss) { out.dmgBonus += Math.round(34 * 0.15); }
     if (isClass(hero, 'principessa_ghiacci')) { out.dmgBonus += Math.round(34 * 0.20); }
+    if (isClass(hero, 'principessa_draghi') && villain && villain.boss) { out.dmgBonus += Math.round(34 * 0.25); }
     return out;
   }
 

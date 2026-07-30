@@ -33,6 +33,8 @@ const AVATARS = [
   { path: 'assets/avatars/regina.png',            storyId: 'regina',           label: 'La Regina Oscura' },
   { path: 'assets/avatars/predone.png',           storyId: 'predone',          label: 'Il Re dei Predoni' },
   { path: 'assets/avatars/principessa-ghiacci.png', storyId: 'principessa_ghiacci', label: 'La Principessa dei Ghiacci' },
+  { path: 'assets/avatars/sacerdotessa-sole.jpg',   storyId: 'sacerdotessa_sole',   label: 'La Sacerdotessa del Sole' },
+  { path: 'assets/avatars/principessa-draghi.png',  storyId: 'principessa_draghi',  label: 'La Principessa dei Draghi' },
 ];
 
 /* ── Le storie dei protagonisti ── */
@@ -269,6 +271,49 @@ eroe possiede: sai ESATTAMENTE cosa serve per fermare un mostro fatto della tua
 stessa magia. Il Cavaliere del Drago ha rubato qualcosa che ti appartiene.
 Vuoi indietro l'oscurità — e vuoi indietro Oakhaven.`,
   },
+  sacerdotessa_sole: {
+    title: 'La Sacerdotessa del Sole Nascente',
+    text: `Nell'Ordine della Fiamma Eterna non si nasce — si viene chiamati. Lo scettro
+solare che stringi fu forgiato dai tuoi predecessori con l'oro del primo
+tramonto, e si accende di luce calda soltanto nelle mani di chi è davvero
+degno. I tuoi fratelli sacerdoti dicevano che tu fossi la più dotata dell'ultimo
+secolo: capace di trasformare il calore in guarigione, la luce in scudo e il
+sorriso in un'arma più efficace di qualsiasi spada.
+Vivevi nel Tempio del Meridiano, dove i malati arrivavano da ogni bioma e
+ripartivano guariti. Ogni mattina consacravi il giorno al Sole con una preghiera
+e ogni sera contavi le vite salvate come fossero monete d'oro — ma più preziose.
+La notte dell'attacco non dormivi: stavi vegliando un bambino febbricitante
+quando il cielo ha smesso di essere cielo e il Drago Antico ha oscurato le stelle.
+Il Tempio ha retto per un'ora — la tua luce contro l'oscurità corrotta — poi le
+fondamenta di pietra secolare hanno ceduto, e con loro la maggior parte dell'Ordine.
+Sei uscita con lo scettro ancora acceso tra le macerie, il bambino in braccio
+(salvo) e una certezza ferma come il sole a mezzogiorno: la luce non può essere
+spenta, può solo essere spostata. Ora sei il Tempio. E cammini verso la Vetta
+Oscura per riaccendere ciò che l'Orda ha spento.`,
+  },
+  principessa_draghi: {
+    title: 'La Principessa del Sangue dei Draghi',
+    text: `Non tutti i draghi sono nemici. Lo sai meglio di chiunque altro, tu che
+hai passato i primi anni della vita tra le scaglie calde di Pyrion — il drago
+rosso che tua madre aveva curato da un'ala spezzata e che aveva deciso, di sua
+spontanea volontà, di non andarsene più. Sei cresciuta sentendo il suo respiro
+come una seconda voce e imparando a leggere i fuochi di segnale che tracciava
+nel cielo al tramonto: "pericolo", "pace", "torna a casa".
+La tua armatura a scaglie non è cuoio — è un dono di Pyrion, scaglie cadute
+durante la muta dell'anno in cui hai compiuto sedici anni, raccolte una a una
+e intrecciate da tua madre in un'armatura che nessun fabbro umano avrebbe saputo
+fare. La spada con il drago sull'elsa era nel tesoro di famiglia da generazioni:
+dicevano che chi la brandisse con cuore puro sentisse nel polso il battito
+di un fuoco antico.
+Quando il Cavaliere del Drago è arrivato, Pyrion ha combattuto. È stato il
+primo a cadere — tradito dalla corruzione del Drago Antico, lo stesso sangue ma
+stravolto — e tu hai visto l'amico di una vita trasformarsi in fumo nero prima
+che potessi raggiungerlo. Hai combattuto fino all'alba con la spada nella mano
+destra e il ricordo di Pyrion nella sinistra. Poi sei partita.
+Ogni chilometro è una scaglia del suo manto che porti con te. E quando arriverai
+alla Vetta Oscura, il Cavaliere del Drago scoprirà che chi ha perso un drago non
+teme più nulla — nemmeno un altro drago.`,
+  },
   principessa_ghiacci: {
     title: 'La Principessa dei Ghiacci Eterni',
     text: `Oltre la Vetta Innevata, dove i cartografi scrivono solo "nulla" e si fermano,
@@ -422,6 +467,8 @@ const AVATAR_LORE = {
   regina:      'Ha visto crollare regni. Il suo è ancora in piedi.',
   predone:     'Nessuna legge. Nessuna bandiera. Solo la strada e il bottino.',
   principessa_ghiacci: 'Il ghiaccio non mente. E lei nemmeno.',
+  sacerdotessa_sole:   'La luce non si spegne. Si sposta.',
+  principessa_draghi:  'Chi ha perso un drago non teme più nulla.',
 };
 const AVATAR_DIMS = {
   eroe1:{w:417,h:700}, eroe2:{w:535,h:535}, fabbro:{w:535,h:535},
@@ -430,6 +477,8 @@ const AVATAR_DIMS = {
   principe:{w:529,h:700}, principessa:{w:542,h:700}, ranger:{w:368,h:700},
   regina:{w:558,h:700},
   principessa_ghiacci:{w:700,h:700},
+  sacerdotessa_sole:  {w:700,h:700},
+  principessa_draghi: {w:700,h:700},
 };
 const AVATAR_COLORS = {
   eroe1:       { bg: '#0d2215', glow: '#2e8b57' },
@@ -447,6 +496,8 @@ const AVATAR_COLORS = {
   regina:      { bg: '#0d0218', glow: '#8a30cf' },
   predone:                { bg: '#1a0e00', glow: '#c97a2e' },
   principessa_ghiacci:   { bg: '#071a2e', glow: '#60c8f5' },
+  sacerdotessa_sole:     { bg: '#1e1600', glow: '#f5c842' },
+  principessa_draghi:    { bg: '#1e0800', glow: '#e05a20' },
 };
 let pickedAvatar = AVATARS[0];
 let createIdx = 0;
@@ -2903,7 +2954,7 @@ function pvpTitle(wins) {
 const CLASS_EMOJI = {
   eroe1:'🧑',eroe2:'👩',fabbro:'⚒️',stregone:'🧙',alchimista:'⚗️',
   furfante:'🗡️',maga:'🔮',paladino:'🛡️',ranger:'🏹',fata:'🧚',
-  principe:'🦅',principessa:'🦋',regina:'👑',predone:'💀',principessa_ghiacci:'❄️',
+  principe:'🦅',principessa:'🦋',regina:'👑',predone:'💀',principessa_ghiacci:'❄️',sacerdotessa_sole:'☀️',principessa_draghi:'🐉',
 };
 
 function _renderLeaderboardPanel() {
@@ -5343,7 +5394,7 @@ function avatarEmojiFor(hero) {
   const map = {
     eroe1:'🧑',eroe2:'👩',fabbro:'⚒️',stregone:'🧙',alchimista:'⚗️',
     furfante:'🗡️',maga:'🔮',paladino:'🛡️',ranger:'🏹',fata:'🧚',
-    principe:'🦅',principessa:'🦋',regina:'👑',predone:'💀',principessa_ghiacci:'❄️',
+    principe:'🦅',principessa:'🦋',regina:'👑',predone:'💀',principessa_ghiacci:'❄️',sacerdotessa_sole:'☀️',principessa_draghi:'🐉',
   };
   return map[hero.storyId] || '🧑';
 }
