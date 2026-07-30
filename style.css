@@ -1050,8 +1050,8 @@ img.camp-layer {
   display: flex; align-items: center; justify-content: center;
   gap: 10px; margin: 2px 0 6px;
 }
-.camp-layout-hint { font-size: .68rem; color: var(--gold-dim, #8a7040); opacity: .8; }
-.camp-layout-reset { font-size: .7rem; padding: 2px 10px; opacity: .75; }
+.camp-layout-hint { font-size: .75rem; color: var(--text-muted, #6b5c3a); }
+.camp-layout-reset { font-size: .75rem; padding: 2px 10px; }
 
 /* Lucciole */
 @keyframes ff-drift {
