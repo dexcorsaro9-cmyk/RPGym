@@ -1486,7 +1486,7 @@ function renderCamp(c) {
     );
     const zp = el('div', activeBuff ? 'panel panel-featured' : 'panel');
     const zThumb = el('img', 'camp-panel-thumb');
-    zThumb.src = 'assets/consumables/sacca_cosmica.png';
+    zThumb.src = `assets/consumables/${encodeURIComponent(RPG.CONSUMABLE_IMG['sacca_cosmica'] || 'sacca_cosmica')}.png`;
     zThumb.alt = '';
     zThumb.addEventListener('error', () => zThumb.remove());
     zp.appendChild(zThumb);
@@ -4174,7 +4174,7 @@ const ERBORISTA_CATS = [
 let ERBORISTA_CAT = 'tutti';
 
 function renderErborista(c) {
-  c.appendChild(npcBanner('assets/consumables/spirito_foresta.png', 'Madre Radice', '"Ogni seme vuole germogliare. Ogni eroe ha bisogno di carburante."'));
+  c.appendChild(npcBanner(`assets/consumables/${encodeURIComponent(RPG.CONSUMABLE_IMG['spirito_foresta'] || 'spirito_foresta')}.png`, 'Madre Radice', '"Ogni seme vuole germogliare. Ogni eroe ha bisogno di carburante."'));
 
   const sw = el('div', 'coll-switch');
   ERBORISTA_CATS.forEach(cat => {
@@ -4197,7 +4197,7 @@ function renderErborista(c) {
     const card  = el('div', `consumable-card rarity-${co.rarity}`);
     const imgWrap = el('div', 'consumable-img-wrap');
     const img = el('img', 'consumable-img');
-    img.src = `assets/consumables/${co.id}.png`;
+    img.src = `assets/consumables/${encodeURIComponent(RPG.CONSUMABLE_IMG[co.id] || co.id)}.png`;
     img.alt = co.name;
     img.addEventListener('error', () => { img.style.display = 'none'; imgWrap.appendChild(el('span', 'consumable-emoji', co.icon)); });
     imgWrap.appendChild(img);
@@ -5819,7 +5819,7 @@ function renderZainoView(c) {
       const card = el('div', `consumable-card rarity-${co.rarity}`);
       const imgWrap = el('div', 'consumable-img-wrap');
       const img = el('img', 'consumable-img');
-      img.src = `assets/consumables/${co.id}.png`;
+      img.src = `assets/consumables/${encodeURIComponent(RPG.CONSUMABLE_IMG[co.id] || co.id)}.png`;
       img.alt = co.name;
       img.addEventListener('error', () => { img.style.display = 'none'; imgWrap.appendChild(el('span', 'consumable-emoji', co.icon)); });
       imgWrap.appendChild(img);
@@ -5860,7 +5860,7 @@ function renderZainoView(c) {
       const card = el('div', `consumable-card rarity-${co.rarity} locked`);
       const imgWrap = el('div', 'consumable-img-wrap');
       const img = el('img', 'consumable-img');
-      img.src = `assets/consumables/${co.id}.png`;
+      img.src = `assets/consumables/${encodeURIComponent(RPG.CONSUMABLE_IMG[co.id] || co.id)}.png`;
       img.alt = co.name;
       img.addEventListener('error', () => { img.style.display = 'none'; imgWrap.appendChild(el('span', 'consumable-emoji', co.icon)); });
       imgWrap.appendChild(img);

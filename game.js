@@ -493,6 +493,60 @@ const RPG = (() => {
 
   function consumableById(id) { return CONSUMABLES.find(c => c.id === id); }
 
+  /* Mappa ID → nome file reale caricato su assets/consumables/ (senza estensione) */
+  const CONSUMABLE_IMG = {
+    golem_paglia:       "bambola del decoy",
+    barile_miele:       "barilotto di miele delle fate",
+    biscotto_stellare:  "biscotto zucchero stellare",
+    rubinetto_oro:      "botte della condivisione",
+    bussola_arcana:     "bussola della scorciatoia",
+    candeliere_spia:    "candelabro portatile da tasca",
+    cannocchiale_arcano:"canocchiale dell'esploratore",
+    chiave_zodiacale:   "chiave dello zodiaco antico",
+    artiglio_fortuna:   "ciondolo zampa di grifone",
+    clessidra_arcana:   "clessidra della velocità",
+    cristallo_fuoco:    "cristallo di fuoco riparatore",
+    dado_runico:        "dado truccato del drago",
+    contratto_mostri:   "editto del bando per i mostri",
+    elisir_celeste:     "elisir del riposo attivo",
+    pozione_vento:      "elisir della brezza leggera",
+    pozione_cuore:      "elisir di tenacia",
+    polvere_pietra:     "fischetta di olio per ingranaggi",
+    corno_celtico:      "fischietto di emergenza in corno",
+    formaggio_magico:   "formaggio del viandante stanco",
+    cristallo_galattico:"frammento di stella cadente",
+    incensiere_drago:   "incensiere antiasmatico",
+    lente_tesoro:       "lente d'ingrandimento del cercatore",
+    magnete_ricchezze:  "magnete di ceralacca",
+    mannaia_d_oro:      "mannaia d'oro del mercante",
+    patto_guerriero:    "mano del destino",
+    mappa_tesoro:       "mappa strappata del tesoro nascosto",
+    mela_dorata:        "mela dorata del reame",
+    pane_solare:        "pane del drago speziato",
+    pergamena_occhio:   "pergamena di smascheramento",
+    pergamena_arcana:   "pergamena di teletrasporto al rifugio",
+    piccone_viola:      "piccozza d'Athanor",
+    runa_fuoco:         "pietra focale della furia",
+    piuma_fenice:       "piuma di fenice della resurrezione",
+    guanto_cristallo:   "pozione del cuore di roccia",
+    leone_alato:        "pozione del passo gigante",
+    brocca_cosmica:     "pozione della vista d'aquila",
+    pozione_colomba:    "pozione di rigenerazione fatata",
+    progetto_castello:  "progetto del mastro costruttore",
+    spirito_foresta:    "radice di ginseng selvatico",
+    disco_runico:       "runa del fulmine istantaneo",
+    medaglione_grifone: "runa dello scudo protettivo",
+    pietra_tempo:       "runa dello sguardo temporale",
+    sacca_cosmica:      "sacchetto di polvere di fata cieca",
+    scudo_cronos:       "scudo della serie",
+    sfera_fortuna:      "sfera di cristallo portafortuna",
+    sfera_ombra:        "sfera di fumo dell'ombra",
+    teiera_runica:      "sigillo del guardiano",
+    pozione_amore:      "sigillo della promessa",
+    codice_reale:       "sigillo reale di indulgenza",
+    torcia_lunare:      "torcia nella notte",
+  };
+
   function sellValueConsumable(id) {
     const c = consumableById(id);
     if (!c) return 0;
@@ -4691,7 +4745,7 @@ const RPG = (() => {
     BIOME_LORE, BIOME_ARTIFACTS, WORLD_LETTERS, checkPendingLetters,
     CAMP_STAGES, CAMP_LAYERS, CAMP_NIGHT_LAYERS, campStageForLevel, campUnlockedLayers,
     CAMP_LAYER_SHOP, campLayerShopItem, buyCampLayer,
-    CONSUMABLES, consumableById, sellValueConsumable, buyPriceConsumable,
+    CONSUMABLES, CONSUMABLE_IMG, consumableById, sellValueConsumable, buyPriceConsumable,
     addConsumable, useConsumable, sellConsumable, dropConsumable,
   };
 })();
