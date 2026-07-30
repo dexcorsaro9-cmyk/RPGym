@@ -4207,6 +4207,7 @@ function renderHero(c) {
   if (HERO_VIEW === 'settings') { renderSettingsView(c); return; }
   if (HERO_VIEW === 'diary')    { renderDiaryView(c);    return; }
   if (HERO_VIEW === 'zaino')    { renderZainoView(c);    return; }
+  if (HERO_VIEW === 'guida')    { renderGuidaView(c);    return; }
 
   const titleH2 = el('h2', 'section-title on-parchment-title hero-title-row');
   titleH2.innerHTML = '🛡️ Equipaggiamento';
@@ -4717,6 +4718,9 @@ function renderSettingsView(c) {
   back.addEventListener('click', () => { HERO_VIEW = 'main'; setTab('hero'); });
   c.appendChild(back);
   c.appendChild(el('h2', 'section-title', '⚙️ Impostazioni'));
+  const guidaBtn = el('button', 'btn btn-primary wide', '📖 Guida al Gioco');
+  guidaBtn.addEventListener('click', () => { HERO_VIEW = 'guida'; setTab('hero'); });
+  c.appendChild(guidaBtn);
   c.appendChild(renderShortcutPanel());
   c.appendChild(_settingsNotifPanel());
   c.appendChild(_settingsRefreshPanel());
@@ -6349,3 +6353,111 @@ runSplash(() => {
   if (STATE.current && STATE.heroes.find(h => h.id === STATE.current)) enterGame();
   else renderProfiles();
 });
+
+/* ── Guida al Gioco ─────────────────────────────────────────────────────── */
+function renderGuidaView(c) {
+  const back = el('button', 'hero-back-pill', '‹ Impostazioni');
+  back.addEventListener('click', () => { HERO_VIEW = 'settings'; setTab('hero'); });
+  c.appendChild(back);
+  c.appendChild(el('h2', 'section-title', '📖 Guida al Gioco'));
+
+  const sections = [
+    {
+      icon: '🏃', title: 'Come funziona',
+      body: `RPGym trasforma i tuoi allenamenti reali in progressione RPG. Ogni volta che vai in palestra o fai sport, registri l'attività nella scheda <b>Allenati</b>: inserisci tipo di esercizio, durata e km percorsi (se applicabile). Il gioco calcola XP e oro in base all'intensità e alla durata. Più ti alleni, più il tuo eroe cresce.`,
+    },
+    {
+      icon: '⭐', title: 'Livelli e Titoli',
+      body: `Ogni allenamento ti dà XP. Accumulando abbastanza XP sali di livello (da 1 a 100) e sblocchi un titolo sempre più epico — da <i>Novizio del Sudore</i> fino a <i>Leggenda Vivente</i>. Salendo di livello si sbloccano nuovi biomi sulla Mappa del Mondo e nuove cavalcature ogni 5 livelli.`,
+    },
+    {
+      icon: '🔥', title: 'Streak',
+      body: `Allenarti più giorni di fila costruisce la tua streak. Ogni giorno consecutivo aumenta il contatore. Se salti un giorno perdi tutto — a meno che tu non usi uno <b>Scudo della Serie</b> dalla Sacca del Viandante. La streak settimanale (7 giorni) ti regala un consumabile bonus.`,
+    },
+    {
+      icon: '🛡️', title: 'Equipaggiamento',
+      body: `Il tuo eroe ha 8 slot: Arma, Scudo, Elmo, Armatura, Anello, Amuleto, Seme e Consumabile. Ogni oggetto equipaggiato aggiunge un bonus percentuale all'XP guadagnato in allenamento. Gli oggetti si trovano nei forzieri, come premi delle sfide o nell'Arena. Le rarità sono: <span style="color:#b0b8c1">Comune</span>, <span style="color:#4a90d9">Raro</span>, <span style="color:#9b59b6">Epico</span>, <span style="color:#f1c40f">Leggendario</span>.`,
+    },
+    {
+      icon: '🗺️', title: 'Mappa del Tesoro',
+      body: `Ogni settimana si resetta una mappa con 3 tappe a distanza crescente (8 km, 22 km, 45 km). I km degli allenamenti si accumulano automaticamente. Raggiunta una tappa puoi riscuotere oro, risorse e — con un po' di fortuna — un consumabile. La tappa finale garantisce anche un oggetto equipaggiabile.`,
+    },
+    {
+      icon: '⚔️', title: 'Arena',
+      body: `Ogni giorno hai un certo numero di sfide disponibili nell'Arena (tab <b>Mappa</b>). Sfidi nemici in un duello a morra: Attacco, Difesa e Schivata si battono secondo regole RPG. Vincendo guadagni oro, XP arena e — con probabilità variabile — un consumabile. I boss sono avversari speciali con ricompense maggiori. La difficoltà scala con il tuo livello.`,
+    },
+    {
+      icon: '👹', title: 'Boss Settimanale',
+      body: `Ogni settimana appare un boss unico sulla Mappa. Per sconfiggerlo devi percorrere un certo numero di km (es. 30 km per il Troll delle Paludi). Una volta raggiunta la soglia, riscuoti il bottino: oro, un oggetto equipaggiabile e un consumabile raro garantito.`,
+    },
+    {
+      icon: '🎯', title: 'Sfide Giornaliere e Settimanali',
+      body: `Nella scheda <b>Allenati</b> trovi ogni giorno 3 sfide (es. "Percorri 5 km", "Registra 2 allenamenti") e ogni settimana 3 sfide più impegnative. Completare tutte le sfide di una categoria sblocca un <b>bonus totale</b> con ricompense extra. Ogni sfida completata ha il 25% (giornaliere) o 30% (settimanali) di probabilità di dropparti un consumabile.`,
+    },
+    {
+      icon: '🏕️', title: 'Rifugio',
+      body: `Il tuo campo base cresce con te. Sblocca e potenzia strutture spendendo oro, legno e pietra. Ogni struttura aggiunge bonus passivi permanenti (più monete, più XP, ecc.). La scena cambia visivamente con il tuo livello e con il ciclo giorno/notte in tempo reale.`,
+    },
+    {
+      icon: '🌱', title: 'Serra del Viandante',
+      body: `Pianta semi nel tuo orto e raccoglili dopo alcuni giorni reali. Ogni pianta ha una rarità e un tratto speciale che potenzia temporaneamente il tuo eroe quando viene raccolta. Completa le <b>Missioni Serra</b> settimanali per guadagnare oro e — 30% di probabilità — un consumabile comune.`,
+    },
+    {
+      icon: '🐾', title: 'Santuario dei Famigli',
+      body: `Adotta un famiglio nel Rifugio. Ha Fame, Umore e Energia che scendono col tempo: nutrilo e giocaci ogni giorno. I famigli con statistiche alte ti danno bonus passivi all'XP e all'oro. Se trascurato troppo a lungo si ammala e i bonus si azzerano. Puoi sbloccare famigli rari completando missioni speciali.`,
+    },
+    {
+      icon: '💰', title: 'Sacca del Viandante',
+      body: `La sacca (menu Eroe) contiene i tuoi consumabili. Ogni consumabile ha un effetto istantaneo o un buff temporaneo: pozioni che raddoppiano l'XP per 3 sessioni, rune che moltiplicano l'oro, scudi che proteggono la streak, e molto altro. Puoi venderli all'<b>Erborista</b> nel Mercato o usarli prima di un allenamento per massimizzare le ricompense. I consumabili si ottengono da: Arena, boss, mappa, sfide, missioni Serra e acquistandoli dall'Erborista.`,
+    },
+    {
+      icon: '🏪', title: 'Mercato',
+      body: `Il Mercato ha 4 sezioni: <b>Bazar</b> (oggetti equipaggiabili comuni), <b>Mercato Nero</b> (rari con prezzi premium), <b>Fucina</b> (potenzia gli oggetti che hai), <b>Erborista</b> (compra consumabili per rarità: comune 45🪙, raro 130🪙, epico 380🪙). Nel weekend appare anche il <b>Mercante Itinerante</b> con 3 oggetti rari a rotazione.`,
+    },
+    {
+      icon: '🌍', title: 'Mappa del Mondo',
+      body: `La Mappa si sblocca man mano che sali di livello. Ogni bioma ha una storia, mostri unici e loot specifico per zona. Percorrendo km reali esplori il mondo virtuale. Alcuni biomi nascondono <b>Lettere</b> da collezionare che raccontano la lore del mondo di RPGym.`,
+    },
+    {
+      icon: '🎴', title: 'Carte e Imprese',
+      body: `Ogni traguardo (km totali, allenamenti, vittorie Arena, livelli) sblocca una Carta illustrata nel tuo album. Le Imprese sono obiettivi a lungo termine con ricompense uniche. Le carte sbloccate compongono il tuo profilo eroe, visibile anche agli amici.`,
+    },
+    {
+      icon: '📤', title: 'Sfida un Amico (PvP)',
+      body: `Condividi la tua Hero Card con un amico. Chi percorre più km in 7 giorni vince la sfida e porta a casa oro e gloria. Il tuo record PvP è visibile nel profilo e sblocca titoli speciali come Duellante, Gladiatore e Campione.`,
+    },
+    {
+      icon: '🏆', title: 'Prestige (Rinascita)',
+      body: `Al livello 100 puoi scegliere di <b>Rinascere</b>: torni al livello 1 ma ottieni un bonus permanente di <b>+20% XP</b> su tutti gli allenamenti futuri. Oggetti, km, trofei e oro rimangono intatti. Ogni Rinascita aumenta il moltiplicatore cumulativamente.`,
+    },
+    {
+      icon: '💡', title: 'Consigli pratici',
+      body: `
+        <ul class="guida-tips">
+          <li>Usa i consumabili <b>prima</b> di registrare l'allenamento — i buff vengono applicati al momento del log.</li>
+          <li>Tieni d'occhio le sfide giornaliere: completarle tutte sblocca il bonus totale.</li>
+          <li>Il boss settimanale resetta ogni lunedì — non perdere la finestra.</li>
+          <li>Visita l'Erborista ogni giorno: a volte ha oggetti rari a prezzo di comune.</li>
+          <li>Equipa sempre tutti gli slot — anche un oggetto comune dà +XP.</li>
+          <li>Il famiglio va nutrito almeno una volta al giorno per mantenere i bonus.</li>
+          <li>Backup regolare del salvataggio dalle Impostazioni — il gioco salva in locale.</li>
+        </ul>`,
+    },
+  ];
+
+  sections.forEach(s => {
+    const panel = el('div', 'panel guida-panel');
+    const head = el('div', 'guida-head');
+    head.innerHTML = `<span class="guida-icon">${s.icon}</span><span class="guida-title">${s.title}</span>`;
+    const body = el('div', 'guida-body');
+    body.innerHTML = s.body;
+    body.style.display = 'none';
+    head.addEventListener('click', () => {
+      body.style.display = body.style.display === 'none' ? 'block' : 'none';
+      head.classList.toggle('guida-open');
+    });
+    panel.appendChild(head);
+    panel.appendChild(body);
+    c.appendChild(panel);
+  });
+}
