@@ -917,7 +917,7 @@ body {
 .camp-panorama[data-phase="day"]   .camp-bg-stage-img { filter: brightness(1.0)  saturate(1.0); }
 .camp-panorama[data-phase="dawn"]  .camp-bg-stage-img { filter: brightness(0.82) saturate(0.85) hue-rotate(-12deg); }
 .camp-panorama[data-phase="dusk"]  .camp-bg-stage-img { filter: brightness(0.58) saturate(0.75) hue-rotate(12deg) sepia(0.15); }
-.camp-panorama[data-phase="night"] .camp-bg-stage-img { filter: brightness(0.28) saturate(0.4)  hue-rotate(195deg); }
+.camp-panorama[data-phase="night"] .camp-bg-stage-img { filter: brightness(0.42) saturate(0.4)  hue-rotate(195deg); }
 
 /* Sky gradient — cambia con data-phase */
 .camp-sky {
