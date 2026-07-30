@@ -163,6 +163,49 @@ const RPG = (() => {
     const i = BIOMES.indexOf(biome);
     return i >= 0 ? BIOME_SLUGS[i] : null;
   }
+
+  const BIOME_LORE = [
+    { title: 'Il Risveglio',
+      text: 'Le rovine di Oakhaven bruciano ancora, anche senza fiamme. Tre notti fa l\'Orda ha travolto le mura e inghiottito tutto: il mercato, la fontana, le case che conoscevi a memoria. Sei l\'unico rimasto in piedi — e questo, ti dici, deve voler dire qualcosa.' },
+    { title: 'Il Bosco che Ricorda',
+      text: 'La Foresta Sussurrante custodisce tutto ciò che Oakhaven ha perduto. I suoi spiriti vegliarono silenziosamente mentre l\'Orda passava sotto le chiome, annotando ogni volto, ogni stendardo, ogni cicatrice. Ora ti osservano camminare — e sembrano decidere se fidarsi di te.' },
+    { title: 'Il Giardino Dimenticato',
+      text: 'Fu il giardino personale del Re prima che l\'Orda corrompesse il Trono. Marmo bianco, rose selvatiche cresciute sulle fontane ornamentali, e una quiete che sa di abbandono. Qualcuno ha lasciato un coltello conficcato nel tavolo di pietra — la roccia intorno è ancora scura.' },
+    { title: 'La Via Aperta',
+      text: 'Le Pianure del Vento non nascondono nulla: piatte, spoglie, infinite sotto un cielo grigio che pesa come una promessa non mantenuta. Le carovane passavano di qui portando spezie e seta da est verso il Reame. Oggi portano solo polvere e la memoria di chi non è arrivato.' },
+    { title: 'Le Pagine Sopravvissute',
+      text: 'L\'Antico Archivio fu il cervello del Reame: centomila pergamene che documentavano ogni legge, ogni trattato, ogni segreto di Stato. L\'Orda bruciò tre quarti di tutto nella prima notte. Ma i custodi nascosero l\'ultimo quarto — e qualcuno, tra quelle pagine annerite, ha trovato qualcosa di abbastanza pericoloso da far tornare l\'Orda.' },
+    { title: 'Il Cuore di Ferro',
+      text: 'Qui si forgiavano le armi del Reame: spade che cantavano nel vento, armature capaci di reggere il fuoco drago. Le Fucine di Ruggine tacciono da quando i fabbri scelsero l\'esilio piuttosto che lavorare per l\'Orda. Restano solo i mantici spenti e il riflesso delle stelle sulle pozze di metallo raffreddato.' },
+    { title: 'L\'Arte del Possibile',
+      text: 'Nessuno sapeva davvero cosa combinasse l\'Alchimista nella sua torre di ossidiana, ma i risultati arrivavano al mercato: pozioni che guarivano le ferite in un\'ora, polveri che facevano crescere un raccolto in una notte. Poi smise di rispondere ai visitatori. Poi smise di rispondere del tutto.' },
+    { title: 'Il Tempo Sospeso',
+      text: 'L\'Orologiaio diceva che il tempo non è un fiume ma un labirinto — e che lui ne conosceva le uscite. La sua cripta è piena di orologi che ticchettano ancora, tutti fermi alla stessa ora: l\'ora in cui l\'Orda varcò le mura di Oakhaven. Coincidenza, o preavviso che nessuno seppe leggere?' },
+    { title: 'Il Mare Non Dimentica',
+      text: 'La Baia del Corallo fu il porto più grande del Reame: navi mercantili, vascelli da guerra, pescatori che tornavano all\'alba carichi di argento. L\'Orda arrivò dal mare — nessuno se lo aspettava. Le navi sono ancora lì, affondate, visibili attraverso l\'acqua verde nelle giornate limpide.' },
+    { title: 'Sotto la Superficie',
+      text: 'Il Fossato Profondo è ciò che rimane della Grande Trincea difensiva scavata tre generazioni fa per fermare un\'invasione che non arrivò mai — almeno, non da quella direzione. Adesso l\'Orda lo ha trasformato in un campo di addestramento per le creature della corruzione. Scendi. Guarda. Capisce chi li incontra da vicino.' },
+    { title: 'Ciò che Scorre Sotto',
+      text: 'Ogni grande città ha il suo segreto peggiore nelle fondamenta. Le fognature del Reame non trasportano più acqua: trasportano corruzione liquida, il sangue nero dell\'Orda che avvelena lentamente il terreno sopra. I topi qui si muovono in formazione. Qualcosa li guida dall\'oscurità più fonda.' },
+    { title: 'Il Cimitero delle Navi',
+      text: 'Centoquarantadue relitti, li hanno contati i marinai fuggiti. La Costa del Relitto fu teatro della Battaglia del Primo Tramonto — l\'unica volta in cui il Reame respinse un\'invasione navale dell\'Orda, ma a un prezzo che non riuscì mai a dimenticare. Tra i relitti si nascondono ancora i sopravvissuti. Di quale fazione, non è chiaro.' },
+    { title: 'Al di Sopra delle Nuvole',
+      text: 'Il Picco Innevato esiste al di sopra di tutto: delle guerre, delle stagioni, della memoria degli uomini. Le tribù che vi abitano non parlano la lingua del Reame e non riconoscono il nome dell\'Orda. Parlano solo del Vuoto che cresce sotto il mondo, e del giorno in cui le radici della montagna cederanno.' },
+    { title: 'Dove Ardeva la Foresta',
+      text: 'Il Deserto di Cenere non è sempre stato un deserto: cent\'anni fa era la Grande Foresta dell\'Est, polmone verde del continente. Poi l\'Orda usò il Fuoco Eterno — una sola notte — e non rimase nulla. La cenere non si disperde perché il vento qui non soffia: è come se anche l\'aria avesse paura di muoversi.' },
+    { title: 'La Nebbia che Ascolta',
+      text: 'Nella Palude Nebbiosa la nebbia non è vapore acqueo: è memoria condensata, residuo di incantesimi dimenticati. Camminando ci si ritrova a pensare ai propri morti con una chiarezza dolorosa, come se stessero camminando a fianco. Alcuni non escono più dalla palude. Non perché muoiano — ma perché scelgono di restare.' },
+    { title: 'Le Ossa dei Vecchi',
+      text: 'I draghi vengono qui a morire da prima che esistesse il Reame. Il Cimitero dei Draghi è una distesa di scheletri bianchi grandi come cattedrali, ordinati in cerchi concentrici che nessuno ha mai saputo spiegare. L\'Orda li ha aperti tutti cercando qualcosa. Il Vuoto che ha trovato nei loro cuori è ciò che ha reso possibile tutto il resto.' },
+    { title: 'Il Sangue della Terra',
+      text: 'Il Corruttore non è un essere, è un processo. Le sue miniere non estraggono minerale: estraggono volontà. Ogni piccone che cade qui indebolisce qualcosa di invisibile che tiene insieme il mondo. E più si scende, più il buio ha forma propria.' },
+    { title: 'Il Cuore del Buio',
+      text: 'Arrivi infine alla Sala del Trono. Non assomiglia a nulla di ciò che immaginavi: non è maestosa, non è spaventosa. È silenziosa. Il Trono è vuoto — sempre vuoto — e tuttavia si percepisce il peso di chi vi siede quando nessuno guarda. Questo è il centro. Questo è ciò contro cui sei venuto.' },
+    { title: 'Oltre i Confini del Reame',
+      text: 'L\'Abisso del Vuoto non ha un fondo. I cartografi smisero di provare a misurarlo e cancellarono la parola profondità dalle loro mappe. L\'Orda non viene da qui: viene da ciò che ha guardato troppo a lungo nell\'Abisso e ha smesso di essere se stessa. Tu sei l\'unico ad averlo attraversato con la mente ancora intera.' },
+    { title: 'La Fine del Cammino',
+      text: 'La Valle dei Cristalli Oscuri è dove si decide tutto. I cristalli registrano l\'intera storia del Reame — ogni scelta, ogni sacrificio, ogni chilometro percorso da chi ha combattuto l\'oscurità. Il tuo nome è già inciso su uno di essi, in una lingua che non conosci ma riconosci. Vai avanti. È per questo che sei venuto fin qui.' },
+  ];
   function accessibleZones(hero) {
     return BIOMES.filter(b => hero.level >= b.min).map(b => b.name);
   }
@@ -1354,6 +1397,7 @@ const RPG = (() => {
     h.cloud.friends = h.cloud.friends || [];
     h.pvpWins = h.pvpWins || 0;
     if (h.trainTipDismissed === undefined) h.trainTipDismissed = (h.totalKm || 0) > 0;
+    h.biomesDiscovered = h.biomesDiscovered || [];
     h.mappaInfuocata = h.mappaInfuocata || null;
     initGreenhouse(h);
 
@@ -4118,5 +4162,6 @@ const RPG = (() => {
     genSeed, useSeedItem, genFertilizzante, useFertilizer,
     rolloverSerraMissions, claimSerraMission,
     SEASONS, currentSeason, initSeasonalChallenge, claimSeasonalChallenge,
+    BIOME_LORE,
   };
 })();

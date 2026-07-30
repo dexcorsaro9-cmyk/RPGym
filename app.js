@@ -3252,6 +3252,23 @@ function showReport(r) {
   const leveled = r.levelsGained.length > 0;
   const newLevel = leveled ? r.levelsGained[r.levelsGained.length - 1] : HERO.level;
 
+  // Rileva cambio bioma e prepara pergamena lore
+  let pendingBiomeLore = null;
+  if (leveled) {
+    // i min level di ogni bioma (indice 0 = lv1, ma il bioma 0 non mostra pergamena)
+    const BIOME_MINS = [1,5,11,16,21,26,31,36,41,46,51,56,61,66,71,76,81,86,91,95];
+    r.levelsGained.forEach(lv => {
+      const biomeIdx = BIOME_MINS.indexOf(lv);
+      if (biomeIdx > 0 && !(HERO.biomesDiscovered || []).includes(biomeIdx)) {
+        const biome = RPG.currentBiome(lv);
+        pendingBiomeLore = { biomeIdx, biome, lore: RPG.BIOME_LORE[biomeIdx] };
+        HERO.biomesDiscovered = HERO.biomesDiscovered || [];
+        HERO.biomesDiscovered.push(biomeIdx);
+        persist();
+      }
+    });
+  }
+
   let html = `<div class="report-header">
     <div class="report-act-icon">${a.icon}</div>
     <div class="report-km-big">${r.km} km</div>
@@ -3367,8 +3384,24 @@ function showReport(r) {
   if (navigator.share) {
     html += `<button class="btn wide" id="btn-share-rpt">📤 Condividi risultato</button>`;
   }
-  html += `<button class="btn btn-primary wide" onclick="nextOpening(); renderHUD(); setTab('camp')">Torna al Rifugio</button>`;
+  if (pendingBiomeLore) {
+    html += `<button class="btn btn-primary wide" id="btn-report-close">📜 Continua il Viaggio</button>`;
+  } else {
+    html += `<button class="btn btn-primary wide" onclick="nextOpening(); renderHUD(); setTab('camp')">Torna al Rifugio</button>`;
+  }
   modal(html);
+
+  // Pergamena bioma: aggancia il bottone dopo il render del modal
+  if (pendingBiomeLore) {
+    setTimeout(() => {
+      const btn = $('#btn-report-close');
+      if (btn) btn.addEventListener('click', () => {
+        closeModal();
+        nextOpening(); renderHUD(); setTab('camp');
+        setTimeout(() => showBiomeParchment(pendingBiomeLore), 300);
+      });
+    }, 50);
+  }
 
   // Animate XP bar
   const fill = $('#rpt-xp-fill');
@@ -3404,6 +3437,32 @@ function showReport(r) {
       }).catch(() => {});
     });
   }
+}
+
+function showBiomeParchment({ biome, lore }) {
+  const ov = document.createElement('div');
+  ov.className = 'biome-parchment-overlay';
+  ov.innerHTML = `
+    <div class="biome-parchment-scroll">
+      <div class="biome-parchment-top-ornament">❧</div>
+      <div class="biome-parchment-biome-icon">${biome.icon}</div>
+      <div class="biome-parchment-subtitle">Nuovo territorio svelato</div>
+      <h2 class="biome-parchment-name">${esc(biome.name)}</h2>
+      <div class="biome-parchment-divider"></div>
+      <div class="biome-parchment-chapter">${esc(lore.title)}</div>
+      <p class="biome-parchment-text">${esc(lore.text)}</p>
+      <div class="biome-parchment-divider"></div>
+      <button class="btn btn-primary biome-parchment-btn">Continua il Viaggio →</button>
+      <div class="biome-parchment-bottom-ornament">❧</div>
+    </div>`;
+  document.body.appendChild(ov);
+  sfx('level');
+  requestAnimationFrame(() => ov.classList.add('biome-parchment-visible'));
+  const dismiss = () => {
+    ov.classList.add('biome-parchment-exit');
+    setTimeout(() => ov.remove(), 500);
+  };
+  ov.querySelector('.biome-parchment-btn').addEventListener('click', dismiss);
 }
 
 function openChest() {
