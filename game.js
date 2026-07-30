@@ -847,6 +847,8 @@ const RPG = (() => {
       desc: '+15% Danni contro i Boss in Arena' },
     predone:    { name: 'Bottino da Razzia',          icon: '💰',
       desc: '+25% oro da missioni e forzieri' },
+    principessa_ghiacci: { name: 'Lama del Gelo',    icon: '❄️',
+      desc: '+20% Danni in Arena · le vittorie in Arena danno il 30% di oro in più' },
   };
   function talentOf(hero) { return CLASS_TALENTS[hero.storyId] || null; }
   function isClass(hero, id) { return hero.storyId === id; }
@@ -2848,6 +2850,7 @@ const RPG = (() => {
       items: [],
       consumable: null,
     };
+    if (isClass(hero, 'principessa_ghiacci')) chest.gold = Math.round(chest.gold * 1.30);
     hero.gold += chest.gold;
     const dropChance = boss ? 0.65 : 0.40;
     const dropBoostActive = hero.consumableBuffs && hero.consumableBuffs.dropBoost && hero.consumableBuffs.dropBoost.expiresAt > Date.now();
@@ -3049,6 +3052,7 @@ const RPG = (() => {
     const out = { dmgBonus: 0, hpBonus: 0 };
     if (isClass(hero, 'paladino')) { out.dmgBonus = Math.round(34 * 0.12); out.hpBonus = Math.round(100 * 0.12); }
     if (isClass(hero, 'regina') && villain && villain.boss) { out.dmgBonus += Math.round(34 * 0.15); }
+    if (isClass(hero, 'principessa_ghiacci')) { out.dmgBonus += Math.round(34 * 0.20); }
     return out;
   }
 
