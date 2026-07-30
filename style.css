@@ -943,6 +943,12 @@ img.camp-layer {
   object-fit: contain;
   object-position: bottom center;
   max-height: 100%;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,.65));
+}
+
+/* Stage 2: bg molto dettagliato — dimmed + blur per spingere in profondità */
+.camp-panorama[data-stage="2"] .camp-bg-img {
+  filter: brightness(0.55) saturate(0.65) blur(1px);
 }
 
 /* Campfire wrapper (per SVG fallback) */

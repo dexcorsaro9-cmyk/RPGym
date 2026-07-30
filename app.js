@@ -974,6 +974,7 @@ function renderCamp(c) {
 
   const panorama = el('div', 'camp-panorama');
   panorama.dataset.phase = phase;
+  panorama.dataset.stage = stageIdx;
 
   // 1. Sky gradient (CSS-driven, zero asset)
   panorama.appendChild(el('div', 'camp-sky'));
