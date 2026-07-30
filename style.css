@@ -6050,3 +6050,122 @@ img.camp-layer {
   border: 1px solid #9b59b6;
   background: linear-gradient(135deg, rgba(155,89,182,.12), rgba(155,89,182,.04));
 }
+
+/* ── La Bisca Oscura ─────────────────────────────────────────── */
+.bisca-entry-panel  { border-left: 3px solid #6b21a8; }
+.bisca-entry-quote  { font-style: italic; }
+.bisca-avail-badge  {
+  display: inline-block; background: #6b21a8; color: #fff;
+  border-radius: 12px; padding: 2px 10px; font-size: .75rem;
+  font-weight: 600; margin-bottom: 8px;
+}
+.bisca-exhausted    { background: var(--muted, #888); }
+
+.bisca-title        { text-align: center; margin: 12px 0 2px; font-size: 1.35rem; }
+.bisca-subtitle     { margin-bottom: 10px; }
+.bisca-gold-row     {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 0 10px; font-size: .9rem;
+}
+.bisca-bets-left    { font-size: .8rem; color: var(--muted); }
+.bisca-empty        { text-align: center; color: var(--muted); padding: 24px; }
+
+.bisca-arena {
+  display: flex; align-items: stretch; gap: 0; margin: 4px 0 12px;
+}
+.bisca-fighter {
+  flex: 1; border-radius: 12px; padding: 10px 8px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  border: 2px solid transparent;
+  background: var(--card, var(--surface));
+}
+.bisca-fighter-a    { border-color: #2563eb; }
+.bisca-fighter-b    { border-color: #7c3aed; }
+.bisca-fighter-img-wrap {
+  width: 68px; height: 68px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 4px;
+}
+.bisca-fighter-img  { max-width: 100%; max-height: 100%; object-fit: contain; }
+.bisca-fighter-name { font-weight: 700; font-size: .82rem; line-height: 1.25; }
+.bisca-fighter-zone { font-size: .7rem; }
+.bisca-fighter-weak { font-size: .73rem; margin-top: 2px; }
+.bisca-hidden       { color: #7c3aed; letter-spacing: 3px; font-weight: 700; }
+.bisca-odd {
+  margin-top: auto; padding: 2px 10px; border-radius: 8px;
+  font-weight: 700; font-size: .82rem;
+}
+.bisca-odd-underdog { background: rgba(124,58,237,.15); color: #9333ea; }
+.bisca-odd-fav      { background: rgba(37,99,235,.15);  color: #2563eb; }
+
+@media (prefers-color-scheme: dark) {
+  .bisca-odd-underdog { background: rgba(139,92,246,.25); color: #c4b5fd; }
+  .bisca-odd-fav      { background: rgba(59,130,246,.25); color: #93c5fd; }
+}
+:root[data-theme="dark"] .bisca-odd-underdog { background: rgba(139,92,246,.25); color: #c4b5fd; }
+:root[data-theme="dark"] .bisca-odd-fav      { background: rgba(59,130,246,.25); color: #93c5fd; }
+:root[data-theme="light"] .bisca-odd-underdog { background: rgba(124,58,237,.15); color: #9333ea; }
+:root[data-theme="light"] .bisca-odd-fav      { background: rgba(37,99,235,.15);  color: #2563eb; }
+
+.bisca-vs {
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 6px; font-size: .9rem; font-weight: 900;
+  color: var(--muted); min-width: 26px;
+}
+
+.bisca-bet-panel    { margin-top: 0; }
+.bisca-bet-label    { font-weight: 600; font-size: .85rem; margin-bottom: 6px; }
+.bisca-size-row     { display: flex; gap: 6px; margin-bottom: 12px; }
+.bisca-size-btn {
+  flex: 1; padding: 7px 4px; font-size: .82rem;
+  border: 2px solid var(--border, #ddd); border-radius: 8px;
+  background: transparent; color: var(--text);
+}
+.bisca-size-btn.active {
+  border-color: #7c3aed;
+  background: rgba(124,58,237,.12);
+  color: #7c3aed; font-weight: 700;
+}
+@media (prefers-color-scheme: dark) {
+  .bisca-size-btn.active { background: rgba(139,92,246,.22); color: #c4b5fd; }
+}
+:root[data-theme="dark"] .bisca-size-btn.active  { background: rgba(139,92,246,.22); color: #c4b5fd; }
+:root[data-theme="light"] .bisca-size-btn.active { background: rgba(124,58,237,.12); color: #7c3aed; }
+
+.bisca-action-row   { display: flex; gap: 8px; }
+.bisca-bet-btn      { flex: 1; font-size: .82rem; padding: 10px 4px; }
+
+.bisca-result {
+  margin-top: 10px; padding: 12px;
+  background: var(--card, var(--surface)); border-radius: 12px;
+  min-height: 56px;
+}
+.bisca-log-intro  { font-style: italic; color: var(--muted); font-size: .86rem; }
+.bisca-log-line   {
+  font-size: .86rem; padding: 4px 0;
+  border-bottom: 1px solid var(--border, #eee);
+}
+.bisca-log-line:last-child { border-bottom: none; }
+
+.bisca-verdict {
+  margin-top: 12px; padding: 10px 12px;
+  border-radius: 8px; text-align: center; font-size: .92rem; line-height: 1.5;
+}
+.bisca-win  {
+  background: rgba(22,163,74,.1); color: #16a34a;
+  border: 1px solid rgba(22,163,74,.3);
+}
+.bisca-lose {
+  background: rgba(220,38,38,.1); color: #dc2626;
+  border: 1px solid rgba(220,38,38,.3);
+}
+@media (prefers-color-scheme: dark) {
+  .bisca-win  { color: #4ade80; border-color: rgba(74,222,128,.3); }
+  .bisca-lose { color: #f87171; border-color: rgba(248,113,113,.3); }
+}
+:root[data-theme="dark"] .bisca-win  { color: #4ade80; border-color: rgba(74,222,128,.3); }
+:root[data-theme="dark"] .bisca-lose { color: #f87171; border-color: rgba(248,113,113,.3); }
+:root[data-theme="light"] .bisca-win  { color: #16a34a; border-color: rgba(22,163,74,.3); }
+:root[data-theme="light"] .bisca-lose { color: #dc2626; border-color: rgba(220,38,38,.3); }
+
+.bisca-replay-btn   { margin-top: 10px; }

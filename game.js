@@ -4812,5 +4812,90 @@ const RPG = (() => {
     CAMP_LAYER_SHOP, campLayerShopItem, buyCampLayer,
     CONSUMABLES, CONSUMABLE_IMG, consumableById, sellValueConsumable, buyPriceConsumable,
     addConsumable, useConsumable, sellConsumable, dropConsumable,
+    BISCA_DAILY_BETS, BISCA_BET_SIZES,
+    biscaResetIfNeeded, biscaPickFighters, biscaBet,
   };
 })();
+
+/* ── La Bisca Oscura ─────────────────────────────────────────────────────── */
+{
+  const _B = (() => {
+    const BISCA_DAILY_BETS = 5;
+    const BISCA_BET_SIZES  = [10, 25, 50, 100];
+    const BISCA_ZONE_TIER  = {
+      'Rovine di Oakhaven':     1,
+      'Foresta Sussurrante':    2,
+      'Il Giardino Lastricato': 2,
+      'Le Pianure del Vento':   3,
+      'La Vetta Oscura':        4,
+    };
+    const BISCA_ATTACKS = [
+      'fendente', 'affondo', 'colpo di scudo', 'zampata',
+      'soffio oscuro', 'morso velenoso', 'artigliata', 'urlo di guerra',
+      'carica brutale', 'magia nera', 'presa stritolante', 'lama di vento',
+    ];
+
+    function biscaResetIfNeeded(hero) {
+      const today = new Date().toISOString().slice(0, 10);
+      if (!hero.bisca) hero.bisca = {};
+      if (hero.bisca.lastDate !== today) {
+        hero.bisca.betsLeft = BISCA_DAILY_BETS;
+        hero.bisca.lastDate = today;
+      }
+      if (hero.bisca.betsLeft === undefined) hero.bisca.betsLeft = BISCA_DAILY_BETS;
+    }
+
+    function biscaPickFighters() {
+      const pool = RPG.BESTIARY ? RPG.BESTIARY.filter(b => !b.boss && !b.final)
+                                : [];
+      const shuffled = [...pool].sort(() => Math.random() - 0.5);
+      let a = shuffled[0];
+      let b = shuffled.find(x => x.zone !== a.zone) || shuffled[1];
+      if (!a || !b) return null;
+      const tierA = BISCA_ZONE_TIER[a.zone] || 1;
+      const tierB = BISCA_ZONE_TIER[b.zone] || 1;
+      if (tierA > tierB) { [a, b] = [b, a]; }
+      return {
+        a: { id: a.id, name: a.name, zone: a.zone, weakness: a.weakness, tier: Math.min(tierA, tierB) },
+        b: { id: b.id, name: b.name, zone: b.zone, weakness: b.weakness, tier: Math.max(tierA, tierB) },
+      };
+    }
+
+    function _runFight(aId, bId) {
+      const pool = RPG.BESTIARY || [];
+      const a = pool.find(x => x.id === aId);
+      const b = pool.find(x => x.id === bId);
+      const tierA = a ? (BISCA_ZONE_TIER[a.zone] || 1) : 1;
+      const tierB = b ? (BISCA_ZONE_TIER[b.zone] || 1) : 1;
+      const powerA = tierA * 18 + Math.random() * 38;
+      const powerB = tierB * 18 + Math.random() * 28;
+      const atkA = BISCA_ATTACKS[Math.floor(Math.random() * BISCA_ATTACKS.length)];
+      const atkB = BISCA_ATTACKS[Math.floor(Math.random() * BISCA_ATTACKS.length)];
+      return { winner: powerA > powerB ? 'a' : 'b', dmgA: Math.round(powerA), dmgB: Math.round(powerB), atkA, atkB };
+    }
+
+    function biscaBet(hero, pick, aId, bId, amount) {
+      biscaResetIfNeeded(hero);
+      if (hero.bisca.betsLeft <= 0) return { error: 'no_bets' };
+      if ((hero.gold || 0) < amount) return { error: 'no_gold' };
+      const result = _runFight(aId, bId);
+      hero.gold = (hero.gold || 0) - amount;
+      hero.bisca.betsLeft--;
+      let payout = 0;
+      if (result.winner === pick) {
+        const mult = pick === 'a' ? 2.5 : 1.7;
+        payout = Math.round(amount * mult);
+        hero.gold += payout;
+      }
+      return { ok: true, winner: result.winner, won: result.winner === pick, payout, amount, pick, betsLeft: hero.bisca.betsLeft, atkA: result.atkA, atkB: result.atkB };
+    }
+
+    return { BISCA_DAILY_BETS, BISCA_BET_SIZES, biscaResetIfNeeded, biscaPickFighters, biscaBet };
+  })();
+
+  RPG.BISCA_DAILY_BETS    = _B.BISCA_DAILY_BETS;
+  RPG.BISCA_BET_SIZES     = _B.BISCA_BET_SIZES;
+  RPG.biscaResetIfNeeded  = _B.biscaResetIfNeeded;
+  RPG.biscaPickFighters   = _B.biscaPickFighters;
+  RPG.biscaBet            = _B.biscaBet;
+}
