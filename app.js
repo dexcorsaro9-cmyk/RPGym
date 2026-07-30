@@ -2150,6 +2150,7 @@ function renderMap(c) {
   if (MAP_VIEW === 'pantheon')   { renderPantheonView(c);   return; }
   if (MAP_VIEW === 'avamposto')  { renderAvampostoView(c);  return; }
   if (MAP_VIEW === 'taverna')    { renderTavernaView(c);    return; }
+  if (MAP_VIEW === 'bisca')      { renderBiscaView(c);      return; }
   const biome = RPG.currentBiome(HERO.level);
 
   // ── Il bioma attuale, con progresso verso il prossimo ──
@@ -2556,6 +2557,23 @@ function renderMap(c) {
   enterTavernaBtn.addEventListener('click', () => { MAP_VIEW = 'taverna'; setTab('map'); });
   tavernaEntry.appendChild(enterTavernaBtn);
   c.appendChild(tavernaEntry);
+
+  // ── La Bisca Oscura ──
+  const biscaEntry = el('div', 'panel bisca-entry-panel');
+  biscaEntry.appendChild(el('h3', 'panel-title', '🃏 La Bisca Oscura'));
+  biscaEntry.appendChild(el('p', 'muted small bisca-entry-quote',
+    '«Nessuno sa chi organizza gli scontri. Nessuno chiede. Le monete parlano per tutti.»'));
+  RPG.biscaResetIfNeeded(HERO);
+  const biscaBetsLeft = (HERO.bisca && HERO.bisca.betsLeft !== undefined) ? HERO.bisca.betsLeft : RPG.BISCA_DAILY_BETS;
+  if (biscaBetsLeft > 0) {
+    biscaEntry.appendChild(el('div', 'bisca-avail-badge', `🎰 ${biscaBetsLeft} scommesse disponibili`));
+  } else {
+    biscaEntry.appendChild(el('div', 'bisca-avail-badge bisca-exhausted', '⛔ Scommesse esaurite per oggi'));
+  }
+  const enterBiscaBtn = el('button', 'btn btn-primary wide', '🃏 Entra nella Bisca');
+  enterBiscaBtn.addEventListener('click', () => { MAP_VIEW = 'bisca'; setTab('map'); });
+  biscaEntry.appendChild(enterBiscaBtn);
+  c.appendChild(biscaEntry);
 }
 
 function renderTavernaView(c) {
@@ -2579,6 +2597,160 @@ function renderTavernaView(c) {
   c.appendChild(grukBanner);
 
   renderMiniGamesHub(c);
+}
+
+function renderBiscaView(c) {
+  const backBtn = el('button', 'btn btn-back', '← Torna alla Mappa');
+  backBtn.addEventListener('click', () => { MAP_VIEW = 'main'; setTab('map'); });
+  c.appendChild(backBtn);
+
+  c.appendChild(el('h2', 'bisca-title', '🃏 La Bisca Oscura'));
+  c.appendChild(el('p', 'muted small center bisca-subtitle', '«Scegli il tuo campione. Punta l\'oro. Prega che regga.»'));
+
+  RPG.biscaResetIfNeeded(HERO);
+  const betsLeft = (HERO.bisca && HERO.bisca.betsLeft !== undefined) ? HERO.bisca.betsLeft : 0;
+
+  const goldRow = el('div', 'bisca-gold-row');
+  goldRow.innerHTML = `<span>🪙 Oro: <b id="bisca-gold-val">${HERO.gold || 0}</b></span><span class="bisca-bets-left" id="bisca-bets-counter">${betsLeft} / ${RPG.BISCA_DAILY_BETS} scommesse</span>`;
+  c.appendChild(goldRow);
+
+  if (betsLeft <= 0) {
+    c.appendChild(el('div', 'panel bisca-empty', '⛔ Hai esaurito le scommesse di oggi. Torna domani.'));
+    return;
+  }
+
+  const fighters = RPG.biscaPickFighters();
+  if (!fighters) {
+    c.appendChild(el('div', 'panel bisca-empty', 'Nessun combattente disponibile.'));
+    return;
+  }
+  const { a, b } = fighters;
+
+  const arena = el('div', 'bisca-arena');
+
+  const cardA = el('div', 'bisca-fighter bisca-fighter-a');
+  const imgA = document.createElement('img');
+  imgA.src = `assets/bestiario/${a.id}.png`;
+  imgA.className = 'bisca-fighter-img';
+  imgA.alt = '';
+  imgA.onerror = () => imgA.remove();
+  imgA.loading = 'lazy';
+  const wrapA = el('div', 'bisca-fighter-img-wrap');
+  wrapA.appendChild(imgA);
+  cardA.appendChild(wrapA);
+  cardA.appendChild(el('div', 'bisca-fighter-name', a.name));
+  cardA.appendChild(el('div', 'bisca-fighter-zone small muted', a.zone));
+  cardA.appendChild(el('div', 'bisca-fighter-weak small', `⚡ ${a.weakness}`));
+  cardA.appendChild(el('div', 'bisca-odd bisca-odd-underdog', '×2.5'));
+
+  const vsEl = el('div', 'bisca-vs', 'VS');
+
+  const cardB = el('div', 'bisca-fighter bisca-fighter-b');
+  const imgB = document.createElement('img');
+  imgB.src = `assets/bestiario/${b.id}.png`;
+  imgB.className = 'bisca-fighter-img';
+  imgB.alt = '';
+  imgB.onerror = () => imgB.remove();
+  imgB.loading = 'lazy';
+  const wrapB = el('div', 'bisca-fighter-img-wrap');
+  wrapB.appendChild(imgB);
+  cardB.appendChild(wrapB);
+  cardB.appendChild(el('div', 'bisca-fighter-name', b.name));
+  cardB.appendChild(el('div', 'bisca-fighter-zone small muted', b.zone));
+  cardB.appendChild(el('div', 'bisca-fighter-weak small bisca-hidden', '⚡ ???'));
+  cardB.appendChild(el('div', 'bisca-odd bisca-odd-fav', '×1.7'));
+
+  arena.appendChild(cardA);
+  arena.appendChild(vsEl);
+  arena.appendChild(cardB);
+  c.appendChild(arena);
+
+  const betPanel = el('div', 'panel bisca-bet-panel');
+  betPanel.appendChild(el('div', 'bisca-bet-label', 'Puntata:'));
+
+  const sizeRow = el('div', 'bisca-size-row');
+  let selectedAmount = RPG.BISCA_BET_SIZES[0];
+  RPG.BISCA_BET_SIZES.forEach(sz => {
+    const btn = el('button', 'btn bisca-size-btn' + (sz === selectedAmount ? ' active' : ''), `🪙 ${sz}`);
+    btn.addEventListener('click', () => {
+      sizeRow.querySelectorAll('.bisca-size-btn').forEach(b2 => b2.classList.remove('active'));
+      btn.classList.add('active');
+      selectedAmount = sz;
+    });
+    sizeRow.appendChild(btn);
+  });
+  betPanel.appendChild(sizeRow);
+
+  const actionRow = el('div', 'bisca-action-row');
+  const betABtn = el('button', 'btn btn-secondary bisca-bet-btn', `Punta su ${a.name.split(' ').slice(0,2).join(' ')}`);
+  const betBBtn = el('button', 'btn btn-primary bisca-bet-btn', `Punta su ${b.name.split(' ').slice(0,2).join(' ')}`);
+  actionRow.appendChild(betABtn);
+  actionRow.appendChild(betBBtn);
+  betPanel.appendChild(actionRow);
+  c.appendChild(betPanel);
+
+  const resultEl = el('div', 'bisca-result');
+  resultEl.style.display = 'none';
+  c.appendChild(resultEl);
+
+  async function placeBet(pick) {
+    betABtn.disabled = true;
+    betBBtn.disabled = true;
+    resultEl.style.display = '';
+    resultEl.innerHTML = `<div class="bisca-log-line bisca-log-intro">⚔️ I combattenti entrano nell'arena…</div>`;
+
+    const fighterA = a.name;
+    const fighterB = b.name;
+    const logs = [
+      `<b>${esc(fighterA)}</b> apre con un fendente!`,
+      `<b>${esc(fighterB)}</b> risponde colpo su colpo!`,
+      `Lo scontro si fa feroce — nessuno cede terreno…`,
+    ];
+    for (const log of logs) {
+      await new Promise(r => setTimeout(r, 650));
+      const line = el('div', 'bisca-log-line');
+      line.innerHTML = log;
+      resultEl.appendChild(line);
+    }
+    await new Promise(r => setTimeout(r, 750));
+
+    const res = RPG.biscaBet(HERO, pick, a.id, b.id, selectedAmount);
+    persist(); renderHUD();
+
+    if (res.error === 'no_gold') {
+      const errEl = el('div', 'bisca-verdict bisca-lose', '🪙 Oro insufficiente per questa puntata!');
+      resultEl.appendChild(errEl);
+      betABtn.disabled = false;
+      betBBtn.disabled = false;
+      return;
+    }
+    if (res.error === 'no_bets') {
+      const errEl = el('div', 'bisca-verdict bisca-lose', '⛔ Scommesse esaurite per oggi.');
+      resultEl.appendChild(errEl);
+      return;
+    }
+
+    const winnerName = res.winner === 'a' ? fighterA : fighterB;
+    const verdict = el('div', res.won ? 'bisca-verdict bisca-win' : 'bisca-verdict bisca-lose');
+    verdict.innerHTML = res.won
+      ? `🏆 <b>${esc(winnerName)}</b> vince lo scontro!<br>Hai guadagnato 🪙 <b>${res.payout}</b> Oro`
+      : `💀 <b>${esc(winnerName)}</b> trionfa… Hai perso 🪙 <b>${res.amount}</b> Oro.`;
+    resultEl.appendChild(verdict);
+
+    if (res.won) { sfx('coin'); vibrate([80, 40, 160]); }
+
+    document.getElementById('bisca-gold-val').textContent = HERO.gold || 0;
+    document.getElementById('bisca-bets-counter').textContent = `${res.betsLeft} / ${RPG.BISCA_DAILY_BETS} scommesse`;
+
+    if (res.betsLeft > 0) {
+      const replayBtn = el('button', 'btn btn-primary wide bisca-replay-btn', '🎲 Nuovo scontro');
+      replayBtn.addEventListener('click', () => { MAP_VIEW = 'bisca'; setTab('map'); });
+      resultEl.appendChild(replayBtn);
+    }
+  }
+
+  betABtn.addEventListener('click', () => placeBet('a'));
+  betBBtn.addEventListener('click', () => placeBet('b'));
 }
 
 /* ── Mappa Infuocata ─────────────────────────────────────────── */
