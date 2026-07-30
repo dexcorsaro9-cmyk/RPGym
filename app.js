@@ -3060,17 +3060,17 @@ function renderTrain(c) {
       <button class="train-tip-close" id="train-tip-close">✕</button>
       <div class="train-tip-title">📲 Come registrare la tua attività</div>
       <div class="train-tip-row">
-        <span class="train-tip-step">1</span>
+        <span class="train-tip-step">🍎</span>
         <div>
           <b>iPhone — Comando Rapido</b> <span class="train-tip-badge">più veloce</span><br>
-          <span class="muted small">Vai in <b>Impostazioni → Eroe → ⚙️ → Comandi Rapidi</b> e configura il comando una sola volta. Da quel momento: lancia il comando, copia i passi, incolla nel campo verde <span style="color:var(--gold)">⬆️</span> sopra. Fatto in 3 secondi.</span>
+          <span class="muted small">Scorri giù fino a <b>🔄 Importa da fitness → scheda iOS</b> e segui la guida per configurare il Comando Rapido una sola volta. Da quel momento basteranno 3 secondi.</span>
         </div>
       </div>
       <div class="train-tip-row">
-        <span class="train-tip-step">2</span>
+        <span class="train-tip-step">🤖</span>
         <div>
-          <b>Manuale (qualsiasi telefono)</b><br>
-          <span class="muted small">Apri <b>Salute</b>, <b>Strava</b> o qualsiasi app fitness, leggi i km percorsi oggi e inseriscili nel campo qui sotto.</span>
+          <b>Android — MacroDroid o Tasker</b><br>
+          <span class="muted small">Scorri giù fino a <b>🔄 Importa da fitness → scheda Android</b> e scegli il metodo che preferisci per sincronizzare i passi automaticamente.</span>
         </div>
       </div>`;
     c.appendChild(tip);
@@ -3335,53 +3335,6 @@ function renderShortcutPanel() {
     andPane.classList.remove('hidden'); iosPane.classList.add('hidden');
   });
 
-  // ── Accordion: inserimento manuale km ──
-  const toggleBtn = el('button', 'shortcut-manual-toggle');
-  toggleBtn.innerHTML = '📥 Inserisci km manualmente <span>▼</span>';
-  p.appendChild(toggleBtn);
-
-  const manualBody = el('div', 'shortcut-manual-body collapsed');
-
-  manualBody.appendChild(el('p', 'small muted', 'Inserisci i km TOTALI dell\'attività di oggi (il gioco calcola solo il delta rispetto all\'ultima sincronizzazione).'));
-  const typeRow = el('div', 'shortcut-type-row');
-  let syncType = 'camminata';
-  [['camminata','🚶','Camminata'],['corsa','🏃','Corsa'],['cyclette','🚴','Cyclette']].forEach(([k, ic, lb]) => {
-    const b = el('button', 'shortcut-type-btn' + (k === syncType ? ' selected' : ''));
-    b.innerHTML = `${ic}<br><span class="tiny">${lb}</span>`;
-    b.addEventListener('click', () => {
-      syncType = k;
-      typeRow.querySelectorAll('.shortcut-type-btn').forEach(x => x.classList.toggle('selected', x === b));
-    });
-    typeRow.appendChild(b);
-  });
-  manualBody.appendChild(typeRow);
-
-  const kmInput2 = el('input', 'input');
-  kmInput2.type = 'number'; kmInput2.step = '0.1'; kmInput2.min = '0'; kmInput2.placeholder = 'Es. 8.4 km totali oggi';
-  manualBody.appendChild(kmInput2);
-
-  const syncBtn = el('button', 'btn btn-primary wide', '🏥 Sincronizza');
-  syncBtn.addEventListener('click', () => {
-    const km = parseFloat(kmInput2.value);
-    if (!(km > 0)) { toast('Inserisci i km totali di oggi.'); return; }
-    const report = RPG.logHealthSync(HERO, syncType, km);
-    if (!report)   { toast('Nessun km nuovo da sincronizzare (già aggiornato per oggi).'); return; }
-    if (report.error) { toast(report.error); return; }
-    persist(); renderHUD();
-    sfx(report.levelsGained.length ? 'level' : 'coin');
-    showHealthSyncResult(report);
-    checkMapNotify();
-    maybeSyncChallenge();
-  });
-  manualBody.appendChild(syncBtn);
-
-  toggleBtn.addEventListener('click', () => {
-    const open = !manualBody.classList.contains('collapsed');
-    manualBody.classList.toggle('collapsed', open);
-    toggleBtn.querySelector('span').textContent = open ? '▼' : '▲';
-  });
-
-  p.appendChild(manualBody);
   return p;
 }
 

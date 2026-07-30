@@ -4719,13 +4719,13 @@ img.camp-layer {
 .train-tip-row:last-child { margin-bottom: 0; }
 .train-tip-step {
   flex-shrink: 0;
-  width: 1.4rem;
-  height: 1.4rem;
+  width: 1.6rem;
+  height: 1.6rem;
   border-radius: 50%;
   background: rgba(212,169,80,.18);
   border: 1px solid rgba(212,169,80,.35);
   color: var(--gold);
-  font-size: .72rem;
+  font-size: .95rem;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -4753,8 +4753,11 @@ img.camp-layer {
 
 /* ── Prima Missione (Camp utente nuovo) ──────────────────────── */
 .camp-first-quest {
-  background: linear-gradient(135deg, rgba(212,169,80,.08) 0%, rgba(212,169,80,.03) 100%);
-  border: 1px solid rgba(212,169,80,.25);
+  background:
+    linear-gradient(135deg, rgba(212,169,80,.14) 0%, rgba(212,169,80,.04) 100%),
+    radial-gradient(ellipse at 30% 20%, rgba(255,255,255,.35), transparent 60%),
+    linear-gradient(160deg, var(--parchment) 0%, var(--parchment-dark) 100%);
+  border: 1.5px solid rgba(212,169,80,.45);
   text-align: center;
 }
 .cfq-eyebrow {
