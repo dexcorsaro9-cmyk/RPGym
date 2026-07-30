@@ -1274,7 +1274,7 @@ function renderCamp(c) {
   wxBadge.innerHTML = `${wx.icon} <span>${wx.label}</span>${wx.xpBonus > 0 ? ` <b class="camp-xp-bonus">+${Math.round(wx.xpBonus*100)}%</b>` : ''}`;
   panorama.appendChild(wxBadge);
 
-  const phaseLabels = { dawn:'🌅 Alba', day:'☀️ Giorno', dusk:'🌇 Tramonto', night:'🌙 Notte' };
+  const phaseLabels = { dawn:'🌤️ Alba', day:'☀️ Giorno', dusk:'🟠 Tramonto', night:'🌙 Notte' };
   const phaseBadge = el('div', 'camp-overlay-badge camp-phase-badge');
   phaseBadge.textContent = phaseLabels[phase] || '';
   panorama.appendChild(phaseBadge);
