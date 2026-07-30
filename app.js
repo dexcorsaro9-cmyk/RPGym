@@ -1123,7 +1123,7 @@ function renderCamp(c) {
     cp.appendChild(el('h4', 'cantiere-section-title', '🏛️ Arredamento'));
     cp.appendChild(el('p', 'muted small',
       `${totalOwned} / 200 cimeli raccolti · ${setsComplete} / 20 set completi.`));
-    const enterArredaBtn = el('button', 'btn btn-primary wide', '🏛️ Sfoglia la Bottega');
+    const enterArredaBtn = el('button', 'btn btn-primary wide', '🏛️ Entra nella Bottega');
     enterArredaBtn.addEventListener('click', () => { CAMP_VIEW = 'arredamento'; setTab('camp'); });
     cp.appendChild(enterArredaBtn);
 
