@@ -1141,6 +1141,7 @@ function renderCamp(c) {
 
   // 3. Background stage — <img> object-fit:cover, no inset shorthand (compatibilità iOS Safari < 14.5)
   const bgImg = document.createElement('img');
+  bgImg.className = 'camp-bg-stage-img';
   bgImg.src = `assets/rifugio/scene/bg_stage${stageIdx}.jpg`;
   bgImg.alt = '';
   bgImg.style.cssText = 'position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;object-fit:cover;object-position:center center;display:block;z-index:3';

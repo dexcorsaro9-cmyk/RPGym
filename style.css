@@ -899,7 +899,7 @@ body {
   background: #0a1020;
 }
 
-/* Background stage — figlio z:3, sopra il cielo (z:1), dimensioni esplicite */
+/* Background stage — figlio z:3 */
 .camp-bg-img {
   position: absolute;
   top: 0; left: 0;
@@ -909,6 +909,15 @@ body {
   background-repeat: no-repeat;
   z-index: 3;
 }
+
+/* Filtro giorno/notte sull'immagine di sfondo — tutti gli stage */
+.camp-bg-stage-img {
+  transition: filter 4s ease;
+}
+.camp-panorama[data-phase="day"]   .camp-bg-stage-img { filter: brightness(1.0)  saturate(1.0); }
+.camp-panorama[data-phase="dawn"]  .camp-bg-stage-img { filter: brightness(0.82) saturate(0.85) hue-rotate(-12deg); }
+.camp-panorama[data-phase="dusk"]  .camp-bg-stage-img { filter: brightness(0.58) saturate(0.75) hue-rotate(12deg) sepia(0.15); }
+.camp-panorama[data-phase="night"] .camp-bg-stage-img { filter: brightness(0.28) saturate(0.4)  hue-rotate(195deg); }
 
 /* Sky gradient — cambia con data-phase */
 .camp-sky {
@@ -923,7 +932,7 @@ body {
 /* Canvas stelle */
 .camp-stars {
   position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%;
-  z-index: 2; pointer-events: none;
+  z-index: 6; pointer-events: none;
 }
 
 
