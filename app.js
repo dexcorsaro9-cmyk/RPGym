@@ -11,6 +11,7 @@ const el = (tag, cls, html) => {
   const e = document.createElement(tag);
   if (cls) e.className = cls;
   if (html !== undefined) e.innerHTML = html;
+  if (tag === 'img') e.loading = 'lazy';
   return e;
 };
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -370,6 +371,7 @@ function confirmDeleteHero(h) {
 function avatarEl(hero, cls) {
   if (hero.avatar && (hero.avatar.startsWith('data:') || hero.avatar.startsWith('assets/'))) {
     const img = el('img', cls);
+    img.loading = 'eager';
     img.src = hero.avatar;
     img.alt = hero.name;
     return img;
@@ -1188,6 +1190,7 @@ function renderCamp(c) {
       makeCampLayerDraggable(cfWrap, 'campfire', panorama, layer.z, layer.width);
     } else {
       const img = el('img', 'camp-layer camp-layer-appear');
+      img.loading = 'eager';
       img.src = `assets/rifugio/scene/${layer.id}.png`;
       img.alt = '';
       const sv = HERO.campLayout?.[layer.id];
@@ -1212,6 +1215,7 @@ function renderCamp(c) {
     const mB  = mSv ? mSv.bottom : 5;
     const mW  = mSv ? mSv.width  : mw;
     const mountLayer = el('img', 'camp-layer camp-mount-layer camp-layer-appear');
+    mountLayer.loading = 'eager';
     mountLayer.src = mount.img;
     mountLayer.alt = mount.name || '';
     mountLayer.style.cssText = `left:${mL}%;bottom:${mB}%;width:${mW}%;z-index:21`;
@@ -1231,6 +1235,7 @@ function renderCamp(c) {
   if (isNightTime) {
     for (const nl of RPG.CAMP_NIGHT_LAYERS) {
       const nImg = el('img', 'camp-layer camp-night-layer camp-layer-appear');
+      nImg.loading = 'eager';
       nImg.src = `assets/rifugio/scene/${nl.id}.png`;
       nImg.alt = '';
       nImg.style.cssText = `left:${nl.left}%;bottom:${nl.bottom}%;width:${nl.width}%;z-index:${nl.z}`;
@@ -1254,6 +1259,7 @@ function renderCamp(c) {
     const pB  = pSv ? pSv.bottom : 5;
     const pW  = pSv ? pSv.width  : 16;
     const petLayer = el('img', 'camp-layer camp-pet-layer camp-layer-appear');
+    petLayer.loading = 'eager';
     petLayer.src = petImageSrc(HERO.pet);
     petLayer.alt = HERO.pet.name || '';
     petLayer.style.cssText = `left:${pL}%;bottom:${pB}%;width:${pW}%;z-index:18`;
@@ -1566,6 +1572,7 @@ function renderEggView(c) {
 
   const head = el('div', 'panel center');
   const img = el('img', 'pet-portrait-img' + (egg.ready ? ' egg-shake' : ''));
+  img.loading = 'eager';
   img.src = petImageSrc(pet);
   img.onerror = () => { img.outerHTML = `<div class="pet-portrait">🥚</div>`; };
   head.appendChild(img);
@@ -1631,6 +1638,7 @@ function renderSantuarioView(c) {
   const head = el('div', 'panel center');
   const portraitWrap = el('div', 'pet-portrait-wrap');
   const img = el('img', 'pet-portrait-img');
+  img.loading = 'eager';
   img.src = petImageSrc(pet);
   img.onerror = () => { img.outerHTML = `<div class="pet-portrait">${speciesInfo.icon}</div>`; };
   portraitWrap.appendChild(img);
@@ -4064,6 +4072,7 @@ function renderMarket(c) {
 function npcBanner(imgPath, name, quote) {
   const b = el('div', 'npc-banner');
   const img = el('img', 'npc-img');
+  img.loading = 'eager';
   img.src = imgPath;
   img.addEventListener('error', () => img.remove());
   b.appendChild(img);
