@@ -1948,6 +1948,7 @@ const RPG = (() => {
 
     if (h.tutorialDone === undefined) h.tutorialDone = (h.totalKm || 0) > 0;
     h.cloud = h.cloud || { activeChallenge: null };
+    h.buildings = h.buildings || [];
     if (h.buildingsDamaged === undefined) h.buildingsDamaged = false;
     h.fugitiveMerchant = h.fugitiveMerchant || null;
     h.cloud.claimedChallenges = h.cloud.claimedChallenges || [];
