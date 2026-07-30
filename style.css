@@ -4527,6 +4527,11 @@ body {
 /* ── Taverna delle Sfide: entry card + hub subtitle ── */
 .taverna-entry-panel { border-color: rgba(245,166,35,.5); }
 .taverna-entry-quote { font-style: italic; margin: .25rem 0 .5rem; }
+.taverna-hero-img {
+  width: 100%; height: 160px;
+  object-fit: cover; object-position: center 40%;
+  border-radius: 10px; margin-bottom: 10px; display: block;
+}
 .taverna-avail-badge {
   display: inline-block;
   background: linear-gradient(90deg, var(--gold-bright), #b57f1e);

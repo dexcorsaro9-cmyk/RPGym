@@ -2020,6 +2020,20 @@ function renderTavernaView(c) {
   const backBtn = el('button', 'btn btn-back', '← Torna alla Mappa');
   backBtn.addEventListener('click', () => { MAP_VIEW = 'main'; setTab('map'); });
   c.appendChild(backBtn);
+
+  const heroImg = document.createElement('img');
+  heroImg.src = 'assets/ui/taverna-header.jpg';
+  heroImg.alt = '';
+  heroImg.className = 'taverna-hero-img';
+  heroImg.onerror = () => heroImg.remove();
+  c.appendChild(heroImg);
+
+  c.appendChild(npcBanner(
+    'assets/avatars/npc/locandiere-orco.png',
+    'Gruk il Bonaccione',
+    '«Il nome è Gruk. Se perdi, paghi. Se vinci, offro io un boccale. Parola di oste.»'
+  ));
+
   renderMiniGamesHub(c);
 }
 
