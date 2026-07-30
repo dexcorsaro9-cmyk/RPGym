@@ -984,11 +984,9 @@ function renderCamp(c) {
   starsCanvas.className = 'camp-stars';
   panorama.appendChild(starsCanvas);
 
-  // 3. Background PNG per stage (fallback: trasparente → sky visibile)
-  const bgImg = el('img', 'camp-bg-img');
-  bgImg.src = `assets/rifugio/scene/bg_stage${stageIdx}.jpg`;
-  bgImg.alt = '';
-  bgImg.onerror = () => bgImg.remove();
+  // 3. Background per stage via background-image (cover affidabile su tutti i browser)
+  const bgImg = el('div', 'camp-bg-img');
+  bgImg.style.backgroundImage = `url('assets/rifugio/scene/bg_stage${stageIdx}.jpg')`;
   panorama.appendChild(bgImg);
 
   // 4. Night veil overlay
