@@ -1050,7 +1050,20 @@ img.camp-layer {
   display: flex; align-items: center; justify-content: center;
   gap: 10px; margin: 2px 0 6px;
 }
-.camp-layout-hint { font-size: .75rem; color: var(--text-muted, #6b5c3a); }
+.camp-layout-hint {
+  font-size: .75rem;
+  font-weight: 600;
+  color: #111;
+  text-shadow:
+    -1px -1px 0 #f5e6c0,
+     1px -1px 0 #f5e6c0,
+    -1px  1px 0 #f5e6c0,
+     1px  1px 0 #f5e6c0,
+    -2px  0   0 #f5e6c0,
+     2px  0   0 #f5e6c0,
+     0   -2px 0 #f5e6c0,
+     0    2px 0 #f5e6c0;
+}
 .camp-layout-reset { font-size: .75rem; padding: 2px 10px; }
 
 /* Lucciole */
