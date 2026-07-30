@@ -890,7 +890,7 @@ body {
 .camp-panorama {
   position: relative;
   width: 100%;
-  aspect-ratio: 2 / 1;
+  aspect-ratio: 3 / 2;
   overflow: hidden;
   border-radius: 14px;
   border: 1.5px solid rgba(201,147,46,.35);
