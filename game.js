@@ -206,6 +206,110 @@ const RPG = (() => {
     { title: 'La Fine del Cammino',
       text: 'La Valle dei Cristalli Oscuri è dove si decide tutto. I cristalli registrano l\'intera storia del Reame — ogni scelta, ogni sacrificio, ogni chilometro percorso da chi ha combattuto l\'oscurità. Il tuo nome è già inciso su uno di essi, in una lingua che non conosci ma riconosci. Vai avanti. È per questo che sei venuto fin qui.' },
   ];
+
+  /* ── Artefatti dei Biomi (uno per bioma, sbloccato alla scoperta) ── */
+  const BIOME_ARTIFACTS = [
+    { name: 'Pietra del Focolare',   icon: '🪨', flavor: 'Un frammento del muro di casa tua — ancora tiepido, come se il fuoco non si fosse mai spento del tutto.' },
+    { name: 'Foglia Fossile',        icon: '🍂', flavor: 'Imprigionata nell\'ambra da secoli. La foresta ha memoria lunga.' },
+    { name: 'Seme Perduto',          icon: '🌱', flavor: 'Germogliato tra le pietre. La vita si apre strada ovunque, anche dove non dovrebbe.' },
+    { name: 'Frammento di Vento',    icon: '💨', flavor: 'Non pesa nulla, ma stringerlo dà la sensazione di poter camminare per sempre.' },
+    { name: 'Pagina Strappata',      icon: '📄', flavor: 'Scritta in una lingua sconosciuta. Alcune parole sembrano nomi tuoi.' },
+    { name: 'Bullone Arrugginito',   icon: '🔩', flavor: 'Le fucine di ruggine non producono più nulla — tranne silenzio.' },
+    { name: 'Ampolla Vuota',         icon: '🧪', flavor: 'Puzza ancora di zolfo e miele. Qualcuno la stava riempiendo prima di sparire.' },
+    { name: 'Ingranaggio Inceppato', icon: '⚙️', flavor: 'Un orologio che segna l\'ora sbagliata. Forse è quella giusta — dipende da quando sei.' },
+    { name: 'Corallo Fossile',       icon: '🪸', flavor: 'Il mare non c\'è più da vent\'anni. Ma i coralli ricordano tutto.' },
+    { name: 'Terra del Fossato',     icon: '🌑', flavor: 'Nera e densa. Tieni il sacchetto chiuso — sembra che respiri.' },
+    { name: 'Osso Inciso',           icon: '🦴', flavor: 'Qualcuno ha inciso una mappa sulle fognature su questo osso. Non vuoi sapere chi.' },
+    { name: 'Catena Spezzata',       icon: '⛓️', flavor: 'Ancora attaccata a qualcosa — o qualcuno — che non c\'è più.' },
+    { name: 'Ghiacciolo Eterno',     icon: '🧊', flavor: 'Non si scioglie. Stringerlo ricorda perché sei ancora vivo.' },
+    { name: 'Cenere del Vulcano',    icon: '🌋', flavor: 'Dentro ogni granello c\'è un\'era sepolta. Il deserto ha mille anni di storia.' },
+    { name: 'Nube Inscatolata',      icon: '🫙', flavor: 'Aperta, svela solo nebbia. Chiusa, pesa come un segreto.' },
+    { name: 'Squama di Drago',       icon: '🐉', flavor: 'Ancora calda. I draghi non muoiono mai del tutto — bruciano più piano.' },
+    { name: 'Pepita Corrotta',       icon: '💎', flavor: 'Luccica di una luce sbagliata. Non avvicinarla agli altri oggetti.' },
+    { name: 'Sigillo Infranto',      icon: '👑', flavor: 'Era il simbolo del potere di Oakhaven. Ora è solo ciò che andava difeso.' },
+    { name: 'Vuoto in Cristallo',    icon: '🔮', flavor: 'Non contiene nulla — eppure guardandoci dentro vedi tutto quello che hai lasciato indietro.' },
+    { name: 'Scheggia della Valle',  icon: '✨', flavor: 'L\'ultimo pezzo di un mondo che stai ricostruendo. O forse il primo di quello che verrà.' },
+  ];
+
+  /* ── Lettere dal Mondo (consegnate al raggiungimento delle soglie) ── */
+  const WORLD_LETTERS = [
+    {
+      id: 'elder_lv5',
+      sender: 'Anziano Miran', role: 'Custode delle Rovine', icon: '👴',
+      title: 'Il vecchio che aspettava',
+      body: 'Viandante,\n\nTi ho visto partire da Oakhaven come gli altri. Ma tu sei tornato — o stai ancora camminando verso qualcosa. Non importa.\n\nHo nascosto questo messaggio tra le pietre perché sapevo che qualcuno con le gambe giuste avrebbe fatto abbastanza strada per trovarlo.\n\nContinua. Il reame ha bisogno di qualcuno come te.\n\n— Miran',
+      check: h => (h.level || 1) >= 5,
+    },
+    {
+      id: 'blacksmith_lv10',
+      sender: 'Gora la Fabbra', role: 'Fucina di Oakhaven', icon: '⚒️',
+      title: 'Ferro e sudore',
+      body: 'Ehi, tu.\n\nHo visto tornare in pochi da queste parti. E quei pochi o erano fortunati o erano testardi.\n\nTu sembri più testardo.\n\nSe mai passi dalla fucina, fammelo sapere. Ho qualcosa che aspettava il proprietario giusto.\n\n— Gora',
+      check: h => (h.level || 1) >= 10,
+    },
+    {
+      id: 'streak7_innkeeper',
+      sender: 'Betta dell\'Osteria del Cipresso', role: 'Locandiera', icon: '🍺',
+      title: 'La stanza è tua',
+      body: 'Ehi,\n\nNon so come fai a tornare ogni giorno. Io a volte non riesco neanche ad alzarmi dal letto.\n\nHo tenuto libera la tua stanza. Quella con la finestra sul bosco. Non te la darò a nessun altro.\n\nQuando vuoi farti trovare, lo sai dove sono.\n\n— Betta',
+      check: h => (h.streak?.count || 0) >= 7,
+    },
+    {
+      id: 'merchant_100km',
+      sender: 'Tomas il Corriere', role: 'Mercante Itinerante', icon: '🧳',
+      title: 'Cento leghe percorse',
+      body: 'Caro camminatore,\n\nHo calcolato la distanza. Cento chilometri. Sai quanti uomini li percorrono in una vita intera?\n\nPochi. E quasi nessuno con lo scopo che hai tu.\n\nTi mando questo messaggio per dirti che il tuo nome comincia a girare tra i mercanti delle vie secondarie.\n\nAttento alle taverne.\n\n— Tomas',
+      check: h => (h.totalKm || 0) >= 100,
+    },
+    {
+      id: 'oracle_lv20',
+      sender: 'L\'Oracolo di Pietra', role: 'Santuario del Nord', icon: '🔮',
+      title: 'Una profezia di tre ere fa',
+      body: 'Il viandante che cammina senza fermarsi\nnon cerca una meta — cerca se stesso.\n\nTroverai la tua risposta là dove la strada finisce.\nMa la strada non finisce mai per chi non smette di muoversi.\n\nUsa questo sapere con cura.\n\n— L\'Oracolo',
+      check: h => (h.level || 1) >= 20,
+    },
+    {
+      id: 'king_lv25',
+      sender: 'Re Aldric di Oakhaven', role: 'Il trono vuoto del Reame', icon: '👑',
+      title: 'Decreto reale n.1 (dopo l\'Orda)',
+      body: 'A chi legge queste parole,\n\nIl mio trono è infranto. La mia corte è dispersa. Ma il mio reame non è morto — perché tu esisti.\n\nTi nomino, con questo atto scritto nel sangue e nella polvere, Cavaliere della Ricostruzione.\n\nServi bene. Non per me. Per tutti quelli che non sono tornati.\n\n— Re Aldric, ultimo del suo nome',
+      check: h => (h.level || 1) >= 25,
+    },
+    {
+      id: 'rival_lv35',
+      sender: 'Kael il Grigio', role: 'Avventuriero Errante', icon: '⚔️',
+      title: 'Una sfida o un rispetto?',
+      body: 'Non mi aspettavo di sentire il tuo nome così presto.\n\nSono anni che percorro queste terre e non ho mai trovato qualcuno capace di superare certi confini così velocemente.\n\nSei davvero quello che dicono, o solo fortunato?\n\nUn giorno lo scopriremo. Fino ad allora — cammina bene.\n\n— Kael',
+      check: h => (h.level || 1) >= 35,
+    },
+    {
+      id: 'monk_streak14',
+      sender: 'Fratello Ivo', role: 'Monastero del Passo Alto', icon: '📿',
+      title: 'La disciplina è la strada',
+      body: 'Figlio,\n\nQuattordici giorni senza interruzione. Nel nostro monastero, lo chiamiamo Primo Voto.\n\nNon è forza dei muscoli. È qualcosa di più difficile: la volontà di ricominciare ogni giorno.\n\nRicordalo quando ti senti stancare.\n\nIn cammino, come noi.\n\n— Fratello Ivo',
+      check: h => (h.streak?.count || 0) >= 14,
+    },
+    {
+      id: 'lorekeeper_lv50',
+      sender: 'Archivista Syl', role: 'Grande Archivio di Oakhaven', icon: '📚',
+      title: 'Il tuo nome è nel registro',
+      body: 'Viandante,\n\nHo cercato il tuo nome in quarant\'anni di registri. Non c\'eri.\n\nQuesto vuol dire che sei qualcosa di nuovo.\n\nIl Grande Archivio non registra i personaggi famosi — registra gli unici. E tu lo sei.\n\nIl tuo capitolo è già aperto.\n\n— Syl, Archivista del Vento',
+      check: h => (h.level || 1) >= 50,
+    },
+    {
+      id: 'council_km500',
+      sender: 'Consiglio degli Araldi', role: 'Alta Corte di Oakhaven', icon: '🏛️',
+      title: 'Cinquecentoleghe — un titolo',
+      body: 'Al Portatore di questa lettera,\n\nIl Consiglio degli Araldi, per decisione unanime, conferisce il titolo di\n\n★ ARALDO DELLE VIE PERDUTE ★\n\na chi ha percorso cinquecento chilometri al servizio del Reame.\n\nPochi hanno mai meritato questo nome. Ora è tuo.\n\nSigillato nel nome di Oakhaven.',
+      check: h => (h.totalKm || 0) >= 500,
+    },
+  ];
+
+  function checkPendingLetters(hero) {
+    const received = hero.lettersReceived || [];
+    return WORLD_LETTERS.filter(l => !received.includes(l.id) && l.check(hero));
+  }
+
   function accessibleZones(hero) {
     return BIOMES.filter(b => hero.level >= b.min).map(b => b.name);
   }
@@ -1398,6 +1502,7 @@ const RPG = (() => {
     h.pvpWins = h.pvpWins || 0;
     if (h.trainTipDismissed === undefined) h.trainTipDismissed = (h.totalKm || 0) > 0;
     h.biomesDiscovered = h.biomesDiscovered || [];
+    h.lettersReceived  = h.lettersReceived  || [];
     h.mappaInfuocata = h.mappaInfuocata || null;
     initGreenhouse(h);
 
@@ -4162,6 +4267,6 @@ const RPG = (() => {
     genSeed, useSeedItem, genFertilizzante, useFertilizer,
     rolloverSerraMissions, claimSerraMission,
     SEASONS, currentSeason, initSeasonalChallenge, claimSeasonalChallenge,
-    BIOME_LORE,
+    BIOME_LORE, BIOME_ARTIFACTS, WORLD_LETTERS, checkPendingLetters,
   };
 })();
