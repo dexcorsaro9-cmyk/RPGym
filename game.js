@@ -4812,8 +4812,6 @@ const RPG = (() => {
     CAMP_LAYER_SHOP, campLayerShopItem, buyCampLayer,
     CONSUMABLES, CONSUMABLE_IMG, consumableById, sellValueConsumable, buyPriceConsumable,
     addConsumable, useConsumable, sellConsumable, dropConsumable,
-    BISCA_DAILY_BETS, BISCA_BET_SIZES,
-    biscaResetIfNeeded, biscaPickFighters, biscaBet,
   };
 })();
 
