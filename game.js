@@ -59,7 +59,13 @@ const RPG = (() => {
     hero.gold += t.gold; hero.wood += t.wood; hero.stone += t.stone;
     const item = t.item ? genItemFor(hero) : null;
     if (item) hero.items.push(item);
-    return { gold: t.gold, wood: t.wood, stone: t.stone, item };
+    /* Consumabile: rarità cresce con la tappa */
+    const tierRarities = ['comune', 'comune', 'raro'];
+    const tierChances  = [0.35, 0.35, 0.40];
+    const consumable = Math.random() < (tierChances[tierIdx] || 0.35)
+      ? dropConsumable(hero, tierRarities[tierIdx] || 'comune')
+      : null;
+    return { gold: t.gold, wood: t.wood, stone: t.stone, item, consumable };
   }
 
   const WEEKLY_BOSSES = [
@@ -3763,14 +3769,18 @@ const RPG = (() => {
     ch.claimed = true;
     hero.gold += ch.reward.gold;
     hero.xp   += ch.reward.xp;
+    /* 25% chance consumabile comune */
+    const consumable = Math.random() < 0.25 ? dropConsumable(hero, 'comune') : null;
     let bonus = null;
     if (!dc.bonusClaimed && dc.list.every(c => c.claimed)) {
       dc.bonusClaimed = true;
       hero.gold += DAILY_CHALLENGES_BONUS.gold;
       hero.xp   += DAILY_CHALLENGES_BONUS.xp;
       bonus = DAILY_CHALLENGES_BONUS;
+      /* Bonus totale: 50% chance raro */
+      if (Math.random() < 0.50) dropConsumable(hero, 'raro');
     }
-    return { ok: true, reward: ch.reward, bonus };
+    return { ok: true, reward: ch.reward, bonus, consumable };
   }
 
   /* ── Sfide Settimanali ──────────────────────────────────── */
@@ -3843,14 +3853,18 @@ const RPG = (() => {
     ch.claimed = true;
     hero.gold += ch.reward.gold;
     hero.xp   += ch.reward.xp;
+    /* 30% chance consumabile raro */
+    const consumable = Math.random() < 0.30 ? dropConsumable(hero, 'raro') : null;
     let bonus = null;
     if (!wc.bonusClaimed && wc.list.every(c => c.claimed)) {
       wc.bonusClaimed = true;
       hero.gold += WEEKLY_CHALLENGES_BONUS.gold;
       hero.xp   += WEEKLY_CHALLENGES_BONUS.xp;
       bonus = WEEKLY_CHALLENGES_BONUS;
+      /* Bonus totale: 50% chance epico */
+      if (Math.random() < 0.50) dropConsumable(hero, 'epico');
     }
-    return { ok: true, reward: ch.reward, bonus };
+    return { ok: true, reward: ch.reward, bonus, consumable };
   }
 
   /* ── Spedizione a Tappe (Dungeon) ───────────────────────── */
@@ -4105,7 +4119,9 @@ const RPG = (() => {
     hero.gold += st.boss.gold;
     const item = genItemFor(hero);
     hero.items.push(item);
-    return { gold: st.boss.gold, item };
+    /* Boss settimanale: raro garantito */
+    const consumable = dropConsumable(hero, 'raro');
+    return { gold: st.boss.gold, item, consumable };
   }
 
   /* ── Mercante Itinerante (ven-dom, 3 item rari) ──────────── */
@@ -4645,7 +4661,9 @@ const RPG = (() => {
     const items = [];
     if (r.item === 'seme') { const s = genSeed(hero); hero.items.push(s); items.push(s); }
     if (r.item === 'fertilizzante') { const f = genFertilizzante(); hero.items.push(f); items.push(f); }
-    return { gold: r.gold || 0, items };
+    /* 30% chance consumabile comune */
+    const consumable = Math.random() < 0.30 ? dropConsumable(hero, 'comune') : null;
+    return { gold: r.gold || 0, items, consumable };
   }
 
   function genFertilizzante() {
