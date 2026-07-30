@@ -5880,7 +5880,7 @@ img.camp-layer {
 /* ── Quick Consumable Strip (pre-allenamento) ── */
 .quick-cons-strip { margin: 12px 0 4px; }
 .quick-cons-label { font-size: .8rem; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
-.quick-cons-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+.quick-cons-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .quick-cons-btn {
   position: relative; flex-shrink: 0;
   width: 56px; height: 56px; padding: 0;
@@ -5916,10 +5916,12 @@ img.camp-layer {
 /* ── Erborista Offerta del Giorno ── */
 .erborista-offer-panel { margin-bottom: 16px; }
 .erborista-offer-row {
-  display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
 }
 .erborista-offer-card {
-  flex-shrink: 0; min-width: 110px; position: relative;
+  position: relative;
 }
 .erborista-offer-price {
   display: flex; align-items: center; justify-content: space-between;
