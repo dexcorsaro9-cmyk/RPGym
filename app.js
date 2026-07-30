@@ -1117,7 +1117,6 @@ function renderCamp(c) {
   if (CAMP_VIEW === 'strutture')   { renderStruttureView(c);   return; }
   if (CAMP_VIEW === 'arredamento') { renderArredamentoView(c); return; }
   if (CAMP_VIEW === 'serra')       { renderSerraView(c);       return; }
-  if (CAMP_VIEW === 'zaino')       { renderZainoView(c);       return; }
 
   /* ── Panorama scena campo con ciclo giorno/notte ── */
   const phase       = getCampTimePhase();
@@ -1473,34 +1472,6 @@ function renderCamp(c) {
     }
 
     c.appendChild(cp);
-  }
-
-  // Zaino (consumabili)
-  {
-    const consCount = Object.values(HERO.consumables || {}).reduce((s, q) => s + q, 0);
-    const activeBuff = HERO.consumableBuffs && (
-      HERO.consumableBuffs.xpMult ||
-      HERO.consumableBuffs.goldMult ||
-      HERO.consumableBuffs.allBoost ||
-      HERO.consumableBuffs.streakShield > 0
-    );
-    const zp = el('div', activeBuff ? 'panel panel-featured' : 'panel');
-    const zThumb = el('img', 'camp-panel-thumb');
-    zThumb.src = 'assets/consumables/sacca_cosmica.png';
-    zThumb.alt = '';
-    zThumb.addEventListener('error', () => zThumb.remove());
-    zp.appendChild(zThumb);
-    zp.appendChild(el('h3', 'panel-title', '🎒 Lo Zaino dell\'Avventuriero'));
-    if (activeBuff) zp.appendChild(el('p', 'small', '✨ Hai buff consumabile attivo!'));
-    zp.appendChild(el('p', 'muted small',
-      consCount > 0
-        ? `${consCount} consumabil${consCount === 1 ? 'e' : 'i'} in zaino · usa prima di allenarti per potenziare le ricompense.`
-        : 'Zaino vuoto — ottieni consumabili dall\'Arena, dai boss e dall\'Erborista nel Mercato.'));
-    if (consCount > 0) zp.appendChild(el('span', 'mg-card-badge', String(consCount)));
-    const zBtn = el('button', 'btn btn-primary wide', '🎒 Apri lo Zaino');
-    zBtn.addEventListener('click', () => { CAMP_VIEW = 'zaino'; setTab('camp'); });
-    zp.appendChild(zBtn);
-    c.appendChild(zp);
   }
 
   // Serra del Viandante
@@ -4174,7 +4145,7 @@ const ERBORISTA_CATS = [
 let ERBORISTA_CAT = 'tutti';
 
 function renderErborista(c) {
-  c.appendChild(npcBanner('assets/consumables/spirito_foresta.png', 'Madre Radice', '"Ogni seme vuole germogliare. Ogni eroe ha bisogno di carburante."'));
+  c.appendChild(npcBanner(`assets/consumables/${encodeURIComponent(RPG.CONSUMABLE_IMG['spirito_foresta'] || 'spirito_foresta')}.png`, 'Madre Radice', '"Ogni seme vuole germogliare. Ogni eroe ha bisogno di carburante."'));
 
   const sw = el('div', 'coll-switch');
   ERBORISTA_CATS.forEach(cat => {
@@ -4197,14 +4168,14 @@ function renderErborista(c) {
     const card  = el('div', `consumable-card rarity-${co.rarity}`);
     const imgWrap = el('div', 'consumable-img-wrap');
     const img = el('img', 'consumable-img');
-    img.src = `assets/consumables/${co.id}.png`;
+    img.src = `assets/consumables/${encodeURIComponent(RPG.CONSUMABLE_IMG[co.id] || co.id)}.png`;
     img.alt = co.name;
     img.addEventListener('error', () => { img.style.display = 'none'; imgWrap.appendChild(el('span', 'consumable-emoji', co.icon)); });
     imgWrap.appendChild(img);
     card.appendChild(imgWrap);
     card.appendChild(el('div', 'consumable-name', co.name));
     card.appendChild(el('div', 'consumable-desc muted small', co.desc));
-    if (qty > 0) card.appendChild(el('span', 'consumable-qty', `×${qty} in zaino`));
+    if (qty > 0) card.appendChild(el('span', 'consumable-qty', `×${qty} in sacca`));
     const buyBtn = el('button', `btn btn-primary btn-small${HERO.gold < price ? ' disabled' : ''}`, `${price} 🪙`);
     buyBtn.disabled = HERO.gold < price;
     buyBtn.addEventListener('click', () => {
@@ -4230,6 +4201,7 @@ function renderHero(c) {
   if (HERO_VIEW === 'story') { renderStoryView(c); return; }
   if (HERO_VIEW === 'settings') { renderSettingsView(c); return; }
   if (HERO_VIEW === 'diary')    { renderDiaryView(c);    return; }
+  if (HERO_VIEW === 'zaino')    { renderZainoView(c);    return; }
 
   const titleH2 = el('h2', 'section-title on-parchment-title hero-title-row');
   titleH2.innerHTML = '🛡️ Equipaggiamento';
@@ -4309,6 +4281,17 @@ function renderHero(c) {
     ptEl.innerHTML = `${pt.icon} <b>${pt.label}</b> · ⚔️ ${HERO.pvpWins} ${HERO.pvpWins === 1 ? 'vittoria' : 'vittorie'}`;
     c.appendChild(ptEl);
   }
+
+  // Sacca del Viandante
+  const consCount = Object.values(HERO.consumables || {}).reduce((s, q) => s + q, 0);
+  const activeBuff = HERO.consumableBuffs && (
+    HERO.consumableBuffs.xpMult || HERO.consumableBuffs.goldMult ||
+    HERO.consumableBuffs.allBoost || HERO.consumableBuffs.streakShield > 0
+  );
+  const saccaBtn = el('button', `btn ${activeBuff ? 'btn-primary' : ''} wide`, `💰 Sacca del Viandante${consCount > 0 ? ` (${consCount})` : ''}`);
+  if (activeBuff) saccaBtn.style.position = 'relative';
+  saccaBtn.addEventListener('click', () => { HERO_VIEW = 'zaino'; setTab('hero'); });
+  c.appendChild(saccaBtn);
 
   // Bottone condivisione hero card
   const shareHeroBtn = el('button', 'btn btn-primary wide hero-share-btn', '📤 Sfida un Amico');
@@ -5769,10 +5752,10 @@ const ZAINO_CATS = [
 let ZAINO_CAT = 'tutti';
 
 function renderZainoView(c) {
-  const backBtn = el('button', 'btn btn-small', '↩ Torna al Rifugio');
-  backBtn.addEventListener('click', () => { CAMP_VIEW = 'main'; setTab('camp'); });
+  const backBtn = el('button', 'btn btn-small', '↩ Torna all\'Eroe');
+  backBtn.addEventListener('click', () => { HERO_VIEW = 'main'; setTab('hero'); });
   c.appendChild(backBtn);
-  c.appendChild(el('h2', 'section-title', '🎒 Lo Zaino dell\'Avventuriero'));
+  c.appendChild(el('h2', 'section-title', '💰 Sacca del Viandante'));
 
   // Buff attivi
   const bff = HERO.consumableBuffs || {};
@@ -5809,8 +5792,8 @@ function renderZainoView(c) {
 
   if (!cons.length) {
     const empty = el('div', 'panel muted', ZAINO_CAT === 'tutti'
-      ? 'Zaino vuoto — combatti nell\'Arena, sconfiggi boss e visita l\'Erborista nel Mercato per ottenere consumabili.'
-      : 'Nessun consumabile di questa categoria nel tuo zaino.');
+      ? 'Sacca vuota — combatti nell\'Arena, sconfiggi boss e visita l\'Erborista nel Mercato per ottenere consumabili.'
+      : 'Nessun consumabile di questa categoria nella tua sacca.');
     c.appendChild(empty);
   } else {
     const grid = el('div', 'consumable-grid');
@@ -5819,7 +5802,7 @@ function renderZainoView(c) {
       const card = el('div', `consumable-card rarity-${co.rarity}`);
       const imgWrap = el('div', 'consumable-img-wrap');
       const img = el('img', 'consumable-img');
-      img.src = `assets/consumables/${co.id}.png`;
+      img.src = `assets/consumables/${encodeURIComponent(RPG.CONSUMABLE_IMG[co.id] || co.id)}.png`;
       img.alt = co.name;
       img.addEventListener('error', () => { img.style.display = 'none'; imgWrap.appendChild(el('span', 'consumable-emoji', co.icon)); });
       imgWrap.appendChild(img);
@@ -5860,7 +5843,7 @@ function renderZainoView(c) {
       const card = el('div', `consumable-card rarity-${co.rarity} locked`);
       const imgWrap = el('div', 'consumable-img-wrap');
       const img = el('img', 'consumable-img');
-      img.src = `assets/consumables/${co.id}.png`;
+      img.src = `assets/consumables/${encodeURIComponent(RPG.CONSUMABLE_IMG[co.id] || co.id)}.png`;
       img.alt = co.name;
       img.addEventListener('error', () => { img.style.display = 'none'; imgWrap.appendChild(el('span', 'consumable-emoji', co.icon)); });
       imgWrap.appendChild(img);
