@@ -321,7 +321,6 @@ const RPG = (() => {
     { id: 2, minLevel: 20, label: 'Rifugio'      },
     { id: 3, minLevel: 30, label: 'Fortilizio'   },
     { id: 4, minLevel: 40, label: 'Cittadella'   },
-    { id: 5, minLevel: 50, label: 'Leggenda'     },
   ];
 
   const CAMP_LAYERS = [
@@ -355,12 +354,6 @@ const RPG = (() => {
     { id: 'barracks',      stage: 4, minLevel: 44, left: 0,  bottom: 8,  width: 32, z: 15 },
     { id: 'monument',      stage: 4, minLevel: 46, left: 42, bottom: 5,  width: 21, z: 16 },
     { id: 'dragon_banner', stage: 4, minLevel: 48, left: 35, bottom: 36, width: 14, z: 20 },
-    /* ── Stage 5: Leggenda (lv 50–58) ── */
-    { id: 'throne_hall',    stage: 5, minLevel: 50, left: 11, bottom: 12, width: 76, z: 22 },
-    { id: 'colosseum',      stage: 5, minLevel: 52, left: 63, bottom: 6,  width: 39, z: 20 },
-    { id: 'triumphal_arch', stage: 5, minLevel: 54, left: 32, bottom: 0,  width: 28, z: 25 },
-    { id: 'grand_obelisk',  stage: 5, minLevel: 56, left: 1,  bottom: 5,  width: 16, z: 18 },
-    { id: 'celestial_beacon', stage: 5, minLevel: 58, left: 73, bottom: 20, width: 21, z: 24 },
   ];
 
   /* Layers che appaiono solo di notte/tramonto — universali per tutti gli stage */

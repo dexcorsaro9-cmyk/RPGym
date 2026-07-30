@@ -1108,13 +1108,13 @@ function renderCamp(c) {
   // Disegna stelle dopo che il canvas è nel DOM
   requestAnimationFrame(() => drawCampStars(starsCanvas, phase));
 
-  // Stagione corrente — chip sotto il panorama
+  // Stagione corrente — chip in alto a destra nel panorama
   const season = RPG.currentSeason();
   const seasonEl = el('div', 'camp-season-chip');
   seasonEl.innerHTML = `${season.icon} <b>${season.name}</b>`;
   seasonEl.style.setProperty('--season-color', season.color);
   seasonEl.addEventListener('click', () => showSeasonModal());
-  c.appendChild(seasonEl);
+  panorama.appendChild(seasonEl);
 
   // Descrizione companion/mount — testo sotto
   const descParts = [];
