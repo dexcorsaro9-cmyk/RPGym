@@ -1289,8 +1289,8 @@ function renderCamp(c) {
   const hasCustomLayout = HERO.campLayout && Object.keys(HERO.campLayout).length > 0;
   const layoutBar = el('div', 'camp-layout-bar');
   layoutBar.innerHTML = hasCustomLayout
-    ? `<span class="camp-layout-hint">✋ Trascina · 🤌 Pizzica per ridimensionare</span><button class="btn btn-small camp-layout-reset">↺ Reset</button>`
-    : `<span class="camp-layout-hint">✋ Trascina · 🤌 Pizzica per ridimensionare</span>`;
+    ? `<span class="camp-layout-hint">✋ Trascina · 👆 Tocca per ridimensionare</span><button class="btn btn-small camp-layout-reset">↺ Reset</button>`
+    : `<span class="camp-layout-hint">✋ Trascina · 👆 Tocca per ridimensionare</span>`;
   const resetBtn = layoutBar.querySelector('.camp-layout-reset');
   if (resetBtn) resetBtn.addEventListener('click', () => { delete HERO.campLayout; persist(); setTab('camp'); });
   c.appendChild(layoutBar);
