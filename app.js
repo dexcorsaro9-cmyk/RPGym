@@ -1117,7 +1117,6 @@ function renderCamp(c) {
   if (CAMP_VIEW === 'strutture')   { renderStruttureView(c);   return; }
   if (CAMP_VIEW === 'arredamento') { renderArredamentoView(c); return; }
   if (CAMP_VIEW === 'serra')       { renderSerraView(c);       return; }
-  if (CAMP_VIEW === 'zaino')       { renderZainoView(c);       return; }
 
   /* ── Panorama scena campo con ciclo giorno/notte ── */
   const phase       = getCampTimePhase();
@@ -1473,34 +1472,6 @@ function renderCamp(c) {
     }
 
     c.appendChild(cp);
-  }
-
-  // Zaino (consumabili)
-  {
-    const consCount = Object.values(HERO.consumables || {}).reduce((s, q) => s + q, 0);
-    const activeBuff = HERO.consumableBuffs && (
-      HERO.consumableBuffs.xpMult ||
-      HERO.consumableBuffs.goldMult ||
-      HERO.consumableBuffs.allBoost ||
-      HERO.consumableBuffs.streakShield > 0
-    );
-    const zp = el('div', activeBuff ? 'panel panel-featured' : 'panel');
-    const zThumb = el('img', 'camp-panel-thumb');
-    zThumb.src = `assets/consumables/${encodeURIComponent(RPG.CONSUMABLE_IMG['sacca_cosmica'] || 'sacca_cosmica')}.png`;
-    zThumb.alt = '';
-    zThumb.addEventListener('error', () => zThumb.remove());
-    zp.appendChild(zThumb);
-    zp.appendChild(el('h3', 'panel-title', '💰 Sacca del Viandante'));
-    if (activeBuff) zp.appendChild(el('p', 'small', '✨ Hai buff consumabile attivo!'));
-    zp.appendChild(el('p', 'muted small',
-      consCount > 0
-        ? `${consCount} consumabil${consCount === 1 ? 'e' : 'i'} in sacca · usa prima di allenarti per potenziare le ricompense.`
-        : 'Sacca vuota — ottieni consumabili dall\'Arena, dai boss e dall\'Erborista nel Mercato.'));
-    if (consCount > 0) zp.appendChild(el('span', 'mg-card-badge', String(consCount)));
-    const zBtn = el('button', 'btn btn-primary wide', '💰 Apri la Sacca');
-    zBtn.addEventListener('click', () => { CAMP_VIEW = 'zaino'; setTab('camp'); });
-    zp.appendChild(zBtn);
-    c.appendChild(zp);
   }
 
   // Serra del Viandante
@@ -4230,6 +4201,7 @@ function renderHero(c) {
   if (HERO_VIEW === 'story') { renderStoryView(c); return; }
   if (HERO_VIEW === 'settings') { renderSettingsView(c); return; }
   if (HERO_VIEW === 'diary')    { renderDiaryView(c);    return; }
+  if (HERO_VIEW === 'zaino')    { renderZainoView(c);    return; }
 
   const titleH2 = el('h2', 'section-title on-parchment-title hero-title-row');
   titleH2.innerHTML = '🛡️ Equipaggiamento';
@@ -4309,6 +4281,17 @@ function renderHero(c) {
     ptEl.innerHTML = `${pt.icon} <b>${pt.label}</b> · ⚔️ ${HERO.pvpWins} ${HERO.pvpWins === 1 ? 'vittoria' : 'vittorie'}`;
     c.appendChild(ptEl);
   }
+
+  // Sacca del Viandante
+  const consCount = Object.values(HERO.consumables || {}).reduce((s, q) => s + q, 0);
+  const activeBuff = HERO.consumableBuffs && (
+    HERO.consumableBuffs.xpMult || HERO.consumableBuffs.goldMult ||
+    HERO.consumableBuffs.allBoost || HERO.consumableBuffs.streakShield > 0
+  );
+  const saccaBtn = el('button', `btn ${activeBuff ? 'btn-primary' : ''} wide`, `💰 Sacca del Viandante${consCount > 0 ? ` (${consCount})` : ''}`);
+  if (activeBuff) saccaBtn.style.position = 'relative';
+  saccaBtn.addEventListener('click', () => { HERO_VIEW = 'zaino'; setTab('hero'); });
+  c.appendChild(saccaBtn);
 
   // Bottone condivisione hero card
   const shareHeroBtn = el('button', 'btn btn-primary wide hero-share-btn', '📤 Sfida un Amico');
@@ -5769,8 +5752,8 @@ const ZAINO_CATS = [
 let ZAINO_CAT = 'tutti';
 
 function renderZainoView(c) {
-  const backBtn = el('button', 'btn btn-small', '↩ Torna al Rifugio');
-  backBtn.addEventListener('click', () => { CAMP_VIEW = 'main'; setTab('camp'); });
+  const backBtn = el('button', 'btn btn-small', '↩ Torna all\'Eroe');
+  backBtn.addEventListener('click', () => { HERO_VIEW = 'main'; setTab('hero'); });
   c.appendChild(backBtn);
   c.appendChild(el('h2', 'section-title', '💰 Sacca del Viandante'));
 
