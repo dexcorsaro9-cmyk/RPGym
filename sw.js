@@ -1,5 +1,10 @@
 /* RPGym service worker — network-first per aggiornamenti immediati */
-const CACHE = 'heropace-v220';
+
+
+
+
+
+const CACHE = 'heropace-v226';
 const NOTIF_CACHE = 'heropace-notif-v1'; // stato notifiche (non cancellare mai)
 
 /* File solo per fallback offline — NON pre-cachati all'install */

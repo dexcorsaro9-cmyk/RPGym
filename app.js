@@ -1627,6 +1627,7 @@ function renderMap(c) {
   if (MAP_VIEW === 'atlas')      { renderAtlasView(c);      return; }
   if (MAP_VIEW === 'pantheon')   { renderPantheonView(c);   return; }
   if (MAP_VIEW === 'avamposto')  { renderAvampostoView(c);  return; }
+  if (MAP_VIEW === 'taverna')    { renderTavernaView(c);    return; }
   const biome = RPG.currentBiome(HERO.level);
 
   // ── Il bioma attuale, con progresso verso il prossimo ──
@@ -1992,27 +1993,48 @@ function renderMap(c) {
   pvpEntry.appendChild(enterPantheonBtn);
   c.appendChild(pvpEntry);
 
-  // ── Il Santuario dei Famigli (teaser bloccato) ──
-  const sanctEntry = el('div', 'panel santuario-entry-panel');
-  const sanctThumb = document.createElement('img');
-  sanctThumb.src = 'assets/ui/santuario-famigli.jpg';
-  sanctThumb.alt = '';
-  sanctThumb.className = 'camp-panel-thumb santuario-thumb';
-  sanctThumb.onerror = () => sanctThumb.remove();
-  sanctEntry.appendChild(sanctThumb);
+  // ── La Taverna delle Sfide ──
+  const tavernaEntry = el('div', 'panel taverna-entry-panel');
+  const tavernaThumb = document.createElement('img');
+  tavernaThumb.src = 'assets/ui/taverna-header.jpg';
+  tavernaThumb.alt = '';
+  tavernaThumb.className = 'camp-panel-thumb';
+  tavernaThumb.onerror = () => tavernaThumb.remove();
+  tavernaEntry.appendChild(tavernaThumb);
+  tavernaEntry.appendChild(el('h3', 'panel-title', '🍺 La Taverna delle Sfide'));
+  tavernaEntry.appendChild(el('p', 'muted small taverna-entry-quote',
+    '«Tra dadi truccati e boccali volanti, qui si separa chi ha nervi saldi da chi torna a casa vuoto.»'));
+  const totalRemMap = MG_CATEGORIES.flatMap(cat => cat.games).reduce((s, g) => s + Math.max(0, MG_MAX[g.id] - getMG(g.id).n), 0);
+  const totalMaxMap = Object.values(MG_MAX).reduce((a, b) => a + b, 0);
+  if (totalRemMap > 0) {
+    const tvBadge = el('div', 'taverna-avail-badge', `🎮 ${totalRemMap} partite disponibili`);
+    tavernaEntry.appendChild(tvBadge);
+  }
+  const enterTavernaBtn = el('button', 'btn btn-primary wide', '🍺 Entra nella Taverna');
+  enterTavernaBtn.addEventListener('click', () => { MAP_VIEW = 'taverna'; setTab('map'); });
+  tavernaEntry.appendChild(enterTavernaBtn);
+  c.appendChild(tavernaEntry);
+}
 
-  const sanctHead = el('div', 'santuario-entry-head');
-  sanctHead.appendChild(el('h3', 'panel-title santuario-entry-title', '🥚 Il Santuario dei Famigli'));
-  sanctHead.appendChild(el('span', 'santuario-lock-badge', '🔒'));
-  sanctEntry.appendChild(sanctHead);
+function renderTavernaView(c) {
+  const backBtn = el('button', 'btn btn-back', '← Torna alla Mappa');
+  backBtn.addEventListener('click', () => { MAP_VIEW = 'main'; setTab('map'); });
+  c.appendChild(backBtn);
 
-  sanctEntry.appendChild(el('p', 'muted small santuario-teaser-quote',
-    '«Nelle profondità della Foresta Sussurrante, qualcosa di antico attende di schiudersi. Una missione specifica ti condurrà a lui — se sarai pronto.»'));
+  const heroImg = document.createElement('img');
+  heroImg.src = 'assets/ui/taverna-header.jpg';
+  heroImg.alt = '';
+  heroImg.className = 'taverna-hero-img';
+  heroImg.onerror = () => heroImg.remove();
+  c.appendChild(heroImg);
 
-  const lockedBtn = el('button', 'btn btn-primary wide santuario-locked-btn', '🔒 Ancora sigillato');
-  lockedBtn.disabled = true;
-  sanctEntry.appendChild(lockedBtn);
-  c.appendChild(sanctEntry);
+  c.appendChild(npcBanner(
+    'assets/avatars/npc/locandiere-orco.png',
+    'Gruk il Bonaccione',
+    '«Il nome è Gruk. Se perdi, paghi. Se vinci, offro io un boccale. Parola di oste.»'
+  ));
+
+  renderMiniGamesHub(c);
 }
 
 /* ── Mappa Infuocata ─────────────────────────────────────────── */
@@ -2906,7 +2928,6 @@ function renderTrain(c) {
   c.appendChild(ap);
 
   renderDailyChallenges(c);
-  renderMiniGamesHub(c);
 }
 
 

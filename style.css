@@ -4524,6 +4524,28 @@ body {
 .building-damage-alert { text-align: center; padding: .5rem 0 .75rem; }
 .bda-icon { font-size: 3rem; margin-bottom: .5rem; }
 
+/* ── Taverna delle Sfide: entry card + hub subtitle ── */
+.taverna-entry-panel { border-color: rgba(245,166,35,.5); }
+.taverna-entry-quote { font-style: italic; margin: .25rem 0 .5rem; }
+.taverna-hero-img {
+  width: 100%; height: 160px;
+  object-fit: cover; object-position: center 40%;
+  border-radius: 10px; margin-bottom: 10px; display: block;
+}
+.taverna-avail-badge {
+  display: inline-block;
+  background: linear-gradient(90deg, var(--gold-bright), #b57f1e);
+  color: #1a0e00;
+  font-size: .75rem; font-weight: 700;
+  padding: .2rem .6rem; border-radius: 12px;
+  margin-bottom: .5rem;
+}
+.mg-hub-subtitle {
+  font-size: .75rem; font-weight: 400;
+  font-style: italic; color: var(--ink-light);
+  display: block; margin-top: .15rem;
+}
+
 /* ── 4. Mercante Fuggiasco ── */
 .fugitive-merchant-panel {
   border-color: #f5a623 !important;
