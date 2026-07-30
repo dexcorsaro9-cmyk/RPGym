@@ -3065,6 +3065,121 @@ body {
   animation: lup-slidein .45s .45s both;
 }
 
+/* ── Artefatto nella pergamena bioma ── */
+.biome-parchment-artifact {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: rgba(0,0,0,.08); border-radius: 8px;
+  padding: 12px 14px; margin: 14px 0 0; text-align: left;
+}
+.bpa-icon { font-size: 2rem; flex-shrink: 0; line-height: 1; }
+.bpa-label { font-size: .65rem; text-transform: uppercase; letter-spacing: .08em; color: #8a6010; font-weight: 700; }
+.bpa-name  { font-family: 'Cinzel Decorative', serif; font-size: .95rem; color: #3a2000; font-weight: 700; margin: 2px 0; }
+.bpa-flavor{ font-size: .78rem; color: #5a3a10; font-style: italic; line-height: 1.5; }
+
+/* ── Collezione Reliquie ── */
+.artifacts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 8px; margin-top: 10px;
+}
+.artifact-cell {
+  border-radius: 8px; padding: 8px 6px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  text-align: center; transition: transform .15s;
+}
+.artifact-cell.artifact-unlocked {
+  background: linear-gradient(160deg, var(--surface-2, #2a2520) 0%, rgba(184,148,74,.12) 100%);
+  border: 1px solid rgba(184,148,74,.3);
+  cursor: default;
+}
+.artifact-cell.artifact-locked {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.07);
+  opacity: .5;
+}
+.artifact-icon { font-size: 1.6rem; line-height: 1; }
+.artifact-unknown { font-size: 1.4rem; color: var(--text-muted, #888); }
+.artifact-name { font-size: .65rem; font-weight: 600; color: var(--text, #e8d8b0); line-height: 1.2; }
+.artifact-flavor {
+  font-size: .6rem; color: var(--text-muted, #888); font-style: italic; line-height: 1.4;
+  display: none;
+}
+.artifact-cell.artifact-unlocked:hover .artifact-flavor { display: block; }
+.artifact-cell.artifact-unlocked:hover .artifact-name  { display: none; }
+
+/* ── Epistolario ── */
+.ep-card {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 12px; border-radius: 8px; cursor: pointer;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08);
+  transition: background .15s;
+  margin-bottom: 8px;
+}
+.ep-card:hover { background: rgba(255,255,255,.08); }
+.ep-card-header { display: flex; align-items: center; gap: 10px; }
+.ep-icon { font-size: 1.4rem; flex-shrink: 0; }
+.ep-meta { display: flex; flex-direction: column; }
+.ep-sender { font-weight: 700; font-size: .85rem; color: var(--text, #e8d8b0); }
+.ep-role   { font-size: .72rem; color: var(--text-muted, #888); }
+.ep-title  { font-size: .8rem; font-style: italic; color: var(--text-muted, #aaa); margin-top: 4px; padding-left: 2px; }
+.ep-modal-header { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+.ep-modal-body {
+  font-size: .88rem; line-height: 1.7; color: var(--text, #e8d8b0);
+  white-space: pre-line; text-align: left; margin: 8px 0 16px;
+  font-family: Georgia, serif;
+}
+
+/* ── Lettere dal Mondo (overlay) ── */
+.world-letter-overlay {
+  position: fixed; inset: 0; z-index: 9998;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(4, 2, 0, .88); backdrop-filter: blur(4px);
+  padding: 16px; opacity: 0; transition: opacity .35s;
+}
+.world-letter-overlay.world-letter-visible { opacity: 1; }
+.world-letter-overlay.world-letter-exit   { opacity: 0; transition: opacity .4s; }
+.world-letter-card {
+  background: linear-gradient(160deg, #f0e2c2 0%, #ddc88a 100%);
+  border-radius: 4px 4px 8px 8px;
+  max-width: 380px; width: 100%; max-height: 88vh; overflow-y: auto;
+  padding: 24px 22px 20px;
+  box-shadow: 0 0 0 1px #b08840, 0 0 0 4px rgba(176,136,64,.2), 0 8px 40px rgba(0,0,0,.65);
+  animation: letter-drop .45s cubic-bezier(.22,.68,.35,1.08) both;
+}
+@keyframes letter-drop {
+  from { opacity: 0; transform: translateY(-24px) rotate(-1.5deg); }
+  to   { opacity: 1; transform: none; }
+}
+.wl-seal {
+  font-size: 2.4rem; text-align: center; display: block;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.25));
+  margin-bottom: 8px;
+}
+.wl-from {
+  display: flex; flex-direction: column; align-items: center;
+  margin-bottom: 12px;
+}
+.wl-sender { font-weight: 800; font-size: .95rem; color: #3a2000; }
+.wl-role   { font-size: .72rem; color: #7a5020; letter-spacing: .04em; }
+.wl-divider {
+  height: 1px; background: linear-gradient(90deg, transparent, #b08840, transparent);
+  margin: 10px 0;
+}
+.wl-title {
+  font-family: Georgia, serif; font-size: 1.05rem;
+  color: #3a2000; text-align: center; margin: 10px 0 14px; font-style: italic;
+}
+.wl-body {
+  font-family: Georgia, serif; font-size: .88rem; line-height: 1.75;
+  color: #2a1800; text-align: left; white-space: pre-line;
+  margin-bottom: 6px;
+}
+.wl-btn {
+  background: linear-gradient(135deg, #8a6010, #c49030) !important;
+  border-color: #8a6010 !important; color: #fff !important;
+  width: 100%; margin-top: 14px;
+}
+
 .lup-particle {
   position: absolute; width: 6px; height: 6px; border-radius: 50%;
   background: var(--pc, var(--lup-glow));

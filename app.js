@@ -607,6 +607,8 @@ function enterGame() {
   }
   // Tutorial per i nuovi eroi (mostrato prima di tutto il resto)
   if (!HERO.tutorialDone) OPEN_QUEUE.unshift(showTutorial);
+  // Lettere dal mondo (milestone di livello, km, streak)
+  RPG.checkPendingLetters(HERO).forEach(letter => OPEN_QUEUE.push(() => showWorldLetter(letter)));
   nextOpening();
 
   // Inviti PvP in arrivo da Firestore
@@ -3387,21 +3389,23 @@ function showReport(r) {
   if (pendingBiomeLore) {
     html += `<button class="btn btn-primary wide" id="btn-report-close">📜 Continua il Viaggio</button>`;
   } else {
-    html += `<button class="btn btn-primary wide" onclick="nextOpening(); renderHUD(); setTab('camp')">Torna al Rifugio</button>`;
+    html += `<button class="btn btn-primary wide" id="btn-report-close">Torna al Rifugio</button>`;
   }
   modal(html);
 
-  // Pergamena bioma: aggancia il bottone dopo il render del modal
-  if (pendingBiomeLore) {
-    setTimeout(() => {
-      const btn = $('#btn-report-close');
-      if (btn) btn.addEventListener('click', () => {
-        closeModal();
-        nextOpening(); renderHUD(); setTab('camp');
+  // Aggancia il bottone chiudi dopo il render del modal
+  setTimeout(() => {
+    const btn = $('#btn-report-close');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      closeModal();
+      nextOpening(); renderHUD(); setTab('camp');
+      checkAndQueueLetters();
+      if (pendingBiomeLore) {
         setTimeout(() => showBiomeParchment(pendingBiomeLore), 300);
-      });
-    }, 50);
-  }
+      }
+    });
+  }, 50);
 
   // Animate XP bar
   const fill = $('#rpt-xp-fill');
@@ -3439,7 +3443,17 @@ function showReport(r) {
   }
 }
 
-function showBiomeParchment({ biome, lore }) {
+function showBiomeParchment({ biome, biomeIdx, lore }) {
+  const artifact = RPG.BIOME_ARTIFACTS[biomeIdx] || null;
+  const artifactHtml = artifact ? `
+    <div class="biome-parchment-artifact">
+      <span class="bpa-icon">${artifact.icon}</span>
+      <div class="bpa-text">
+        <div class="bpa-label">Reliquia trovata</div>
+        <div class="bpa-name">${esc(artifact.name)}</div>
+        <div class="bpa-flavor">${esc(artifact.flavor)}</div>
+      </div>
+    </div>` : '';
   const ov = document.createElement('div');
   ov.className = 'biome-parchment-overlay';
   ov.innerHTML = `
@@ -3451,6 +3465,7 @@ function showBiomeParchment({ biome, lore }) {
       <div class="biome-parchment-divider"></div>
       <div class="biome-parchment-chapter">${esc(lore.title)}</div>
       <p class="biome-parchment-text">${esc(lore.text)}</p>
+      ${artifactHtml}
       <div class="biome-parchment-divider"></div>
       <button class="btn btn-primary biome-parchment-btn">Continua il Viaggio →</button>
       <div class="biome-parchment-bottom-ornament">❧</div>
@@ -3463,6 +3478,48 @@ function showBiomeParchment({ biome, lore }) {
     setTimeout(() => ov.remove(), 500);
   };
   ov.querySelector('.biome-parchment-btn').addEventListener('click', dismiss);
+}
+
+function showWorldLetter(letter) {
+  if (!letter) return;
+  HERO.lettersReceived = HERO.lettersReceived || [];
+  if (!HERO.lettersReceived.includes(letter.id)) {
+    HERO.lettersReceived.push(letter.id);
+    persist();
+  }
+  const bodyHtml = esc(letter.body).replace(/\n/g, '<br>');
+  const ov = document.createElement('div');
+  ov.className = 'world-letter-overlay';
+  ov.innerHTML = `
+    <div class="world-letter-card">
+      <div class="wl-seal">${letter.icon}</div>
+      <div class="wl-from">
+        <span class="wl-sender">${esc(letter.sender)}</span>
+        <span class="wl-role">${esc(letter.role)}</span>
+      </div>
+      <div class="wl-divider"></div>
+      <h3 class="wl-title">${esc(letter.title)}</h3>
+      <p class="wl-body">${bodyHtml}</p>
+      <div class="wl-divider"></div>
+      <button class="btn btn-primary wl-btn">Chiudi la lettera</button>
+    </div>`;
+  document.body.appendChild(ov);
+  sfx('item');
+  requestAnimationFrame(() => ov.classList.add('world-letter-visible'));
+  ov.querySelector('.wl-btn').addEventListener('click', () => {
+    ov.classList.add('world-letter-exit');
+    setTimeout(() => ov.remove(), 400);
+  });
+}
+
+function checkAndQueueLetters() {
+  const pending = RPG.checkPendingLetters(HERO);
+  pending.forEach(letter => {
+    OPEN_QUEUE.push(() => showWorldLetter(letter));
+  });
+  if (pending.length && document.getElementById('modal').classList.contains('hidden')) {
+    nextOpening();
+  }
 }
 
 function openChest() {
@@ -4008,6 +4065,67 @@ function renderDiaryView(c) {
       stats.appendChild(row);
     });
     c.appendChild(stats);
+  }
+
+  // Reliquie del Viandante
+  {
+    const relPanel = el('div', 'panel');
+    relPanel.appendChild(el('h3', 'panel-title', '🗿 Reliquie del Viandante'));
+    const discovered = HERO.biomesDiscovered || [];
+    const found = discovered.length;
+    const total = RPG.BIOME_ARTIFACTS.length;
+    const prog = el('p', 'center small muted');
+    prog.innerHTML = `${found} / ${total} reliquie scoperte`;
+    relPanel.appendChild(prog);
+    const grid = el('div', 'artifacts-grid');
+    RPG.BIOME_ARTIFACTS.forEach((art, idx) => {
+      const unlocked = discovered.includes(idx);
+      const cell = el('div', 'artifact-cell' + (unlocked ? ' artifact-unlocked' : ' artifact-locked'));
+      if (unlocked) {
+        cell.innerHTML = `<span class="artifact-icon">${art.icon}</span><span class="artifact-name">${esc(art.name)}</span><span class="artifact-flavor">${esc(art.flavor)}</span>`;
+      } else {
+        cell.innerHTML = `<span class="artifact-icon artifact-unknown">?</span><span class="artifact-name muted">???</span>`;
+      }
+      grid.appendChild(cell);
+    });
+    relPanel.appendChild(grid);
+    c.appendChild(relPanel);
+  }
+
+  // Epistolario
+  {
+    const letters = HERO.lettersReceived || [];
+    if (letters.length) {
+      const epPanel = el('div', 'panel');
+      epPanel.appendChild(el('h3', 'panel-title', '📬 Epistolario'));
+      letters.forEach(id => {
+        const letter = RPG.WORLD_LETTERS.find(l => l.id === id);
+        if (!letter) return;
+        const card = el('div', 'ep-card');
+        card.innerHTML = `
+          <div class="ep-card-header">
+            <span class="ep-icon">${letter.icon}</span>
+            <div class="ep-meta">
+              <span class="ep-sender">${esc(letter.sender)}</span>
+              <span class="ep-role">${esc(letter.role)}</span>
+            </div>
+          </div>
+          <div class="ep-title">${esc(letter.title)}</div>`;
+        card.addEventListener('click', () => {
+          const bodyHtml = esc(letter.body).replace(/\n/g, '<br>');
+          modal(`
+            <div class="ep-modal-header">
+              <span style="font-size:2rem">${letter.icon}</span>
+              <div><b>${esc(letter.sender)}</b><br><span class="muted small">${esc(letter.role)}</span></div>
+            </div>
+            <h3 style="margin:12px 0 8px;text-align:center">${esc(letter.title)}</h3>
+            <p class="ep-modal-body">${bodyHtml}</p>
+            <button class="btn btn-primary wide" onclick="closeModal()">Chiudi</button>`);
+        });
+        epPanel.appendChild(card);
+      });
+      c.appendChild(epPanel);
+    }
   }
 
   // Calendario mensile + Heatmap
