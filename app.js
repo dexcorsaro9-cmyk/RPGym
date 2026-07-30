@@ -1114,6 +1114,7 @@ function makeCampLayerDraggable(elem, key, panorama, baseZ, baseWidth) {
 
 function renderCamp(c) {
   if (CAMP_VIEW === 'santuario') { renderSantuarioView(c); return; }
+  if (CAMP_VIEW === 'strutture') { renderStruttureView(c); return; }
   if (CAMP_VIEW === 'arredamento') { renderArredamentoView(c); return; }
   if (CAMP_VIEW === 'serra') { renderSerraView(c); return; }
 
@@ -1401,8 +1402,9 @@ function renderCamp(c) {
 
   // ── Il Cantiere dell'Eroe (Edifici + Arredamento) ──
   {
-    const totalOwned   = (HERO.furniture && HERO.furniture.owned.length) || 0;
-    const setsComplete = RPG.FURNITURE_SETS.filter(s => RPG.furnitureSetComplete(HERO, s.id)).length;
+    const totalOwned      = (HERO.furniture && HERO.furniture.owned.length) || 0;
+    const setsComplete    = RPG.FURNITURE_SETS.filter(s => RPG.furnitureSetComplete(HERO, s.id)).length;
+    const layersOwned     = RPG.CAMP_LAYER_SHOP.filter(l => (HERO.furniture && HERO.furniture.owned || []).includes(l.id)).length;
     const BUILD_ICON_FILES = {
       fondamenta: 'torre-mago', baule: 'baule', letto: null,
       muro: 'muro', fucina: 'fucina', lab: 'laboratorio',
@@ -1418,6 +1420,14 @@ function renderCamp(c) {
 
     cp.appendChild(el('h3', 'panel-title', '🏗️ Il Cantiere dell\'Eroe'));
     cp.appendChild(el('p', 'muted small', 'Costruisci edifici e arreda la tua dimora per sbloccare bonus permanenti.'));
+
+    // ── Sezione Strutture dell'Accampamento ──
+    cp.appendChild(el('h4', 'cantiere-section-title', '🏗️ Strutture dell\'Accampamento'));
+    cp.appendChild(el('p', 'muted small',
+      `${layersOwned} / 25 strutture costruite — appaiono nel tuo accampamento.`));
+    const enterStruttureBtn = el('button', 'btn btn-primary wide', '🏗️ Costruisci Strutture');
+    enterStruttureBtn.addEventListener('click', () => { CAMP_VIEW = 'strutture'; setTab('camp'); });
+    cp.appendChild(enterStruttureBtn);
 
     // ── Sezione Arredamento ──
     cp.appendChild(el('h4', 'cantiere-section-title', '🏛️ Arredamento'));
@@ -1844,6 +1854,99 @@ function openFeedPicker() {
       else toast(r);
       setTab('camp');
     });
+    list.appendChild(row);
+  });
+}
+
+function renderStruttureView(c) {
+  const backBtn = el('button', 'btn btn-small', '↩ Torna al Rifugio');
+  backBtn.addEventListener('click', () => { CAMP_VIEW = 'main'; setTab('camp'); });
+  c.appendChild(backBtn);
+
+  const headerPanel = el('div', 'panel');
+  const thumb = el('img', 'camp-panel-thumb');
+  thumb.src = 'assets/ui/rifugio/cantiere-eroe.jpg';
+  thumb.alt = '';
+  headerPanel.appendChild(thumb);
+  headerPanel.appendChild(el('h2', 'section-title', '🏗️ Strutture dell\'Accampamento'));
+  const ownedIds = (HERO.furniture && HERO.furniture.owned) || [];
+  const layersOwned = RPG.CAMP_LAYER_SHOP.filter(l => ownedIds.includes(l.id)).length;
+  headerPanel.appendChild(el('p', 'muted small center',
+    `${layersOwned} / 25 strutture costruite · appaiono nel panorama del tuo accampamento`));
+  c.appendChild(headerPanel);
+
+  const STAGE_NAMES = ['Accampamento', 'Avamposto', 'Rifugio', 'Fortilizio', 'Cittadella'];
+  const STAGE_MIN_LEVELS = [0, 10, 20, 30, 40];
+
+  for (let stage = 0; stage <= 4; stage++) {
+    const items = RPG.CAMP_LAYER_SHOP.filter(l => l.stage === stage);
+    const stageUnlocked = HERO.level >= STAGE_MIN_LEVELS[stage];
+    const stageOwned = items.filter(l => ownedIds.includes(l.id)).length;
+    const stageComplete = stageOwned === items.length;
+
+    const stagePanel = el('div', 'panel' + (!stageUnlocked ? ' locked' : '') + (stageComplete ? ' complete' : ''));
+    stagePanel.innerHTML = `
+      <div class="furniture-set-head">
+        <div class="furniture-set-icon">${stageUnlocked ? (stageComplete ? '✅' : '🏗️') : '🔒'}</div>
+        <div class="furniture-set-mid">
+          <b>Stage ${stage}: ${STAGE_NAMES[stage]}</b>
+          <div class="small muted">Livello ${STAGE_MIN_LEVELS[stage]}+</div>
+          <div class="small">${stageUnlocked ? `${stageOwned} / ${items.length} strutture${stageComplete ? ' — Completato!' : ''}` : `Sbloccato al Livello ${STAGE_MIN_LEVELS[stage]}`}</div>
+        </div>
+      </div>`;
+    if (stageUnlocked) {
+      stagePanel.classList.add('pickable');
+      stagePanel.addEventListener('click', () => openStruttureStageModal(stage));
+    }
+    c.appendChild(stagePanel);
+  }
+}
+
+function openStruttureStageModal(stage) {
+  const STAGE_NAMES = ['Accampamento', 'Avamposto', 'Rifugio', 'Fortilizio', 'Cittadella'];
+  const items = RPG.CAMP_LAYER_SHOP.filter(l => l.stage === stage);
+  const ownedIds = (HERO.furniture && HERO.furniture.owned) || [];
+  const owned = items.filter(l => ownedIds.includes(l.id)).length;
+
+  let html = `<h3 class="panel-title">🏗️ Stage ${stage}: ${STAGE_NAMES[stage]}</h3>
+    <p class="small muted center">${owned}/${items.length} strutture costruite</p>
+    <div class="loot-list" id="strutture-item-list"></div>
+    <button class="btn wide" onclick="closeModal()">Chiudi</button>`;
+  modal(html);
+
+  const list = $('#strutture-item-list');
+  items.forEach(it => {
+    const has = ownedIds.includes(it.id);
+    const locked = HERO.level < it.minLevel;
+    const row = el('div', 'loot loot-with-img furniture-item-row' + (has ? ' equipped' : '') + (locked ? ' locked' : ''));
+    const imgSrc = `assets/rifugio/scene/${it.id}.png`;
+    row.innerHTML = `
+      <img class="item-icon-big" src="${imgSrc}" onerror="this.outerHTML='<span class=\\"item-icon-big\\">${it.icon}</span>'">
+      <div class="loot-body">
+        <div class="loot-head"><b>${esc(it.name)}</b>${has ? ' ✅' : ''}</div>
+        <div class="small muted">Livello ${it.minLevel}+</div>
+        <div class="small">${
+          has ? 'Costruita' :
+          locked ? `🔒 Richiede Livello ${it.minLevel}` :
+          `🪵 ${it.price.wood} · 🪨 ${it.price.stone}`
+        }</div>
+      </div>`;
+    if (!has && !locked) {
+      row.classList.add('pickable');
+      row.addEventListener('click', () => {
+        const r = RPG.buyCampLayer(HERO, it.id);
+        persist();
+        if (r && r.ok) {
+          toast(`${it.icon} ${it.name} costruita!`);
+          sfx('coin');
+          renderHUD();
+          closeModal();
+          openStruttureStageModal(stage);
+        } else {
+          toast(r);
+        }
+      });
+    }
     list.appendChild(row);
   });
 }
