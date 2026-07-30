@@ -2151,8 +2151,10 @@ function renderMap(c) {
         persist(); renderHUD();
         vibrate([150, 50, 200]);
         const itemEl = reward.item ? `<div class="loot-list" style="margin:.5rem 0">${itemHtml(reward.item)}</div>` : '';
+        const consEl = reward.consumable ? `<p class="center small">💰 ${esc(reward.consumable.icon)} <b>${esc(reward.consumable.name)}</b> nella Sacca!</p>` : '';
         modal(`<h3 class="center">${boss.icon} ${esc(boss.name)} sconfitto!</h3>
           <p class="center">🪙 +${reward.gold} oro${itemEl}</p>
+          ${consEl}
           <button class="btn btn-primary wide" onclick="closeModal();setTab('camp')">Ottimo!</button>`);
       });
       bp.appendChild(claimBtn);
@@ -2239,8 +2241,10 @@ function renderMap(c) {
           persist(); renderHUD();
           vibrate([80, 40, 120]);
           const itemEl = reward.item ? `<div class="loot-list" style="margin:.5rem 0">${itemHtml(reward.item)}</div>` : '';
+          const consEl = reward.consumable ? `<p class="center small">💰 ${esc(reward.consumable.icon)} <b>${esc(reward.consumable.name)}</b> aggiunto alla Sacca!</p>` : '';
           modal(`<h3 class="center">🗺️ Tappa ${i + 1} completata!</h3>
             <p class="center">🪙 +${reward.gold}${reward.wood ? ` 🪵 +${reward.wood}` : ''}${itemEl}</p>
+            ${consEl}
             <button class="btn btn-primary wide" onclick="closeModal();setTab('camp')">Ottimo!</button>`);
         });
         action.appendChild(btn);
@@ -3140,9 +3144,10 @@ function renderChallengeList(panel, list, claimFn, bonusObj, bonusClaimed, count
         const r = claimFn(HERO, i);
         persist(); renderHUD();
         if (r && r.ok) {
+          const consNote = r.consumable ? ` · 💰 ${r.consumable.icon} ${esc(r.consumable.name)}` : '';
           toast(r.bonus
-            ? `🌟 BONUS! +${r.bonus.gold + r.reward.gold}🪙 +${r.bonus.xp + r.reward.xp}⭐`
-            : `🎯 +${r.reward.gold}🪙 +${r.reward.xp}⭐`);
+            ? `🌟 BONUS! +${r.bonus.gold + r.reward.gold}🪙 +${r.bonus.xp + r.reward.xp}⭐${consNote}`
+            : `🎯 +${r.reward.gold}🪙 +${r.reward.xp}⭐${consNote}`);
           sfx('coin'); vibrate(r.bonus ? [40, 20, 40] : 30);
         } else toast(r);
         updateBadges(); setTab('train');
@@ -6047,7 +6052,8 @@ function renderSerraView(c) {
           if (typeof res === 'string') { toast(res); return; }
           persist(); renderHUD(); setTab('camp');
           const itLine = res.items.length ? res.items.map(it => `${it.icon} ${esc(it.name)}`).join(', ') : '';
-          toast(`🎁 Missione completata! +${res.gold} oro${itLine ? ' · ' + itLine : ''}`);
+          const consLine = res.consumable ? ` · 💰 ${res.consumable.icon} ${esc(res.consumable.name)}` : '';
+          toast(`🎁 Missione completata! +${res.gold} oro${itLine ? ' · ' + itLine : ''}${consLine}`);
         });
         mEl.appendChild(claimBtn);
       } else if (m.claimed) {
