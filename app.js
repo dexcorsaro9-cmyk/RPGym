@@ -1113,10 +1113,11 @@ function makeCampLayerDraggable(elem, key, panorama, baseZ, baseWidth) {
 }
 
 function renderCamp(c) {
-  if (CAMP_VIEW === 'santuario') { renderSantuarioView(c); return; }
-  if (CAMP_VIEW === 'strutture') { renderStruttureView(c); return; }
+  if (CAMP_VIEW === 'santuario')   { renderSantuarioView(c);   return; }
+  if (CAMP_VIEW === 'strutture')   { renderStruttureView(c);   return; }
   if (CAMP_VIEW === 'arredamento') { renderArredamentoView(c); return; }
-  if (CAMP_VIEW === 'serra') { renderSerraView(c); return; }
+  if (CAMP_VIEW === 'serra')       { renderSerraView(c);       return; }
+  if (CAMP_VIEW === 'zaino')       { renderZainoView(c);       return; }
 
   /* ── Panorama scena campo con ciclo giorno/notte ── */
   const phase       = getCampTimePhase();
@@ -1472,6 +1473,34 @@ function renderCamp(c) {
     }
 
     c.appendChild(cp);
+  }
+
+  // Zaino (consumabili)
+  {
+    const consCount = Object.values(HERO.consumables || {}).reduce((s, q) => s + q, 0);
+    const activeBuff = HERO.consumableBuffs && (
+      HERO.consumableBuffs.xpMult ||
+      HERO.consumableBuffs.goldMult ||
+      HERO.consumableBuffs.allBoost ||
+      HERO.consumableBuffs.streakShield > 0
+    );
+    const zp = el('div', activeBuff ? 'panel panel-featured' : 'panel');
+    const zThumb = el('img', 'camp-panel-thumb');
+    zThumb.src = 'assets/consumables/sacca_cosmica.png';
+    zThumb.alt = '';
+    zThumb.addEventListener('error', () => zThumb.remove());
+    zp.appendChild(zThumb);
+    zp.appendChild(el('h3', 'panel-title', '🎒 Lo Zaino dell\'Avventuriero'));
+    if (activeBuff) zp.appendChild(el('p', 'small', '✨ Hai buff consumabile attivo!'));
+    zp.appendChild(el('p', 'muted small',
+      consCount > 0
+        ? `${consCount} consumabil${consCount === 1 ? 'e' : 'i'} in zaino · usa prima di allenarti per potenziare le ricompense.`
+        : 'Zaino vuoto — ottieni consumabili dall\'Arena, dai boss e dall\'Erborista nel Mercato.'));
+    if (consCount > 0) zp.appendChild(el('span', 'mg-card-badge', String(consCount)));
+    const zBtn = el('button', 'btn btn-primary wide', '🎒 Apri lo Zaino');
+    zBtn.addEventListener('click', () => { CAMP_VIEW = 'zaino'; setTab('camp'); });
+    zp.appendChild(zBtn);
+    c.appendChild(zp);
   }
 
   // Serra del Viandante
@@ -3280,6 +3309,24 @@ function renderTrain(c) {
     c.appendChild(sf);
   }
 
+  // ── Buff consumabili attivi ──
+  {
+    const bff = HERO.consumableBuffs || {};
+    const now = Date.now();
+    const chips = [];
+    if (bff.xpMult)       chips.push(`✨ +${Math.round(bff.xpMult.value * 100)}% XP (${bff.xpMult.sessions} sessioni)`);
+    if (bff.goldMult && bff.goldMult.expiresAt > now) chips.push(`💰 +${Math.round(bff.goldMult.value * 100)}% oro`);
+    if (bff.allBoost && bff.allBoost.expiresAt > now) chips.push(`⚡ Tutti i bonus ×${1+bff.allBoost.value}`);
+    if (bff.streakShield) chips.push(`🛡️ Streak protetta ${bff.streakShield}gg`);
+    if (bff.arenaShield)  chips.push(`⚔️ Scudo Arena`);
+    if (bff.dropBoost && bff.dropBoost.expiresAt > now) chips.push(`🎁 +${Math.round(bff.dropBoost.value * 100)}% drop`);
+    if (chips.length) {
+      const strip = el('div', 'buff-strip');
+      chips.forEach(t => strip.appendChild(el('span', 'buff-chip', t)));
+      c.appendChild(strip);
+    }
+  }
+
   c.appendChild(el('h2', 'section-title', '⚔️ Registra l\'Impresa'));
 
   // Daily goal progress bar
@@ -3925,17 +3972,19 @@ function renderMarket(c) {
   marketIcon.onload = () => { marketTitle.innerHTML = `<img class="title-icon" src="assets/ui/tab-mercato.png"> Il Mercato`; };
   marketIcon.src = 'assets/ui/tab-mercato.png';
   const sw = el('div', 'coll-switch');
-  [['stalla', 'stalla', '🐴', 'Stalla'], ['nero', 'contrabbando', '🕯️', 'Contrabbando'], ['fucina', 'fucina', '⚒️', 'Fucina']].forEach(([k, file, emoji, label]) => {
+  [['stalla', 'stalla', '🐴', 'Stalla'], ['nero', 'contrabbando', '🕯️', 'Contrabbando'], ['fucina', 'fucina', '⚒️', 'Fucina'], ['erborista', null, '🌿', 'Erborista']].forEach(([k, file, emoji, label]) => {
     const b = el('button', 'coll-btn' + (MARKET_VIEW === k ? ' active' : ''));
-    const img = new Image();
-    img.onload = () => { b.innerHTML = `<span>${label}</span>`; img.className = 'coll-btn-icon'; b.insertBefore(img, b.firstChild); };
-    img.src = `assets/ui/mercato/${file}.png`;
+    if (file) {
+      const img = new Image();
+      img.onload = () => { b.innerHTML = `<span>${label}</span>`; img.className = 'coll-btn-icon'; b.insertBefore(img, b.firstChild); };
+      img.src = `assets/ui/mercato/${file}.png`;
+    }
     b.innerHTML = `<span class="coll-btn-emoji">${emoji}</span><span>${label}</span>`;
     b.addEventListener('click', () => { MARKET_VIEW = k; setTab('market'); });
     sw.appendChild(b);
   });
   c.appendChild(sw);
-  ({ stalla: renderStalla, nero: renderNero, fucina: renderFucina }[MARKET_VIEW])(c);
+  ({ stalla: renderStalla, nero: renderNero, fucina: renderFucina, erborista: renderErborista }[MARKET_VIEW])(c);
 }
 
 function npcBanner(imgPath, name, quote) {
@@ -4112,6 +4161,64 @@ function renderFucina(c) {
     });
     c.appendChild(sp);
   }
+}
+
+/* ── Erborista (NPC mercante consumabili) ─────────────────────────────── */
+const ERBORISTA_CATS = [
+  { id: 'tutti',    label: 'Tutti' },
+  { id: 'pozioni',  label: '🍯 Pozioni' },
+  { id: 'rune',     label: '🔮 Rune' },
+  { id: 'utility',  label: '🧭 Utility' },
+  { id: 'materiali',label: '⚒️ Materiali' },
+];
+let ERBORISTA_CAT = 'tutti';
+
+function renderErborista(c) {
+  c.appendChild(npcBanner('assets/consumables/spirito_foresta.png', 'Madre Radice', '"Ogni seme vuole germogliare. Ogni eroe ha bisogno di carburante."'));
+
+  const sw = el('div', 'coll-switch');
+  ERBORISTA_CATS.forEach(cat => {
+    const b = el('button', 'coll-btn' + (ERBORISTA_CAT === cat.id ? ' active' : ''), cat.label);
+    b.addEventListener('click', () => { ERBORISTA_CAT = cat.id; setTab('market'); });
+    sw.appendChild(b);
+  });
+  c.appendChild(sw);
+
+  // Solo comuni ed epici disponibili per l'acquisto (leggendari mai)
+  const forSale = RPG.CONSUMABLES.filter(co =>
+    co.rarity !== 'leggendario' &&
+    (ERBORISTA_CAT === 'tutti' || co.cat === ERBORISTA_CAT)
+  );
+
+  const grid = el('div', 'consumable-grid');
+  forSale.forEach(co => {
+    const price = RPG.buyPriceConsumable(co.id);
+    const qty   = (HERO.consumables || {})[co.id] || 0;
+    const card  = el('div', `consumable-card rarity-${co.rarity}`);
+    const imgWrap = el('div', 'consumable-img-wrap');
+    const img = el('img', 'consumable-img');
+    img.src = `assets/consumables/${co.id}.png`;
+    img.alt = co.name;
+    img.addEventListener('error', () => { img.style.display = 'none'; imgWrap.appendChild(el('span', 'consumable-emoji', co.icon)); });
+    imgWrap.appendChild(img);
+    card.appendChild(imgWrap);
+    card.appendChild(el('div', 'consumable-name', co.name));
+    card.appendChild(el('div', 'consumable-desc muted small', co.desc));
+    if (qty > 0) card.appendChild(el('span', 'consumable-qty', `×${qty} in zaino`));
+    const buyBtn = el('button', `btn btn-primary btn-small${HERO.gold < price ? ' disabled' : ''}`, `${price} 🪙`);
+    buyBtn.disabled = HERO.gold < price;
+    buyBtn.addEventListener('click', () => {
+      if (HERO.gold < price) { toast('Oro insufficiente!'); return; }
+      HERO.gold -= price;
+      RPG.addConsumable(HERO, co.id, 1);
+      persist(); renderHUD();
+      toast(`${co.icon} ${co.name} acquistato!`);
+      setTab('market');
+    });
+    card.appendChild(buyBtn);
+    grid.appendChild(card);
+  });
+  c.appendChild(grid);
 }
 
 /* ── TAB: Eroe (equipaggiamento + sottomenù) ── */
@@ -5651,6 +5758,122 @@ function msToMidnight() {
   m.setHours(24, 0, 0, 0);
   return m - d;
 }
+/* ── Zaino dell'Avventuriero (consumabili) ──────────────────────────────── */
+const ZAINO_CATS = [
+  { id: 'tutti',    label: 'Tutti' },
+  { id: 'pozioni',  label: '🍯 Pozioni' },
+  { id: 'rune',     label: '🔮 Rune' },
+  { id: 'utility',  label: '🧭 Utility' },
+  { id: 'materiali',label: '⚒️ Materiali' },
+];
+let ZAINO_CAT = 'tutti';
+
+function renderZainoView(c) {
+  const backBtn = el('button', 'btn btn-small', '↩ Torna al Rifugio');
+  backBtn.addEventListener('click', () => { CAMP_VIEW = 'main'; setTab('camp'); });
+  c.appendChild(backBtn);
+  c.appendChild(el('h2', 'section-title', '🎒 Lo Zaino dell\'Avventuriero'));
+
+  // Buff attivi
+  const bff = HERO.consumableBuffs || {};
+  const now = Date.now();
+  const activeBufs = [];
+  if (bff.xpMult)       activeBufs.push(`+${Math.round(bff.xpMult.value * 100)}% XP (${bff.xpMult.sessions} sessioni)`);
+  if (bff.goldMult && bff.goldMult.expiresAt > now)   activeBufs.push(`+${Math.round(bff.goldMult.value * 100)}% oro`);
+  if (bff.allBoost && bff.allBoost.expiresAt > now)   activeBufs.push(`×${1+bff.allBoost.value} tutti i bonus`);
+  if (bff.streakShield) activeBufs.push(`🛡️ Streak protetta ${bff.streakShield}gg`);
+  if (bff.arenaShield)  activeBufs.push(`⚔️ Scudo Arena attivo`);
+  if (bff.dropBoost && bff.dropBoost.expiresAt > now) activeBufs.push(`+${Math.round(bff.dropBoost.value * 100)}% drop`);
+
+  if (activeBufs.length) {
+    const bd = el('div', 'panel buff-panel');
+    bd.appendChild(el('div', 'buff-panel-title', '✨ Buff attivi'));
+    const chips = el('div', 'buff-chips');
+    activeBufs.forEach(t => chips.appendChild(el('span', 'buff-chip', t)));
+    bd.appendChild(chips);
+    c.appendChild(bd);
+  }
+
+  // Filtri categoria
+  const sw = el('div', 'coll-switch');
+  ZAINO_CATS.forEach(cat => {
+    const b = el('button', 'coll-btn' + (ZAINO_CAT === cat.id ? ' active' : ''), cat.label);
+    b.addEventListener('click', () => { ZAINO_CAT = cat.id; setTab('camp'); });
+    sw.appendChild(b);
+  });
+  c.appendChild(sw);
+
+  // Griglia consumabili posseduti
+  const owned = HERO.consumables || {};
+  const cons  = HERO.consumables ? RPG.CONSUMABLES.filter(co => owned[co.id] > 0 && (ZAINO_CAT === 'tutti' || co.cat === ZAINO_CAT)) : [];
+
+  if (!cons.length) {
+    const empty = el('div', 'panel muted', ZAINO_CAT === 'tutti'
+      ? 'Zaino vuoto — combatti nell\'Arena, sconfiggi boss e visita l\'Erborista nel Mercato per ottenere consumabili.'
+      : 'Nessun consumabile di questa categoria nel tuo zaino.');
+    c.appendChild(empty);
+  } else {
+    const grid = el('div', 'consumable-grid');
+    cons.forEach(co => {
+      const qty = owned[co.id] || 0;
+      const card = el('div', `consumable-card rarity-${co.rarity}`);
+      const imgWrap = el('div', 'consumable-img-wrap');
+      const img = el('img', 'consumable-img');
+      img.src = `assets/consumables/${co.id}.png`;
+      img.alt = co.name;
+      img.addEventListener('error', () => { img.style.display = 'none'; imgWrap.appendChild(el('span', 'consumable-emoji', co.icon)); });
+      imgWrap.appendChild(img);
+      card.appendChild(imgWrap);
+      card.appendChild(el('div', 'consumable-name', co.name));
+      card.appendChild(el('div', 'consumable-desc muted small', co.desc));
+      const qtyBadge = el('span', 'consumable-qty', `×${qty}`);
+      card.appendChild(qtyBadge);
+      const actions = el('div', 'consumable-actions');
+      const useBtn = el('button', 'btn btn-primary btn-small', 'Usa');
+      useBtn.addEventListener('click', () => {
+        const err = RPG.useConsumable(HERO, co.id);
+        if (err) { toast(err); return; }
+        persist(); renderHUD();
+        toast(`${co.icon} ${co.name} usato!`);
+        setTab('camp');
+      });
+      const sellBtn = el('button', 'btn btn-small', `Vendi (${RPG.sellValueConsumable(co.id)}🪙)`);
+      sellBtn.addEventListener('click', () => {
+        RPG.sellConsumable(HERO, co.id);
+        persist(); renderHUD();
+        toast(`${co.icon} Venduto per ${RPG.sellValueConsumable(co.id)} monete.`);
+        setTab('camp');
+      });
+      actions.appendChild(useBtn);
+      actions.appendChild(sellBtn);
+      card.appendChild(actions);
+      grid.appendChild(card);
+    });
+    c.appendChild(grid);
+  }
+
+  // Tutti i consumabili esistenti (catalogo) se zaino vuoto
+  if (!Object.keys(owned).length) {
+    c.appendChild(el('h3', 'section-title', '📖 Catalogo Consumabili'));
+    const catGrid = el('div', 'consumable-grid');
+    RPG.CONSUMABLES.filter(co => ZAINO_CAT === 'tutti' || co.cat === ZAINO_CAT).forEach(co => {
+      const card = el('div', `consumable-card rarity-${co.rarity} locked`);
+      const imgWrap = el('div', 'consumable-img-wrap');
+      const img = el('img', 'consumable-img');
+      img.src = `assets/consumables/${co.id}.png`;
+      img.alt = co.name;
+      img.addEventListener('error', () => { img.style.display = 'none'; imgWrap.appendChild(el('span', 'consumable-emoji', co.icon)); });
+      imgWrap.appendChild(img);
+      card.appendChild(imgWrap);
+      card.appendChild(el('div', 'consumable-name', co.name));
+      card.appendChild(el('div', 'consumable-desc muted small', co.desc));
+      card.appendChild(el('span', 'consumable-rarity-badge', co.rarity));
+      catGrid.appendChild(card);
+    });
+    c.appendChild(catGrid);
+  }
+}
+
 /* ── La Serra del Viandante ─────────────────────────────────────────────── */
 function renderSerraView(c) {
   c.classList.add('in-serra');

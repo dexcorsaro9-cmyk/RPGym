@@ -431,6 +431,251 @@ const RPG = (() => {
     return CAMP_LAYERS.filter(l => l.stage === st && owned.includes(l.id));
   }
 
+  /* ══════════════════════════════════════════════════════════
+     CONSUMABILI — 50 oggetti usabili (drop, zaino, mercante)
+     ══════════════════════════════════════════════════════════ */
+  const CONSUMABLES = [
+    // ── Pozioni ──────────────────────────────────────────────
+    { id:'barile_miele',      name:'Barile di Miele',        cat:'pozioni',   rarity:'comune',     icon:'🍯', desc:'+20% XP allenamento successivo',            baseValue:15,  effect:{ type:'xp_mult',         value:0.20, sessions:1 } },
+    { id:'biscotto_stellare', name:'Biscotto Stellare',      cat:'pozioni',   rarity:'comune',     icon:'🍪', desc:'+15 monete dopo l\'allenamento',             baseValue:10,  effect:{ type:'gold_flat',        value:15 } },
+    { id:'corno_celtico',     name:'Corno Celtico',          cat:'pozioni',   rarity:'comune',     icon:'🍺', desc:'+10% forza Arena per oggi',                  baseValue:12,  effect:{ type:'arena_mult',       value:0.10, expiresH:24 } },
+    { id:'teiera_runica',     name:'Teiera Runica',          cat:'pozioni',   rarity:'comune',     icon:'🫖', desc:'+1 sfida Arena extra oggi',                  baseValue:12,  effect:{ type:'arena_restore',    value:1 } },
+    { id:'formaggio_magico',  name:'Formaggio Magico',       cat:'pozioni',   rarity:'comune',     icon:'🧀', desc:'Famiglio: +20 umore e +20 fame',             baseValue:12,  effect:{ type:'pet_care',         hunger:20, mood:20 } },
+    { id:'pane_solare',       name:'Pane Solare',            cat:'pozioni',   rarity:'comune',     icon:'🍞', desc:'+15% XP allenamenti mattutini',              baseValue:12,  effect:{ type:'xp_mult',         value:0.15, sessions:1 } },
+    { id:'pozione_amore',     name:'Pozione d\'Amore',       cat:'pozioni',   rarity:'comune',     icon:'💗', desc:'+15 umore famiglio',                         baseValue:10,  effect:{ type:'pet_care',         mood:15 } },
+    { id:'pozione_cuore',     name:'Pozione del Cuore',      cat:'pozioni',   rarity:'raro',       icon:'❤️', desc:'+30% XP prossimi 2 allenamenti',             baseValue:40,  effect:{ type:'xp_mult',         value:0.30, sessions:2 } },
+    { id:'brocca_cosmica',    name:'Brocca Cosmica',         cat:'pozioni',   rarity:'raro',       icon:'🏺', desc:'+25 legno e +25 pietra istantanei',          baseValue:30,  effect:{ type:'instant_res',      wood:25, stone:25 } },
+    { id:'pozione_colomba',   name:'Pozione della Colomba',  cat:'pozioni',   rarity:'raro',       icon:'🕊️', desc:'Famiglio: umore e fame al massimo',          baseValue:45,  effect:{ type:'pet_care',         hunger:100, mood:100 } },
+    { id:'elisir_celeste',    name:'Elisir Celeste',         cat:'pozioni',   rarity:'epico',      icon:'💧', desc:'Ripristina 3 sfide Arena oggi',              baseValue:80,  effect:{ type:'arena_restore',    value:3 } },
+    { id:'mela_dorata',       name:'Mela Dorata',            cat:'pozioni',   rarity:'epico',      icon:'🍏', desc:'+100 XP + famiglio curato al massimo',       baseValue:90,  effect:{ type:'multi', effects:[{ type:'xp_flat', value:100 }, { type:'pet_care', hunger:100, mood:100 }] } },
+    { id:'pozione_vento',     name:'Pozione del Vento',      cat:'pozioni',   rarity:'epico',      icon:'🌬️', desc:'+1 km virtuale istantaneo sulla mappa',      baseValue:75,  effect:{ type:'map_km',           value:1 } },
+    { id:'cristallo_galattico',name:'Cristallo Galattico',   cat:'pozioni',   rarity:'leggendario',icon:'🔮', desc:'Tutti i bonus attivi ×2 per 48h',            baseValue:200, effect:{ type:'all_boost',        value:1.0, expiresH:48 } },
+    // ── Rune ─────────────────────────────────────────────────
+    { id:'dado_runico',       name:'Dado Runico',            cat:'rune',      rarity:'comune',     icon:'🎲', desc:'Effetto casuale: XP / monete / risorse ×2',  baseValue:15,  effect:{ type:'random' } },
+    { id:'artiglio_fortuna',  name:'Artiglio della Fortuna', cat:'rune',      rarity:'raro',       icon:'🦞', desc:'+30% probabilità drop raro da boss',         baseValue:35,  effect:{ type:'drop_boost',       value:0.30, expiresH:24 } },
+    { id:'cristallo_fuoco',   name:'Cristallo di Fuoco',     cat:'rune',      rarity:'epico',      icon:'🔴', desc:'+50% danno Arena per 24h',                   baseValue:80,  effect:{ type:'arena_mult',       value:0.50, expiresH:24 } },
+    { id:'disco_runico',      name:'Disco Runico',           cat:'rune',      rarity:'raro',       icon:'🪨', desc:'Bonus casuale (XP/oro/risorse) per 12h',     baseValue:35,  effect:{ type:'random_timed',     expiresH:12 } },
+    { id:'guanto_cristallo',  name:'Guanto di Cristallo',    cat:'rune',      rarity:'epico',      icon:'🧤', desc:'Prossima sconfitta Arena non conta',          baseValue:80,  effect:{ type:'arena_shield' } },
+    { id:'medaglione_grifone',name:'Medaglione del Grifone', cat:'rune',      rarity:'epico',      icon:'🛡️', desc:'Immunità sconfitta Arena per 2 giorni',      baseValue:90,  effect:{ type:'arena_shield_long',days:2 } },
+    { id:'runa_fuoco',        name:'Runa di Fuoco',          cat:'rune',      rarity:'raro',       icon:'🔥', desc:'+20% XP da battaglie Arena oggi',            baseValue:35,  effect:{ type:'arena_mult',       value:0.20, expiresH:24 } },
+    { id:'sfera_ombra',       name:'Sfera d\'Ombra',         cat:'rune',      rarity:'epico',      icon:'🌑', desc:'Ottieni drop boss anche se hai perso',        baseValue:80,  effect:{ type:'boss_shield' } },
+    { id:'pietra_tempo',      name:'Pietra del Tempo',       cat:'rune',      rarity:'leggendario',icon:'⌛', desc:'Azzera tutti i cooldown attivi',             baseValue:200, effect:{ type:'reset_all' } },
+    // ── Utility ──────────────────────────────────────────────
+    { id:'bussola_arcana',    name:'Bussola Arcana',         cat:'utility',   rarity:'raro',       icon:'🧭', desc:'Rivela prossima zona mappa 3 giorni prima',  baseValue:30,  effect:{ type:'map_reveal' } },
+    { id:'golem_paglia',      name:'Golem di Paglia',        cat:'utility',   rarity:'comune',     icon:'🪆', desc:'Protegge la streak per 1 giorno',            baseValue:25,  effect:{ type:'streak_shield',    days:1 } },
+    { id:'clessidra_arcana',  name:'Clessidra Arcana',       cat:'utility',   rarity:'epico',      icon:'⏳', desc:'Azzera il cooldown Pozione del Giorno',      baseValue:80,  effect:{ type:'potion_reset' } },
+    { id:'candeliere_spia',   name:'Candeliere Spia',        cat:'utility',   rarity:'raro',       icon:'🕯️', desc:'Rivela il contenuto del prossimo forziere',  baseValue:30,  effect:{ type:'chest_reveal' } },
+    { id:'cannocchiale_arcano',name:'Cannocchiale Arcano',   cat:'utility',   rarity:'raro',       icon:'🔭', desc:'Anteprima boss della prossima settimana',    baseValue:30,  effect:{ type:'boss_preview' } },
+    { id:'chiave_zodiacale',  name:'Chiave Zodiacale',       cat:'utility',   rarity:'epico',      icon:'🔑', desc:'Apre forziere speciale con drop raro garantito', baseValue:85, effect:{ type:'open_special_chest' } },
+    { id:'contratto_mostri',  name:'Contratto dei Mostri',   cat:'utility',   rarity:'raro',       icon:'📋', desc:'Sfida un boss extra fuori dal calendario',   baseValue:40,  effect:{ type:'extra_boss' } },
+    { id:'incensiere_drago',  name:'Incensiere del Drago',   cat:'utility',   rarity:'raro',       icon:'🐉', desc:'+2 legno e +2 pietra per ogni allenamento oggi', baseValue:35, effect:{ type:'res_per_session', wood:2, stone:2, expiresH:24 } },
+    { id:'lente_tesoro',      name:'Lente del Tesoro',       cat:'utility',   rarity:'raro',       icon:'🔍', desc:'Rivela il reward nascosto nel prossimo forziere', baseValue:30, effect:{ type:'chest_reveal' } },
+    { id:'magnete_ricchezze', name:'Magnete delle Ricchezze',cat:'utility',   rarity:'epico',      icon:'🧲', desc:'+40% monete da tutte le fonti per 24h',      baseValue:85,  effect:{ type:'gold_mult',        value:0.40, expiresH:24 } },
+    { id:'mappa_tesoro',      name:'Mappa del Tesoro',       cat:'utility',   rarity:'raro',       icon:'🗺️', desc:'Aggiunge un forziere bonus alla mappa',      baseValue:40,  effect:{ type:'bonus_chest' } },
+    { id:'pergamena_arcana',  name:'Pergamena Arcana',       cat:'utility',   rarity:'epico',      icon:'📜', desc:'+5% XP passivo per 3 allenamenti',           baseValue:80,  effect:{ type:'xp_mult',         value:0.05, sessions:3 } },
+    { id:'pergamena_occhio',  name:'Pergamena dell\'Occhio', cat:'utility',   rarity:'raro',       icon:'👁️', desc:'Rivela tutti i forzieri sulla mappa',        baseValue:35,  effect:{ type:'map_reveal_all' } },
+    { id:'torcia_lunare',     name:'Torcia Lunare',          cat:'utility',   rarity:'raro',       icon:'🔆', desc:'+25% XP allenamenti serali (Tramonto/Notte)', baseValue:35, effect:{ type:'xp_mult',         value:0.25, sessions:1 } },
+    { id:'spirito_foresta',   name:'Spirito della Foresta',  cat:'utility',   rarity:'epico',      icon:'🌳', desc:'+30 legno + bonus risorse per oggi',         baseValue:80,  effect:{ type:'multi', effects:[{ type:'instant_res', wood:30 }, { type:'res_per_session', wood:1, stone:1, expiresH:24 }] } },
+    { id:'sfera_fortuna',     name:'Sfera della Fortuna',    cat:'utility',   rarity:'leggendario',icon:'🌐', desc:'+50% monete e drop per tutto il giorno',     baseValue:200, effect:{ type:'multi', effects:[{ type:'gold_mult', value:0.50, expiresH:24 }, { type:'drop_boost', value:0.50, expiresH:24 }] } },
+    { id:'scudo_cronos',      name:'Scudo di Cronos',        cat:'utility',   rarity:'leggendario',icon:'🏅', desc:'Protegge la streak per 3 giorni',            baseValue:200, effect:{ type:'streak_shield',    days:3 } },
+    { id:'leone_alato',       name:'Leone Alato',            cat:'utility',   rarity:'leggendario',icon:'🦁', desc:'+100% XP e monete sul prossimo allenamento', baseValue:200, effect:{ type:'xp_gold_mult',     value:1.00, sessions:1 } },
+    { id:'piuma_fenice',      name:'Piuma di Fenice',        cat:'utility',   rarity:'leggendario',icon:'🪶', desc:'Ripristina streak rotta (1 uso ogni 30gg)',  baseValue:300, effect:{ type:'restore_streak' } },
+    { id:'progetto_castello', name:'Progetto del Castello',  cat:'utility',   rarity:'leggendario',icon:'🏰', desc:'Sblocca 1 layer del campo gratis',           baseValue:200, effect:{ type:'free_layer' } },
+    { id:'patto_guerriero',   name:'Patto del Guerriero',    cat:'utility',   rarity:'epico',      icon:'🤝', desc:'+50% XP prossimo allenamento',               baseValue:80,  effect:{ type:'xp_mult',         value:0.50, sessions:1 } },
+    { id:'codice_reale',      name:'Codice Reale',           cat:'utility',   rarity:'leggendario',icon:'📚', desc:'+200 XP flat + rivela la mappa',            baseValue:250, effect:{ type:'multi', effects:[{ type:'xp_flat', value:200 }, { type:'map_reveal_all' }] } },
+    // ── Materiali ─────────────────────────────────────────────
+    { id:'rubinetto_oro',     name:'Rubinetto d\'Oro',       cat:'materiali', rarity:'raro',       icon:'🚰', desc:'+50 monete istantanee',                      baseValue:35,  effect:{ type:'instant_gold',     value:50 } },
+    { id:'mannaia_d_oro',     name:'Mannaia d\'Oro',         cat:'materiali', rarity:'raro',       icon:'🪓', desc:'+30 legno istantaneo',                        baseValue:25,  effect:{ type:'instant_res',      wood:30 } },
+    { id:'piccone_viola',     name:'Piccone Viola',          cat:'materiali', rarity:'epico',      icon:'⛏️', desc:'+50 pietra istantanea',                       baseValue:45,  effect:{ type:'instant_res',      stone:50 } },
+    { id:'polvere_pietra',    name:'Polvere di Pietra',      cat:'materiali', rarity:'comune',     icon:'💠', desc:'+10 pietra istantanea',                       baseValue:10,  effect:{ type:'instant_res',      stone:10 } },
+    { id:'sacca_cosmica',     name:'Sacca Cosmica',          cat:'materiali', rarity:'raro',       icon:'🎒', desc:'Risorse casuali: 20-50 legno o pietra',       baseValue:30,  effect:{ type:'random_res' } },
+  ];
+
+  function consumableById(id) { return CONSUMABLES.find(c => c.id === id); }
+
+  function sellValueConsumable(id) {
+    const c = consumableById(id);
+    if (!c) return 0;
+    return { comune: 12, raro: 40, epico: 100, leggendario: 250 }[c.rarity] || 10;
+  }
+
+  function buyPriceConsumable(id) {
+    const c = consumableById(id);
+    if (!c) return 999;
+    return { comune: 45, raro: 130, epico: 380 }[c.rarity] || 999;
+  }
+
+  function addConsumable(hero, id, qty = 1) {
+    hero.consumables = hero.consumables || {};
+    hero.consumables[id] = (hero.consumables[id] || 0) + qty;
+  }
+
+  function sellConsumable(hero, id) {
+    hero.consumables = hero.consumables || {};
+    if (!(hero.consumables[id] > 0)) return 'Non hai questo consumabile.';
+    const gold = sellValueConsumable(id);
+    hero.consumables[id]--;
+    if (hero.consumables[id] <= 0) delete hero.consumables[id];
+    hero.gold += gold;
+    return null;
+  }
+
+  function _applyConsumableEffect(hero, eff) {
+    if (!eff) return;
+    const now = Date.now();
+    const h2ms = h => h * 3600000;
+    const b = hero.consumableBuffs;
+
+    switch (eff.type) {
+      case 'instant_gold':   hero.gold += eff.value; break;
+      case 'gold_flat':      hero.gold += eff.value; break;
+      case 'instant_res':
+        if (eff.wood)  hero.wood  = (hero.wood  || 0) + eff.wood;
+        if (eff.stone) hero.stone = (hero.stone || 0) + eff.stone;
+        break;
+      case 'xp_flat':        applyXp(hero, eff.value); break;
+      case 'xp_mult':
+        b.xpMult = { value: (b.xpMult ? b.xpMult.value : 0) + eff.value, sessions: (b.xpMult ? b.xpMult.sessions : 0) + (eff.sessions || 1) };
+        break;
+      case 'xp_gold_mult':
+        b.xpMult  = { value: (b.xpMult  ? b.xpMult.value  : 0) + eff.value, sessions: (b.xpMult  ? b.xpMult.sessions  : 0) + (eff.sessions || 1) };
+        b.goldMult = { value: (b.goldMult ? b.goldMult.value : 0) + eff.value, expiresAt: now + h2ms(24) };
+        break;
+      case 'gold_mult':
+        b.goldMult = { value: (b.goldMult ? b.goldMult.value : 0) + eff.value, expiresAt: now + h2ms(eff.expiresH || 24) };
+        break;
+      case 'drop_boost':
+        b.dropBoost = { value: (b.dropBoost ? b.dropBoost.value : 0) + eff.value, expiresAt: now + h2ms(eff.expiresH || 24) };
+        break;
+      case 'arena_restore':
+        if (hero.battles) hero.battles.count = Math.max(0, (hero.battles.count || 0) - eff.value);
+        break;
+      case 'arena_shield':
+        b.arenaShield = (b.arenaShield || 0) + 1;
+        break;
+      case 'arena_shield_long':
+        b.arenaShield = (b.arenaShield || 0) + (eff.days || 1);
+        break;
+      case 'arena_mult':
+        b.arenaMult = { value: (b.arenaMult ? b.arenaMult.value : 0) + eff.value, expiresAt: now + h2ms(eff.expiresH || 24) };
+        break;
+      case 'streak_shield':
+        b.streakShield = (b.streakShield || 0) + (eff.days || 1);
+        break;
+      case 'restore_streak': {
+        const coolKey = 'phoenixUsed';
+        const lastUsed = hero[coolKey] || 0;
+        if (Date.now() - lastUsed < 30 * 86400000) return '⏳ Piuma già usata negli ultimi 30 giorni.';
+        hero[coolKey] = Date.now();
+        hero.streak.count = Math.max(1, hero.streak.count);
+        hero.streak.last = yesterdayStamp();
+        break;
+      }
+      case 'potion_reset':
+        if (hero.dailyPotion) hero.dailyPotion.used = false;
+        break;
+      case 'chest_reveal':
+        b.chestReveal = true;
+        break;
+      case 'boss_shield':
+        b.bossShield = true;
+        break;
+      case 'boss_preview':
+        b.bossPreview = true;
+        break;
+      case 'map_km':
+        if (hero.treasureMap) hero.treasureMap.progressKm = Math.round(((hero.treasureMap.progressKm || 0) + eff.value) * 10) / 10;
+        break;
+      case 'map_reveal':
+      case 'map_reveal_all':
+        b.mapReveal = true;
+        break;
+      case 'bonus_chest': {
+        const it = genItemFor(hero, 'comune');
+        hero.items.push(it);
+        break;
+      }
+      case 'open_special_chest': {
+        const it = genItemFor(hero, 'raro');
+        hero.items.push(it);
+        break;
+      }
+      case 'extra_boss':
+        b.extraBoss = true;
+        break;
+      case 'free_layer':
+        b.freeLayer = true;
+        break;
+      case 'res_per_session':
+        b.resPerSession = { wood: (b.resPerSession ? b.resPerSession.wood : 0) + (eff.wood || 0), stone: (b.resPerSession ? b.resPerSession.stone : 0) + (eff.stone || 0), expiresAt: now + h2ms(eff.expiresH || 24) };
+        break;
+      case 'all_boost':
+        b.allBoost = { value: eff.value, expiresAt: now + h2ms(eff.expiresH || 48) };
+        break;
+      case 'reset_all':
+        if (hero.dailyPotion) hero.dailyPotion.used = false;
+        if (hero.battles) hero.battles.count = 0;
+        if (hero.treasureMap) hero.treasureMap.progressKm = (hero.treasureMap.progressKm || 0);
+        break;
+      case 'random': {
+        const opts = [
+          { type:'xp_mult', value:1.0, sessions:1 },
+          { type:'gold_mult', value:1.0, expiresH:24 },
+          { type:'instant_res', wood:30, stone:20 },
+        ];
+        _applyConsumableEffect(hero, opts[Math.floor(Math.random() * opts.length)]);
+        break;
+      }
+      case 'random_timed': {
+        const opts2 = [
+          { type:'xp_mult', value:0.30, sessions:2 },
+          { type:'gold_mult', value:0.30, expiresH: eff.expiresH || 12 },
+          { type:'res_per_session', wood:3, stone:3, expiresH: eff.expiresH || 12 },
+        ];
+        _applyConsumableEffect(hero, opts2[Math.floor(Math.random() * opts2.length)]);
+        break;
+      }
+      case 'random_res': {
+        const qty = 20 + Math.floor(Math.random() * 31);
+        if (Math.random() < 0.5) hero.wood  = (hero.wood  || 0) + qty;
+        else                     hero.stone = (hero.stone || 0) + qty;
+        break;
+      }
+      case 'pet_care':
+        if (hero.pet) {
+          if (eff.hunger !== undefined) hero.pet.hunger = Math.min(100, (hero.pet.hunger || 0) + eff.hunger);
+          if (eff.mood   !== undefined) hero.pet.mood   = Math.min(100, (hero.pet.mood   || 0) + eff.mood);
+        }
+        break;
+      case 'multi':
+        (eff.effects || []).forEach(e => _applyConsumableEffect(hero, e));
+        break;
+    }
+  }
+
+  function useConsumable(hero, id) {
+    hero.consumables     = hero.consumables     || {};
+    hero.consumableBuffs = hero.consumableBuffs || {};
+    if (!(hero.consumables[id] > 0)) return 'Non hai questo consumabile.';
+    const c = consumableById(id);
+    if (!c) return 'Consumabile non trovato.';
+    const err = _applyConsumableEffect(hero, c.effect);
+    if (err) return err;
+    hero.consumables[id]--;
+    if (hero.consumables[id] <= 0) delete hero.consumables[id];
+    return null;
+  }
+
+  function dropConsumable(hero, minRarity) {
+    const order = ['comune', 'raro', 'epico', 'leggendario'];
+    const minIdx = order.indexOf(minRarity || 'comune');
+    const pool = CONSUMABLES.filter(c => order.indexOf(c.rarity) >= minIdx);
+    if (!pool.length) return null;
+    const picked = pool[Math.floor(Math.random() * pool.length)];
+    addConsumable(hero, picked.id, 1);
+    return picked;
+  }
+
   function accessibleZones(hero) {
     return BIOMES.filter(b => hero.level >= b.min).map(b => b.name);
   }
@@ -1544,6 +1789,8 @@ const RPG = (() => {
       pet: null,
       stamina: 0,
       furniture: { owned: [] },
+      consumables: {},
+      consumableBuffs: {},
       achievementsClaimed: [],
       ascended: false,
       restBonus: false,
@@ -1627,6 +1874,10 @@ const RPG = (() => {
     h.mappaInfuocata = h.mappaInfuocata || null;
     initGreenhouse(h);
 
+    // ── v6: consumabili ───────────────────────────────────────
+    h.consumables     = h.consumables     || {};
+    h.consumableBuffs = h.consumableBuffs || {};
+
     h.schemaVersion = SCHEMA_VERSION;
     return h;
   }
@@ -1688,8 +1939,15 @@ const RPG = (() => {
   function dailyLogin(hero) {
     const today = todayStamp();
     if (hero.streak.last === today) return null;
-    hero.streak.count = (hero.streak.last === yesterdayStamp()) ? hero.streak.count + 1 : 1;
-    hero.streak.last = today;
+    const isConsecutive = hero.streak.last === yesterdayStamp();
+    if (!isConsecutive && hero.consumableBuffs && (hero.consumableBuffs.streakShield > 0)) {
+      hero.consumableBuffs.streakShield--;
+      hero.streak.last = today;
+      hero.streak.count = (hero.streak.count || 1) + 1;
+    } else {
+      hero.streak.count = isConsecutive ? hero.streak.count + 1 : 1;
+      hero.streak.last = today;
+    }
     const gold = 10 * Math.min(hero.streak.count, 30);
     hero.gold += gold;
     const reward = { day: hero.streak.count, gold };
@@ -1697,6 +1955,8 @@ const RPG = (() => {
       const item = genItemFor(hero, 'raro');
       hero.items.push(item);
       reward.item = item;
+      const cons = dropConsumable(hero, 'comune');
+      if (cons) reward.consumable = cons;
     }
     return reward;
   }
@@ -1940,6 +2200,30 @@ const RPG = (() => {
     if (prestigeBonus > 0) xpMult += prestigeBonus;
     // Skill tree bonuses
     if ((hero.skills || []).includes('swift_legs') && type !== 'cyclette') xpMult += 0.08;
+    // Buff consumabili attivi
+    const cBuffs = hero.consumableBuffs || {};
+    const now2 = Date.now();
+    if (cBuffs.xpMult && cBuffs.xpMult.sessions > 0) {
+      xpMult += cBuffs.xpMult.value;
+      cBuffs.xpMult.sessions--;
+      if (cBuffs.xpMult.sessions <= 0) delete cBuffs.xpMult;
+      report.consumableBuff = true;
+    }
+    if (cBuffs.goldMult && cBuffs.goldMult.expiresAt > now2) {
+      goldMult += cBuffs.goldMult.value;
+      report.consumableBuff = true;
+    } else if (cBuffs.goldMult) delete cBuffs.goldMult;
+    if (cBuffs.allBoost && cBuffs.allBoost.expiresAt > now2) {
+      xpMult   += cBuffs.allBoost.value;
+      goldMult += cBuffs.allBoost.value;
+      resMult  += cBuffs.allBoost.value;
+      report.consumableBuff = true;
+    } else if (cBuffs.allBoost) delete cBuffs.allBoost;
+    if (cBuffs.resPerSession && cBuffs.resPerSession.expiresAt > now2) {
+      report._extraWood  = cBuffs.resPerSession.wood  || 0;
+      report._extraStone = cBuffs.resPerSession.stone || 0;
+    } else if (cBuffs.resPerSession) delete cBuffs.resPerSession;
+
     // Pozione del giorno
     if (hero.dailyPotion && !hero.dailyPotion.used) {
       const pid = hero.dailyPotion.id;
@@ -1992,6 +2276,8 @@ const RPG = (() => {
     report.stone = Math.round((effKm * Math.random()) * localStoneMult);
     hero.wood += report.wood;
     hero.stone += report.stone;
+    if (report._extraWood)  { hero.wood  += report._extraWood;  report.wood  += report._extraWood; }
+    if (report._extraStone) { hero.stone += report._extraStone; report.stone += report._extraStone; }
 
     hero.totalKm += km;
     hero.kmByType[type] = (hero.kmByType[type] || 0) + km;
@@ -2465,12 +2751,26 @@ const RPG = (() => {
     const chest = {
       gold: Math.round((boss ? 50 : 20) + hero.level * (boss ? 5 : 2.5) + Math.random() * 20),
       items: [],
+      consumable: null,
     };
     hero.gold += chest.gold;
-    if (Math.random() < (boss ? 0.65 : 0.4)) {
+    const dropChance = boss ? 0.65 : 0.40;
+    const dropBoostActive = hero.consumableBuffs && hero.consumableBuffs.dropBoost && hero.consumableBuffs.dropBoost.expiresAt > Date.now();
+    const finalChance = dropChance + (dropBoostActive ? hero.consumableBuffs.dropBoost.value : 0);
+    if (Math.random() < finalChance) {
       const it = genItemFor(hero, boss ? 'raro' : null);
       hero.items.push(it);
       chest.items.push(it);
+    }
+    // consumabile drop: 25% per boss, 10% per nemico normale
+    const consChance = boss ? 0.25 : 0.10;
+    if (Math.random() < consChance) {
+      const cons = dropConsumable(hero, boss ? 'raro' : 'comune');
+      if (cons) chest.consumable = cons;
+    }
+    // boss shield: drop garantito anche in caso di sconfitta (gestito nell'UI)
+    if (boss && hero.consumableBuffs && hero.consumableBuffs.bossShield) {
+      delete hero.consumableBuffs.bossShield;
     }
     return chest;
   }
@@ -4391,5 +4691,7 @@ const RPG = (() => {
     BIOME_LORE, BIOME_ARTIFACTS, WORLD_LETTERS, checkPendingLetters,
     CAMP_STAGES, CAMP_LAYERS, CAMP_NIGHT_LAYERS, campStageForLevel, campUnlockedLayers,
     CAMP_LAYER_SHOP, campLayerShopItem, buyCampLayer,
+    CONSUMABLES, consumableById, sellValueConsumable, buyPriceConsumable,
+    addConsumable, useConsumable, sellConsumable, dropConsumable,
   };
 })();
