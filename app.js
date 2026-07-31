@@ -710,7 +710,7 @@ const TUTORIAL_SLIDES = [
     icon: '🏃',
     title: 'Allenati. Cresci. Conquista.',
     text: 'Registra camminata, corsa o cyclette nella scheda <b>Allenati</b>. Ogni sessione porta XP, oro, risorse e oggetti rari.',
-    art: `<div class="tut-art tut-art-tabs"><span class="tut-tab">🏕️</span><span class="tut-tab">🗺️</span><span class="tut-tab tut-tab-active">⚔️</span><span class="tut-tab">🏪</span><span class="tut-tab">👤</span></div>`,
+    art: `<div class="tut-art tut-art-tabs"><span class="tut-tab">🏕️</span><span class="tut-tab">🗺️</span><span class="tut-tab tut-tab-active">⚔️</span><span class="tut-tab">🏘️</span><span class="tut-tab">👤</span></div>`,
   },
   {
     icon: '🏕️',
@@ -2136,8 +2136,6 @@ function renderMap(c) {
   if (MAP_VIEW === 'atlas')      { renderAtlasView(c);      return; }
   if (MAP_VIEW === 'pantheon')   { renderPantheonView(c);   return; }
   if (MAP_VIEW === 'avamposto')  { renderAvampostoView(c);  return; }
-  if (MAP_VIEW === 'taverna')    { renderTavernaView(c);    return; }
-  if (MAP_VIEW === 'bisca')      { renderBiscaView(c);      return; }
   const biome = RPG.currentBiome(HERO.level);
 
   // ── Il bioma attuale, con progresso verso il prossimo ──
@@ -2175,49 +2173,6 @@ function renderMap(c) {
     c.appendChild(p);
   } else if (HERO.incursion && HERO.incursion.done) {
     c.appendChild(el('div', 'panel done-strip', `✅ <b>Incursione di oggi respinta!</b> <span class="small muted">Torna domani.</span>`));
-  }
-
-  // ── Mercante Fuggiasco ──
-  const fm = RPG.getFugitiveMerchant(HERO);
-  if (fm) {
-    const kmToday = RPG.todayKm(HERO);
-    const kmLeft = Math.max(0, fm.kmRequired - kmToday);
-    const reached = kmLeft <= 0;
-    const fp = el('div', 'panel panel-featured fugitive-merchant-panel');
-    fp.innerHTML = `
-      <h3 class="panel-title">🏃 Mercante Fuggiasco!</h3>
-      <div class="fm-subtitle">Sparisce a mezzanotte · <b class="cd-hot"><span data-cd="midnight">…</span></b></div>
-      <div class="fm-item">${itemHtml(fm.item)}</div>
-      <div class="fm-prices">
-        <span class="fm-price-full">🪙 ${fm.fullPrice}</span>
-        <span class="fm-price-sale">🪙 ${fm.price}</span>
-        <span class="fm-discount">–80%</span>
-      </div>`;
-    if (fm.bought) {
-      fp.appendChild(el('div', 'done-strip', `✅ <b>Acquistato!</b> Il mercante è stato raggiunto.`));
-    } else if (reached) {
-      const buyBtn = el('button', 'btn btn-primary wide', `🤝 Acquista · 🪙 ${fm.price}`);
-      buyBtn.disabled = HERO.gold < fm.price;
-      buyBtn.addEventListener('click', () => {
-        const err = RPG.buyFromFugitiveMerchant(HERO);
-        if (err) { toast(err); return; }
-        persist(); renderHUD();
-        vibrate([120, 40, 180]);
-        sfx('coin');
-        modal(`<h3 class="panel-title">🤝 Affare Concluso!</h3>
-          <p class="center">Hai raggiunto il mercante fuggiasco a tempo!</p>
-          <div class="loot-list" style="margin:.5rem 0">${itemHtml(fm.item)}</div>
-          <button class="btn btn-primary wide" onclick="closeModal();setTab('map')">Ottimo!</button>`);
-        setTab('map');
-      });
-      fp.appendChild(buyBtn);
-    } else {
-      const prog = el('div', 'membar');
-      prog.innerHTML = `<div class="membar-fill gold" style="width:${Math.min(100, Math.round(kmToday / fm.kmRequired * 100))}%"></div><span>${kmToday.toFixed(1)} / ${fm.kmRequired} km</span>`;
-      fp.appendChild(prog);
-      fp.appendChild(el('p', 'muted small center', `Percorri ancora <b>${kmLeft.toFixed(1)} km</b> oggi per raggiungerlo!`));
-    }
-    c.appendChild(fp);
   }
 
   // ── Boss settimanale ──
@@ -2529,59 +2484,11 @@ function renderMap(c) {
   pvpEntry.appendChild(enterPantheonBtn);
   c.appendChild(pvpEntry);
 
-  // ── La Taverna delle Sfide ──
-  const tavernaEntry = el('div', 'panel taverna-entry-panel');
-  const tavernaThumb = document.createElement('img');
-  tavernaThumb.src = 'assets/ui/taverna-header.jpg';
-  tavernaThumb.alt = '';
-  tavernaThumb.className = 'camp-panel-thumb';
-  tavernaThumb.onerror = () => tavernaThumb.remove();
-  tavernaEntry.appendChild(tavernaThumb);
-  tavernaEntry.appendChild(el('h3', 'panel-title', '🍺 La Taverna delle Sfide'));
-  tavernaEntry.appendChild(el('p', 'muted small taverna-entry-quote',
-    '«Tra dadi truccati e boccali volanti, qui si separa chi ha nervi saldi da chi torna a casa vuoto.»'));
-  const totalRemMap = MG_CATEGORIES.flatMap(cat => cat.games).reduce((s, g) => s + Math.max(0, MG_MAX[g.id] - getMG(g.id).n), 0);
-  const totalMaxMap = Object.values(MG_MAX).reduce((a, b) => a + b, 0);
-  if (totalRemMap > 0) {
-    const tvBadge = el('div', 'taverna-avail-badge', `🎮 ${totalRemMap} partite disponibili`);
-    tavernaEntry.appendChild(tvBadge);
-  }
-  const enterTavernaBtn = el('button', 'btn btn-primary wide', '🍺 Entra nella Taverna');
-  enterTavernaBtn.addEventListener('click', () => { MAP_VIEW = 'taverna'; setTab('map'); });
-  tavernaEntry.appendChild(enterTavernaBtn);
-  c.appendChild(tavernaEntry);
-
-  // ── La Bisca Oscura ──
-  const biscaEntry = el('div', 'panel bisca-entry-panel');
-  const biscaThumbWrap = el('div', 'npc-banner');
-  const biscaThumb = document.createElement('img');
-  biscaThumb.src = 'assets/npcs/biscazziere.jpg';
-  biscaThumb.className = 'npc-img';
-  biscaThumb.alt = '';
-  biscaThumb.onerror = () => biscaThumbWrap.remove();
-  biscaThumbWrap.appendChild(biscaThumb);
-  const biscaEntryText = el('div', '');
-  biscaEntryText.appendChild(el('h3', 'panel-title', '🃏 La Bisca Oscura'));
-  biscaEntryText.appendChild(el('p', 'muted small bisca-entry-quote',
-    '«Nessuno sa chi organizza gli scontri. Nessuno chiede. Le monete parlano per tutti.»'));
-  biscaThumbWrap.appendChild(biscaEntryText);
-  biscaEntry.appendChild(biscaThumbWrap);
-  RPG.biscaResetIfNeeded(HERO);
-  const biscaBetsLeft = (HERO.bisca && HERO.bisca.betsLeft !== undefined) ? HERO.bisca.betsLeft : RPG.BISCA_DAILY_BETS;
-  if (biscaBetsLeft > 0) {
-    biscaEntry.appendChild(el('div', 'bisca-avail-badge', `🎰 ${biscaBetsLeft} scommesse disponibili`));
-  } else {
-    biscaEntry.appendChild(el('div', 'bisca-avail-badge bisca-exhausted', '⛔ Scommesse esaurite per oggi'));
-  }
-  const enterBiscaBtn = el('button', 'btn btn-primary wide', '🃏 Entra nella Bisca');
-  enterBiscaBtn.addEventListener('click', () => { MAP_VIEW = 'bisca'; setTab('map'); });
-  biscaEntry.appendChild(enterBiscaBtn);
-  c.appendChild(biscaEntry);
 }
 
 function renderTavernaView(c) {
-  const backBtn = el('button', 'btn btn-back', '← Torna alla Mappa');
-  backBtn.addEventListener('click', () => { MAP_VIEW = 'main'; setTab('map'); });
+  const backBtn = el('button', 'btn btn-back', '← Torna al Borgo');
+  backBtn.addEventListener('click', () => { MARKET_VIEW = 'stalla'; setTab('market'); });
   c.appendChild(backBtn);
 
   const heroImg = document.createElement('img');
@@ -2616,8 +2523,8 @@ function renderBiscaView(c) {
   wrap.appendChild(inner);
   c.appendChild(wrap);
 
-  const backBtn = el('button', 'btn btn-back', '← Torna alla Mappa');
-  backBtn.addEventListener('click', () => { MAP_VIEW = 'main'; setTab('map'); });
+  const backBtn = el('button', 'btn btn-back', '← Torna al Borgo');
+  backBtn.addEventListener('click', () => { MARKET_VIEW = 'stalla'; setTab('market'); });
   inner.appendChild(backBtn);
 
   inner.appendChild(el('h2', 'bisca-title', '🃏 La Bisca Oscura'));
@@ -2771,7 +2678,7 @@ function renderBiscaView(c) {
 
     if (res.betsLeft > 0) {
       const replayBtn = el('button', 'btn btn-primary wide bisca-replay-btn', '🎲 Nuovo scontro');
-      replayBtn.addEventListener('click', () => { MAP_VIEW = 'bisca'; setTab('map'); });
+      replayBtn.addEventListener('click', () => { MARKET_VIEW = 'bisca'; setTab('market'); });
       resultEl.appendChild(replayBtn);
     }
   }
@@ -4344,11 +4251,58 @@ let MARKET_VIEW = 'stalla';
 let NERO_FILTER = 'all';
 
 function renderMarket(c) {
-  const marketTitle = el('h2', 'section-title', '🏪 Il Mercato');
+  if (MARKET_VIEW === 'taverna') { renderTavernaView(c); return; }
+  if (MARKET_VIEW === 'bisca')   { renderBiscaView(c);   return; }
+
+  const marketTitle = el('h2', 'section-title', '🏘️ Il Borgo');
   c.appendChild(marketTitle);
   const marketIcon = new Image();
-  marketIcon.onload = () => { marketTitle.innerHTML = `<img class="title-icon" src="assets/ui/tab-mercato.png"> Il Mercato`; };
+  marketIcon.onload = () => { marketTitle.innerHTML = `<img class="title-icon" src="assets/ui/tab-mercato.png"> Il Borgo`; };
   marketIcon.src = 'assets/ui/tab-mercato.png';
+
+  // ── Mercante Fuggiasco ──
+  const fm = RPG.getFugitiveMerchant(HERO);
+  if (fm) {
+    const kmToday = RPG.todayKm(HERO);
+    const kmLeft = Math.max(0, fm.kmRequired - kmToday);
+    const reached = kmLeft <= 0;
+    const fp = el('div', 'panel panel-featured fugitive-merchant-panel');
+    fp.innerHTML = `
+      <h3 class="panel-title">🏃 Mercante Fuggiasco!</h3>
+      <div class="fm-subtitle">Sparisce a mezzanotte · <b class="cd-hot"><span data-cd="midnight">…</span></b></div>
+      <div class="fm-item">${itemHtml(fm.item)}</div>
+      <div class="fm-prices">
+        <span class="fm-price-full">🪙 ${fm.fullPrice}</span>
+        <span class="fm-price-sale">🪙 ${fm.price}</span>
+        <span class="fm-discount">–80%</span>
+      </div>`;
+    if (fm.bought) {
+      fp.appendChild(el('div', 'done-strip', `✅ <b>Acquistato!</b> Il mercante è stato raggiunto.`));
+    } else if (reached) {
+      const buyBtn = el('button', 'btn btn-primary wide', `🤝 Acquista · 🪙 ${fm.price}`);
+      buyBtn.disabled = HERO.gold < fm.price;
+      buyBtn.addEventListener('click', () => {
+        const err = RPG.buyFromFugitiveMerchant(HERO);
+        if (err) { toast(err); return; }
+        persist(); renderHUD();
+        vibrate([120, 40, 180]);
+        sfx('coin');
+        modal(`<h3 class="panel-title">🤝 Affare Concluso!</h3>
+          <p class="center">Hai raggiunto il mercante fuggiasco a tempo!</p>
+          <div class="loot-list" style="margin:.5rem 0">${itemHtml(fm.item)}</div>
+          <button class="btn btn-primary wide" onclick="closeModal();setTab('market')">Ottimo!</button>`);
+        setTab('market');
+      });
+      fp.appendChild(buyBtn);
+    } else {
+      const prog = el('div', 'membar');
+      prog.innerHTML = `<div class="membar-fill gold" style="width:${Math.min(100, Math.round(kmToday / fm.kmRequired * 100))}%"></div><span>${kmToday.toFixed(1)} / ${fm.kmRequired} km</span>`;
+      fp.appendChild(prog);
+      fp.appendChild(el('p', 'muted small center', `Percorri ancora <b>${kmLeft.toFixed(1)} km</b> oggi per raggiungerlo!`));
+    }
+    c.appendChild(fp);
+  }
+
   const sw = el('div', 'coll-switch');
   [['stalla', 'stalla', '🐴', 'Stalla'], ['nero', 'contrabbando', '🕯️', 'Contrabbando'], ['fucina', 'fucina', '⚒️', 'Fucina'], ['erborista', null, '🌿', 'Erborista']].forEach(([k, file, emoji, label]) => {
     const b = el('button', 'coll-btn' + (MARKET_VIEW === k ? ' active' : ''));
@@ -4363,6 +4317,43 @@ function renderMarket(c) {
   });
   c.appendChild(sw);
   ({ stalla: renderStalla, nero: renderNero, fucina: renderFucina, erborista: renderErborista }[MARKET_VIEW])(c);
+
+  // ── La Taverna delle Sfide ──
+  const tavernaEntry = el('div', 'panel taverna-entry-panel');
+  const tavernaThumb = document.createElement('img');
+  tavernaThumb.src = 'assets/ui/taverna-header.jpg';
+  tavernaThumb.alt = '';
+  tavernaThumb.className = 'camp-panel-thumb';
+  tavernaThumb.onerror = () => tavernaThumb.remove();
+  tavernaEntry.appendChild(tavernaThumb);
+  tavernaEntry.appendChild(el('h3', 'panel-title', '🍺 La Taverna delle Sfide'));
+  tavernaEntry.appendChild(el('p', 'muted small taverna-entry-quote',
+    '«Tra dadi truccati e boccali volanti, qui si separa chi ha nervi saldi da chi torna a casa vuoto.»'));
+  const totalRemMkt = MG_CATEGORIES.flatMap(cat => cat.games).reduce((s, g) => s + Math.max(0, MG_MAX[g.id] - getMG(g.id).n), 0);
+  if (totalRemMkt > 0) {
+    tavernaEntry.appendChild(el('div', 'taverna-avail-badge', `🎮 ${totalRemMkt} partite disponibili`));
+  }
+  const enterTavernaBtn = el('button', 'btn btn-primary wide', '🍺 Entra nella Taverna');
+  enterTavernaBtn.addEventListener('click', () => { MARKET_VIEW = 'taverna'; setTab('market'); });
+  tavernaEntry.appendChild(enterTavernaBtn);
+  c.appendChild(tavernaEntry);
+
+  // ── La Bisca Oscura ──
+  const biscaEntry = el('div', 'panel bisca-entry-panel');
+  biscaEntry.appendChild(el('h3', 'panel-title', '🃏 La Bisca Oscura'));
+  biscaEntry.appendChild(el('p', 'muted small bisca-entry-quote',
+    '«Nessuno sa chi organizza gli scontri. Nessuno chiede. Le monete parlano per tutti.»'));
+  RPG.biscaResetIfNeeded(HERO);
+  const biscaBetsLeft = (HERO.bisca && HERO.bisca.betsLeft !== undefined) ? HERO.bisca.betsLeft : RPG.BISCA_DAILY_BETS;
+  if (biscaBetsLeft > 0) {
+    biscaEntry.appendChild(el('div', 'bisca-avail-badge', `🎰 ${biscaBetsLeft} scommesse disponibili`));
+  } else {
+    biscaEntry.appendChild(el('div', 'bisca-avail-badge bisca-exhausted', '⛔ Scommesse esaurite per oggi'));
+  }
+  const enterBiscaBtn = el('button', 'btn btn-primary wide', '🃏 Entra nella Bisca');
+  enterBiscaBtn.addEventListener('click', () => { MARKET_VIEW = 'bisca'; setTab('market'); });
+  biscaEntry.appendChild(enterBiscaBtn);
+  c.appendChild(biscaEntry);
 }
 
 function npcBanner(imgPath, name, quote) {
@@ -7119,7 +7110,7 @@ function renderGuidaView(c) {
       body: `La sacca (menu Eroe) contiene i tuoi consumabili. Ogni consumabile ha un effetto istantaneo o un buff temporaneo: pozioni che raddoppiano l'XP per 3 sessioni, rune che moltiplicano l'oro, scudi che proteggono la streak, e molto altro. Puoi venderli all'<b>Erborista</b> nel Mercato o usarli prima di un allenamento per massimizzare le ricompense. I consumabili si ottengono da: Arena, boss, mappa, sfide, missioni Serra e acquistandoli dall'Erborista.`,
     },
     {
-      icon: '🏪', title: 'Mercato',
+      icon: '🏘️', title: 'Borgo',
       body: `Il Mercato ha 4 sezioni: <b>Bazar</b> (oggetti equipaggiabili comuni), <b>Mercato Nero</b> (rari con prezzi premium), <b>Fucina</b> (potenzia gli oggetti che hai), <b>Erborista</b> (compra consumabili per rarità: comune 45🪙, raro 130🪙, epico 380🪙). Nel weekend appare anche il <b>Mercante Itinerante</b> con 3 oggetti rari a rotazione.`,
     },
     {
