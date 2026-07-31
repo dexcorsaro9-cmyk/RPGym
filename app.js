@@ -727,7 +727,7 @@ const TUTORIAL_SLIDES = [
   {
     icon: '💊',
     title: 'Consumabili & Sacca',
-    text: 'Trova consumabili nell\'Arena, nei forzieri e dall\'<b>Erborista</b> nel Mercato. Usali prima di allenarti per moltiplicare le ricompense.',
+    text: 'Trova consumabili nell\'Arena, nei forzieri e dal <b>Bazar</b> nel Borgo. Usali prima di allenarti per moltiplicare le ricompense.',
     art: `<div class="tut-art tut-art-items">⚗️🌿🔮🎒</div>`,
   },
   {
@@ -801,7 +801,7 @@ function showFirstWorkoutCelebration() {
       <div class="fwo-hints">
         <div class="fwo-hint"><span class="fwo-hint-icon">🏕️</span><div><b>Rifugio</b><br><span class="small">Costruisci strutture per avere bonus permanenti.</span></div></div>
         <div class="fwo-hint"><span class="fwo-hint-icon">⚔️</span><div><b>Arena</b><br><span class="small">Sfida i villain ogni giorno per oro e bottino.</span></div></div>
-        <div class="fwo-hint"><span class="fwo-hint-icon">🌿</span><div><b>Erborista</b><br><span class="small">Acquista consumabili per potenziare i tuoi allenamenti.</span></div></div>
+        <div class="fwo-hint"><span class="fwo-hint-icon">🧪</span><div><b>Bazar</b><br><span class="small">Acquista consumabili per potenziare i tuoi allenamenti.</span></div></div>
       </div>
       <button class="btn btn-primary wide fwo-btn">🔥 Vai al Rifugio!</button>
     </div>`;
@@ -4313,7 +4313,7 @@ function renderMarket(c) {
     { key: 'stalla',    emoji: '🐴', title: 'La Stalla',             quote: '«La tua cavalcatura ti porta lontano — trattala bene e moltiplicherà ogni tuo passo.»',    img: 'assets/ui/borgo/stalla-header.jpg',       btn: '🐴 Entra nella Stalla' },
     { key: 'nero',      emoji: '🕯️', title: 'Il Mercato Nero',       quote: '«Nessuna domanda, nessun registro. Solo oro che cambia mano nel buio.»',                    img: 'assets/ui/borgo/contrabbando-header.jpg', btn: '🕯️ Entra nel Mercato Nero' },
     { key: 'fucina',    emoji: '⚒️', title: 'La Fucina',             quote: '«Batto il ferro dall\'alba. Portami il tuo pezzo peggiore: te lo riforgio meglio di prima.»', img: 'assets/ui/borgo/fucina-header.jpg',        btn: '⚒️ Entra nella Fucina' },
-    { key: 'erborista', emoji: '🌿', title: 'L\'Erborista',          quote: '«Ogni seme vuole germogliare. Ogni eroe ha bisogno di carburante.»',                        img: 'assets/ui/borgo/erborista-header.jpg',    btn: '🌿 Entra dall\'Erborista' },
+    { key: 'erborista', emoji: '🧪', title: 'Il Bazar',               quote: '«Rimedi, rune e reliquie — tutto ciò che un viandante non sapeva di volere, finché non lo vede.»', img: 'assets/ui/borgo/bazar-header.jpg', btn: '🧪 Entra nel Bazar' },
   ];
   borgoSections.forEach(({ key, emoji, title, quote, img, btn }) => {
     const panel = el('div', 'panel borgo-entry-panel');
@@ -4397,7 +4397,7 @@ function _borgoSubView(c, headerSrc, title, renderFn) {
 function renderStallaView(c)    { _borgoSubView(c, 'assets/ui/borgo/stalla-header.jpg',        '🐴 La Stalla',        renderStalla); }
 function renderNeroView(c)      { _borgoSubView(c, 'assets/ui/borgo/contrabbando-header.jpg',   '🕯️ Il Mercato Nero',  renderNero); }
 function renderFucinaView(c)    { _borgoSubView(c, 'assets/ui/borgo/fucina-header.jpg',         '⚒️ La Fucina',        renderFucina); }
-function renderErboristaView(c) { _borgoSubView(c, 'assets/ui/borgo/erborista-header.jpg',      '🌿 L\'Erborista',     renderErborista); }
+function renderErboristaView(c) { _borgoSubView(c, 'assets/ui/borgo/bazar-header.jpg',           '🧪 Il Bazar',         renderErborista); }
 
 function renderStalla(c) {
   c.appendChild(el('p', 'muted small center',
@@ -7139,11 +7139,11 @@ function renderGuidaView(c) {
     },
     {
       icon: '💰', title: 'Sacca del Viandante',
-      body: `La sacca (menu Eroe) contiene i tuoi consumabili. Ogni consumabile ha un effetto istantaneo o un buff temporaneo: pozioni che raddoppiano l'XP per 3 sessioni, rune che moltiplicano l'oro, scudi che proteggono la streak, e molto altro. Puoi venderli all'<b>Erborista</b> nel Mercato o usarli prima di un allenamento per massimizzare le ricompense. I consumabili si ottengono da: Arena, boss, mappa, sfide, missioni Serra e acquistandoli dall'Erborista.`,
+      body: `La sacca (menu Eroe) contiene i tuoi consumabili. Ogni consumabile ha un effetto istantaneo o un buff temporaneo: pozioni che raddoppiano l'XP per 3 sessioni, rune che moltiplicano l'oro, scudi che proteggono la streak, e molto altro. Usali prima di un allenamento per massimizzare le ricompense. I consumabili si ottengono da: Arena, boss, mappa, sfide, missioni Serra e acquistandoli al <b>Bazar</b>.`,
     },
     {
       icon: '🏘️', title: 'Borgo',
-      body: `Il Mercato ha 4 sezioni: <b>Bazar</b> (oggetti equipaggiabili comuni), <b>Mercato Nero</b> (rari con prezzi premium), <b>Fucina</b> (potenzia gli oggetti che hai), <b>Erborista</b> (compra consumabili per rarità: comune 45🪙, raro 130🪙, epico 380🪙). Nel weekend appare anche il <b>Mercante Itinerante</b> con 3 oggetti rari a rotazione.`,
+      body: `Il Borgo ha 4 sezioni: <b>Stalla</b> (cavalcature), <b>Mercato Nero</b> (vendi bottino e trova rari), <b>Fucina</b> (potenzia gli oggetti che hai), <b>Bazar</b> (compra consumabili per rarità: comune 45🪙, raro 130🪙, epico 380🪙). Trovi anche <b>Taverna</b>, <b>Bisca</b> e il <b>Mercante Fuggiasco</b> ogni giorno.`,
     },
     {
       icon: '🌍', title: 'Mappa del Mondo',
@@ -7168,7 +7168,7 @@ function renderGuidaView(c) {
           <li>Usa i consumabili <b>prima</b> di registrare l'allenamento — i buff vengono applicati al momento del log.</li>
           <li>Tieni d'occhio le sfide giornaliere: completarle tutte sblocca il bonus totale.</li>
           <li>Il boss settimanale resetta ogni lunedì — non perdere la finestra.</li>
-          <li>Visita l'Erborista ogni giorno: a volte ha oggetti rari a prezzo di comune.</li>
+          <li>Visita il Bazar ogni giorno: a volte ha oggetti rari a prezzo di comune.</li>
           <li>Equipa sempre tutti gli slot — anche un oggetto comune dà +XP.</li>
           <li>Il famiglio va nutrito almeno una volta al giorno per mantenere i bonus.</li>
           <li>Backup regolare del salvataggio dalle Impostazioni — il gioco salva in locale.</li>
