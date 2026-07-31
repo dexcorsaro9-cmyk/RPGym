@@ -936,10 +936,12 @@ const RPG = (() => {
     return usable[usable.length - 1];
   }
 
+  const EQUIP_SLOTS = ['arma', 'scudo', 'elmo', 'armatura', 'anello', 'amuleto'];
+
   function genItem(level, minRarity, forcedSlot, forcedRarity) {
     const rarity = forcedRarity || rollRarity(level, minRarity);
     const slot = forcedSlot ||
-      Object.keys(SLOTS)[Math.floor(Math.random() * Object.keys(SLOTS).length)];
+      EQUIP_SLOTS[Math.floor(Math.random() * EQUIP_SLOTS.length)];
     const base = ITEM_BASES[slot][Math.floor(Math.random() * ITEM_BASES[slot].length)];
     const suf = RARITY_SUFFIX[rarity][Math.floor(Math.random() * RARITY_SUFFIX[rarity].length)];
     const r = RARITIES[rarity];
@@ -1835,30 +1837,6 @@ const RPG = (() => {
   ];
 
   /* ── Strutture della casa ─────────────────────────────────── */
-  const BUILDINGS = [
-    { id: 'fondamenta', name: 'Capanna del Pioniere', icon: '🛖',
-      cost: { wood: 30, stone: 10 }, minLevel: 5,
-      desc: 'Le prime mura di casa tua. Addio, falò all\'aperto!' },
-    { id: 'baule',      name: 'Baule del Bottino',    icon: '📦',
-      cost: { wood: 20, stone: 5 },  minLevel: 5, requires: 'fondamenta',
-      desc: 'Uno spazio dove custodire il tuo loot.' },
-    { id: 'letto',      name: 'Letto di Pelli',       icon: '🛏️',
-      cost: { wood: 25, stone: 0 },  minLevel: 6, requires: 'fondamenta',
-      desc: 'Riposo profondo: +10% oro da ogni allenamento.',
-      bonus: { goldMult: 0.10 } },
-    { id: 'muro',       name: 'Muro di Recinzione',   icon: '🧱',
-      cost: { wood: 10, stone: 40 }, minLevel: 7, requires: 'fondamenta',
-      desc: 'Protegge il rifugio dalle incursioni dell\'Orda.' },
-    { id: 'fucina',     name: 'Fucina Elementale',    icon: '⚒️',
-      cost: { wood: 40, stone: 60 }, minLevel: 11, requires: 'muro',
-      desc: 'Le tue armi brillano di potere: +10% XP da ogni allenamento.',
-      bonus: { xpMult: 0.10 } },
-    { id: 'lab',        name: 'Laboratorio Alchemico', icon: '⚗️',
-      cost: { wood: 50, stone: 50 }, minLevel: 13, requires: 'fucina',
-      desc: 'Pozioni e distillati: +10% legna e pietra raccolte.',
-      bonus: { resMult: 0.10 } },
-  ];
-
   /* ── Stato ────────────────────────────────────────────────── */
   function newHero(name, avatar) {
     return migrateHero({
@@ -1955,7 +1933,7 @@ const RPG = (() => {
     if (h.tutorialDone === undefined) h.tutorialDone = (h.totalKm || 0) > 0;
     h.cloud = h.cloud || { activeChallenge: null };
     h.buildings = h.buildings || [];
-    if (h.buildingsDamaged === undefined) h.buildingsDamaged = false;
+    h.buildingsDamaged = false;
     h.fugitiveMerchant  = h.fugitiveMerchant  || null;
     h.merchantBought    = h.merchantBought    || {};
     h.merchantOffers    = h.merchantOffers    || null;
@@ -2178,28 +2156,6 @@ const RPG = (() => {
     return null;
   }
 
-  /* ── Rifugio danneggiato (inattività > 3 giorni) ───────────── */
-  function daysSinceLastWorkout(hero) {
-    if (!hero.log || !hero.log.length) return 999;
-    return Math.floor((Date.now() - hero.log[0].date) / 86400000);
-  }
-
-  function checkBuildingDamage(hero) {
-    if (!hero.buildings || !hero.buildings.length) return false;
-    if (daysSinceLastWorkout(hero) >= 3) {
-      hero.buildingsDamaged = true;
-      return true;
-    }
-    return false;
-  }
-
-  function repairBuildings(hero) {
-    if (hero.gold < 100) return 'Oro insufficiente! Servono 100 🪙.';
-    hero.gold -= 100;
-    hero.buildingsDamaged = false;
-    return null;
-  }
-
   /* ── Mercante Fuggiasco (appare a caso ogni giorno, 6 km) ──── */
   function rolloverFugitiveMerchant(hero) {
     const today = todayStamp();
@@ -2248,13 +2204,6 @@ const RPG = (() => {
   }
 
   /* ── Allenamento ──────────────────────────────────────────── */
-  function buildingBonus(hero, key) {
-    if (hero.buildingsDamaged) return 0;
-    return BUILDINGS
-      .filter(b => hero.buildings.includes(b.id) && b.bonus && b.bonus[key])
-      .reduce((s, b) => s + b.bonus[key], 0);
-  }
-
   function validateSession(type, km) {
     const act = ACTIVITIES[type];
     if (!act) return 'Attività sconosciuta.';
@@ -2281,9 +2230,9 @@ const RPG = (() => {
     let mult = 1;
     if (hero.restBonus) { mult = 2; hero.restBonus = false; report.restBonusUsed = true; }
 
-    let xpMult = 1 + buildingBonus(hero, 'xpMult') + equipmentXpBonus(hero) / 100;
-    let goldMult = 1 + buildingBonus(hero, 'goldMult');
-    let resMult = 1 + buildingBonus(hero, 'resMult');
+    let xpMult = 1 + equipmentXpBonus(hero) / 100;
+    let goldMult = 1;
+    let resMult = 1;
     // Talenti di classe
     if (isClass(hero, 'stregone')) xpMult += 0.10;
     if (isClass(hero, 'eroe1') && type !== 'cyclette') xpMult += 0.10;
@@ -2759,23 +2708,6 @@ const RPG = (() => {
     hero.equipment[item.slot] = itemId;
   }
   function unequipSlot(hero, slot) { hero.equipment[slot] = null; }
-
-  /* ── Casa e riposo ────────────────────────────────────────── */
-  function canBuild(hero, b) {
-    if (hero.buildings.includes(b.id)) return 'costruito';
-    if (hero.level < b.minLevel) return `livello ${b.minLevel}`;
-    if (b.requires && !hero.buildings.includes(b.requires)) return 'requisito';
-    if (hero.wood < b.cost.wood || hero.stone < b.cost.stone) return 'risorse';
-    return 'ok';
-  }
-  function build(hero, id) {
-    const b = BUILDINGS.find(x => x.id === id);
-    if (!b || canBuild(hero, b) !== 'ok') return false;
-    hero.wood -= b.cost.wood;
-    hero.stone -= b.cost.stone;
-    hero.buildings.push(b.id);
-    return true;
-  }
 
   function declareRestDay(hero) {
     const ws = weekStamp();
@@ -4782,7 +4714,7 @@ const RPG = (() => {
   }
 
   return {
-    ACTIVITIES, MISSIONS, CARDS, BUILDINGS, BESTIARY, TROPHIES,
+    ACTIVITIES, MISSIONS, CARDS, BESTIARY, TROPHIES,
     WEEKLY_BOSSES, rolloverWeeklyBoss, weeklyBossStatus, claimWeeklyBoss,
     getDailyWeather, WEATHER_TYPES,
     TREASURE_MAP_TIERS, rolloverTreasureMap, treasureMapStatus, claimTreasureTier,
@@ -4797,8 +4729,8 @@ const RPG = (() => {
     currentBiome, accessibleZones, mountById, biomeSlug,
     newHero, migrateHero, load, save, deleteHero,
     logWorkout, availableMissions, startMission,
-    canBuild, build, declareRestDay,
-    weeklyEvent, claimEvent, buildingBonus, equipmentXpBonus,
+    declareRestDay,
+    weeklyEvent, claimEvent, equipmentXpBonus,
     genItem, genItemFor, sellItem, sellValue, buyMount, forgeOffers, buyForgeItem,
     CLASS_TALENTS, talentOf, itemImg,
     BATTLE_MOVES, BATTLE_MAX_DAY, battleBeats, randomMove,
@@ -4808,7 +4740,6 @@ const RPG = (() => {
     dailyLogin, rolloverIncursion,
     restoreStreak,
     MI_TIERS, rolloverMappaInfuocata, mappaInfuocataStatus, activateMappaInfuocata, claimMappaInfuocata,
-    daysSinceLastWorkout, checkBuildingDamage, repairBuildings,
     rolloverFugitiveMerchant, getFugitiveMerchant, todayKm, buyFromFugitiveMerchant,
     PET_PERSONALITIES, PET_FOODS, PET_ACCESSORIES, PET_SPECIES,
     PHOENIX_POTION_PRICE, EXPEDITION_HOURS, WISH_WINDOW_MINUTES,
