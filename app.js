@@ -2553,9 +2553,19 @@ function renderMap(c) {
 
   // ── La Bisca Oscura ──
   const biscaEntry = el('div', 'panel bisca-entry-panel');
-  biscaEntry.appendChild(el('h3', 'panel-title', '🃏 La Bisca Oscura'));
-  biscaEntry.appendChild(el('p', 'muted small bisca-entry-quote',
+  const biscaThumbWrap = el('div', 'npc-banner');
+  const biscaThumb = document.createElement('img');
+  biscaThumb.src = 'assets/npcs/biscazziere.jpg';
+  biscaThumb.className = 'npc-img';
+  biscaThumb.alt = '';
+  biscaThumb.onerror = () => biscaThumbWrap.remove();
+  biscaThumbWrap.appendChild(biscaThumb);
+  const biscaEntryText = el('div', '');
+  biscaEntryText.appendChild(el('h3', 'panel-title', '🃏 La Bisca Oscura'));
+  biscaEntryText.appendChild(el('p', 'muted small bisca-entry-quote',
     '«Nessuno sa chi organizza gli scontri. Nessuno chiede. Le monete parlano per tutti.»'));
+  biscaThumbWrap.appendChild(biscaEntryText);
+  biscaEntry.appendChild(biscaThumbWrap);
   RPG.biscaResetIfNeeded(HERO);
   const biscaBetsLeft = (HERO.bisca && HERO.bisca.betsLeft !== undefined) ? HERO.bisca.betsLeft : RPG.BISCA_DAILY_BETS;
   if (biscaBetsLeft > 0) {
@@ -2596,7 +2606,7 @@ function renderBiscaView(c) {
   const wrap = el('div', 'bisca-view-wrap');
 
   const headerImg = document.createElement('img');
-  headerImg.src = 'assets/ui/bisca-header.jpg';
+  headerImg.src = 'assets/backgrounds/bg-bisca.jpg';
   headerImg.className = 'bisca-header-img';
   headerImg.alt = '';
   headerImg.onerror = () => headerImg.remove();
@@ -2611,7 +2621,18 @@ function renderBiscaView(c) {
   inner.appendChild(backBtn);
 
   inner.appendChild(el('h2', 'bisca-title', '🃏 La Bisca Oscura'));
-  inner.appendChild(el('p', 'muted small center bisca-subtitle', '«Scegli il tuo campione. Punta l\'oro. Prega che regga.»'));
+
+  // NPC biscazziere
+  const npcBanner = el('div', 'npc-banner npc-banner-lg');
+  const npcImg = document.createElement('img');
+  npcImg.src = 'assets/npcs/biscazziere.jpg';
+  npcImg.className = 'npc-img';
+  npcImg.alt = 'Il Biscazziere';
+  npcImg.onerror = () => npcImg.remove();
+  npcBanner.appendChild(npcImg);
+  const npcQuote = el('p', 'npc-quote', '«Scegli il tuo campione. Punta l\'oro. Prega che regga.»');
+  npcBanner.appendChild(npcQuote);
+  inner.appendChild(npcBanner);
 
   RPG.biscaResetIfNeeded(HERO);
   const betsLeft = (HERO.bisca && HERO.bisca.betsLeft !== undefined) ? HERO.bisca.betsLeft : 0;
