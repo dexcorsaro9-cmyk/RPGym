@@ -3537,10 +3537,10 @@ function renderTrain(c) {
   // ── Consumabile rapido pre-allenamento ──
   {
     const owned = HERO.consumables || {};
-    const quickCons = RPG.CONSUMABLES.filter(co => (owned[co.id] || 0) > 0).slice(0, 6);
+    const quickCons = RPG.CONSUMABLES.filter(co => (owned[co.id] || 0) > 0);
     if (quickCons.length) {
-      const qp = el('div', 'quick-cons-strip');
-      qp.appendChild(el('div', 'quick-cons-label', '💊 Potenzia prima di allenarti:'));
+      const qp = el('div', 'quick-cons-strip panel');
+      qp.appendChild(el('div', 'quick-cons-label', '💊 Potenzia prima di allenarti'));
       const row = el('div', 'quick-cons-row');
       quickCons.forEach(co => {
         const btn = el('button', `quick-cons-btn rarity-${co.rarity}`, '');
@@ -3548,10 +3548,12 @@ function renderTrain(c) {
         const img = el('img', 'quick-cons-img');
         img.src = `assets/consumables/${encodeURIComponent(RPG.CONSUMABLE_IMG[co.id] || co.id)}.png`;
         img.alt = co.name;
-        img.addEventListener('error', () => { img.style.display = 'none'; btn.prepend(el('span', '', co.icon)); });
+        img.addEventListener('error', () => { img.style.display = 'none'; btn.prepend(el('span', 'quick-cons-emoji', co.icon)); });
         const badge = el('span', 'quick-cons-badge', `×${owned[co.id]}`);
+        const name = el('span', 'quick-cons-name', co.name);
         btn.appendChild(img);
         btn.appendChild(badge);
+        btn.appendChild(name);
         btn.addEventListener('click', () => {
           const err = RPG.useConsumable(HERO, co.id);
           if (err) { toast(err); return; }
