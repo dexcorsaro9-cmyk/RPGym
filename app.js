@@ -33,7 +33,7 @@ const AVATARS = [
   { path: 'assets/avatars/regina.png',            storyId: 'regina',           label: 'La Regina Oscura' },
   { path: 'assets/avatars/predone.png',           storyId: 'predone',          label: 'Il Re dei Predoni' },
   { path: 'assets/avatars/principessa-ghiacci.png', storyId: 'principessa_ghiacci', label: 'La Principessa dei Ghiacci' },
-  { path: 'assets/avatars/sacerdotessa-sole.jpg',   storyId: 'sacerdotessa_sole',   label: 'La Sacerdotessa del Sole' },
+  { path: 'assets/avatars/sacerdotessa-sole.png',   storyId: 'sacerdotessa_sole',   label: 'La Sacerdotessa del Sole' },
   { path: 'assets/avatars/principessa-draghi.png',  storyId: 'principessa_draghi',  label: 'La Principessa dei Draghi' },
 ];
 
