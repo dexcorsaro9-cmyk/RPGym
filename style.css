@@ -5026,6 +5026,24 @@ img.camp-layer {
 .building-damage-alert { text-align: center; padding: .5rem 0 .75rem; }
 .bda-icon { font-size: 3rem; margin-bottom: .5rem; }
 
+/* ── Pannelli di entrata sezioni del Borgo ── */
+.borgo-entry-panel { padding: 0; overflow: hidden; }
+.borgo-entry-header {
+  width: 100%; height: 120px;
+  object-fit: cover; object-position: center 40%;
+  display: block;
+}
+.borgo-entry-panel .panel-title { margin: 10px 14px 2px; }
+.borgo-entry-panel .borgo-entry-quote { margin: 0 14px 10px; font-style: italic; font-weight: 500; }
+.borgo-entry-panel .btn { margin: 0 14px 14px; width: calc(100% - 28px); box-sizing: border-box; }
+
+/* Header nelle view interne (Stalla, Nero, Fucina, Erborista) */
+.borgo-sub-header {
+  width: 100%; max-height: 160px;
+  object-fit: cover; object-position: center 40%;
+  display: block; border-radius: 10px; margin-bottom: 10px;
+}
+
 /* ── Taverna delle Sfide: entry card + hub subtitle ── */
 .taverna-entry-panel { border-color: rgba(245,166,35,.5); }
 .taverna-entry-quote { font-style: italic; font-weight: 500; margin: .25rem 0 .5rem; }
