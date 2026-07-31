@@ -2488,7 +2488,7 @@ function renderMap(c) {
 
 function renderTavernaView(c) {
   const backBtn = el('button', 'view-back-link', '‹ Il Borgo');
-  backBtn.addEventListener('click', () => { MARKET_VIEW = 'stalla'; setTab('market'); });
+  backBtn.addEventListener('click', () => { MARKET_VIEW = 'hub'; setTab('market'); });
   c.appendChild(backBtn);
 
   const heroImg = document.createElement('img');
@@ -2511,7 +2511,7 @@ function renderTavernaView(c) {
 
 function renderBiscaView(c) {
   const backBtn = el('button', 'view-back-link view-back-link-bisca', '‹ Il Borgo');
-  backBtn.addEventListener('click', () => { MARKET_VIEW = 'stalla'; setTab('market'); });
+  backBtn.addEventListener('click', () => { MARKET_VIEW = 'hub'; setTab('market'); });
   c.appendChild(backBtn);
 
   const headerImg = document.createElement('img');
@@ -4248,12 +4248,16 @@ function revealChest(title, chest) {
 }
 
 /* ── TAB: Mercato ── */
-let MARKET_VIEW = 'stalla';
+let MARKET_VIEW = 'hub';
 let NERO_FILTER = 'all';
 
 function renderMarket(c) {
-  if (MARKET_VIEW === 'taverna') { renderTavernaView(c); return; }
-  if (MARKET_VIEW === 'bisca')   { renderBiscaView(c);   return; }
+  if (MARKET_VIEW === 'taverna')   { renderTavernaView(c);   return; }
+  if (MARKET_VIEW === 'bisca')     { renderBiscaView(c);     return; }
+  if (MARKET_VIEW === 'stalla')    { renderStallaView(c);    return; }
+  if (MARKET_VIEW === 'nero')      { renderNeroView(c);      return; }
+  if (MARKET_VIEW === 'fucina')    { renderFucinaView(c);    return; }
+  if (MARKET_VIEW === 'erborista') { renderErboristaView(c); return; }
 
   const marketTitle = el('h2', 'section-title', '🏘️ Il Borgo');
   c.appendChild(marketTitle);
@@ -4304,20 +4308,28 @@ function renderMarket(c) {
     c.appendChild(fp);
   }
 
-  const sw = el('div', 'coll-switch');
-  [['stalla', 'stalla', '🐴', 'Stalla'], ['nero', 'contrabbando', '🕯️', 'Contrabbando'], ['fucina', 'fucina', '⚒️', 'Fucina'], ['erborista', null, '🌿', 'Erborista']].forEach(([k, file, emoji, label]) => {
-    const b = el('button', 'coll-btn' + (MARKET_VIEW === k ? ' active' : ''));
-    if (file) {
-      const img = new Image();
-      img.onload = () => { b.innerHTML = `<span>${label}</span>`; img.className = 'coll-btn-icon'; b.insertBefore(img, b.firstChild); };
-      img.src = `assets/ui/mercato/${file}.png`;
-    }
-    b.innerHTML = `<span class="coll-btn-emoji">${emoji}</span><span>${label}</span>`;
-    b.addEventListener('click', () => { MARKET_VIEW = k; setTab('market'); });
-    sw.appendChild(b);
+  // ── 4 sezioni del Borgo come pannelli di entrata ──
+  const borgoSections = [
+    { key: 'stalla',    emoji: '🐴', title: 'La Stalla',             quote: '«La tua cavalcatura ti porta lontano — trattala bene e moltiplicherà ogni tuo passo.»',    img: 'assets/ui/borgo/stalla-header.jpg',       btn: '🐴 Entra nella Stalla' },
+    { key: 'nero',      emoji: '🕯️', title: 'Il Mercato Nero',       quote: '«Nessuna domanda, nessun registro. Solo oro che cambia mano nel buio.»',                    img: 'assets/ui/borgo/contrabbando-header.jpg', btn: '🕯️ Entra nel Mercato Nero' },
+    { key: 'fucina',    emoji: '⚒️', title: 'La Fucina',             quote: '«Batto il ferro dall\'alba. Portami il tuo pezzo peggiore: te lo riforgio meglio di prima.»', img: 'assets/ui/borgo/fucina-header.jpg',        btn: '⚒️ Entra nella Fucina' },
+    { key: 'erborista', emoji: '🌿', title: 'L\'Erborista',          quote: '«Ogni seme vuole germogliare. Ogni eroe ha bisogno di carburante.»',                        img: 'assets/ui/borgo/erborista-header.jpg',    btn: '🌿 Entra dall\'Erborista' },
+  ];
+  borgoSections.forEach(({ key, emoji, title, quote, img, btn }) => {
+    const panel = el('div', 'panel borgo-entry-panel');
+    const thumb = document.createElement('img');
+    thumb.src = img;
+    thumb.alt = '';
+    thumb.className = 'borgo-entry-header';
+    thumb.onerror = () => thumb.remove();
+    panel.appendChild(thumb);
+    panel.appendChild(el('h3', 'panel-title', `${emoji} ${title}`));
+    panel.appendChild(el('p', 'muted small borgo-entry-quote', quote));
+    const enterBtn = el('button', 'btn btn-primary wide', btn);
+    enterBtn.addEventListener('click', () => { MARKET_VIEW = key; setTab('market'); });
+    panel.appendChild(enterBtn);
+    c.appendChild(panel);
   });
-  c.appendChild(sw);
-  ({ stalla: renderStalla, nero: renderNero, fucina: renderFucina, erborista: renderErborista }[MARKET_VIEW])(c);
 
   // ── La Taverna delle Sfide ──
   const tavernaEntry = el('div', 'panel taverna-entry-panel');
@@ -4367,6 +4379,25 @@ function npcBanner(imgPath, name, quote) {
   b.appendChild(el('div', 'npc-quote', `<b>${name}</b><br><span class="small">${quote}</span>`));
   return b;
 }
+
+function _borgoSubView(c, headerSrc, title, renderFn) {
+  const backBtn = el('button', 'view-back-link', '‹ Il Borgo');
+  backBtn.addEventListener('click', () => { MARKET_VIEW = 'hub'; setTab('market'); });
+  c.appendChild(backBtn);
+  const hImg = document.createElement('img');
+  hImg.src = headerSrc;
+  hImg.alt = '';
+  hImg.className = 'borgo-sub-header';
+  hImg.onerror = () => hImg.remove();
+  c.appendChild(hImg);
+  c.appendChild(el('h2', 'section-title', title));
+  renderFn(c);
+}
+
+function renderStallaView(c)    { _borgoSubView(c, 'assets/ui/borgo/stalla-header.jpg',        '🐴 La Stalla',        renderStalla); }
+function renderNeroView(c)      { _borgoSubView(c, 'assets/ui/borgo/contrabbando-header.jpg',   '🕯️ Il Mercato Nero',  renderNero); }
+function renderFucinaView(c)    { _borgoSubView(c, 'assets/ui/borgo/fucina-header.jpg',         '⚒️ La Fucina',        renderFucina); }
+function renderErboristaView(c) { _borgoSubView(c, 'assets/ui/borgo/erborista-header.jpg',      '🌿 L\'Erborista',     renderErborista); }
 
 function renderStalla(c) {
   c.appendChild(el('p', 'muted small center',
