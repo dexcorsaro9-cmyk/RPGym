@@ -4475,8 +4475,6 @@ function showItemPreview(it) {
 }
 
 function renderNero(c) {
-  c.appendChild(npcBanner('assets/avatars/npc/mercante-contrabbando.png', 'Messer Bilancia',
-    '«Ogni oggetto ha il suo giusto peso in monete… la mia bilancia non sbaglia mai. Vendimi pure, qui non si fanno domande.»'));
   const sellable = HERO.items.filter(i => !Object.values(HERO.equipment).includes(i.id));
   if (!sellable.length) {
     c.appendChild(emptyState('💼', 'Non hai bottini da vendere. Gli oggetti equipaggiati non si toccano!'));
@@ -4590,7 +4588,8 @@ function _erboristaOffers() {
 }
 
 function renderErborista(c) {
-  c.appendChild(npcBanner(`assets/consumables/${encodeURIComponent(RPG.CONSUMABLE_IMG['spirito_foresta'] || 'spirito_foresta')}.png`, 'Madre Radice', '"Ogni seme vuole germogliare. Ogni eroe ha bisogno di carburante."'));
+  c.appendChild(npcBanner('assets/avatars/npc/mercante-contrabbando.png', 'Messer Bilancia',
+    '«Ogni oggetto ha il suo giusto peso in monete… la mia bilancia non sbaglia mai. Vendimi pure, qui non si fanno domande.»'));
 
   /* Offerta del Giorno */
   const offerPanel = el('div', 'panel erborista-offer-panel');
