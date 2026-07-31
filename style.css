@@ -57,7 +57,7 @@ body {
   text-shadow: 0 2px 0 rgba(255,255,255,.4);
   letter-spacing: 2px;
 }
-.subtitle { font-style: italic; color: var(--ink-light); margin-top: -8px; }
+.subtitle { color: var(--ink-light); margin-top: -8px; }
 .section-title {
   font-family: 'Cinzel', serif;
   font-size: 1.2rem;
@@ -78,11 +78,12 @@ body {
   border-radius: 6px;
   padding: 10px 12px;
   font-style: italic;
-  color: var(--ink-light);
+  font-weight: 500;
+  color: var(--ink);
   font-size: .95rem;
 }
 
-.muted { color: var(--ink-light); }
+.muted { color: #4e3b28; }
 .small { font-size: .85rem; }
 .panel .muted { color: var(--ink); }
 .panel .small { font-size: .9rem; }
@@ -94,7 +95,7 @@ body {
   gap: 8px; padding: 32px 16px; opacity: .7;
 }
 .empty-state-icon { font-size: 2.6rem; filter: grayscale(1); }
-.empty-state-text { font-size: .85rem; color: var(--ink-light); text-align: center; font-style: italic; }
+.empty-state-text { font-size: .85rem; color: #4e3b28; text-align: center; }
 .wide { width: 100%; }
 
 /* ── Bottoni ── */
@@ -436,7 +437,7 @@ body {
   color: var(--gold-bright); text-shadow: 0 0 16px rgba(232,182,76,.8);
   letter-spacing: 1px;
 }
-.report-levelup-title { font-size: .82rem; color: #d9c39a; margin-top: 3px; font-style: italic; }
+.report-levelup-title { font-size: .82rem; color: #d9c39a; margin-top: 3px; }
 @keyframes levelupPulse {
   0%,100% { box-shadow: 0 0 8px rgba(232,182,76,.3); }
   50%      { box-shadow: 0 0 22px rgba(232,182,76,.7), inset 0 0 12px rgba(232,182,76,.08); }
@@ -477,7 +478,7 @@ body {
 }
 .tcard.locked { filter: grayscale(1); opacity: .55; }
 .card-icon { font-size: 2.6rem; }
-.lore { font-style: italic; color: var(--ink-light); }
+.lore { font-style: italic; font-weight: 500; color: var(--ink); }
 .tcard.rar-comune, .card-reveal.rar-comune { border-color: var(--rar-comune); }
 .tcard.rar-raro, .card-reveal.rar-raro { border-color: var(--rar-raro); }
 .tcard.rar-epico, .card-reveal.rar-epico { border-color: var(--rar-epico); box-shadow: 0 0 14px rgba(123,63,191,.4); }
@@ -561,7 +562,7 @@ body {
   text-shadow: 0 1px 0 rgba(255,255,255,.5);
   margin-top: 6px;
 }
-.hero-title-plate { color: var(--ink-light); font-style: italic; }
+.hero-title-plate { color: var(--ink-light); }
 .bg-parchment .section-title.on-parchment-title {
   color: var(--leather);
   border-color: var(--leather);
@@ -1364,8 +1365,8 @@ img.camp-layer {
   border-radius: 20px; padding: 4px 14px; margin: 6px 0;
 }
 .bd-weak-label { font-size: .72rem; color: var(--ink-light); }
-.bd-lore { color: var(--ink-light); line-height: 1.5; margin: 10px 0 14px; text-align: left; }
-.bd-locked { margin: 14px 0; font-style: italic; }
+.bd-lore { color: var(--ink); font-weight: 500; line-height: 1.5; margin: 10px 0 14px; text-align: left; }
+.bd-locked { margin: 14px 0; }
 
 /* Avvistamento nel report */
 .sighting {
@@ -1602,7 +1603,7 @@ img.camp-layer {
 }
 .story-text {
   font-size: 1.02rem; line-height: 1.65; text-align: justify;
-  font-style: italic; color: var(--ink);
+  font-style: italic; font-weight: 500; color: var(--ink);
 }
 .story-text::first-letter {
   font-family: 'Uncial Antiqua', serif;
@@ -1653,7 +1654,7 @@ img.camp-layer {
 }
 .npc-img { height: 84px; max-width: 90px; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,.35)); }
 .npc-banner-lg .npc-img { height: 140px; width: 140px; max-width: 140px; object-fit: cover; object-position: center 10%; border-radius: 6px; }
-.npc-quote { flex: 1; font-style: italic; color: var(--ink); }
+.npc-quote { flex: 1; font-style: italic; font-weight: 500; color: var(--ink); }
 
 /* ── Talenti di classe ── */
 .avatar-talent {
@@ -1913,7 +1914,7 @@ img.camp-layer {
 }
 .mount-locked-img { filter: grayscale(.85) brightness(.75) drop-shadow(0 8px 14px rgba(0,0,0,.4)); }
 .mount-bio {
-  font-style: italic; line-height: 1.6; text-align: justify;
+  font-style: italic; font-weight: 500; line-height: 1.6; text-align: justify;
   background: rgba(90,61,36,.1);
   border-left: 4px solid var(--gold);
   border-radius: 8px; padding: 10px 12px;
@@ -2109,7 +2110,7 @@ img.camp-layer {
   background:rgba(232,182,76,.08); border-radius:8px; padding:5px 10px; text-align:center;
 }
 .denc-scenario {
-  font-family:'Crimson Pro',serif; font-size:1.02rem; font-style:italic;
+  font-family:'Crimson Pro',serif; font-size:1.02rem; font-style:italic; font-weight:500;
   color:rgba(255,255,255,.88); text-align:center; line-height:1.5;
   padding:4px 6px; min-height:2.6em;
 }
@@ -2598,7 +2599,7 @@ img.camp-layer {
 .santuario-entry-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
 .santuario-entry-title { color: #3a9e60; }
 .santuario-lock-badge { font-size: 1.3rem; }
-.santuario-teaser-quote { font-style: italic; line-height: 1.5; margin-bottom: 8px; }
+.santuario-teaser-quote { font-style: italic; font-weight: 500; line-height: 1.5; margin-bottom: 8px; }
 .santuario-locked-btn { opacity: .5; cursor: not-allowed; }
 .santuario-thumb { filter: brightness(.75) saturate(.6); }
 .pantheon-rank-chip {
@@ -3299,7 +3300,7 @@ img.camp-layer {
 .bpa-icon { font-size: 2rem; flex-shrink: 0; line-height: 1; }
 .bpa-label { font-size: .65rem; text-transform: uppercase; letter-spacing: .08em; color: #8a6010; font-weight: 700; }
 .bpa-name  { font-family: 'Cinzel Decorative', serif; font-size: .95rem; color: #3a2000; font-weight: 700; margin: 2px 0; }
-.bpa-flavor{ font-size: .78rem; color: #5a3a10; font-style: italic; line-height: 1.5; }
+.bpa-flavor{ font-size: .78rem; color: #5a3a10; font-style: italic; font-weight: 500; line-height: 1.5; }
 
 /* ── Collezione Reliquie ── */
 .artifacts-grid {
@@ -3346,7 +3347,7 @@ img.camp-layer {
 .ep-meta { display: flex; flex-direction: column; }
 .ep-sender { font-weight: 700; font-size: .85rem; color: var(--text, #e8d8b0); }
 .ep-role   { font-size: .72rem; color: var(--text-muted, #888); }
-.ep-title  { font-size: .8rem; font-style: italic; color: var(--text-muted, #aaa); margin-top: 4px; padding-left: 2px; }
+.ep-title  { font-size: .8rem; font-weight: 500; color: var(--text-muted, #aaa); margin-top: 4px; padding-left: 2px; }
 .ep-modal-header { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
 .ep-modal-body {
   font-size: .88rem; line-height: 1.7; color: var(--text, #e8d8b0);
@@ -3391,8 +3392,8 @@ img.camp-layer {
   margin: 10px 0;
 }
 .wl-title {
-  font-family: Georgia, serif; font-size: 1.05rem;
-  color: #3a2000; text-align: center; margin: 10px 0 14px; font-style: italic;
+  font-family: Georgia, serif; font-size: 1.05rem; font-weight: 600;
+  color: #3a2000; text-align: center; margin: 10px 0 14px;
 }
 .wl-body {
   font-family: Georgia, serif; font-size: .88rem; line-height: 1.75;
@@ -4245,8 +4246,7 @@ img.camp-layer {
 }
 .potion-claimed-note {
   font-size: .85rem;
-  color: var(--ink-light);
-  font-style: italic;
+  color: #4e3b28;
   padding-top: 4px;
   border-top: 1px solid rgba(90,61,36,.15);
   margin-top: 2px;
@@ -5028,7 +5028,7 @@ img.camp-layer {
 
 /* ── Taverna delle Sfide: entry card + hub subtitle ── */
 .taverna-entry-panel { border-color: rgba(245,166,35,.5); }
-.taverna-entry-quote { font-style: italic; margin: .25rem 0 .5rem; }
+.taverna-entry-quote { font-style: italic; font-weight: 500; margin: .25rem 0 .5rem; }
 .taverna-hero-img {
   width: 100%; height: 160px;
   object-fit: cover; object-position: center 40%;
@@ -5044,7 +5044,7 @@ img.camp-layer {
 }
 .mg-hub-subtitle {
   font-size: .75rem; font-weight: 400;
-  font-style: italic; color: var(--ink-light);
+  color: #4e3b28;
   display: block; margin-top: .15rem;
 }
 
@@ -6145,7 +6145,7 @@ img.camp-layer {
   background: #1e1035; border-radius: 12px;
   border: 1px solid #3b1f6b; min-height: 56px;
 }
-.bisca-log-intro  { font-style: italic; color: #a78bfa; font-size: .86rem; }
+.bisca-log-intro  { font-style: italic; font-weight: 500; color: #a78bfa; font-size: .86rem; }
 .bisca-log-line   {
   font-size: .86rem; padding: 4px 0; color: #e8dff5;
   border-bottom: 1px solid #2d1a4e;
