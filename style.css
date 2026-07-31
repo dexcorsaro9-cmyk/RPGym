@@ -6174,3 +6174,42 @@ img.camp-layer {
 :root[data-theme="light"] .bisca-lose { color: #dc2626; border-color: rgba(220,38,38,.3); }
 
 .bisca-replay-btn   { margin-top: 10px; }
+
+/* ── Biglietti Gratta e Vinci ─────────────────────────────── */
+.ticket-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  padding: 8px 0 4px;
+}
+.ticket-card {
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 10px;
+  border: 2px solid rgba(200,160,40,0.25);
+  background: var(--panel-bg, #fff);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  transition: transform .15s;
+}
+.ticket-card:active { transform: scale(.97); }
+.ticket-thumb {
+  width: 100%;
+  aspect-ratio: 3/2;
+  object-fit: cover;
+  display: block;
+}
+.ticket-label {
+  font-size: .78rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-align: center;
+  padding: 0 8px;
+  color: var(--text-muted, #666);
+}
+.ticket-comune      { border-color: rgba(200,160,40,0.4); }
+.ticket-raro        { border-color: rgba(77,217,232,0.4); }
+.ticket-leggendario { border-color: rgba(240,192,64,0.5); box-shadow: 0 0 12px rgba(240,192,64,0.2); }

@@ -19,6 +19,7 @@ const RPG = (() => {
   const GOLD_PER_KM = 5;
   const MEMORY_FRAGMENT_KM = 20;   // ogni 20 km → un Frammento di Memoria
   const LOOT_BAG_KM = 5;           // ogni 5 km → un Sacco del Viaggiatore
+  const TICKET_KM = 75;            // ogni 75 km → biglietto Comune
 
   /* ── Meteo dinamico ─────────────────────────────────────────── */
   const WEATHER_TYPES = [
@@ -1870,7 +1871,7 @@ const RPG = (() => {
     });
   }
 
-  const SCHEMA_VERSION = 4;
+  const SCHEMA_VERSION = 5;
 
   function migrateHero(h) {
     // ── v1: campi base RPG ────────────────────────────────────
@@ -1919,6 +1920,9 @@ const RPG = (() => {
     // ── v4: mini-giochi e sfide giornaliere ──────────────────
     h.miniGames       = h.miniGames       || {};
     h.dailyChallenges = h.dailyChallenges || null;
+    // v5
+    h.tickets        = h.tickets        || [];
+    h.ticketsEarned  = h.ticketsEarned  || 0;
     h.trophies        = h.trophies        || [];
     h.weeklyBoss      = h.weeklyBoss      || null;
     h.treasureMap     = h.treasureMap     || null;
@@ -2220,7 +2224,7 @@ const RPG = (() => {
 
     migrateHero(hero);
     const act = ACTIVITIES[type];
-    const report = { km, type, levelsGained: [], loot: [], cards: [], fragments: 0, unlocks: [], trophies: [] };
+    const report = { km, type, levelsGained: [], loot: [], cards: [], fragments: 0, unlocks: [], trophies: [], tickets: [] };
 
     // Cavalcatura (+% km) e compagno (+10% km)
     let effKm = km;
@@ -2409,6 +2413,17 @@ const RPG = (() => {
       const item = genItemFor(hero);
       hero.items.push(item);
       report.loot.push(item);
+    }
+
+    // Biglietti Gratta e Vinci — ogni TICKET_KM km
+    const ticketsDue = Math.floor(hero.totalKm / TICKET_KM);
+    if (ticketsDue > (hero.ticketsEarned || 0)) {
+      const count = ticketsDue - (hero.ticketsEarned || 0);
+      hero.ticketsEarned = ticketsDue;
+      for (let i = 0; i < count; i++) {
+        addTicket(hero, 'comune');
+        report.tickets.push('comune');
+      }
     }
 
     // Serra: 5% possibilità di trovare Fertilizzante Magico durante l'allenamento
@@ -2809,6 +2824,15 @@ const RPG = (() => {
     // boss shield: drop garantito anche in caso di sconfitta (gestito nell'UI)
     if (boss && hero.consumableBuffs && hero.consumableBuffs.bossShield) {
       delete hero.consumableBuffs.bossShield;
+    }
+    // Biglietto Gratta e Vinci: 20% boss → Raro, 8% normale → Comune
+    const ticketRoll = Math.random();
+    if (boss && ticketRoll < 0.20) {
+      addTicket(hero, 'raro');
+      chest.ticket = 'raro';
+    } else if (!boss && ticketRoll < 0.08) {
+      addTicket(hero, 'comune');
+      chest.ticket = 'comune';
     }
     return chest;
   }
@@ -4701,6 +4725,123 @@ const RPG = (() => {
     return null;
   }
 
+  /* ═══════════════════════════════════════════════════════════
+     BIGLIETTI GRATTA E VINCI
+     ═══════════════════════════════════════════════════════════ */
+
+  const TICKET_TYPES = {
+    comune: {
+      name: 'Pergameno della Fortuna',
+      img:  'assets/tickets/ticket-comune.jpg',
+      symbols: ['🪙','💰','⚔️','🛡️','🌿'],
+      winRate: 0.28,
+      prizes: [
+        { weight: 60, gold: 30,  label: '🪙 +30 Oro' },
+        { weight: 30, gold: 60,  label: '🪙 +60 Oro' },
+        { weight: 10, gold: 100, label: '🪙 +100 Oro' },
+      ],
+    },
+    raro: {
+      name: 'Lastra delle Stelle',
+      img:  'assets/tickets/ticket-raro.jpg',
+      symbols: ['⚗️','📜','💫','🗡️','🔮'],
+      winRate: 0.15,
+      prizes: [
+        { weight: 50, gold: 100, label: '🪙 +100 Oro' },
+        { weight: 30, gold: 200, label: '🪙 +200 Oro' },
+        { weight: 20, gold: 350, consumable: true, label: '🪙 +350 Oro + Consumabile' },
+      ],
+    },
+    leggendario: {
+      name: "Cristallo dell'Eterno",
+      img:  'assets/tickets/ticket-leggendario.jpg',
+      symbols: ['💎','✨','🐉','👑','⚡'],
+      winRate: 0.06,
+      prizes: [
+        { weight: 40, gold: 400,  label: '🪙 +400 Oro' },
+        { weight: 35, gold: 700,  label: '🪙 +700 Oro' },
+        { weight: 25, gold: 1000, item: true, label: '🪙 +1000 Oro + Oggetto Raro' },
+      ],
+    },
+  };
+
+  function _ticketRng(seed) {
+    let s = seed >>> 0;
+    return () => { s = Math.imul(1664525, s) + 1013904223 >>> 0; return s / 0xffffffff; };
+  }
+
+  function _rollTicketSymbols(type, seed) {
+    const { symbols, winRate } = TICKET_TYPES[type];
+    const rng = _ticketRng(seed);
+    const isWin = rng() < winRate;
+    if (isWin) {
+      const sym = symbols[Math.floor(rng() * symbols.length)];
+      return [sym, sym, sym];
+    }
+    const pick = () => symbols[Math.floor(rng() * symbols.length)];
+    let a = pick(), b = pick(), c = pick();
+    if (a === b && b === c) c = symbols[(symbols.indexOf(c) + 1) % symbols.length];
+    return [a, b, c];
+  }
+
+  function _rollTicketPrize(type, seed) {
+    const { prizes } = TICKET_TYPES[type];
+    const rng = _ticketRng(seed + 1);
+    const total = prizes.reduce((s, p) => s + p.weight, 0);
+    let r = rng() * total;
+    for (const p of prizes) { r -= p.weight; if (r <= 0) return p; }
+    return prizes[0];
+  }
+
+  function addTicket(hero, type) {
+    if (!TICKET_TYPES[type]) return;
+    hero.tickets = hero.tickets || [];
+    hero.tickets.push({
+      id:   Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      type,
+      seed: (Date.now() ^ (Math.random() * 0xffffffff >>> 0)) >>> 0,
+      scratchedAt: null,
+    });
+  }
+
+  function getUnscratchedTickets(hero) {
+    return (hero.tickets || []).filter(t => !t.scratchedAt);
+  }
+
+  function scratchTicket(hero, ticketId) {
+    const ticket = (hero.tickets || []).find(t => t.id === ticketId);
+    if (!ticket)           return { error: 'not_found' };
+    if (ticket.scratchedAt) return { error: 'already_scratched' };
+
+    ticket.scratchedAt = Date.now();
+    const symbols = _rollTicketSymbols(ticket.type, ticket.seed);
+    const isWin   = symbols[0] === symbols[1] && symbols[1] === symbols[2];
+    let prize = null;
+
+    if (isWin) {
+      prize = _rollTicketPrize(ticket.type, ticket.seed);
+      hero.gold = (hero.gold || 0) + (prize.gold || 0);
+      if (prize.item) {
+        const it = genItemFor(hero, ticket.type === 'leggendario' ? 'raro' : null);
+        hero.items.push(it);
+        prize.droppedItem = it;
+      }
+      if (prize.consumable) {
+        const cons = dropConsumable(hero, ticket.type === 'raro' ? 'raro' : 'comune');
+        if (cons) prize.droppedConsumable = cons;
+      }
+    }
+
+    // Mantieni solo gli ultimi 20 biglietti già grattati (pulizia storico)
+    const scratched = hero.tickets.filter(t => t.scratchedAt).sort((a, b) => b.scratchedAt - a.scratchedAt);
+    if (scratched.length > 20) {
+      const toRemove = new Set(scratched.slice(20).map(t => t.id));
+      hero.tickets = hero.tickets.filter(t => !toRemove.has(t.id));
+    }
+
+    return { ok: true, symbols, isWin, prize };
+  }
+
   function useSeedItem(hero, itemId, potIndex) {
     const idx = hero.items.findIndex(it => it.id === itemId);
     if (idx === -1) return 'Seme non trovato.';
@@ -4771,6 +4912,7 @@ const RPG = (() => {
     CAMP_LAYER_SHOP, campLayerShopItem, buyCampLayer,
     CONSUMABLES, CONSUMABLE_IMG, consumableById, sellValueConsumable, buyPriceConsumable,
     addConsumable, useConsumable, sellConsumable, dropConsumable,
+    TICKET_TYPES, addTicket, getUnscratchedTickets, scratchTicket,
   };
 })();
 
