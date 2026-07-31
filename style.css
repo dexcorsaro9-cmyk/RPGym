@@ -6116,11 +6116,12 @@ img.camp-layer {
 .bisca-header-img {
   width: 100%; max-height: 160px; object-fit: cover;
   object-position: center 30%; display: block;
-  border-radius: 10px; margin-bottom: 0;
+  border-radius: 10px; margin-bottom: 10px;
 }
 
 /* NPC biscazziere: full body, dimensioni compatte */
 .bisca-npc-banner { background: #1e1035; border-color: #4c1d95; }
+.bisca-npc-banner .npc-quote { color: #fff; font-weight: 700; font-style: normal; }
 .bisca-npc-img {
   height: 90px; width: 68px; max-width: 68px;
   object-fit: contain; object-position: center center;
