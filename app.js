@@ -4808,11 +4808,6 @@ function renderHero(c) {
   saccaBtn.addEventListener('click', () => { HERO_VIEW = 'zaino'; setTab('hero'); });
   c.appendChild(saccaBtn);
 
-  // Bottone condivisione hero card
-  const shareHeroBtn = el('button', 'btn btn-primary wide hero-share-btn', '📤 Sfida un Amico');
-  shareHeroBtn.addEventListener('click', showHeroShareCard);
-  c.appendChild(shareHeroBtn);
-
   // Sottomenù
   const sub = el('div', 'hero-submenu');
   [['story', 'storia', '📜', 'La tua Storia'], ['cards', 'carte', '🎴', 'Carte & Imprese'], ['bestiary', 'bestiario', '🐉', 'Bestiario'], ['diary', 'imprese_stivale', '📊', 'Diario']].forEach(([k, file, emoji, label]) => {
@@ -5235,7 +5230,18 @@ function renderSettingsView(c) {
   c.appendChild(_settingsRefreshPanel());
   c.appendChild(_settingsBackupPanel());
   c.appendChild(_settingsFullscreenPanel());
+  c.appendChild(_settingsPvpPanel());
   c.appendChild(_settingsDangerPanel());
+}
+
+function _settingsPvpPanel() {
+  const p = el('div', 'panel shortcut-panel');
+  p.appendChild(el('h3', 'panel-title', '⚔️ Sfida un Amico'));
+  p.appendChild(el('p', 'guide-text', 'Condividi la tua Hero Card con un amico. Chi percorre più km in 7 giorni vince oro e gloria. Il tuo record PvP è visibile nel profilo.'));
+  const btn = el('button', 'btn btn-primary wide', '📤 Apri Sfida PvP');
+  btn.addEventListener('click', showHeroShareCard);
+  p.appendChild(btn);
+  return p;
 }
 
 function _settingsNotifPanel() {
