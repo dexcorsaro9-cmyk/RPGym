@@ -4310,9 +4310,9 @@ function renderMarket(c) {
 
   // ── 4 sezioni del Borgo come pannelli di entrata ──
   const borgoSections = [
-    { key: 'stalla',    emoji: '🐴', title: 'La Stalla',             quote: '«La tua cavalcatura ti porta lontano — trattala bene e moltiplicherà ogni tuo passo.»',    img: 'assets/ui/borgo/stalla-header.jpg',       btn: '🐴 Entra nella Stalla' },
-    { key: 'nero',      emoji: '🕯️', title: 'Il Mercato Nero',       quote: '«Nessuna domanda, nessun registro. Solo oro che cambia mano nel buio.»',                    img: 'assets/ui/borgo/contrabbando-header.jpg', btn: '🕯️ Entra nel Mercato Nero' },
-    { key: 'fucina',    emoji: '⚒️', title: 'La Fucina',             quote: '«Batto il ferro dall\'alba. Portami il tuo pezzo peggiore: te lo riforgio meglio di prima.»', img: 'assets/ui/borgo/fucina-header.jpg',        btn: '⚒️ Entra nella Fucina' },
+    { key: 'stalla',    emoji: '🐴', title: 'La Stalla',             quote: '«La tua cavalcatura ti porta lontano — trattala bene e moltiplicherà ogni tuo passo.»',    img: 'assets/ui/header stalla.jpg',       btn: '🐴 Entra nella Stalla' },
+    { key: 'nero',      emoji: '🕯️', title: 'Il Mercato Nero',       quote: '«Nessuna domanda, nessun registro. Solo oro che cambia mano nel buio.»',                    img: 'assets/ui/header contrabbando.jpg', btn: '🕯️ Entra nel Mercato Nero' },
+    { key: 'fucina',    emoji: '⚒️', title: 'La Fucina',             quote: '«Batto il ferro dall\'alba. Portami il tuo pezzo peggiore: te lo riforgio meglio di prima.»', img: 'assets/ui/header fucina.jpg',        btn: '⚒️ Entra nella Fucina' },
     { key: 'erborista', emoji: '🧪', title: 'Il Bazar',               quote: '«Rimedi, rune e reliquie — tutto ciò che un viandante non sapeva di volere, finché non lo vede.»', img: 'assets/ui/borgo/bazar-header.jpg', btn: '🧪 Entra nel Bazar' },
   ];
   borgoSections.forEach(({ key, emoji, title, quote, img, btn }) => {
@@ -4394,13 +4394,13 @@ function _borgoSubView(c, headerSrc, title, renderFn) {
   renderFn(c);
 }
 
-function renderStallaView(c)    { _borgoSubView(c, 'assets/ui/borgo/stalla-header.jpg',        '🐴 La Stalla',        renderStalla); }
-function renderNeroView(c)      { _borgoSubView(c, 'assets/ui/borgo/contrabbando-header.jpg',   '🕯️ Il Mercato Nero',  renderNero); }
-function renderFucinaView(c)    { _borgoSubView(c, 'assets/ui/borgo/fucina-header.jpg',         '⚒️ La Fucina',        renderFucina); }
+function renderStallaView(c)    { _borgoSubView(c, 'assets/ui/header stalla.jpg',        '🐴 La Stalla',        renderStalla); }
+function renderNeroView(c)      { _borgoSubView(c, 'assets/ui/header contrabbando.jpg',   '🕯️ Il Mercato Nero',  renderNero); }
+function renderFucinaView(c)    { _borgoSubView(c, 'assets/ui/header fucina.jpg',         '⚒️ La Fucina',        renderFucina); }
 function renderErboristaView(c) { _borgoSubView(c, 'assets/ui/borgo/bazar-header.jpg',           '🧪 Il Bazar',         renderErborista); }
 
 function renderStalla(c) {
-  c.appendChild(npcBanner('assets/avatars/npc/stalliere.png', 'Ferro di Vecchio',
+  c.appendChild(npcBanner('assets/avatars/npc/stalliere.jpg', 'Ferro di Vecchio',
     '«Fieno, striglio e pazienza — le bestie lo sentono subito chi ha buon cuore. E anche chi non ce l\'ha.»'));
   c.appendChild(el('p', 'muted small center',
     'Le cavalcature aumentano i km "virtuali" di ogni allenamento. Una nuova compagna di viaggio ogni 5 livelli: tocca una miniatura per conoscere la sua storia…'));
@@ -4477,7 +4477,7 @@ function showItemPreview(it) {
 }
 
 function renderNero(c) {
-  c.appendChild(npcBanner('assets/avatars/npc/contrabbandiere.png', 'Ombra Senza Nome',
+  c.appendChild(npcBanner('assets/avatars/npc/contrabbandiere.jpg', 'Ombra Senza Nome',
     '«Non chiedo da dove vengono. Non ti chiedo chi sei. Oro in mano — affare fatto. Sparisci prima dell\'alba.»'));
   const sellable = HERO.items.filter(i => !Object.values(HERO.equipment).includes(i.id));
   if (!sellable.length) {
