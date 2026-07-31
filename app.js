@@ -4313,7 +4313,7 @@ function renderMarket(c) {
     { key: 'stalla',    emoji: '🐴', title: 'La Stalla',             quote: '«La tua cavalcatura ti porta lontano — trattala bene e moltiplicherà ogni tuo passo.»',    img: 'assets/ui/header stalla.jpg',       btn: '🐴 Entra nella Stalla' },
     { key: 'nero',      emoji: '🕯️', title: 'Il Mercato Nero',       quote: '«Nessuna domanda, nessun registro. Solo oro che cambia mano nel buio.»',                    img: 'assets/ui/header contrabbando.jpg', btn: '🕯️ Entra nel Mercato Nero' },
     { key: 'fucina',    emoji: '⚒️', title: 'La Fucina',             quote: '«Batto il ferro dall\'alba. Portami il tuo pezzo peggiore: te lo riforgio meglio di prima.»', img: 'assets/ui/header fucina.jpg',        btn: '⚒️ Entra nella Fucina' },
-    { key: 'erborista', emoji: '🧪', title: 'Il Bazar',               quote: '«Rimedi, rune e reliquie — tutto ciò che un viandante non sapeva di volere, finché non lo vede.»', img: 'assets/ui/borgo/bazar-header.jpg', btn: '🧪 Entra nel Bazar' },
+    { key: 'erborista', emoji: '🧪', title: 'Il Bazar',               quote: '«Rimedi, rune e reliquie — tutto ciò che un viandante non sapeva di volere, finché non lo vede.»', img: 'assets/header bazar.jpg', btn: '🧪 Entra nel Bazar' },
   ];
   borgoSections.forEach(({ key, emoji, title, quote, img, btn }) => {
     const panel = el('div', 'panel borgo-entry-panel');
@@ -4397,7 +4397,7 @@ function _borgoSubView(c, headerSrc, title, renderFn) {
 function renderStallaView(c)    { _borgoSubView(c, 'assets/ui/header stalla.jpg',        '🐴 La Stalla',        renderStalla); }
 function renderNeroView(c)      { _borgoSubView(c, 'assets/ui/header contrabbando.jpg',   '🕯️ Il Mercato Nero',  renderNero); }
 function renderFucinaView(c)    { _borgoSubView(c, 'assets/ui/header fucina.jpg',         '⚒️ La Fucina',        renderFucina); }
-function renderErboristaView(c) { _borgoSubView(c, 'assets/ui/borgo/bazar-header.jpg',           '🧪 Il Bazar',         renderErborista); }
+function renderErboristaView(c) { _borgoSubView(c, 'assets/header bazar.jpg',           '🧪 Il Bazar',         renderErborista); }
 
 function renderStalla(c) {
   c.appendChild(npcBanner('assets/avatars/npc/stalliere.jpg', 'Ferro di Vecchio',
