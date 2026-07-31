@@ -126,40 +126,6 @@ assert('sessione troppo lunga rifiutata', !!rErr.error);
 
 /* ══ Test: edifici ══════════════════════════════════════════════════ */
 
-section('build — costi e requisiti');
-
-const bFondamenta = RPG.BUILDINGS.find(x => x.id === 'fondamenta');
-const bBaule      = RPG.BUILDINGS.find(x => x.id === 'baule');
-assert('fondamenta trovata nei BUILDINGS', !!bFondamenta);
-assert('baule trovato nei BUILDINGS',      !!bBaule);
-assert('baule richiede fondamenta',        bBaule && bBaule.requires === 'fondamenta');
-
-// builder con risorse sufficienti e livello giusto
-const builder = RPG.newHero('Fabbro', 'a');
-builder.level = 5; builder.wood = 1000; builder.stone = 1000;
-
-assert('canBuild fondamenta a lv 5 → ok',
-  RPG.canBuild(builder, bFondamenta) === 'ok',
-  RPG.canBuild(builder, bFondamenta));
-
-const woodBefore = builder.wood, stoneBefore = builder.stone;
-RPG.build(builder, 'fondamenta');
-assert('wood scalato di cost.wood', builder.wood === woodBefore - bFondamenta.cost.wood, `wood: ${builder.wood}`);
-assert('stone scalato di cost.stone', builder.stone === stoneBefore - bFondamenta.cost.stone, `stone: ${builder.stone}`);
-assert('edificio registrato nella lista', builder.buildings.includes('fondamenta'));
-
-// prerequisito mancante
-const builder2 = RPG.newHero('NoPre', 'a');
-builder2.level = 5; builder2.wood = 1000; builder2.stone = 1000;
-assert('canBuild baule senza fondamenta → requisito',
-  RPG.canBuild(builder2, bBaule) === 'requisito');
-
-// livello insufficiente
-const low = RPG.newHero('Low', 'a');
-low.level = 1; low.wood = 1000; low.stone = 1000;
-assert('canBuild fondamenta a lv 1 → livello',
-  RPG.canBuild(low, bFondamenta).startsWith('livello'));
-
 /* ══ Test: cavalleria — prezzi ═════════════════════════════════════ */
 
 section('cavalcature — formula prezzo');

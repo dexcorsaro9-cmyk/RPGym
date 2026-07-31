@@ -656,7 +656,6 @@ function enterGame() {
       <button class="btn btn-primary wide" onclick="nextOpening()">Domani non scapperà!</button>`));
   }
   if (streakBroke) OPEN_QUEUE.push(() => showStreakFreezeOffer(preStreakCount));
-  if (HERO.buildingsDamaged && HERO.buildings.length) OPEN_QUEUE.push(showBuildingDamageAlert);
   if (login) { window._pendingLogin = login; OPEN_QUEUE.push(showDailyLogin); }
   // La Taglia è stata reclamata dall'altro eroe?
   const ev = RPG.weeklyEvent(STATE);
@@ -884,35 +883,6 @@ window.doStreakFreeze = function(savedCount) {
     </div>
     <p class="muted center">Il gelo arcano ha preservato la tua striscia. Non deludere il Viandante!</p>
     <button class="btn btn-primary wide" onclick="nextOpening()">Avanti!</button>`);
-};
-
-/* ── Building damage alert ────────────────────────────────── */
-function showBuildingDamageAlert() {
-  const days = RPG.daysSinceLastWorkout(HERO);
-  const canAfford = HERO.gold >= 100;
-  modal(`
-    <h3 class="panel-title">🏚️ Rifugio Danneggiato!</h3>
-    <div class="building-damage-alert">
-      <div class="bda-icon">🏚️</div>
-      <p class="center">Sono passati <b>${days} giorni</b> senza allenamento.<br>L'abbandono ha danneggiato le tue strutture!</p>
-      <p class="muted small center">I bonus degli edifici sono sospesi finché non ripari il Rifugio.</p>
-    </div>
-    <button class="btn btn-primary wide" id="btn-repair-buildings" ${canAfford ? '' : 'disabled'} onclick="doRepairBuildings()">
-      ${canAfford ? '🔨 Ripara il Rifugio · 100 🪙' : '🔨 Oro insufficiente · 100 🪙'}
-    </button>
-    <button class="btn wide" style="margin-top:.5rem;opacity:.7" onclick="nextOpening()">Lascia perdere</button>`);
-}
-
-window.doRepairBuildings = function() {
-  const err = RPG.repairBuildings(HERO);
-  if (err) { toast(err); return; }
-  persist(); renderHUD();
-  vibrate([80, 40, 120]);
-  modal(`
-    <h3 class="panel-title">🏠 Rifugio Riparato!</h3>
-    <p class="center" style="font-size:2rem">🔨✨</p>
-    <p class="muted center">I tuoi edifici tornano a splendere. I bonus sono di nuovo attivi!</p>
-    <button class="btn btn-primary wide" onclick="nextOpening()">Ottimo!</button>`);
 };
 
 /* Popup dettaglio risorse (tocco sulle risorse in alto a destra) */
@@ -1471,25 +1441,6 @@ function renderCamp(c) {
   panorama.appendChild(seasonEl);
 
 
-  // Avviso Rifugio Danneggiato
-  if (HERO.buildingsDamaged && HERO.buildings.length) {
-    const dmg = el('div', 'panel building-damage-panel');
-    dmg.innerHTML = `
-      <div class="bdp-header">🏚️ Rifugio Danneggiato</div>
-      <p class="muted small">Giorni di inattività hanno danneggiato le strutture. I bonus degli edifici sono sospesi.</p>`;
-    const repairBtn = el('button', 'btn btn-primary wide', `🔨 Ripara · 100 🪙${HERO.gold < 100 ? ' (oro insuff.)' : ''}`);
-    repairBtn.disabled = HERO.gold < 100;
-    repairBtn.addEventListener('click', () => {
-      const err = RPG.repairBuildings(HERO);
-      if (err) { toast(err); return; }
-      persist(); renderHUD(); setTab('camp');
-      toast('🏠 Rifugio riparato! I bonus sono di nuovo attivi.');
-    });
-    dmg.appendChild(repairBtn);
-    c.appendChild(dmg);
-  }
-
-
   // Prima missione — visibile solo finché totalKm === 0
   if ((HERO.totalKm || 0) === 0) {
     const fp = el('div', 'panel camp-first-quest');
@@ -1568,11 +1519,6 @@ function renderCamp(c) {
     const totalOwned      = (HERO.furniture && HERO.furniture.owned.length) || 0;
     const setsComplete    = RPG.FURNITURE_SETS.filter(s => RPG.furnitureSetComplete(HERO, s.id)).length;
     const layersOwned     = RPG.CAMP_LAYER_SHOP.filter(l => (HERO.furniture && HERO.furniture.owned || []).includes(l.id)).length;
-    const BUILD_ICON_FILES = {
-      fondamenta: 'torre-mago', baule: 'baule', letto: null,
-      muro: 'muro', fucina: 'fucina', lab: 'laboratorio',
-    };
-
     const cp = el('div', 'panel cantiere-panel');
 
     // Header immagine
@@ -1599,40 +1545,6 @@ function renderCamp(c) {
     const enterArredaBtn = el('button', 'btn btn-primary wide', '🏛️ Entra nella Bottega');
     enterArredaBtn.addEventListener('click', () => { CAMP_VIEW = 'arredamento'; setTab('camp'); });
     cp.appendChild(enterArredaBtn);
-
-    // ── Edifici (dentro Arredamento) ──
-    if (HERO.level < 5) {
-      cp.appendChild(el('p', 'muted',
-        `Raggiungi il <b>Livello 5</b> per costruire la tua casa. (Ora sei al Lv ${HERO.level}.)`));
-    } else {
-      RPG.BUILDINGS.forEach(b => {
-        const status = RPG.canBuild(HERO, b);
-        const row = el('div', 'build-row' + (status === 'costruito' ? ' built' : ''));
-        const iconFile = BUILD_ICON_FILES[b.id];
-        const iconHolder = el('div', 'build-icon', b.icon);
-        if (iconFile) {
-          const bimg = new Image();
-          bimg.onload = () => { iconHolder.textContent = ''; bimg.className = 'build-icon-img'; iconHolder.appendChild(bimg); };
-          bimg.src = `assets/ui/rifugio/${iconFile}.png`;
-        }
-        row.appendChild(iconHolder);
-        row.appendChild(el('div', 'build-mid',
-          `<b>${b.name}</b><br><span class="small muted">${b.desc}</span><br>` +
-          `<span class="small">🪵 ${b.cost.wood} · 🪨 ${b.cost.stone} · Liv. ${b.minLevel}</span>`));
-        const btn = el('button', 'btn btn-small');
-        if (status === 'costruito') { btn.textContent = '✅'; btn.disabled = true; }
-        else if (status === 'ok') {
-          btn.textContent = 'Costruisci';
-          btn.classList.add('btn-primary');
-          btn.addEventListener('click', () => {
-            RPG.build(HERO, b.id); persist(); renderHUD(); setTab('camp');
-            toast(`${b.icon} ${b.name} costruito!`);
-          });
-        } else { btn.textContent = '🔒'; btn.disabled = true; }
-        row.appendChild(btn);
-        cp.appendChild(row);
-      });
-    }
 
     c.appendChild(cp);
   }
@@ -1698,13 +1610,11 @@ function renderCamp(c) {
 
 function showAllyBase(o) {
   RPG.migrateHero(o);
-  const built = RPG.BUILDINGS.filter(b => o.buildings.includes(b.id));
   const mount = o.mount ? RPG.mountById(o.mount) : null;
   modal(`
     <h3 class="panel-title">🪞 Il Rifugio di ${esc(o.name)}</h3>
-    <div class="camp-emoji">${o.buildings.includes('fondamenta') ? '🛖' : '🔥'}${o.companion ? ' 🐺' : ''}${mount ? ' ' + mount.emoji : ''}</div>
+    <div class="camp-emoji">🔥${o.companion ? ' 🐺' : ''}${mount ? ' ' + mount.emoji : ''}</div>
     <p class="muted">Liv. ${o.level} — ${RPG.heroTitle(o.level)} · ${o.totalKm.toFixed(1)} km totali</p>
-    <p>${built.length ? 'Strutture: ' + built.map(b => b.icon + ' ' + b.name).join(', ') : 'Dorme ancora accanto al falò.'}</p>
     ${mount ? `<p>Cavalcatura: ${mount.emoji} ${mount.name}</p>` : ''}
     <p class="muted small">${o.cards.length} carte · ${(o.bestiary || []).length} creature nel Bestiario · ${(o.items || []).length} oggetti</p>
     <button class="btn btn-primary wide" onclick="closeModal()">Torna al tuo Rifugio</button>
@@ -4808,11 +4718,6 @@ function renderHero(c) {
   saccaBtn.addEventListener('click', () => { HERO_VIEW = 'zaino'; setTab('hero'); });
   c.appendChild(saccaBtn);
 
-  // Bottone condivisione hero card
-  const shareHeroBtn = el('button', 'btn btn-primary wide hero-share-btn', '📤 Sfida un Amico');
-  shareHeroBtn.addEventListener('click', showHeroShareCard);
-  c.appendChild(shareHeroBtn);
-
   // Sottomenù
   const sub = el('div', 'hero-submenu');
   [['story', 'storia', '📜', 'La tua Storia'], ['cards', 'carte', '🎴', 'Carte & Imprese'], ['bestiary', 'bestiario', '🐉', 'Bestiario'], ['diary', 'imprese_stivale', '📊', 'Diario']].forEach(([k, file, emoji, label]) => {
@@ -5235,7 +5140,18 @@ function renderSettingsView(c) {
   c.appendChild(_settingsRefreshPanel());
   c.appendChild(_settingsBackupPanel());
   c.appendChild(_settingsFullscreenPanel());
+  c.appendChild(_settingsPvpPanel());
   c.appendChild(_settingsDangerPanel());
+}
+
+function _settingsPvpPanel() {
+  const p = el('div', 'panel shortcut-panel');
+  p.appendChild(el('h3', 'panel-title', '⚔️ Sfida un Amico'));
+  p.appendChild(el('p', 'guide-text', 'Condividi la tua Hero Card con un amico. Chi percorre più km in 7 giorni vince oro e gloria. Il tuo record PvP è visibile nel profilo.'));
+  const btn = el('button', 'btn btn-primary wide', '📤 Apri Sfida PvP');
+  btn.addEventListener('click', showHeroShareCard);
+  p.appendChild(btn);
+  return p;
 }
 
 function _settingsNotifPanel() {
