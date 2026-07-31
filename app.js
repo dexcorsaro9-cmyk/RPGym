@@ -4400,6 +4400,8 @@ function renderFucinaView(c)    { _borgoSubView(c, 'assets/ui/borgo/fucina-heade
 function renderErboristaView(c) { _borgoSubView(c, 'assets/ui/borgo/bazar-header.jpg',           '🧪 Il Bazar',         renderErborista); }
 
 function renderStalla(c) {
+  c.appendChild(npcBanner('assets/avatars/npc/stalliere.png', 'Ferro di Vecchio',
+    '«Fieno, striglio e pazienza — le bestie lo sentono subito chi ha buon cuore. E anche chi non ce l\'ha.»'));
   c.appendChild(el('p', 'muted small center',
     'Le cavalcature aumentano i km "virtuali" di ogni allenamento. Una nuova compagna di viaggio ogni 5 livelli: tocca una miniatura per conoscere la sua storia…'));
   const grid = el('div', 'mount-grid');
@@ -4475,6 +4477,8 @@ function showItemPreview(it) {
 }
 
 function renderNero(c) {
+  c.appendChild(npcBanner('assets/avatars/npc/contrabbandiere.png', 'Ombra Senza Nome',
+    '«Non chiedo da dove vengono. Non ti chiedo chi sei. Oro in mano — affare fatto. Sparisci prima dell\'alba.»'));
   const sellable = HERO.items.filter(i => !Object.values(HERO.equipment).includes(i.id));
   if (!sellable.length) {
     c.appendChild(emptyState('💼', 'Non hai bottini da vendere. Gli oggetti equipaggiati non si toccano!'));
