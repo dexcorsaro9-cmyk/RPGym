@@ -6080,11 +6080,11 @@ img.camp-layer {
 #tab-map .bisca-view-wrap,
 .bisca-view-wrap {
   background: #12091e;
-  min-height: 100%;
+  border-radius: 10px;
   padding: 0 0 24px;
   color: #e8dff5;
+  margin-top: 0;
 }
-.bisca-view-wrap .btn-back { color: #c4b5fd; }
 
 .bisca-entry-panel  { border-left: 3px solid #6b21a8; }
 .bisca-entry-quote  { font-style: italic; }
@@ -6098,7 +6098,29 @@ img.camp-layer {
 .bisca-header-img {
   width: 100%; max-height: 160px; object-fit: cover;
   object-position: center 30%; display: block;
-  border-bottom: 2px solid #4c1d95;
+  border-radius: 10px; margin-bottom: 0;
+}
+
+/* NPC biscazziere: full body, dimensioni compatte */
+.bisca-npc-banner { background: #1e1035; border-color: #4c1d95; }
+.bisca-npc-img {
+  height: 90px; width: 68px; max-width: 68px;
+  object-fit: contain; object-position: center center;
+  border-radius: 6px; filter: drop-shadow(0 3px 6px rgba(0,0,0,.5));
+}
+
+/* Back link — pill sottile e discreto */
+.view-back-link {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: none; border: 1px solid var(--leather);
+  color: var(--ink-light); font-size: .78rem; font-weight: 600;
+  padding: 3px 10px; border-radius: 20px; cursor: pointer;
+  margin-bottom: 8px; opacity: .75;
+  transition: opacity .15s;
+}
+.view-back-link:hover { opacity: 1; }
+.view-back-link-bisca {
+  border-color: #4c1d95; color: #c4b5fd;
 }
 
 .bisca-inner        { padding: 12px 16px 0; }

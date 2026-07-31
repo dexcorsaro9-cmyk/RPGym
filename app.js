@@ -2487,7 +2487,7 @@ function renderMap(c) {
 }
 
 function renderTavernaView(c) {
-  const backBtn = el('button', 'btn btn-back', '← Torna al Borgo');
+  const backBtn = el('button', 'view-back-link', '‹ Il Borgo');
   backBtn.addEventListener('click', () => { MARKET_VIEW = 'stalla'; setTab('market'); });
   c.appendChild(backBtn);
 
@@ -2510,30 +2510,29 @@ function renderTavernaView(c) {
 }
 
 function renderBiscaView(c) {
-  const wrap = el('div', 'bisca-view-wrap');
+  const backBtn = el('button', 'view-back-link view-back-link-bisca', '‹ Il Borgo');
+  backBtn.addEventListener('click', () => { MARKET_VIEW = 'stalla'; setTab('market'); });
+  c.appendChild(backBtn);
 
   const headerImg = document.createElement('img');
   headerImg.src = 'assets/backgrounds/bg-bisca.jpg';
   headerImg.className = 'bisca-header-img';
   headerImg.alt = '';
   headerImg.onerror = () => headerImg.remove();
-  wrap.appendChild(headerImg);
+  c.appendChild(headerImg);
 
+  const wrap = el('div', 'bisca-view-wrap');
   const inner = el('div', 'bisca-inner');
   wrap.appendChild(inner);
   c.appendChild(wrap);
 
-  const backBtn = el('button', 'btn btn-back', '← Torna al Borgo');
-  backBtn.addEventListener('click', () => { MARKET_VIEW = 'stalla'; setTab('market'); });
-  inner.appendChild(backBtn);
-
   inner.appendChild(el('h2', 'bisca-title', '🃏 La Bisca Oscura'));
 
   // NPC biscazziere
-  const npcBanner = el('div', 'npc-banner npc-banner-lg');
+  const npcBanner = el('div', 'npc-banner bisca-npc-banner');
   const npcImg = document.createElement('img');
   npcImg.src = 'assets/npcs/biscazziere.jpg';
-  npcImg.className = 'npc-img';
+  npcImg.className = 'npc-img bisca-npc-img';
   npcImg.alt = 'Il Biscazziere';
   npcImg.onerror = () => npcImg.remove();
   npcBanner.appendChild(npcImg);
