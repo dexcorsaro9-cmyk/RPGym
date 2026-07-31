@@ -56,6 +56,8 @@ const REQUIRED_FIELDS = [
   'cards','activeMission','restBonus','companion',
   // v4
   'miniGames','dailyChallenges',
+  // v5
+  'tickets','ticketsEarned',
 ];
 
 const bare = { id:'t1', name:'Test', avatar:'a', level:1, xp:0, gold:0, wood:0, stone:0 };
@@ -65,7 +67,7 @@ REQUIRED_FIELDS.forEach(f => {
   assert(`migrated.${f} definito`, migrated[f] !== undefined);
 });
 
-assert('schemaVersion è 4', migrated.schemaVersion === 4);
+assert('schemaVersion è 5', migrated.schemaVersion === 5);
 assert('items è array', Array.isArray(migrated.items));
 assert('equipment.arma è null', migrated.equipment.arma === null);
 assert('streak.count è 0', migrated.streak.count === 0);
@@ -85,7 +87,7 @@ const hero = RPG.newHero('Aria', 'assets/avatars/eroe1.png');
 assert('level 1', hero.level === 1);
 assert('xp 0', hero.xp === 0);
 assert('gold 0', hero.gold === 0);
-assert('schemaVersion aggiornato', hero.schemaVersion === 4);
+assert('schemaVersion aggiornato', hero.schemaVersion === 5);
 assert('nome corretto', hero.name === 'Aria');
 
 /* ══ Test: xpForLevel ═══════════════════════════════════════════════ */

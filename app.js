@@ -2553,9 +2553,19 @@ function renderMap(c) {
 
   // ── La Bisca Oscura ──
   const biscaEntry = el('div', 'panel bisca-entry-panel');
-  biscaEntry.appendChild(el('h3', 'panel-title', '🃏 La Bisca Oscura'));
-  biscaEntry.appendChild(el('p', 'muted small bisca-entry-quote',
+  const biscaThumbWrap = el('div', 'npc-banner');
+  const biscaThumb = document.createElement('img');
+  biscaThumb.src = 'assets/npcs/biscazziere.jpg';
+  biscaThumb.className = 'npc-img';
+  biscaThumb.alt = '';
+  biscaThumb.onerror = () => biscaThumbWrap.remove();
+  biscaThumbWrap.appendChild(biscaThumb);
+  const biscaEntryText = el('div', '');
+  biscaEntryText.appendChild(el('h3', 'panel-title', '🃏 La Bisca Oscura'));
+  biscaEntryText.appendChild(el('p', 'muted small bisca-entry-quote',
     '«Nessuno sa chi organizza gli scontri. Nessuno chiede. Le monete parlano per tutti.»'));
+  biscaThumbWrap.appendChild(biscaEntryText);
+  biscaEntry.appendChild(biscaThumbWrap);
   RPG.biscaResetIfNeeded(HERO);
   const biscaBetsLeft = (HERO.bisca && HERO.bisca.betsLeft !== undefined) ? HERO.bisca.betsLeft : RPG.BISCA_DAILY_BETS;
   if (biscaBetsLeft > 0) {
@@ -2596,7 +2606,7 @@ function renderBiscaView(c) {
   const wrap = el('div', 'bisca-view-wrap');
 
   const headerImg = document.createElement('img');
-  headerImg.src = 'assets/ui/bisca-header.jpg';
+  headerImg.src = 'assets/backgrounds/bg-bisca.jpg';
   headerImg.className = 'bisca-header-img';
   headerImg.alt = '';
   headerImg.onerror = () => headerImg.remove();
@@ -2611,7 +2621,18 @@ function renderBiscaView(c) {
   inner.appendChild(backBtn);
 
   inner.appendChild(el('h2', 'bisca-title', '🃏 La Bisca Oscura'));
-  inner.appendChild(el('p', 'muted small center bisca-subtitle', '«Scegli il tuo campione. Punta l\'oro. Prega che regga.»'));
+
+  // NPC biscazziere
+  const npcBanner = el('div', 'npc-banner npc-banner-lg');
+  const npcImg = document.createElement('img');
+  npcImg.src = 'assets/npcs/biscazziere.jpg';
+  npcImg.className = 'npc-img';
+  npcImg.alt = 'Il Biscazziere';
+  npcImg.onerror = () => npcImg.remove();
+  npcBanner.appendChild(npcImg);
+  const npcQuote = el('p', 'npc-quote', '«Scegli il tuo campione. Punta l\'oro. Prega che regga.»');
+  npcBanner.appendChild(npcQuote);
+  inner.appendChild(npcBanner);
 
   RPG.biscaResetIfNeeded(HERO);
   const betsLeft = (HERO.bisca && HERO.bisca.betsLeft !== undefined) ? HERO.bisca.betsLeft : 0;
@@ -4070,6 +4091,8 @@ function showReport(r) {
     r.loot.forEach(it => { html += itemHtml(it); });
     html += `</div>`;
   }
+  if (r.tickets && r.tickets.length)
+    html += `<p>🎟️ Hai trovato <b>${r.tickets.length} Biglietto${r.tickets.length > 1 ? ' Gratta e Vinci' : ' Gratta e Vinci'}</b>! Aprilo dalla tua Sacca.</p>`;
   if (r.fragments)
     html += `<p>🔍 Hai trovato <b>${r.fragments} Frammento/i di Memoria</b>!</p>`;
   if (r.sighting) {
@@ -4303,6 +4326,13 @@ function revealChest(title, chest) {
     </div></div>`;
   });
   html += `</div>`;
+  if (chest.ticket) {
+    const tCfg = RPG.TICKET_TYPES[chest.ticket];
+    html += `<div class="panel" style="margin-top:10px;text-align:center;background:rgba(180,140,20,0.08);border:1px solid rgba(200,160,30,0.25)">
+      🎟️ <b>Biglietto ${esc(tCfg.name)} trovato!</b><br>
+      <span class="muted small">Aprilo dalla tua Sacca → Biglietti</span>
+    </div>`;
+  }
   html += `<p class="small muted center" style="margin-top:12px">Gli oggetti sono nel tuo zaino: equipaggiali dal menu Eroe o vendili al Mercato.</p>
     <button class="btn btn-primary wide" onclick="closeModal(); setTab('hero')">Vai all'Equipaggiamento</button>
     <button class="btn wide" onclick="closeModal()">Chiudi</button>`;
@@ -6186,13 +6216,171 @@ function msToMidnight() {
 }
 /* ── Zaino dell'Avventuriero (consumabili) ──────────────────────────────── */
 const ZAINO_CATS = [
-  { id: 'tutti',    label: 'Tutti' },
-  { id: 'pozioni',  label: '🍯 Pozioni' },
-  { id: 'rune',     label: '🔮 Rune' },
-  { id: 'utility',  label: '🧭 Utility' },
-  { id: 'materiali',label: '⚒️ Materiali' },
+  { id: 'tutti',     label: 'Tutti' },
+  { id: 'pozioni',   label: '🍯 Pozioni' },
+  { id: 'rune',      label: '🔮 Rune' },
+  { id: 'utility',   label: '🧭 Utility' },
+  { id: 'materiali', label: '⚒️ Materiali' },
+  { id: 'biglietti', label: '🎟️ Biglietti' },
 ];
 let ZAINO_CAT = 'tutti';
+
+function showScratchCard(ticket) {
+  const cfg = RPG.TICKET_TYPES[ticket.type];
+
+  // Scratch subito: il risultato è già deciso (seed fisso)
+  const result = RPG.scratchTicket(HERO, ticket.id);
+  RPG.save({ heroes: STATE.heroes, current: STATE.current, claimedEvents: STATE.claimedEvents });
+  if (result.error) { toast('Biglietto non valido.'); return; }
+
+  const CELL_CFG = {
+    comune:      { fill: '#a87010', noiseA: 'rgba(255,200,60,0.15)', noiseB: 'rgba(100,60,0,0.2)',
+                   area: { l:21, r:21, t:39, b:21, gap:2.8 } },
+    raro:        { fill: '#0a1a28', noiseA: 'rgba(77,217,232,0.10)', noiseB: 'rgba(0,20,40,0.35)',
+                   area: { l:24, r:24, t:38, b:32, gap:3 } },
+    leggendario: { fill: '#180330', noiseA: 'rgba(180,80,255,0.12)', noiseB: 'rgba(50,0,90,0.3)',
+                   area: { l:24, r:24, t:42, b:30, gap:3 }, outerFlex: 1.25, innerFlex: 0.75 },
+  };
+  const cc = CELL_CFG[ticket.type];
+
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `
+    <h3 class="panel-title">🎟️ ${esc(cfg.name)}</h3>
+    <p class="muted small center" style="margin-bottom:10px">Gratta le celle per scoprire il premio</p>
+    <div id="sc-card" style="position:relative;width:100%;border-radius:10px;overflow:hidden;cursor:crosshair;user-select:none">
+      <img id="sc-bg" src="${cfg.img}" style="display:block;width:100%;height:auto;border-radius:10px;-webkit-user-drag:none" draggable="false">
+      <div id="sc-cells" style="position:absolute;display:flex;"></div>
+    </div>
+    <div id="sc-result" style="display:none;margin-top:14px;text-align:center"></div>
+    <button class="btn btn-secondary wide" style="margin-top:14px" onclick="closeModal()">Chiudi</button>
+  `;
+
+  modal(wrap);
+
+  // Posiziona il contenitore celle dopo il render
+  requestAnimationFrame(() => {
+    const cardEl  = document.getElementById('sc-card');
+    const cellsEl = document.getElementById('sc-cells');
+    if (!cardEl || !cellsEl) return;
+
+    const W = cardEl.offsetWidth;
+    const H = cardEl.offsetHeight;
+    const a = cc.area;
+
+    cellsEl.style.left    = a.l + '%';
+    cellsEl.style.right   = a.r + '%';
+    cellsEl.style.top     = a.t + '%';
+    cellsEl.style.bottom  = a.b + '%';
+    cellsEl.style.gap     = a.gap + '%';
+    cellsEl.style.alignItems = 'stretch';
+
+    let revealedCount = 0;
+    let hintGone = false;
+
+    result.symbols.forEach((sym, idx) => {
+      const cell = document.createElement('div');
+      cell.style.cssText = 'position:relative;overflow:hidden;border-radius:6px;cursor:crosshair;';
+      cell.style.flex = (cc.outerFlex && idx !== 1) ? String(cc.outerFlex) : (cc.innerFlex && idx === 1) ? String(cc.innerFlex) : '1';
+
+      const symEl = document.createElement('div');
+      symEl.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(1.2rem,4vw,2rem);';
+      symEl.textContent = sym;
+      cell.appendChild(symEl);
+
+      const canvas = document.createElement('canvas');
+      canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;';
+      cell.appendChild(canvas);
+      cellsEl.appendChild(cell);
+
+      requestAnimationFrame(() => {
+        const cW = cell.offsetWidth  || 80;
+        const cH = cell.offsetHeight || 100;
+        const dpr = devicePixelRatio || 1;
+        canvas.width  = cW * dpr;
+        canvas.height = cH * dpr;
+        canvas.style.width  = cW + 'px';
+        canvas.style.height = cH + 'px';
+
+        const ctx = canvas.getContext('2d');
+        ctx.scale(dpr, dpr);
+        ctx.fillStyle = cc.fill;
+        ctx.fillRect(0, 0, cW, cH);
+        for (let n = 0; n < 400; n++) {
+          const x = Math.random() * cW, y = Math.random() * cH, r = Math.random() * 1.4;
+          ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.fillStyle = Math.random() > 0.5 ? cc.noiseA : cc.noiseB;
+          ctx.fill();
+        }
+        ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+        ctx.lineWidth = 1;
+        for (let y = 7; y < cH; y += 9) {
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cW, y); ctx.stroke();
+        }
+
+        let revealed = false, isDown = false;
+        function getPos(e) {
+          const r = canvas.getBoundingClientRect();
+          const src = e.touches ? e.touches[0] : e;
+          return { x: src.clientX - r.left, y: src.clientY - r.top };
+        }
+        function scratch(x, y) {
+          if (revealed) return;
+          ctx.globalCompositeOperation = 'destination-out';
+          ctx.beginPath(); ctx.arc(x, y, 22, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(0,0,0,1)'; ctx.fill();
+          ctx.globalCompositeOperation = 'source-over';
+        }
+        function checkReveal() {
+          const d = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+          let t = 0;
+          for (let p = 3; p < d.length; p += 4) if (d[p] < 128) t++;
+          if (t / (canvas.width * canvas.height) >= 0.52) autoReveal();
+        }
+        function autoReveal() {
+          if (revealed) return;
+          revealed = true;
+          clearInterval(timer);
+          let op = 1;
+          const fade = setInterval(() => {
+            op -= 0.06; canvas.style.opacity = Math.max(0, op);
+            if (op <= 0) {
+              clearInterval(fade); canvas.style.display = 'none';
+              if (++revealedCount === 3) showResult();
+            }
+          }, 20);
+        }
+        const timer = setInterval(checkReveal, 130);
+
+        canvas.addEventListener('mousedown',  e => { isDown = true; const p = getPos(e); scratch(p.x, p.y); });
+        canvas.addEventListener('mousemove',  e => { if (isDown) { const p = getPos(e); scratch(p.x, p.y); } });
+        canvas.addEventListener('mouseup',    () => isDown = false);
+        canvas.addEventListener('mouseleave', () => isDown = false);
+        canvas.addEventListener('touchstart', e => { e.preventDefault(); isDown = true; const p = getPos(e); scratch(p.x, p.y); }, { passive: false });
+        canvas.addEventListener('touchmove',  e => { e.preventDefault(); if (isDown) { const p = getPos(e); scratch(p.x, p.y); } }, { passive: false });
+        canvas.addEventListener('touchend',   () => isDown = false);
+      });
+    });
+
+    function showResult() {
+      const resEl = document.getElementById('sc-result');
+      if (!resEl) return;
+      resEl.style.display = 'block';
+      if (result.isWin) {
+        resEl.innerHTML = `
+          <div class="panel" style="background:rgba(180,140,20,0.15);border:1px solid rgba(200,160,30,0.4)">
+            <div style="font-size:1.5rem;margin-bottom:6px">🎉</div>
+            <b style="color:#f0c040">${esc(result.prize.label)}</b>
+            ${result.prize.droppedItem ? `<div class="muted small" style="margin-top:4px">+ ${esc(result.prize.droppedItem.name)}</div>` : ''}
+            ${result.prize.droppedConsumable ? `<div class="muted small" style="margin-top:4px">+ Consumabile</div>` : ''}
+          </div>`;
+        toast(`🎟️ ${result.prize.label}`);
+      } else {
+        resEl.innerHTML = `<p class="muted">Nessun premio questa volta — riprova con il prossimo biglietto!</p>`;
+      }
+      HERO_VIEW = 'zaino';
+    }
+  });
+}
 
 function renderZainoView(c) {
   const backBtn = el('button', 'btn btn-small', '↩ Torna all\'Eroe');
@@ -6228,6 +6416,32 @@ function renderZainoView(c) {
     sw.appendChild(b);
   });
   c.appendChild(sw);
+
+  // ── Biglietti Gratta e Vinci ──
+  if (ZAINO_CAT === 'tutti' || ZAINO_CAT === 'biglietti') {
+    const tickets = RPG.getUnscratchedTickets(HERO);
+    if (tickets.length > 0) {
+      const tPanel = el('div', 'panel');
+      tPanel.appendChild(el('h3', 'panel-title', '🎟️ Biglietti da Grattare'));
+      const tGrid = el('div', 'ticket-grid');
+      tickets.forEach(ticket => {
+        const cfg = RPG.TICKET_TYPES[ticket.type];
+        const card = el('div', `ticket-card ticket-${ticket.type}`);
+        const img = el('img', 'ticket-thumb');
+        img.src = cfg.img;
+        img.alt = cfg.name;
+        card.appendChild(img);
+        const label = el('div', 'ticket-label', cfg.name);
+        card.appendChild(label);
+        const btn = el('button', 'btn btn-primary btn-small', '✨ Gratta!');
+        btn.addEventListener('click', () => showScratchCard(ticket));
+        card.appendChild(btn);
+        tGrid.appendChild(card);
+      });
+      tPanel.appendChild(tGrid);
+      c.appendChild(tPanel);
+    }
+  }
 
   // Griglia consumabili posseduti
   const owned = HERO.consumables || {};
