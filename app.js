@@ -2158,26 +2158,6 @@ function renderMap(c) {
   }
   c.appendChild(hdr);
 
-  // ── Il Pantheon dei Campioni (entry) — in cima alla Mappa per visibilità ──
-  {
-    const pvpWins = HERO.pvpWins || 0;
-    const pt = pvpTitle(pvpWins);
-    const pvpEntry = el('div', 'panel borgo-entry-panel pantheon-entry-panel');
-    const pantheonThumb = document.createElement('img');
-    pantheonThumb.src = 'assets/ui/pantheon-header.jpg';
-    pantheonThumb.alt = '';
-    pantheonThumb.className = 'borgo-entry-header';
-    pantheonThumb.onerror = () => pantheonThumb.remove();
-    pvpEntry.appendChild(pantheonThumb);
-    pvpEntry.appendChild(el('h3', 'panel-title pantheon-entry-title', '🏛️ Il Pantheon dei Campioni'));
-    if (pt) pvpEntry.appendChild(el('div', 'pantheon-rank-chip', `${pt.icon} ${pt.label}`));
-    pvpEntry.appendChild(el('p', 'muted small borgo-entry-quote', '«Classifica globale · I tuoi Rivali · Sfide PvP»'));
-    const enterPantheonBtn = el('button', 'btn btn-primary wide', '⚔️ Entra nel Pantheon');
-    enterPantheonBtn.addEventListener('click', () => { MAP_VIEW = 'pantheon'; setTab('map'); });
-    pvpEntry.appendChild(enterPantheonBtn);
-    c.appendChild(pvpEntry);
-  }
-
   // ── Incursione del giorno ──
   if (HERO.incursion && !HERO.incursion.done) {
     const inc = HERO.incursion;
@@ -2371,6 +2351,26 @@ function renderMap(c) {
       pp.appendChild(btn);
     }
     c.appendChild(pp);
+  }
+
+  // ── Il Pantheon dei Campioni (entry) ──
+  {
+    const pvpWins = HERO.pvpWins || 0;
+    const pt = pvpTitle(pvpWins);
+    const pvpEntry = el('div', 'panel borgo-entry-panel pantheon-entry-panel');
+    const pantheonThumb = document.createElement('img');
+    pantheonThumb.src = 'assets/ui/pantheon-header.jpg';
+    pantheonThumb.alt = '';
+    pantheonThumb.className = 'borgo-entry-header';
+    pantheonThumb.onerror = () => pantheonThumb.remove();
+    pvpEntry.appendChild(pantheonThumb);
+    pvpEntry.appendChild(el('h3', 'panel-title pantheon-entry-title', '🏛️ Il Pantheon dei Campioni'));
+    if (pt) pvpEntry.appendChild(el('div', 'pantheon-rank-chip', `${pt.icon} ${pt.label}`));
+    pvpEntry.appendChild(el('p', 'muted small borgo-entry-quote', '«Classifica globale · I tuoi Rivali · Sfide PvP»'));
+    const enterPantheonBtn = el('button', 'btn btn-primary wide', '⚔️ Entra nel Pantheon');
+    enterPantheonBtn.addEventListener('click', () => { MAP_VIEW = 'pantheon'; setTab('map'); });
+    pvpEntry.appendChild(enterPantheonBtn);
+    c.appendChild(pvpEntry);
   }
 
   // ── Mercante Itinerante (ven–dom) ──
