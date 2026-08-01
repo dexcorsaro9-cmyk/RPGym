@@ -998,13 +998,27 @@ document.addEventListener('touchend', e => {
 // Tocco sulle risorse dell'header → popup dettaglio
 document.querySelector('.hud-right').addEventListener('click', () => { if (HERO) showResources(); });
 
+/* Salva lo scroll dell'hub principale per market e map, in modo da
+   ripristinarlo quando si torna dalla sotto-view all'hub. */
+let _marketHubScroll = 0;
+let _mapHubScroll    = 0;
+
 function setTab(tab, dir) {
   const c = $('#tab-content');
-  const prevTab      = CURRENT_TAB;
-  const prevScroll   = c.scrollTop;
-  const prevCampView = CAMP_VIEW;
-  const prevMapView  = MAP_VIEW;
-  const prevHeroView = HERO_VIEW;
+  const prevTab        = CURRENT_TAB;
+  const prevScroll     = c.scrollTop;
+  const prevCampView   = CAMP_VIEW;
+  const prevMapView    = MAP_VIEW;
+  const prevMarketView = MARKET_VIEW;
+  const prevHeroView   = HERO_VIEW;
+
+  /* Salva lo scroll dell'hub prima di entrare in una sotto-view */
+  if (tab === 'market' && prevTab === 'market' && prevMarketView === 'hub' && MARKET_VIEW !== 'hub') {
+    _marketHubScroll = prevScroll;
+  }
+  if (tab === 'map' && prevTab === 'map' && prevMapView === 'main' && MAP_VIEW !== 'main') {
+    _mapHubScroll = prevScroll;
+  }
 
   CURRENT_TAB = tab;
   document.querySelectorAll('#tabbar .tab').forEach(t =>
@@ -1020,10 +1034,23 @@ function setTab(tab, dir) {
   ({ camp: renderCamp, map: renderMap, train: renderTrain, market: renderMarket, hero: renderHero }[tab])(c);
 
   const sameSubView = tab === prevTab && !dir &&
-    (tab !== 'camp'   || CAMP_VIEW === prevCampView) &&
-    (tab !== 'map'    || MAP_VIEW  === prevMapView)  &&
-    (tab !== 'hero'   || HERO_VIEW === prevHeroView);
-  c.scrollTop = sameSubView ? prevScroll : 0;
+    (tab !== 'camp'   || CAMP_VIEW   === prevCampView)   &&
+    (tab !== 'map'    || MAP_VIEW    === prevMapView)     &&
+    (tab !== 'market' || MARKET_VIEW === prevMarketView)  &&
+    (tab !== 'hero'   || HERO_VIEW   === prevHeroView);
+
+  /* Ripristina lo scroll corretto in base al contesto */
+  if (sameSubView) {
+    c.scrollTop = prevScroll;
+  } else if (tab === 'market' && MARKET_VIEW === 'hub' && prevMarketView !== 'hub') {
+    /* ritorno all'hub del Borgo: ripristina la posizione pre-sub-view */
+    c.scrollTop = _marketHubScroll;
+  } else if (tab === 'map' && MAP_VIEW === 'main' && prevMapView !== 'main') {
+    /* ritorno alla Mappa principale: ripristina la posizione pre-sub-view */
+    c.scrollTop = _mapHubScroll;
+  } else {
+    c.scrollTop = 0;
+  }
 
   requestAnimationFrame(() => {
     if (dir === 'left')       c.classList.add('tab-slide-left');
