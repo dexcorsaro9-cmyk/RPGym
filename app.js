@@ -2457,8 +2457,8 @@ function renderMap(c) {
     const btn = el('button', 'btn btn-primary wide btn-small', `🏆 Reclama la Taglia`);
     btn.addEventListener('click', () => {
       const last = HERO.log[0];
-      const today = new Date().toISOString().slice(0, 10);
-      if (last && new Date(last.date).toISOString().slice(0, 10) === today && last.km >= ev.km) {
+      const today = todayISO();
+      if (last && localDate(new Date(last.date)) === today && last.km >= ev.km) {
         if (RPG.claimEvent(STATE, HERO, ev)) {
           persist();
           toast(`🏆 ${ev.skin} è TUO!`);
@@ -4616,7 +4616,7 @@ let ERBORISTA_CAT = 'tutti';
 
 function _erboristaOffers() {
   /* 3 offerte giornaliere seeded per data, 30% sconto */
-  const seed = (s => { let h = 0; for (let i = 0; i < s.length; i++) h = Math.imul(31, h) + s.charCodeAt(i) | 0; return h >>> 0; })(new Date().toISOString().slice(0, 10));
+  const seed = (s => { let h = 0; for (let i = 0; i < s.length; i++) h = Math.imul(31, h) + s.charCodeAt(i) | 0; return h >>> 0; })(todayISO());
   const forSale = RPG.CONSUMABLES.filter(c => c.rarity !== 'leggendario');
   const picks = [];
   let s = seed;
@@ -5077,7 +5077,7 @@ function renderDiaryView(c) {
   if (HERO.log.length) {
     const kmByDay = {};
     HERO.log.forEach(l => {
-      const key = new Date(l.date).toISOString().slice(0, 10);
+      const key = localDate(new Date(l.date));
       kmByDay[key] = (kmByDay[key] || 0) + l.km;
     });
 
@@ -5810,7 +5810,8 @@ const RES_ICONS = {
 
 /* ═══════════ v2.7: UX & FOMO ═══════════ */
 
-function todayISO() { return new Date().toISOString().slice(0, 10); }
+function todayISO() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function localDate(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 
 /* ── Sincronizzazione da Apple Salute via Comandi Rapidi ──────
    Il Comando Rapido apre: https://.../?sync_km=5.2&sync_type=camminata
@@ -6142,9 +6143,9 @@ function showHeroShareCard() {
 
 function checkAndNotify() {
   if (!('Notification' in window) || Notification.permission !== 'granted' || !HERO) return;
-  const today = new Date(); const todayStr = today.toISOString().slice(0, 10);
+  const today = new Date(); const todayStr = todayISO();
   const hour = today.getHours();
-  const trainedToday = HERO.log[0] && new Date(HERO.log[0].date).toISOString().slice(0, 10) === todayStr;
+  const trainedToday = HERO.log[0] && localDate(new Date(HERO.log[0].date)) === todayStr;
   if (!trainedToday && hour >= 17)
     showNotif("Hero's Pace ⚔️", 'Il Viandante ti aspetta! Non dimenticare l\'allenamento di oggi.', 'train_' + todayStr);
   if (!trainedToday && hour >= 20 && HERO.streak && HERO.streak.count >= 3)
@@ -6172,7 +6173,7 @@ async function checkPvpNotify() {
   }
 
   // Scade oggi
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayISO();
   if (ch.status === 'active' && ch.endDate === today) {
     showNotif('⏳ Ultimo giorno di sfida!', 'La sfida PvP scade oggi — dai tutto quello che hai!', 'pvp_lastday_' + ac.id);
   }

@@ -1974,20 +1974,30 @@ const RPG = (() => {
   }
 
   function weekStamp() {
+    // ISO Monday-based week: stamp = "YYYY-MM-DD" of the Monday of the current local week
     const d = new Date();
-    const onejan = new Date(d.getFullYear(), 0, 1);
-    return d.getFullYear() + '-' + Math.ceil((((d - onejan) / 86400000) + onejan.getDay() + 1) / 7);
+    const dow = (d.getDay() + 6) % 7; // 0=Mon … 6=Sun
+    const monday = new Date(d);
+    monday.setDate(d.getDate() - dow);
+    monday.setHours(0, 0, 0, 0);
+    return `${monday.getFullYear()}-${String(monday.getMonth()+1).padStart(2,'0')}-${String(monday.getDate()).padStart(2,'0')}`;
   }
-  function todayStamp() { return new Date().toISOString().slice(0, 10); }
+  function todayStamp() {
+    // Usa la data locale, non UTC, per allineare il reset alla mezzanotte percepita dall'utente
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
   function yesterdayStamp() {
     const d = new Date(); d.setDate(d.getDate() - 1);
-    return d.toISOString().slice(0, 10);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   }
 
   function migrateState(s) {
     s.heroes        = s.heroes        || [];
     s.current       = s.current       || null;
     s.claimedEvents = s.claimedEvents || [];
+    // Mantieni solo le ultime 16 voci (max 1 per settimana → ~4 mesi)
+    if (s.claimedEvents.length > 16) s.claimedEvents = s.claimedEvents.slice(-16);
     return s;
   }
 
@@ -2198,7 +2208,7 @@ const RPG = (() => {
   function todayKm(hero) {
     const today = todayStamp();
     return (hero.log || [])
-      .filter(e => new Date(e.date).toISOString().slice(0, 10) === today)
+      .filter(e => { const d = new Date(e.date); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` === today; })
       .reduce((s, e) => s + (e.km || 0), 0);
   }
 
@@ -4943,7 +4953,7 @@ const RPG = (() => {
     ];
 
     function biscaResetIfNeeded(hero) {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = todayStamp();
       if (!hero.bisca) hero.bisca = {};
       if (hero.bisca.lastDate !== today) {
         hero.bisca.betsLeft = BISCA_DAILY_BETS;
