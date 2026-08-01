@@ -2800,6 +2800,8 @@ const CLASS_EMOJI = {
   principe:'🦅',principessa:'🦋',regina:'👑',predone:'💀',principessa_ghiacci:'❄️',sacerdotessa_sole:'☀️',principessa_draghi:'🐉',
 };
 
+const _shownInviteIds = new Set();
+
 function _renderLeaderboardPanel() {
   const p = el('div', 'panel pvp-panel');
   const hdr = el('div', 'pvp-panel-hdr');
@@ -2921,8 +2923,8 @@ function _renderRivalsPanel() {
           if (!sent) { FB.deleteChallenge(cid); chalBtn.textContent = 'Errore'; return; }
           HERO.cloud.activeChallenge = { id: cid, role: 'creator' };
           persist();
-          chalBtn.textContent = '✅ Invito inviato!';
-          chalBtn.disabled = true;
+          toast('✅ Invito inviato a ' + esc(fh.name) + '!');
+          setTab('map'); // re-render Pantheon so PvP panel shows active challenge
         });
         actions.appendChild(chalBtn);
       }
@@ -3135,11 +3137,16 @@ function _buildPvpActive(container, ch, refresh) {
     container.appendChild(el('p', 'muted small', `In attesa che qualcuno usi il codice:`));
     const codeEl = el('div', 'pvp-code-box', esc(ch.id));
     container.appendChild(codeEl);
+    const waitBtnRow = el('div', 'pvp-btn-row-small');
     const copyBtn = el('button', 'btn btn-small', '📋 Copia');
     copyBtn.addEventListener('click', () => {
       navigator.clipboard.writeText(ch.id).then(() => toast('✅ Codice copiato!')).catch(() => {});
     });
-    container.appendChild(copyBtn);
+    const refreshWaitBtn = el('button', 'btn btn-small pvp-refresh-btn', '🔄 Aggiorna');
+    refreshWaitBtn.addEventListener('click', refresh);
+    waitBtnRow.appendChild(copyBtn);
+    waitBtnRow.appendChild(refreshWaitBtn);
+    container.appendChild(waitBtnRow);
   } else {
     // Barre progresso
     const endDate = ch.endDate;
@@ -3261,6 +3268,20 @@ function renderAvampostoView(c) {
 }
 
 function renderPantheonView(c) {
+  // Check for pending challenge invites each time the Pantheon is opened
+  (async () => {
+    const invites = await FB.getPendingInvites(HERO.id);
+    if (!invites.length) return;
+    let queued = false;
+    invites.forEach(inv => {
+      if (_shownInviteIds.has(inv.challengeId)) return;
+      _shownInviteIds.add(inv.challengeId);
+      OPEN_QUEUE.push(() => showChallengeInviteModal(inv));
+      queued = true;
+    });
+    if (queued && document.getElementById('modal').classList.contains('hidden')) nextOpening();
+  })();
+
   const banner = el('div', 'subview-hero-banner pantheon-hero-banner');
   const backBtn = el('button', 'btn btn-small subview-back-btn', '← Mappa');
   backBtn.addEventListener('click', () => { MAP_VIEW = 'main'; setTab('map'); });

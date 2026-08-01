@@ -133,8 +133,11 @@ const FB = (() => {
       const data   = doc.data();
       const updates = { [field]: hero.totalKm || 0 };
       if (data.status === 'active' && new Date() > new Date(data.endDate + 'T23:59:59')) {
-        const cDelta = (data.creatorKmNow  || 0) - (data.creatorKmStart  || 0);
-        const oDelta = (data.opponentKmNow || 0) - (data.opponentKmStart || 0);
+        // Use the hero's live km for their own field, not the stale Firestore value
+        const cKmNow = role === 'creator'  ? (hero.totalKm || 0) : (data.creatorKmNow  || 0);
+        const oKmNow = role === 'opponent' ? (hero.totalKm || 0) : (data.opponentKmNow || 0);
+        const cDelta = cKmNow - (data.creatorKmStart  || 0);
+        const oDelta = oKmNow - (data.opponentKmStart || 0);
         updates.status   = 'completed';
         updates.winnerId = cDelta > oDelta ? data.creatorId : cDelta < oDelta ? data.opponentId : null;
       }

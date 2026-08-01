@@ -4492,6 +4492,12 @@ img.camp-layer {
   justify-content: center;
   margin-top: 1rem;
 }
+.pvp-btn-row-small {
+  display: flex;
+  gap: .5rem;
+  justify-content: center;
+  margin-top: .6rem;
+}
 
 /* ── PvP idle ────────────────────────────────── */
 .pvp-sep {
