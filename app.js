@@ -1952,8 +1952,9 @@ function renderStruttureView(c) {
   c.appendChild(el('h2', 'section-title', '🏗️ Strutture dell\'Accampamento'));
   const ownedIds = (HERO.furniture && HERO.furniture.owned) || [];
   const layersOwned = RPG.CAMP_LAYER_SHOP.filter(l => ownedIds.includes(l.id)).length;
-  c.appendChild(el('p', 'muted small center',
-    `${layersOwned} / 25 strutture costruite · appaiono nel panorama del tuo accampamento`));
+  const struttureSubLbl = el('p', 'sub-header-label',
+    `${layersOwned} / 25 strutture costruite · appaiono nel panorama del tuo accampamento`);
+  c.appendChild(struttureSubLbl);
 
   const STAGE_NAMES = ['Accampamento', 'Avamposto', 'Rifugio', 'Fortilizio', 'Cittadella'];
   const STAGE_MIN_LEVELS = [0, 10, 20, 30, 40];
@@ -2054,7 +2055,7 @@ function renderArredamentoView(c) {
   c.appendChild(arredHdrImg);
   c.appendChild(el('h2', 'section-title', '🏛️ Bottega dell\'Arredamento'));
   const totalOwned = (HERO.furniture && HERO.furniture.owned.length) || 0;
-  c.appendChild(el('p', 'muted small center', `${totalOwned} / 200 cimeli raccolti in tutto il regno`));
+  c.appendChild(el('p', 'sub-header-label center', `${totalOwned} / 200 cimeli raccolti in tutto il regno`));
 
   RPG.FURNITURE_SETS.slice()
     .sort((a, b) => RPG.BIOMES[a.biomeIdx].min - RPG.BIOMES[b.biomeIdx].min)

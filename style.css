@@ -1653,7 +1653,7 @@ img.camp-layer {
   box-shadow: 0 3px 10px rgba(0,0,0,.35);
 }
 .npc-img { height: 84px; max-width: 90px; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,.35)); }
-.npc-banner-lg .npc-img { height: 140px; width: 140px; max-width: 140px; object-fit: cover; object-position: center 10%; border-radius: 6px; }
+.npc-banner-lg .npc-img { height: 84px; max-width: 90px; width: auto; object-fit: contain; border-radius: 0; }
 .npc-quote { flex: 1; font-style: italic; font-weight: 500; color: var(--ink); }
 
 /* ── Talenti di classe ── */
@@ -5043,6 +5043,10 @@ img.camp-layer {
   object-fit: cover; object-position: center 40%;
   display: block; border-radius: 10px; margin-bottom: 10px;
 }
+.sub-header-label {
+  font-size: .85rem; color: var(--ink-light);
+  text-align: center; margin: 0 0 8px;
+}
 
 /* ── Taverna delle Sfide: entry card + hub subtitle ── */
 .taverna-entry-panel { border-color: rgba(245,166,35,.5); }
@@ -6135,20 +6139,25 @@ img.camp-layer {
   border-radius: 6px; filter: drop-shadow(0 3px 6px rgba(0,0,0,.5));
 }
 .npc-banner-nero .npc-img {
-  height: 168px; max-width: 180px; width: 180px;
+  height: 84px; max-width: 90px; width: auto;
   object-fit: contain; object-position: center bottom;
 }
 
 /* Back link — pill sottile e discreto */
 .view-back-link {
   display: inline-flex; align-items: center; gap: 4px;
-  background: none; border: 1px solid var(--leather);
-  color: var(--ink-light); font-size: .78rem; font-weight: 600;
+  background: none; border: 1px solid rgba(255,200,120,.45);
+  color: rgba(255,220,160,.85); font-size: .78rem; font-weight: 600;
   padding: 3px 10px; border-radius: 20px; cursor: pointer;
-  margin-bottom: 8px; opacity: .75;
+  margin-bottom: 8px; opacity: .85;
   transition: opacity .15s;
 }
 .view-back-link:hover { opacity: 1; }
+/* su pergamena (rifugio/camp) il pill deve essere scuro */
+.bg-parchment .view-back-link {
+  border-color: var(--leather);
+  color: var(--ink-light);
+}
 .view-back-link-bisca {
   border-color: #4c1d95; color: #c4b5fd;
 }
