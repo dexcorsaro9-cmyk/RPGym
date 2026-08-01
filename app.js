@@ -1462,7 +1462,8 @@ function renderCamp(c) {
   // Santuario dei Famigli
   if (HERO.companion && HERO.pet && !HERO.pet.hatched) {
     const egg = RPG.eggProgress(HERO);
-    const sp = el('div', 'panel santuario-teaser');
+    const sp = el('div', 'panel borgo-entry-panel santuario-teaser');
+    const sanctHdr0 = document.createElement('img'); sanctHdr0.src = 'assets/ui/santuario-famigli.jpg'; sanctHdr0.alt = ''; sanctHdr0.className = 'borgo-entry-header'; sanctHdr0.onerror = () => sanctHdr0.remove(); sp.appendChild(sanctHdr0);
     sp.appendChild(el('h3', 'panel-title', '🥚 Uovo Misterioso'));
     const thumb = el('img', 'pet-thumb' + (egg.ready ? ' egg-shake' : ''));
     thumb.src = petImageSrc(HERO.pet);
@@ -1478,7 +1479,8 @@ function renderCamp(c) {
   } else if (HERO.companion && HERO.pet) {
     RPG.tickPet(HERO); persist();
     const p = HERO.pet;
-    const sp = el('div', 'panel santuario-teaser');
+    const sp = el('div', 'panel borgo-entry-panel santuario-teaser');
+    const sanctHdr1 = document.createElement('img'); sanctHdr1.src = 'assets/ui/santuario-famigli.jpg'; sanctHdr1.alt = ''; sanctHdr1.className = 'borgo-entry-header'; sanctHdr1.onerror = () => sanctHdr1.remove(); sp.appendChild(sanctHdr1);
     sp.appendChild(el('h3', 'panel-title', '🐾 Il Santuario dei Famigli'));
     const thumb = el('img', 'pet-thumb');
     thumb.src = petImageSrc(p);
@@ -1495,18 +1497,18 @@ function renderCamp(c) {
     c.appendChild(sp);
   } else {
     // Teaser bloccato — visibile finché il Santuario non è sbloccato
-    const sanctEntry = el('div', 'panel santuario-entry-panel');
+    const sanctEntry = el('div', 'panel borgo-entry-panel santuario-entry-panel');
     const sanctThumb = document.createElement('img');
     sanctThumb.src = 'assets/ui/santuario-famigli.jpg';
     sanctThumb.alt = '';
-    sanctThumb.className = 'camp-panel-thumb santuario-thumb';
+    sanctThumb.className = 'borgo-entry-header';
     sanctThumb.onerror = () => sanctThumb.remove();
     sanctEntry.appendChild(sanctThumb);
     const sanctHead = el('div', 'santuario-entry-head');
     sanctHead.appendChild(el('h3', 'panel-title santuario-entry-title', '🥚 Il Santuario dei Famigli'));
     sanctHead.appendChild(el('span', 'santuario-lock-badge', '🔒'));
     sanctEntry.appendChild(sanctHead);
-    sanctEntry.appendChild(el('p', 'muted small santuario-teaser-quote',
+    sanctEntry.appendChild(el('p', 'muted small borgo-entry-quote santuario-teaser-quote',
       '«Nelle profondità della Foresta Sussurrante, qualcosa di antico attende di schiudersi. Una missione specifica ti condurrà a lui — se sarai pronto.»'));
     const lockedBtn = el('button', 'btn btn-primary wide santuario-locked-btn', '🔒 Ancora sigillato');
     lockedBtn.disabled = true;
@@ -1519,16 +1521,16 @@ function renderCamp(c) {
     const totalOwned      = (HERO.furniture && HERO.furniture.owned.length) || 0;
     const setsComplete    = RPG.FURNITURE_SETS.filter(s => RPG.furnitureSetComplete(HERO, s.id)).length;
     const layersOwned     = RPG.CAMP_LAYER_SHOP.filter(l => (HERO.furniture && HERO.furniture.owned || []).includes(l.id)).length;
-    const cp = el('div', 'panel cantiere-panel');
+    const cp = el('div', 'panel borgo-entry-panel cantiere-panel');
 
     // Header immagine
-    const cantThumb = el('img', 'camp-panel-thumb');
+    const cantThumb = el('img', 'borgo-entry-header');
     cantThumb.src = 'assets/ui/rifugio/cantiere-eroe.jpg';
     cantThumb.alt = '';
     cp.appendChild(cantThumb);
 
     cp.appendChild(el('h3', 'panel-title', '🏗️ Il Cantiere dell\'Eroe'));
-    cp.appendChild(el('p', 'muted small', 'Costruisci edifici e arreda la tua dimora per sbloccare bonus permanenti.'));
+    cp.appendChild(el('p', 'muted small borgo-entry-quote', 'Costruisci edifici e arreda la tua dimora per sbloccare bonus permanenti.'));
 
     // ── Sezione Strutture dell'Accampamento ──
     cp.appendChild(el('h4', 'cantiere-section-title', '🏗️ Strutture dell\'Accampamento'));
@@ -1554,14 +1556,14 @@ function renderCamp(c) {
     const growingCount = HERO.greenhouse.pots.filter(p => p.status === 'growing' || p.status === 'ready').length;
     const readyCount   = HERO.greenhouse.pots.filter(p => p.status === 'ready').length;
     const dangerCount  = HERO.greenhouse.pots.filter(p => p.status === 'growing' && p.health < 40).length;
-    const gp = el('div', readyCount ? 'panel panel-featured' : 'panel');
-    const serraThumb = el('img', 'camp-panel-thumb');
+    const gp = el('div', readyCount ? 'panel panel-featured borgo-entry-panel' : 'panel borgo-entry-panel');
+    const serraThumb = el('img', 'borgo-entry-header');
     serraThumb.src = 'assets/minigames/serra/SERRA.jpg';
     serraThumb.alt = '';
     gp.appendChild(serraThumb);
     gp.appendChild(el('h3', 'panel-title', '🌿 La Serra del Viandante'));
     if (dangerCount) gp.appendChild(el('p', 'serra-danger-warn', `⚠️ ${dangerCount} pianta${dangerCount > 1 ? 'e in pericolo' : ' in pericolo'}! Annaffia subito.`));
-    gp.appendChild(el('p', 'muted small',
+    gp.appendChild(el('p', 'muted small borgo-entry-quote',
       readyCount
         ? `🎁 ${readyCount} pianta${readyCount > 1 ? 'e' : ''} pronta${readyCount > 1 ? '' : 'e'} per il raccolto!`
         : growingCount
@@ -1694,9 +1696,14 @@ function renderSantuarioView(c) {
   RPG.tickPet(HERO); persist();
   const pers = RPG.PET_PERSONALITIES[pet.personality];
 
-  const backBtn = el('button', 'btn btn-small', '↩ Torna al Rifugio');
+  const backBtn = el('button', 'view-back-link', '‹ Rifugio');
   backBtn.addEventListener('click', () => { CAMP_VIEW = 'main'; setTab('camp'); });
   c.appendChild(backBtn);
+  const sanctHdrImg = document.createElement('img');
+  sanctHdrImg.src = 'assets/ui/santuario-famigli.jpg';
+  sanctHdrImg.alt = ''; sanctHdrImg.className = 'borgo-sub-header';
+  sanctHdrImg.onerror = () => sanctHdrImg.remove();
+  c.appendChild(sanctHdrImg);
 
   c.appendChild(el('h2', 'section-title', '🐾 Il Santuario dei Famigli'));
 
@@ -1934,21 +1941,19 @@ function openFeedPicker() {
 }
 
 function renderStruttureView(c) {
-  const backBtn = el('button', 'btn btn-small', '↩ Torna al Rifugio');
+  const backBtn = el('button', 'view-back-link', '‹ Rifugio');
   backBtn.addEventListener('click', () => { CAMP_VIEW = 'main'; setTab('camp'); });
   c.appendChild(backBtn);
-
-  const headerPanel = el('div', 'panel');
-  const thumb = el('img', 'camp-panel-thumb');
-  thumb.src = 'assets/ui/rifugio/cantiere-eroe.jpg';
-  thumb.alt = '';
-  headerPanel.appendChild(thumb);
-  headerPanel.appendChild(el('h2', 'section-title', '🏗️ Strutture dell\'Accampamento'));
+  const cantHdrImg = document.createElement('img');
+  cantHdrImg.src = 'assets/ui/rifugio/cantiere-eroe.jpg';
+  cantHdrImg.alt = ''; cantHdrImg.className = 'borgo-sub-header';
+  cantHdrImg.onerror = () => cantHdrImg.remove();
+  c.appendChild(cantHdrImg);
+  c.appendChild(el('h2', 'section-title', '🏗️ Strutture dell\'Accampamento'));
   const ownedIds = (HERO.furniture && HERO.furniture.owned) || [];
   const layersOwned = RPG.CAMP_LAYER_SHOP.filter(l => ownedIds.includes(l.id)).length;
-  headerPanel.appendChild(el('p', 'muted small center',
+  c.appendChild(el('p', 'muted small center',
     `${layersOwned} / 25 strutture costruite · appaiono nel panorama del tuo accampamento`));
-  c.appendChild(headerPanel);
 
   const STAGE_NAMES = ['Accampamento', 'Avamposto', 'Rifugio', 'Fortilizio', 'Cittadella'];
   const STAGE_MIN_LEVELS = [0, 10, 20, 30, 40];
@@ -2039,19 +2044,17 @@ function openStruttureStageModal(stage) {
 }
 
 function renderArredamentoView(c) {
-  const backBtn = el('button', 'btn btn-small', '↩ Torna al Rifugio');
+  const backBtn = el('button', 'view-back-link', '‹ Rifugio');
   backBtn.addEventListener('click', () => { CAMP_VIEW = 'main'; setTab('camp'); });
   c.appendChild(backBtn);
-
-  const headerPanel = el('div', 'panel');
-  const thumb = el('img', 'camp-panel-thumb');
-  thumb.src = 'assets/ui/rifugio/bottega-arredamento.jpg';
-  thumb.alt = '';
-  headerPanel.appendChild(thumb);
-  headerPanel.appendChild(el('h2', 'section-title', '🏛️ Bottega dell\'Arredamento'));
+  const arredHdrImg = document.createElement('img');
+  arredHdrImg.src = 'assets/ui/rifugio/bottega-arredamento.jpg';
+  arredHdrImg.alt = ''; arredHdrImg.className = 'borgo-sub-header';
+  arredHdrImg.onerror = () => arredHdrImg.remove();
+  c.appendChild(arredHdrImg);
+  c.appendChild(el('h2', 'section-title', '🏛️ Bottega dell\'Arredamento'));
   const totalOwned = (HERO.furniture && HERO.furniture.owned.length) || 0;
-  headerPanel.appendChild(el('p', 'muted small center', `${totalOwned} / 200 cimeli raccolti in tutto il regno`));
-  c.appendChild(headerPanel);
+  c.appendChild(el('p', 'muted small center', `${totalOwned} / 200 cimeli raccolti in tutto il regno`));
 
   RPG.FURNITURE_SETS.slice()
     .sort((a, b) => RPG.BIOMES[a.biomeIdx].min - RPG.BIOMES[b.biomeIdx].min)
@@ -2494,7 +2497,7 @@ function renderTavernaView(c) {
   const heroImg = document.createElement('img');
   heroImg.src = 'assets/ui/taverna-header.jpg';
   heroImg.alt = '';
-  heroImg.className = 'taverna-hero-img';
+  heroImg.className = 'borgo-sub-header';
   heroImg.onerror = () => heroImg.remove();
   c.appendChild(heroImg);
 
@@ -2526,7 +2529,7 @@ function renderBiscaView(c) {
   wrap.appendChild(inner);
   c.appendChild(wrap);
 
-  inner.appendChild(el('h2', 'bisca-title', '🃏 La Bisca Oscura'));
+  inner.appendChild(el('h2', 'section-title', '🃏 La Bisca Oscura'));
 
   // NPC biscazziere
   const npcBanner = el('div', 'npc-banner bisca-npc-banner');
@@ -3591,8 +3594,9 @@ function renderTrain(c) {
     const iconHolder = el('div', 'act-icon-holder', a.icon);
     if (ACT_ICON_FILES[key]) {
       const img = el('img', 'act-icon');
-      img.src = ACT_ICON_FILES[key];
       img.addEventListener('load', () => { iconHolder.textContent = ''; iconHolder.appendChild(img); });
+      img.src = ACT_ICON_FILES[key];
+      if (img.complete && img.naturalWidth) { iconHolder.textContent = ''; iconHolder.appendChild(img); }
     }
     b.appendChild(iconHolder);
     b.appendChild(el('span', 'act-label', a.label));
@@ -4332,15 +4336,15 @@ function renderMarket(c) {
   });
 
   // ── La Taverna delle Sfide ──
-  const tavernaEntry = el('div', 'panel taverna-entry-panel');
+  const tavernaEntry = el('div', 'panel borgo-entry-panel taverna-entry-panel');
   const tavernaThumb = document.createElement('img');
   tavernaThumb.src = 'assets/ui/taverna-header.jpg';
   tavernaThumb.alt = '';
-  tavernaThumb.className = 'camp-panel-thumb';
+  tavernaThumb.className = 'borgo-entry-header';
   tavernaThumb.onerror = () => tavernaThumb.remove();
   tavernaEntry.appendChild(tavernaThumb);
   tavernaEntry.appendChild(el('h3', 'panel-title', '🍺 La Taverna delle Sfide'));
-  tavernaEntry.appendChild(el('p', 'muted small taverna-entry-quote',
+  tavernaEntry.appendChild(el('p', 'muted small borgo-entry-quote',
     '«Tra dadi truccati e boccali volanti, qui si separa chi ha nervi saldi da chi torna a casa vuoto.»'));
   const totalRemMkt = MG_CATEGORIES.flatMap(cat => cat.games).reduce((s, g) => s + Math.max(0, MG_MAX[g.id] - getMG(g.id).n), 0);
   if (totalRemMkt > 0) {
@@ -4352,9 +4356,15 @@ function renderMarket(c) {
   c.appendChild(tavernaEntry);
 
   // ── La Bisca Oscura ──
-  const biscaEntry = el('div', 'panel bisca-entry-panel');
+  const biscaEntry = el('div', 'panel borgo-entry-panel bisca-entry-panel');
+  const biscaEntryThumb = document.createElement('img');
+  biscaEntryThumb.src = 'assets/backgrounds/bg-bisca.jpg';
+  biscaEntryThumb.alt = '';
+  biscaEntryThumb.className = 'borgo-entry-header';
+  biscaEntryThumb.onerror = () => biscaEntryThumb.remove();
+  biscaEntry.appendChild(biscaEntryThumb);
   biscaEntry.appendChild(el('h3', 'panel-title', '🃏 La Bisca Oscura'));
-  biscaEntry.appendChild(el('p', 'muted small bisca-entry-quote',
+  biscaEntry.appendChild(el('p', 'muted small borgo-entry-quote',
     '«Nessuno sa chi organizza gli scontri. Nessuno chiede. Le monete parlano per tutti.»'));
   RPG.biscaResetIfNeeded(HERO);
   const biscaBetsLeft = (HERO.bisca && HERO.bisca.betsLeft !== undefined) ? HERO.bisca.betsLeft : RPG.BISCA_DAILY_BETS;
@@ -4477,8 +4487,10 @@ function showItemPreview(it) {
 }
 
 function renderNero(c) {
-  c.appendChild(npcBanner('assets/avatars/npc/contrabbandiere.jpg', 'Ombra Senza Nome',
-    '«Non chiedo da dove vengono. Non ti chiedo chi sei. Oro in mano — affare fatto. Sparisci prima dell\'alba.»'));
+  const nerobanner = npcBanner('assets/avatars/npc/contrabbandiere.jpg', 'Ombra Senza Nome',
+    '«Non chiedo da dove vengono. Non ti chiedo chi sei. Oro in mano — affare fatto. Sparisci prima dell\'alba.»');
+  nerobanner.classList.add('npc-banner-nero');
+  c.appendChild(nerobanner);
   const sellable = HERO.items.filter(i => !Object.values(HERO.equipment).includes(i.id));
   if (!sellable.length) {
     c.appendChild(emptyState('💼', 'Non hai bottini da vendere. Gli oggetti equipaggiati non si toccano!'));
@@ -6604,15 +6616,17 @@ function renderZainoView(c) {
 function renderSerraView(c) {
   c.classList.add('in-serra');
 
-  const serraBanner = el('div', 'serra-hero-banner');
-  c.appendChild(serraBanner);
-
-  const backBtn = el('button', 'btn btn-small serra-back-btn', '↩ Torna al Rifugio');
+  const backBtn = el('button', 'view-back-link', '‹ Rifugio');
   backBtn.addEventListener('click', () => { c.classList.remove('in-serra'); CAMP_VIEW = 'main'; setTab('camp'); });
-  serraBanner.appendChild(backBtn);
+  c.appendChild(backBtn);
+  const serraHdrImg = document.createElement('img');
+  serraHdrImg.src = 'assets/minigames/serra/SERRA.jpg';
+  serraHdrImg.alt = ''; serraHdrImg.className = 'borgo-sub-header';
+  serraHdrImg.onerror = () => serraHdrImg.remove();
+  c.appendChild(serraHdrImg);
 
-  const serraTitle = el('h2', 'section-title serra-banner-title', '🌿 La Serra del Viandante');
-  serraBanner.appendChild(serraTitle);
+  const serraTitle = el('h2', 'section-title', '🌿 La Serra del Viandante');
+  c.appendChild(serraTitle);
 
   // NPC Messer Ortica — prima visita
   if (!HERO.greenhouse.metNpc) {
