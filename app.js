@@ -2319,8 +2319,9 @@ function renderMap(c) {
     });
     tp.appendChild(labels);
 
-    tp.appendChild(el('div', 'tm-progress-label', `${progressKm.toFixed(1)} km percorsi questa settimana`));
-    if (allClaimed) tp.appendChild(el('div', 'done-strip', '✅ <b>Mappa completata questa settimana!</b>'));
+    const daysLeftTxt = tmStatus.daysLeft === 1 ? '1 giorno rimasto' : `${tmStatus.daysLeft} giorni rimasti`;
+    tp.appendChild(el('div', 'tm-progress-label', `${progressKm.toFixed(1)} km · ⏳ ${daysLeftTxt}`));
+    if (allClaimed) tp.appendChild(el('div', 'done-strip', '✅ <b>Mappa completata!</b>'));
     c.appendChild(tp);
   }
 

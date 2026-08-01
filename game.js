@@ -42,14 +42,22 @@ const RPG = (() => {
     { km: 22, gold: 280, wood: 80, stone: 0  },
     { km: 45, gold: 550, wood: 0,  stone: 0, item: true },
   ];
+  const TREASURE_MAP_DURATION = 7 * 86400000; // 7 giorni esatti
   function rolloverTreasureMap(hero) {
-    const ws = weekStamp();
-    if (!hero.treasureMap || hero.treasureMap.weekStamp !== ws)
-      hero.treasureMap = { weekStamp: ws, progressKm: 0, claimed: [] };
+    const now = Date.now();
+    // Vecchio formato (weekStamp) o mappa scaduta → reset
+    if (!hero.treasureMap || !hero.treasureMap.startedAt ||
+        (now - hero.treasureMap.startedAt) >= TREASURE_MAP_DURATION) {
+      hero.treasureMap = { startedAt: now, progressKm: 0, claimed: [] };
+    }
   }
   function treasureMapStatus(hero) {
     if (!hero.treasureMap) return null;
-    return { progressKm: hero.treasureMap.progressKm, claimed: hero.treasureMap.claimed };
+    const msLeft = hero.treasureMap.startedAt
+      ? Math.max(0, hero.treasureMap.startedAt + TREASURE_MAP_DURATION - Date.now())
+      : 0;
+    const daysLeft = Math.ceil(msLeft / 86400000);
+    return { progressKm: hero.treasureMap.progressKm, claimed: hero.treasureMap.claimed, daysLeft };
   }
   function claimTreasureTier(hero, tierIdx) {
     const t = TREASURE_MAP_TIERS[tierIdx];
