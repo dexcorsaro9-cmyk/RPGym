@@ -1658,8 +1658,8 @@ img.camp-layer {
   padding: 10px 12px; margin-bottom: 12px;
   box-shadow: 0 3px 10px rgba(0,0,0,.35);
 }
-.npc-img { height: 84px; max-width: 90px; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,.35)); }
-.npc-banner-lg .npc-img { height: 84px; max-width: 90px; width: auto; object-fit: contain; border-radius: 0; }
+.npc-img { height: 110px; max-width: 110px; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,.35)); }
+.npc-banner-lg .npc-img { height: 110px; max-width: 110px; width: auto; object-fit: contain; border-radius: 0; }
 .npc-quote { flex: 1; font-style: italic; font-weight: 500; color: var(--ink); }
 
 /* ── Talenti di classe ── */
@@ -6190,12 +6190,12 @@ img.camp-layer {
 .bisca-npc-banner { background: #1e1035; border-color: #4c1d95; }
 .bisca-npc-banner .npc-quote { color: #fff; font-weight: 700; font-style: normal; }
 .bisca-npc-img {
-  height: 90px; width: 68px; max-width: 68px;
+  height: 110px; width: 80px; max-width: 80px;
   object-fit: contain; object-position: center center;
   border-radius: 6px; filter: drop-shadow(0 3px 6px rgba(0,0,0,.5));
 }
 .npc-banner-nero .npc-img {
-  height: 84px; max-width: 90px; width: auto;
+  height: 110px; max-width: 110px; width: auto;
   object-fit: contain; object-position: center bottom;
 }
 
