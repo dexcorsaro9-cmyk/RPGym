@@ -2036,7 +2036,7 @@ function openStruttureStageModal(stage) {
     const row = el('div', 'loot loot-with-img furniture-item-row' + (has ? ' equipped' : '') + (locked ? ' locked' : ''));
     const imgSrc = `assets/rifugio/scene/${it.id}.webp`;
     row.innerHTML = `
-      <img class="item-icon-big" src="${imgSrc}" onerror="this.outerHTML='<span class=\\"item-icon-big\\">${it.icon}</span>'">
+      <img class="item-icon-big" src="${imgSrc}" onerror="this.style.display='none'">
       <div class="loot-body">
         <div class="loot-head"><b>${esc(it.name)}</b>${has ? ' ✅' : ''}</div>
         <div class="small muted">Livello ${it.minLevel}+</div>
