@@ -5895,9 +5895,10 @@ function openSlotPicker(slotKey) {
   candidates.forEach(it => {
     const row = el('div', 'loot rar-' + it.rarity + ' pickable' + (it.id === current ? ' equipped' : ''));
     row.classList.add('loot-with-img');
+    const descText = it.desc || `+${it.xp}% XP · 🪙 ${it.value}`;
     row.innerHTML = `${itemIconHtml(it, 'item-icon-big')}<div class="loot-body">
       <div class="loot-head"><b>${esc(it.name)}</b> <span class="tag">${RPG.RARITIES[it.rarity].label}</span>${it.id === current ? ' ✅' : ''}</div>
-      <div class="small muted">${esc(it.desc)}</div></div>`;
+      <div class="small muted">${esc(descText)}</div></div>`;
     row.addEventListener('click', () => {
       RPG.equipItem(HERO, it.id);
       persist(); renderHUD();
