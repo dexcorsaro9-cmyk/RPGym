@@ -4723,7 +4723,10 @@ function renderErborista(c) {
   const offerPanel = el('div', 'panel erborista-offer-panel');
   offerPanel.appendChild(el('h3', 'panel-title', '🌅 Offerta del Giorno · -30%'));
   const offerRow = el('div', 'erborista-offer-row');
+  const today = todayISO();
+  const dailyPurchases = (HERO.bazarDailyPurchases || {})[today] || {};
   _erboristaOffers().forEach(({ co, price }) => {
+    const alreadyBought = !!dailyPurchases[co.id];
     const card = el('div', `consumable-card rarity-${co.rarity} erborista-offer-card`);
     const imgWrap = el('div', 'consumable-img-wrap');
     const img = el('img', 'consumable-img');
@@ -4736,11 +4739,16 @@ function renderErborista(c) {
     const priceEl = el('div', 'erborista-offer-price');
     priceEl.innerHTML = `<s class="muted">${RPG.buyPriceConsumable(co.id)}🪙</s> <b>${price}🪙</b>`;
     card.appendChild(priceEl);
-    const buyBtn = el('button', `btn btn-primary btn-small${HERO.gold < price ? ' disabled' : ''}`, 'Acquista');
-    buyBtn.disabled = HERO.gold < price;
+    const buyBtn = el('button', `btn btn-primary btn-small`, alreadyBought ? '✅ Acquistato' : 'Acquista');
+    buyBtn.disabled = alreadyBought || HERO.gold < price;
+    if (!alreadyBought && HERO.gold < price) buyBtn.classList.add('disabled');
     buyBtn.addEventListener('click', () => {
+      if (alreadyBought) return;
       if (HERO.gold < price) { toast('Oro insufficiente!'); return; }
       HERO.gold -= price; RPG.addConsumable(HERO, co.id, 1);
+      if (!HERO.bazarDailyPurchases) HERO.bazarDailyPurchases = {};
+      if (!HERO.bazarDailyPurchases[today]) HERO.bazarDailyPurchases[today] = {};
+      HERO.bazarDailyPurchases[today][co.id] = true;
       persist(); renderHUD();
       toast(`${co.icon} ${co.name} acquistato in offerta!`);
       setTab('market');
