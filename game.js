@@ -948,20 +948,42 @@ const RPG = (() => {
 
   const EQUIP_SLOTS = ['arma', 'scudo', 'elmo', 'armatura', 'anello', 'amuleto'];
 
+  /* Nomi per indice immagine — garantisce che nome e immagine corrispondano sempre */
+  const ARMA_NAMES_BY_IMG = {
+    comune:      ['Pugnale', 'Ascia', 'Mazza', 'Pugnale', 'Lancia', 'Lancia', 'Ascia', 'Coltello'],
+    non_comune:  ['Spada', 'Ascia', 'Pugnale', 'Pugnale', 'Mazza', 'Arco', 'Martello'],
+    raro:        ['Ascia', 'Spada', 'Spada', 'Spada', 'Spada', 'Spada', 'Ascia', 'Spada', 'Mazza', 'Arco', 'Pugnale', 'Pugnale', 'Balestra', 'Flagello', 'Lancia', 'Martello', 'Martello'],
+    epico:       ['Spada', 'Ascia', 'Pugnale', 'Martello', 'Ascia', 'Balestra', 'Ascia', 'Mazza', 'Falce', 'Falce', 'Pugnale', 'Spada', 'Martello', 'Spada', 'Bastone', 'Bastone'],
+    leggendario: ['Spada', 'Mazza', 'Tridente', 'Balestra'],
+    divino:      ['Bastone', 'Spada', 'Martello', 'Arco'],
+    oscuro:      ['Falce', 'Bastone', 'Mazza', 'Pugnale', 'Spada', 'Pugnale'],
+  };
+
   function genItem(level, minRarity, forcedSlot, forcedRarity) {
     const rarity = forcedRarity || rollRarity(level, minRarity);
     const slot = forcedSlot ||
       EQUIP_SLOTS[Math.floor(Math.random() * EQUIP_SLOTS.length)];
-    const base = ITEM_BASES[slot][Math.floor(Math.random() * ITEM_BASES[slot].length)];
+
+    const id = 'i' + Math.random().toString(36).slice(2, 11) + Date.now().toString(36);
+    /* Hash identico a lootImgSrc — permette di derivare il nome dall'immagine */
+    const h = [...id].reduce((s, c) => (s * 33 + c.charCodeAt(0)) % 9973, 7);
+
+    let base;
+    const armaNames = ARMA_NAMES_BY_IMG[rarity];
+    if (slot === 'arma' && armaNames) {
+      base = armaNames[h % armaNames.length];
+    } else {
+      base = ITEM_BASES[slot][Math.floor(Math.random() * ITEM_BASES[slot].length)];
+    }
+
     const suf = RARITY_SUFFIX[rarity][Math.floor(Math.random() * RARITY_SUFFIX[rarity].length)];
     const r = RARITIES[rarity];
     return {
-      id: 'i' + Math.random().toString(36).slice(2, 11) + Date.now().toString(36),
-      slot, rarity,
+      id, slot, rarity,
       name: `${base} ${suf}`,
       icon: SLOTS[slot].icon,
-      xp: r.xp,                            // % bonus XP quando equipaggiato
-      value: r.value,                      // valore di vendita al mercato
+      xp: r.xp,
+      value: r.value,
       desc: descForItem(slot, rarity),
     };
   }
