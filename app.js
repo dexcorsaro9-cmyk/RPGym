@@ -1966,18 +1966,78 @@ function renderSantuarioView(c) {
 
 function checkPetEvolution(r) {
   if (r && r.evolved) {
-    sfx('level');
-    vibrate([100, 50, 100, 50, 200]);
-    const reward = r.reward || {};
-    const rewardParts = [
+    vibrate([80, 40, 80, 40, 200, 60, 200]);
+    playEvolutionSequence(r.stage, r.reward || {});
+  }
+}
+
+function playEvolutionSequence(stage, reward) {
+  const pet    = HERO.pet;
+  const sp     = RPG.PET_SPECIES[pet.species];
+  const isLeg  = stage >= 5;
+  const stageNames = ['', 'Cucciolo', 'Giovanile', 'Adolescente', 'Adulto', 'Leggendario'];
+
+  const overlay = el('div', 'evo-overlay');
+  document.body.appendChild(overlay);
+
+  // Costruiamo il layout (tutto nascosto all'inizio)
+  overlay.innerHTML = `
+    <div class="evo-rays"></div>
+    <div class="evo-glow-ring"></div>
+    <img  class="evo-portrait evo-hidden" src="${petImageSrc(pet)}"
+          onerror="this.outerHTML='<div class=\\'evo-portrait-emoji\\' style=\\'display:none\\'>${sp.icon}</div>'"
+    >
+    <div class="evo-stage-label evo-hidden">${isLeg ? '⭐ FORMA LEGGENDARIA ⭐' : `— STADIO ${stage} / 5 —`}</div>
+    <div class="evo-pet-name evo-hidden">${esc(pet.name)}<br><span class="evo-stage-name">${stageNames[stage] || ''}</span></div>
+    <div class="evo-bonus evo-hidden">✦ ${sp.bonusDesc || ''}${isLeg ? ' (×2)' : ''}</div>
+    <div class="evo-reward evo-hidden">${[
       reward.gold  ? `🪙 +${reward.gold}`  : '',
       reward.wood  ? `🪵 +${reward.wood}`  : '',
       reward.stone ? `🪨 +${reward.stone}` : '',
-    ].filter(Boolean);
-    const rewardStr = rewardParts.length ? ` · ${rewardParts.join(' ')}` : '';
-    const unlockMsg = reward.msg ? `\n${reward.msg}` : '';
-    toast(`✨ ${esc(HERO.pet.name)} è evoluto allo Stadio ${r.stage}/5!${rewardStr}${unlockMsg}`);
-    renderHUD();
+    ].filter(Boolean).join('  ')}</div>
+    <div class="evo-unlock evo-hidden">${reward.msg || ''}</div>
+    <button class="evo-continue evo-hidden">✦ Continua ✦</button>
+  `;
+
+  // Prova a caricare il video specie-stadio; se non esiste procede subito con CSS
+  const videoSrc = `assets/pet/${pet.species}/evolve_stage${stage}.mp4`;
+  const video = document.createElement('video');
+  video.className = 'evo-video evo-hidden';
+  video.autoplay = true; video.muted = true; video.playsInline = true;
+  overlay.insertBefore(video, overlay.firstChild);
+
+  const startCssSequence = () => {
+    // timeline ritardata — tutto lento e cinematico
+    const show = (sel, delay) =>
+      setTimeout(() => overlay.querySelector(sel)?.classList.remove('evo-hidden'), delay);
+
+    sfx('level');
+    setTimeout(() => overlay.classList.add('evo-active'), 50);
+    show('.evo-portrait', 600);
+    setTimeout(() => overlay.querySelector('.evo-portrait')?.classList.add('evo-portrait-in'), 700);
+    show('.evo-stage-label', 1800);
+    show('.evo-pet-name',    2600);
+    show('.evo-bonus',       3400);
+    show('.evo-reward',      4000);
+    show('.evo-unlock',      4600);
+    show('.evo-continue',    5400);
+
+    if (isLeg) {
+      setTimeout(() => overlay.classList.add('evo-legendary'), 2200);
+      setTimeout(() => sfx('level'), 2400);
+    }
+  };
+
+  video.addEventListener('ended', () => { video.remove(); startCssSequence(); });
+  video.addEventListener('error', () => { video.remove(); startCssSequence(); });
+  video.src = videoSrc;
+  video.play().catch(() => { video.remove(); startCssSequence(); });
+
+  // Chiudi su tap/click del pulsante o sull'overlay dopo 6 s
+  overlay.querySelector('.evo-continue').addEventListener('click', closeEvo);
+  function closeEvo() {
+    overlay.classList.add('evo-exit');
+    setTimeout(() => { overlay.remove(); renderHUD(); setTab('camp'); }, 600);
   }
 }
 
