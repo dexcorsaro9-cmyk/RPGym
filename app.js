@@ -4815,6 +4815,7 @@ function renderHero(c) {
   if (HERO_VIEW === 'diary')    { renderDiaryView(c);    return; }
   if (HERO_VIEW === 'zaino')    { renderZainoView(c);    return; }
   if (HERO_VIEW === 'guida')    { renderGuidaView(c);    return; }
+  if (HERO_VIEW === 'cronache') { renderCronacheView(c); return; }
 
   const titleH2 = el('h2', 'section-title on-parchment-title hero-title-row');
   titleH2.innerHTML = '🛡️ Equipaggiamento';
@@ -4908,12 +4909,22 @@ function renderHero(c) {
 
   // Sottomenù
   const sub = el('div', 'hero-submenu');
-  [['story', 'storia', '📜', 'La tua Storia'], ['cards', 'carte', '🎴', 'Carte & Imprese'], ['bestiary', 'bestiario', '🐉', 'Bestiario'], ['diary', 'imprese_stivale', '📊', 'Diario']].forEach(([k, file, emoji, label]) => {
+  const unlocked = HERO.loreUnlocked || [];
+  [
+    ['story',    'storia',          '📜', 'La tua Storia'],
+    ['cards',    'carte',           '🎴', 'Carte & Imprese'],
+    ['bestiary', 'bestiario',       '🐉', 'Bestiario'],
+    ['diary',    'imprese_stivale', '📊', 'Diario'],
+    ['cronache', null,              '📖', 'Cronache'],
+  ].forEach(([k, file, emoji, label]) => {
     const b = el('button', 'btn submenu-btn');
-    b.innerHTML = `<span class="submenu-emoji">${emoji}</span><span>${label}</span>`;
-    const img = new Image();
-    img.onload = () => { b.innerHTML = `<img class="submenu-icon" src="assets/ui/eroe/${file}.webp"><span>${label}</span>`; };
-    img.src = `assets/ui/eroe/${file}.webp`;
+    const badge = (k === 'cronache' && unlocked.length > 0) ? ` <span class="submenu-lore-badge">${unlocked.length}</span>` : '';
+    b.innerHTML = `<span class="submenu-emoji">${emoji}</span><span>${label}${badge}</span>`;
+    if (file) {
+      const img = new Image();
+      img.onload = () => { b.innerHTML = `<img class="submenu-icon" src="assets/ui/eroe/${file}.webp"><span>${label}${badge}</span>`; };
+      img.src = `assets/ui/eroe/${file}.webp`;
+    }
     b.addEventListener('click', () => { HERO_VIEW = k; setTab('hero'); });
     sub.appendChild(b);
   });
@@ -4984,27 +4995,13 @@ function renderHero(c) {
     c.appendChild(sp2);
   }
 
-  // ── Cronache di Oakhaven (Lore) ──
+  // Cronache di Oakhaven — rimanda alla scheda dedicata
   {
-    const unlocked = HERO.loreUnlocked || [];
-    if (unlocked.length > 0 || HERO.totalKm >= 40) {
-      const lp = el('div', 'panel lore-panel');
-      lp.appendChild(el('h3', 'panel-title', `📖 Cronache di Oakhaven <span class="muted small">${unlocked.length}/${RPG.LORE_FRAGMENTS.length}</span>`));
-      if (unlocked.length === 0) {
-        lp.appendChild(el('p', 'muted small', 'Percorri 50 km totali per sbloccare il primo capitolo.'));
-      } else {
-        RPG.LORE_FRAGMENTS.forEach(f => {
-          const isUnlocked = unlocked.includes(f.id);
-          const item = el('div', 'lore-item' + (isUnlocked ? '' : ' lore-locked'));
-          if (isUnlocked) {
-            item.innerHTML = `<div class="lore-title">${esc(f.title)}</div><p class="lore-text small">${esc(f.text)}</p>`;
-          } else {
-            item.innerHTML = `<div class="lore-title muted">🔒 Capitolo — sblocca a ${f.km} km totali</div>`;
-          }
-          lp.appendChild(item);
-        });
-      }
-      c.appendChild(lp);
+    const unlocked2 = HERO.loreUnlocked || [];
+    if (unlocked2.length > 0 || HERO.totalKm >= 40) {
+      const loreBtn = el('button', 'btn wide lore-entry-btn', `📖 Cronache di Oakhaven · ${unlocked2.length}/${RPG.LORE_FRAGMENTS.length} capitoli`);
+      loreBtn.addEventListener('click', () => { HERO_VIEW = 'cronache'; setTab('hero'); });
+      c.appendChild(loreBtn);
     }
   }
 
@@ -5633,6 +5630,42 @@ function backBar(c) {
   const b = el('button', 'hero-back-pill', '‹ Eroe');
   b.addEventListener('click', () => { HERO_VIEW = 'main'; setTab('hero'); });
   c.appendChild(b);
+}
+
+function renderCronacheView(c) {
+  backBar(c);
+  c.appendChild(el('h2', 'section-title', '📖 Cronache di Oakhaven'));
+
+  const unlocked = HERO.loreUnlocked || [];
+  const total = RPG.LORE_FRAGMENTS.length;
+
+  const progress = el('div', 'lore-progress-bar-wrap');
+  const pct = Math.round(unlocked.length / total * 100);
+  progress.innerHTML = `
+    <div class="lore-progress-label">${unlocked.length} di ${total} capitoli sbloccati</div>
+    <div class="lore-progress-track"><div class="lore-progress-fill" style="width:${pct}%"></div></div>`;
+  c.appendChild(progress);
+
+  if (unlocked.length === 0) {
+    c.appendChild(el('p', 'muted center', `Percorri ancora ${RPG.LORE_FRAGMENTS[0].km - Math.floor(HERO.totalKm)} km per sbloccare il primo capitolo.`));
+  }
+
+  RPG.LORE_FRAGMENTS.forEach((f, idx) => {
+    const isUnlocked = unlocked.includes(f.id);
+    const item = el('div', `panel lore-chapter${isUnlocked ? '' : ' lore-locked'}`);
+    if (isUnlocked) {
+      item.innerHTML = `
+        <div class="lore-chapter-num">Capitolo ${idx + 1}</div>
+        <div class="lore-chapter-title">${esc(f.title)}</div>
+        <p class="lore-chapter-text">${esc(f.text)}</p>`;
+    } else {
+      item.innerHTML = `
+        <div class="lore-chapter-num muted">Capitolo ${idx + 1}</div>
+        <div class="lore-chapter-title muted">🔒 ${esc(f.title)}</div>
+        <p class="lore-chapter-text muted small">Si sblocca a ${f.km} km totali — ne mancano ${Math.max(0, f.km - Math.floor(HERO.totalKm))} km.</p>`;
+    }
+    c.appendChild(item);
+  });
 }
 
 function renderCardsView(c) {

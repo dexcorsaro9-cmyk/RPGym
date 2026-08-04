@@ -4344,6 +4344,48 @@ img.camp-layer {
   margin: 0;
 }
 
+/* ── Vista Cronache dedicata ─────────────────────────────── */
+.lore-entry-btn { border-color: rgba(150,100,255,.35); color: #b48aff; }
+.lore-progress-bar-wrap { margin: 0 0 14px; }
+.lore-progress-label {
+  font-size: .8rem; color: var(--ink-light);
+  margin-bottom: 6px; text-align: center;
+}
+.lore-progress-track {
+  height: 6px; border-radius: 3px;
+  background: rgba(150,100,255,.15);
+}
+.lore-progress-fill {
+  height: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, #7c3aed, #b48aff);
+  transition: width .4s ease;
+}
+.lore-chapter {
+  border-color: rgba(150,100,255,.25);
+  margin-bottom: 10px;
+}
+.lore-chapter.lore-locked { opacity: .5; }
+.lore-chapter-num {
+  font-size: .72rem; font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; color: #b48aff; margin-bottom: 4px;
+}
+.lore-chapter-title {
+  font-size: .95rem; font-weight: 700;
+  color: var(--gold); margin-bottom: 8px;
+}
+.lore-chapter-text {
+  font-size: .84rem; line-height: 1.6;
+  color: var(--ink); margin: 0;
+}
+.submenu-lore-badge {
+  display: inline-block;
+  background: #7c3aed; color: #fff;
+  font-size: .6rem; font-weight: 800;
+  border-radius: 8px; padding: 1px 4px;
+  margin-left: 3px; vertical-align: middle;
+  line-height: 1.4;
+}
+
 /* ── Lore unlock in report ───────────────────────────────── */
 .lore-unlock {
   display: flex;
