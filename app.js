@@ -5614,7 +5614,7 @@ function openSlotPicker(slotKey) {
     row.classList.add('loot-with-img');
     row.innerHTML = `${itemIconHtml(it, 'item-icon-big')}<div class="loot-body">
       <div class="loot-head"><b>${esc(it.name)}</b> <span class="tag">${RPG.RARITIES[it.rarity].label}</span>${it.id === current ? ' ✅' : ''}</div>
-      <div class="small">📈 +${it.xp}% XP · 🪙 ${it.value}</div></div>`;
+      <div class="small muted">${esc(it.desc)}</div></div>`;
     row.addEventListener('click', () => {
       RPG.equipItem(HERO, it.id);
       persist(); renderHUD();
