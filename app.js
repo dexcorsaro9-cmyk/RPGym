@@ -5389,14 +5389,14 @@ function _settingsRefreshPanel() {
     clearBtn.disabled = true;
     clearBtn.textContent = '⏳ Pulizia in corso…';
     try {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
       if ('serviceWorker' in navigator) {
-        const reg = await navigator.serviceWorker.getRegistration();
-        if (reg) await reg.update();
-        const keys = await caches.keys();
-        await Promise.all(keys.map(k => caches.delete(k)));
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(r => r.unregister()));
       }
-      location.reload(true);
-    } catch { location.reload(true); }
+    } catch {}
+    location.reload(true);
   });
   p.appendChild(clearBtn);
   return p;
