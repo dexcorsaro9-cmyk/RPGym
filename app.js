@@ -996,6 +996,8 @@ document.addEventListener('touchend', e => {
   _swX = null; _swY = null;
   if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
   if (document.getElementById('modal').classList.contains('hidden') === false) return;
+  const mgOv = document.getElementById('mg-ov');
+  if (mgOv && mgOv.children.length > 0) return; // minigioco aperto: ignora swipe
   const idx = _TAB_ORDER.indexOf(CURRENT_TAB);
   if (dx < 0 && idx > 0) setTab(_TAB_ORDER[idx - 1], 'right');
   if (dx > 0 && idx < _TAB_ORDER.length - 1) setTab(_TAB_ORDER[idx + 1], 'left');
