@@ -3499,7 +3499,7 @@ function renderTrain(c) {
     sssInput.value = '';
     if (report) {
       if (isFirst) HERO.onboardingStep = 2;
-      persist(); renderHUD();
+      persist(); renderHUD(); FB.syncHero(HERO);
       showHealthSyncResult(report);
       if (isFirst) OPEN_QUEUE.push(showFirstWorkoutCelebration);
       checkMapNotify(); maybeSyncChallenge();
@@ -3645,7 +3645,8 @@ function renderTrain(c) {
     const b = el('button', 'act-choice' + (key === chosen ? ' selected' : ''));
     const iconHolder = el('div', 'act-icon-holder', a.icon);
     if (ACT_ICON_FILES[key]) {
-      const img = el('img', 'act-icon');
+      const img = document.createElement('img');
+      img.className = 'act-icon';
       img.addEventListener('load', () => { iconHolder.textContent = ''; iconHolder.appendChild(img); });
       img.src = ACT_ICON_FILES[key];
       if (img.complete && img.naturalWidth) { iconHolder.textContent = ''; iconHolder.appendChild(img); }
@@ -3688,7 +3689,6 @@ function renderTrain(c) {
     </div>
   </div>
   <button class="btn${dungeonAvail ? ' btn-primary' : ''} dungeon-strip-btn" id="btn-dungeon-open" ${dungeonAvail ? '' : 'disabled'}>${dungeonAvail ? '▶ Parti' : '✓ Fatto'}</button>`;
-  ap.appendChild(dp);
   if (dungeonAvail) {
     dp.querySelector('#btn-dungeon-open').addEventListener('click', openDungeon);
   }
@@ -4374,6 +4374,7 @@ function renderMarket(c) {
   borgoSections.forEach(({ key, emoji, title, quote, img, btn }) => {
     const panel = el('div', 'panel borgo-entry-panel');
     const thumb = document.createElement('img');
+    thumb.loading = 'lazy';
     thumb.src = img;
     thumb.alt = '';
     thumb.className = 'borgo-entry-header';
@@ -4390,6 +4391,7 @@ function renderMarket(c) {
   // ── La Taverna delle Sfide ──
   const tavernaEntry = el('div', 'panel borgo-entry-panel taverna-entry-panel');
   const tavernaThumb = document.createElement('img');
+  tavernaThumb.loading = 'lazy';
   tavernaThumb.src = 'assets/ui/taverna-header.jpg';
   tavernaThumb.alt = '';
   tavernaThumb.className = 'borgo-entry-header';
@@ -4410,6 +4412,7 @@ function renderMarket(c) {
   // ── La Bisca Oscura ──
   const biscaEntry = el('div', 'panel borgo-entry-panel bisca-entry-panel');
   const biscaEntryThumb = document.createElement('img');
+  biscaEntryThumb.loading = 'lazy';
   biscaEntryThumb.src = 'assets/backgrounds/bg-bisca.jpg';
   biscaEntryThumb.alt = '';
   biscaEntryThumb.className = 'borgo-entry-header';
@@ -5237,11 +5240,19 @@ function renderDiaryView(c) {
   if (!HERO.log.length) {
     lp.appendChild(emptyState('📜', 'Nessuna attività registrata ancora.'));
   } else {
+    const grouped = {};
     HERO.log.slice().reverse().forEach(l => {
-      const a = RPG.ACTIVITIES[l.type];
-      const d = new Date(l.date);
-      lp.appendChild(el('div', 'log-row',
-        `${a.icon} <b>${l.km} km</b> di ${a.label.toLowerCase()} — +${l.xp} XP <span class="muted small">(${d.toLocaleDateString('it-IT')})</span>`));
+      const dateKey = l.date.slice(0, 10);
+      if (!grouped[dateKey]) grouped[dateKey] = [];
+      grouped[dateKey].push(l);
+    });
+    Object.entries(grouped).forEach(([dateKey, entries]) => {
+      const d = new Date(dateKey);
+      lp.appendChild(el('div', 'log-date-header', d.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })));
+      entries.forEach(l => {
+        const a = RPG.ACTIVITIES[l.type];
+        lp.appendChild(el('div', 'log-row', `${a.icon} <b>${l.km} km</b> di ${a.label.toLowerCase()} — +${l.xp} XP`));
+      });
     });
   }
   c.appendChild(lp);
@@ -6503,7 +6514,7 @@ function renderZainoView(c) {
   const sw = el('div', 'coll-switch');
   ZAINO_CATS.forEach(cat => {
     const b = el('button', 'coll-btn' + (ZAINO_CAT === cat.id ? ' active' : ''), cat.label);
-    b.addEventListener('click', () => { ZAINO_CAT = cat.id; setTab('camp'); });
+    b.addEventListener('click', () => { ZAINO_CAT = cat.id; setTab('hero'); });
     sw.appendChild(b);
   });
   c.appendChild(sw);

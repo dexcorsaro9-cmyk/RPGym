@@ -370,6 +370,7 @@ body {
 .train-goal-bar { height: 10px; background: rgba(0,0,0,.35); border-radius: 5px; overflow: hidden; }
 .train-goal-fill { height: 100%; border-radius: 5px; background: linear-gradient(90deg, var(--gold), var(--gold-bright)); transition: width .5s; }
 
+.log-date-header { padding: 10px 0 4px; font-weight: 700; font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; color: #c9b48f; opacity: .75; }
 .log-row { padding: 4px 0; border-bottom: 1px dashed rgba(90,61,36,.3); font-size: .92rem; }
 .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px dashed rgba(90,61,36,.3); }
 .stat-row-label { display: flex; align-items: center; gap: 8px; }
@@ -507,12 +508,14 @@ body {
 
 /* ── Scheda Eroe su pergamena ── */
 #tab-content.bg-parchment {
+  background-color: #2a1d0e;
   background:
     linear-gradient(180deg, rgba(20,14,8,.08) 0%, rgba(20,14,8,.18) 100%),
     url('assets/backgrounds/pergamena.jpg') center top / cover no-repeat;
 }
 /* ── Rifugio ── */
 #tab-content.bg-rifugio {
+  background-color: #0e0703;
   background:
     linear-gradient(180deg, rgba(5,3,2,.60) 0%, rgba(10,6,3,.35) 40%, rgba(5,3,2,.58) 100%),
     url('assets/backgrounds/bg-camp-fire.jpg');
@@ -520,6 +523,7 @@ body {
 }
 /* ── Mappa ── */
 #tab-content.bg-map {
+  background-color: #090b12;
   background:
     linear-gradient(180deg, rgba(5,6,10,.62) 0%, rgba(8,9,14,.40) 45%, rgba(5,6,10,.60) 100%),
     url('assets/backgrounds/bg-map.jpg');
@@ -527,6 +531,7 @@ body {
 }
 /* ── Allenati ── */
 #tab-content.bg-train {
+  background-color: #100602;
   background:
     linear-gradient(180deg, rgba(8,4,2,.62) 0%, rgba(12,6,3,.40) 45%, rgba(8,4,2,.60) 100%),
     url('assets/backgrounds/bg-train.jpg');
@@ -534,6 +539,7 @@ body {
 }
 /* ── Mercato ── */
 #tab-content.bg-market {
+  background-color: #080710;
   background:
     linear-gradient(180deg, rgba(5,4,10,.62) 0%, rgba(7,5,13,.38) 45%, rgba(5,4,10,.60) 100%),
     url('assets/backgrounds/bg-market.jpg');
@@ -1286,9 +1292,9 @@ img.camp-layer {
 .btn-plaque-small:disabled .plaque-img-small { filter: grayscale(1) opacity(.5); }
 
 /* ═══════════ BESTIARIO ═══════════ */
-.coll-switch { display: flex; gap: 8px; margin-bottom: 12px; }
+.coll-switch { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; }
 .coll-btn {
-  flex: 1; padding: 10px;
+  flex: 1; flex-shrink: 0; min-width: 72px; padding: 10px;
   display: flex; flex-direction: column; align-items: center; gap: 4px;
   font-family: 'Cinzel', serif; font-weight: 700; font-size: .85rem;
   border: 2px solid var(--leather); border-radius: 10px;

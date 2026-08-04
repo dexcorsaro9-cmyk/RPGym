@@ -2727,9 +2727,10 @@ const RPG = (() => {
 
   function buyForgeItem(hero, offer) {
     if (hero.gold < offer.price) return 'Oro insufficiente!';
-    if (hero.items.some(i => i.id === offer.id)) return 'Già acquistato oggi.';
+    if (hero.items.some(i => i.forgeId === offer.id)) return 'Già acquistato oggi.';
     hero.gold -= offer.price;
     const { price, ...item } = offer;
+    item.forgeId = item.id;
     item.id = 'i' + Date.now() + '_' + (itemSeq++);
     hero.items.push(item);
     return null;
