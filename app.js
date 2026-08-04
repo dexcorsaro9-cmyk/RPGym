@@ -631,7 +631,7 @@ function enterGame() {
 
   // Sincronizzazione automatica da Apple Salute (URL params o clipboard)
   const healthReport = applyHealthSyncFromURL(HERO);
-  if (healthReport) { persist(); renderHUD(); maybeSyncChallenge(); }
+  if (healthReport) { persist(); renderHUD(); FB.syncHero(HERO).catch(() => {}); maybeSyncChallenge(); }
 
   // Coda dei popup di apertura
   OPEN_QUEUE = [];
@@ -2957,8 +2957,8 @@ function _renderRivalsPanel() {
           const cid = await FB.createChallenge(HERO);
           if (!cid) { chalBtn.textContent = 'Errore'; return; }
           const sent = await FB.sendChallengeInvite(cid, HERO, fh.id);
-          if (!sent) { FB.deleteChallenge(cid); chalBtn.textContent = 'Errore'; return; }
-          HERO.cloud.activeChallenge = { id: cid, role: 'creator' };
+          if (!sent) { FB.deleteChallenge(cid, HERO.id); chalBtn.textContent = 'Errore'; return; }
+          HERO.cloud.activeChallenge = { id: cid, role: 'creator', creatorId: HERO.id };
           persist();
           toast('✅ Invito inviato a ' + esc(fh.name) + '!');
           setTab('map'); // re-render Pantheon so PvP panel shows active challenge
@@ -3000,18 +3000,19 @@ function showChallengeInviteModal(invite) {
     </div>`,
   );
   document.getElementById('inv-accept').addEventListener('click', async () => {
-    const ok = await FB.joinChallenge(invite.challengeId, HERO);
-    if (ok) {
-      HERO.cloud.activeChallenge = { id: invite.challengeId, role: 'opponent' };
+    const result = await FB.joinChallenge(invite.challengeId, HERO);
+    const joined = !!(result && result.ok);
+    if (joined) {
+      HERO.cloud.activeChallenge = { id: invite.challengeId, role: 'opponent', creatorId: invite.fromId };
       persist();
     }
     await FB.clearPendingInvite(HERO.id, invite.challengeId);
     nextOpening();
-    if (ok) toast('Sfida accettata! Percorri più km del tuo rivale in 7 giorni.');
+    if (joined) toast('Sfida accettata! Percorri più km del tuo rivale in 7 giorni.');
     else toast('Errore nell\'accettare la sfida. Riprova.');
   });
   document.getElementById('inv-decline').addEventListener('click', async () => {
-    await FB.deleteChallenge(invite.challengeId);
+    await FB.deleteChallenge(invite.challengeId, invite.fromId);
     await FB.clearPendingInvite(HERO.id, invite.challengeId);
     nextOpening();
   });
@@ -3031,8 +3032,9 @@ function _renderPvpPanel() {
       const ac = HERO.cloud && HERO.cloud.activeChallenge;
 
       if (ac) {
-        // Carica dati sfida attiva
-        const ch = await FB.getChallenge(ac.id);
+        // Carica dati sfida attiva — passa creatorId per evitare query extra
+        const creatorId = ac.role === 'creator' ? HERO.id : (ac.creatorId || null);
+        const ch = await FB.getChallenge(ac.id, creatorId);
         if (!ch) {
           // Sfida non trovata — pulisci
           HERO.cloud.activeChallenge = null; persist();
@@ -3066,7 +3068,7 @@ function _buildPvpIdle(container, refresh) {
     createBtn.textContent = 'Creazione…';
     const code = await FB.createChallenge(HERO);
     if (!code) { toast('❌ Errore di rete. Riprova.'); createBtn.disabled = false; createBtn.textContent = '⚔️ Crea una sfida'; return; }
-    HERO.cloud.activeChallenge = { id: code, role: 'creator' };
+    HERO.cloud.activeChallenge = { id: code, role: 'creator', creatorId: HERO.id };
     persist();
     modal(`
       <h3 class="panel-title">⚔️ Sfida Creata!</h3>
@@ -3108,9 +3110,9 @@ function _buildPvpIdle(container, refresh) {
         <button class="btn btn-primary wide" id="btn-pvp-accept">⚔️ Accetta</button>
       </div>`);
     document.getElementById('btn-pvp-accept').addEventListener('click', async () => {
-      const ok = await FB.joinChallenge(code, HERO);
-      if (!ok) { toast('❌ Errore. Riprova.'); closeModal(); return; }
-      HERO.cloud.activeChallenge = { id: code, role: 'opponent' };
+      const result = await FB.joinChallenge(code, HERO);
+      if (!result || !result.ok) { toast('❌ Errore. Riprova.'); closeModal(); return; }
+      HERO.cloud.activeChallenge = { id: code, role: 'opponent', creatorId: result.creatorId };
       persist();
       closeModal();
       toast('⚔️ Sfida accettata! Che vinca il migliore!');
@@ -3124,8 +3126,9 @@ function _buildPvpIdle(container, refresh) {
 
 function _buildPvpActive(container, ch, refresh) {
   container.innerHTML = '';
-  const ac      = HERO.cloud.activeChallenge;
+  const ac        = HERO.cloud.activeChallenge;
   const isCreator = ac.role === 'creator';
+  const _creatorId = isCreator ? HERO.id : (ac.creatorId || ch.creatorId || null);
   const myKmStart = isCreator ? ch.creatorKmStart : ch.opponentKmStart;
   const myKmNow   = isCreator ? ch.creatorKmNow   : ch.opponentKmNow;
   const theirKmStart = isCreator ? ch.opponentKmStart : ch.creatorKmStart;
@@ -3174,7 +3177,7 @@ function _buildPvpActive(container, ch, refresh) {
 
     const closeBtn = el('button', 'btn wide', 'Chiudi sfida');
     closeBtn.addEventListener('click', async () => {
-      await FB.deleteChallenge(ch.id);
+      await FB.deleteChallenge(ch.id, _creatorId);
       HERO.cloud.activeChallenge = null; persist();
       refresh();
     });
@@ -3228,7 +3231,7 @@ function _buildPvpActive(container, ch, refresh) {
         <button class="btn btn-danger wide" id="btn-pvp-abandon-confirm">Abbandona</button>
       </div>`);
     document.getElementById('btn-pvp-abandon-confirm').addEventListener('click', async () => {
-      await FB.deleteChallenge(ch.id);
+      await FB.deleteChallenge(ch.id, _creatorId);
       HERO.cloud.activeChallenge = null; persist();
       closeModal(); refresh();
     });
@@ -5939,7 +5942,7 @@ function applyStepsSync(steps, banner) {
   const km = Math.round(steps * 0.00075 * 100) / 100;
   if (km < 0.05) { toast(`${steps} passi (${km} km) — troppo pochi.`); return; }
   const report = RPG.logHealthSync(HERO, 'camminata', km);
-  if (report) { persist(); renderHUD(); showHealthSyncResult(report); maybeSyncChallenge(); }
+  if (report) { persist(); renderHUD(); FB.syncHero(HERO).catch(() => {}); showHealthSyncResult(report); maybeSyncChallenge(); }
   else toast('Attività già sincronizzata per oggi.');
 }
 
