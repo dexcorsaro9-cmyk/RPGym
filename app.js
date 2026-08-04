@@ -3509,12 +3509,15 @@ function renderTrain(c) {
   let chosen = 'camminata';
 
   // ── Strip incolla-passi: sempre visibile, nessun popup ──
+  const isAndroid = /android/i.test(navigator.userAgent);
   const syncStrip = el('div', 'step-sync-strip');
+  const sssPlaceholder = isAndroid ? 'Tieni premuto → Incolla i tuoi passi reali' : 'Incolla o digita i passi…';
   syncStrip.innerHTML = `<span class="sss-label">⚡ Passi da Salute</span>
-    <input class="sss-input" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Incolla o digita i passi…">`;
+    <input class="sss-input" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="${sssPlaceholder}">`;
   const sssInput = syncStrip.querySelector('.sss-input');
-  const applySss = () => {
-    const steps = parseInt(sssInput.value, 10);
+  if (isAndroid) sssInput.readOnly = true;
+
+  const applySssSteps = steps => {
     if (!(steps > 0)) return;
     const km = Math.round(steps * 0.00075 * 100) / 100;
     if (km < 0.05) { toast(`${steps} passi (${km} km) — troppo pochi.`); sssInput.value = ''; return; }
@@ -3531,8 +3534,22 @@ function renderTrain(c) {
     }
     else toast('Attività già sincronizzata per oggi.');
   };
-  sssInput.addEventListener('paste', () => setTimeout(applySss, 150));
-  sssInput.addEventListener('keydown', e => { if (e.key === 'Enter') applySss(); });
+
+  sssInput.addEventListener('paste', e => {
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData).getData('text');
+    const steps = parseInt(text.replace(/[^0-9]/g, ''), 10);
+    applySssSteps(steps);
+  });
+  if (!isAndroid) {
+    sssInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') applySssSteps(parseInt(sssInput.value, 10));
+    });
+    sssInput.addEventListener('input', () => {
+      const steps = parseInt(sssInput.value, 10);
+      if (steps > 0 && sssInput.value.length >= 4) setTimeout(() => applySssSteps(steps), 500);
+    });
+  }
   c.appendChild(syncStrip);
 
   // Banner primo accesso — spiega come inserire i dati
@@ -5958,24 +5975,29 @@ function localDate(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padS
    Nessun server coinvolto: il numero arriva incollato nell'URL e il gioco
    lo applica all'eroe attualmente selezionato su QUESTO telefono. */
 function showClipboardSyncBanner() {
+  const isAndroid = /android/i.test(navigator.userAgent);
   const banner = el('div', 'clipboard-sync-banner');
   banner.innerHTML = `
     <span class="csb-label">⚡ Passi dal Comando Rapido — tocca e incolla</span>
-    <input class="csb-input" id="csb-input" type="number" inputmode="numeric" placeholder="Tocca qui → Incolla">`;
+    <input class="csb-input" id="csb-input" type="text" inputmode="numeric" placeholder="Tocca qui → Incolla">`;
   document.body.appendChild(banner);
 
   const inp = document.getElementById('csb-input');
+  if (isAndroid) inp.readOnly = true;
   inp.focus();
-  inp.addEventListener('input', () => {
-    const steps = parseInt(inp.value, 10);
-    if (steps > 0) setTimeout(() => applyStepsSync(steps, banner), 300);
+
+  inp.addEventListener('paste', e => {
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData).getData('text');
+    const steps = parseInt(text.replace(/[^0-9]/g, ''), 10);
+    if (steps > 0) applyStepsSync(steps, banner);
   });
-  inp.addEventListener('paste', () => {
-    setTimeout(() => {
+  if (!isAndroid) {
+    inp.addEventListener('input', () => {
       const steps = parseInt(inp.value, 10);
-      if (steps > 0) applyStepsSync(steps, banner);
-    }, 100);
-  });
+      if (steps > 0) setTimeout(() => applyStepsSync(steps, banner), 300);
+    });
+  }
   setTimeout(() => { if (banner.parentNode) banner.remove(); }, 60000);
 }
 
