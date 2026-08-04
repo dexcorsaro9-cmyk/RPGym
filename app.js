@@ -389,7 +389,7 @@ function renderProfiles() {
     list.appendChild(emptyState('⚔️', 'Nessun eroe ancora. Tocca + per crearne uno!'));
   }
   STATE.heroes.forEach(h => {
-    const storyId = (h.avatar || '').replace('assets/avatars/', '').replace('.webp', '');
+    const storyId = (h.avatar || '').replace('assets/avatars/', '').replace(/\.(webp|png)$/, '');
     const col = AVATAR_COLORS[storyId] || { bg: '#0e0804', glow: '#c9932e' };
     const avatarMeta = AVATARS.find(a => a.storyId === storyId);
     const classLabel = avatarMeta ? avatarMeta.label : '';
@@ -442,6 +442,13 @@ function avatarEl(hero, cls) {
     img.loading = 'eager';
     img.src = hero.avatar;
     img.alt = hero.name;
+    // Fallback: prova .webp se il file .png non esiste (migrazione asset)
+    img.onerror = () => {
+      if (hero.avatar.endsWith('.png')) {
+        img.onerror = null;
+        img.src = hero.avatar.slice(0, -4) + '.webp';
+      }
+    };
     return img;
   }
   return el('div', cls + ' avatar-emoji', hero.avatar || '🧑‍🌾');
@@ -901,7 +908,7 @@ function renderHUD() {
   av.innerHTML = '';
   av.appendChild(avatarEl(HERO, 'hud-avatar-inner'));
   // accent color from hero class
-  const _sid = (HERO.avatar || '').replace('assets/avatars/', '').replace('.webp', '');
+  const _sid = (HERO.avatar || '').replace('assets/avatars/', '').replace(/\.(webp|png)$/, '');
   const _col = AVATAR_COLORS[_sid] || { glow: 'var(--gold)' };
   av.style.boxShadow = `0 0 10px ${_col.glow}70, 0 0 0 2px ${_col.glow}`;
   av.style.borderRadius = '50%';
@@ -4322,6 +4329,7 @@ let MARKET_VIEW = 'hub';
 let NERO_FILTER = 'all';
 
 function renderMarket(c) {
+  try {
   if (MARKET_VIEW === 'taverna')   { renderTavernaView(c);   return; }
   if (MARKET_VIEW === 'bisca')     { renderBiscaView(c);     return; }
   if (MARKET_VIEW === 'stalla')    { renderStallaView(c);    return; }
@@ -4334,6 +4342,32 @@ function renderMarket(c) {
   const marketIcon = new Image();
   marketIcon.onload = () => { marketTitle.innerHTML = `<img class="title-icon" src="assets/ui/tab-mercato.webp"> Il Borgo`; };
   marketIcon.src = 'assets/ui/tab-mercato.webp';
+
+  // ── Biglietti Gratta & Vinci ──
+  {
+    const tickets = RPG.getUnscratchedTickets(HERO);
+    if (tickets.length > 0) {
+      const tp = el('div', 'panel panel-featured');
+      tp.appendChild(el('h3', 'panel-title', '🎟️ Biglietti da Grattare'));
+      tp.appendChild(el('p', 'muted small center', `Hai ${tickets.length} biglietto${tickets.length > 1 ? '/i' : ''} non raschiato${tickets.length > 1 ? '/i' : ''} — premi su uno per scoprire il premio!`));
+      const tGrid = el('div', 'ticket-grid');
+      tickets.forEach(ticket => {
+        const cfg = RPG.TICKET_TYPES[ticket.type];
+        const card = el('div', `ticket-card ticket-${ticket.type}`);
+        const img = el('img', 'ticket-thumb');
+        img.src = cfg.img;
+        img.alt = cfg.name;
+        card.appendChild(img);
+        card.appendChild(el('div', 'ticket-label', cfg.name));
+        const btn = el('button', 'btn btn-primary btn-small', '✨ Gratta!');
+        btn.addEventListener('click', () => showScratchCard(ticket));
+        card.appendChild(btn);
+        tGrid.appendChild(card);
+      });
+      tp.appendChild(tGrid);
+      c.appendChild(tp);
+    }
+  }
 
   // ── Mercante Fuggiasco ──
   const fm = RPG.getFugitiveMerchant(HERO);
@@ -4448,6 +4482,10 @@ function renderMarket(c) {
     c.appendChild(panel);
   });
 
+  } catch (err) {
+    console.error('[renderMarket]', err);
+    c.appendChild(el('div', 'panel muted center', '⚠️ Errore nel caricamento del Borgo. Riprova toccando la tab.'));
+  }
 }
 
 function npcBanner(imgPath, name, quote) {
@@ -6339,7 +6377,6 @@ const ZAINO_CATS = [
   { id: 'rune',      label: '🔮 Rune' },
   { id: 'utility',   label: '🧭 Utility' },
   { id: 'materiali', label: '⚒️ Materiali' },
-  { id: 'biglietti', label: '🎟️ Biglietti' },
 ];
 let ZAINO_CAT = 'tutti';
 
@@ -6495,7 +6532,7 @@ function showScratchCard(ticket) {
       } else {
         resEl.innerHTML = `<p class="muted">Nessun premio questa volta — riprova con il prossimo biglietto!</p>`;
       }
-      HERO_VIEW = 'zaino';
+      MARKET_VIEW = 'hub'; setTab('market');
     }
   });
 }
@@ -6534,32 +6571,6 @@ function renderZainoView(c) {
     sw.appendChild(b);
   });
   c.appendChild(sw);
-
-  // ── Biglietti Gratta e Vinci ──
-  if (ZAINO_CAT === 'tutti' || ZAINO_CAT === 'biglietti') {
-    const tickets = RPG.getUnscratchedTickets(HERO);
-    if (tickets.length > 0) {
-      const tPanel = el('div', 'panel');
-      tPanel.appendChild(el('h3', 'panel-title', '🎟️ Biglietti da Grattare'));
-      const tGrid = el('div', 'ticket-grid');
-      tickets.forEach(ticket => {
-        const cfg = RPG.TICKET_TYPES[ticket.type];
-        const card = el('div', `ticket-card ticket-${ticket.type}`);
-        const img = el('img', 'ticket-thumb');
-        img.src = cfg.img;
-        img.alt = cfg.name;
-        card.appendChild(img);
-        const label = el('div', 'ticket-label', cfg.name);
-        card.appendChild(label);
-        const btn = el('button', 'btn btn-primary btn-small', '✨ Gratta!');
-        btn.addEventListener('click', () => showScratchCard(ticket));
-        card.appendChild(btn);
-        tGrid.appendChild(card);
-      });
-      tPanel.appendChild(tGrid);
-      c.appendChild(tPanel);
-    }
-  }
 
   // Griglia consumabili posseduti
   const owned = HERO.consumables || {};
