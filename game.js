@@ -2125,6 +2125,22 @@ const RPG = (() => {
       h.onboardingStep = (h.tutorialDone || (h.totalKm || 0) > 0) ? 3 : 0;
     }
 
+    /* Migrazione nomi armi: ricalcola base+nome dall'immagine per item vecchi */
+    (h.items || []).forEach(it => {
+      if (it.slot !== 'arma') return;
+      const names = ARMA_NAMES_BY_IMG[it.rarity];
+      if (!names) return;
+      const hh = [...String(it.id)].reduce((s, c) => (s * 33 + c.charCodeAt(0)) % 9973, 7);
+      const correctBase = names[hh % names.length];
+      if (it.base === correctBase) return;
+      const oldName = it.name || '';
+      const spaceIdx = oldName.indexOf(' ');
+      const suffix = spaceIdx >= 0 ? oldName.slice(spaceIdx + 1) : oldName;
+      it.base = correctBase;
+      it.name = `${correctBase} ${suffix}`;
+      it.desc = descForItem(it.slot, it.rarity, it.base, it.affixes || []);
+    });
+
     h.schemaVersion = SCHEMA_VERSION;
     return h;
   }
