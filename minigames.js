@@ -58,7 +58,7 @@ function mgClose() {
   const ov = document.getElementById('mg-ov');
   if (!ov) return;
   ov.classList.add('mg-out');
-  setTimeout(() => { ov.className = ''; ov.innerHTML = ''; MAP_VIEW = 'taverna'; setTab('map'); }, 280);
+  setTimeout(() => { ov.className = ''; ov.innerHTML = ''; MARKET_VIEW = 'taverna'; setTab('market'); }, 280);
 }
 
 /* Hub */
