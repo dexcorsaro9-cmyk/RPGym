@@ -40,9 +40,10 @@ function beginBattle(villainId) {
     persist();
     const petBonus = RPG.petArenaBonus(HERO);
     const furn = RPG.furnitureAggregate(HERO);
+    const equipType = RPG.equipTypeBonusAggregate(HERO);
     const classBonus = RPG.classArenaBonus(HERO, v);
-    const furnHpBonus = Math.round(100 * furn.arenaHpMult);
-    const furnDmgBonus = Math.round(34 * (furn.arenaDmgMult + (v.boss ? furn.bossDmgMult : 0)));
+    const furnHpBonus = Math.round(100 * (furn.arenaHpMult + equipType.arenaHpMult));
+    const furnDmgBonus = Math.round(34 * (furn.arenaDmgMult + equipType.arenaDmgMult + (v.boss ? furn.bossDmgMult : 0)));
     const maxHP = 100 + petBonus.hpBonus + furnHpBonus + classBonus.hpBonus;
     BATTLE = {
       v, heroHP: maxHP, heroMaxHP: maxHP, vHP: 100, dmg: 34, hw: 0, vw: 0, round: 1, busy: false, done: false,

@@ -948,6 +948,76 @@ const RPG = (() => {
 
   const EQUIP_SLOTS = ['arma', 'scudo', 'elmo', 'armatura', 'anello', 'amuleto'];
 
+
+  const RARITY_TYPE_SCALE = {
+    comune: 1, non_comune: 1.5, raro: 2.2, epico: 3.5, leggendario: 5, divino: 7, oscuro: 6,
+  };
+
+  const RARITY_SECONDARY_COUNT = {
+    comune: 0, non_comune: 0, raro: 1, epico: 1, leggendario: 2, divino: 2, oscuro: 1,
+  };
+
+  const ITEM_TYPE_AFFIX = {
+    arma: {
+      'Spada':    { type: 'arenaDmgMult',                      min: 0.006, max: 0.014 },
+      'Ascia':    { type: 'woodMult',                          min: 0.010, max: 0.022 },
+      'Mazza':    { type: 'arenaDmgMult',                      min: 0.008, max: 0.018 },
+      'Arco':     { type: 'xpMult', activity: 'corsa',         min: 0.010, max: 0.022 },
+      'Martello': { type: 'stoneMult',                         min: 0.010, max: 0.022 },
+      'Lancia':   { type: 'xpMult', activity: 'corsa',         min: 0.008, max: 0.018 },
+      'Pugnale':  { type: 'xpMult', activity: 'camminata',     min: 0.010, max: 0.022 },
+      'Coltello': { type: 'goldMult',                          min: 0.008, max: 0.020 },
+      'Falce':    { type: 'goldMult',                          min: 0.010, max: 0.024 },
+      'Balestra': { type: 'xpMult', activity: 'cyclette',      min: 0.010, max: 0.022 },
+      'Flagello': { type: 'arenaDmgMult',                      min: 0.008, max: 0.018 },
+      'Tridente': { type: 'xpMult', activity: 'camminata',     min: 0.008, max: 0.018 },
+      'Bastone':  { type: 'xpGlobal',                         min: 0.006, max: 0.016 },
+      'Guanto':   { type: 'arenaDmgMult',                      min: 0.006, max: 0.014 },
+    },
+    scudo: {
+      'Scudo Tondo':   { type: 'arenaHpMult',                  min: 0.008, max: 0.018 },
+      'Scudo a Torre': { type: 'arenaHpMult',                  min: 0.012, max: 0.026 },
+      'Buckler':       { type: 'xpMult', activity: 'corsa',    min: 0.010, max: 0.022 },
+      'Egida':         { type: 'goldMult',                     min: 0.010, max: 0.022 },
+    },
+    elmo: {
+      'Elmo':            { type: 'arenaHpMult',                min: 0.008, max: 0.018 },
+      'Cappuccio':       { type: 'goldMult',                   min: 0.010, max: 0.022 },
+      'Corona di Ferro': { type: 'arenaDmgMult',               min: 0.008, max: 0.018 },
+      'Barbuta':         { type: 'arenaHpMult',                min: 0.012, max: 0.026 },
+    },
+    armatura: {
+      'Corazza':             { type: 'arenaHpMult',            min: 0.010, max: 0.022 },
+      'Cotta di Maglia':     { type: 'xpMult', activity: 'camminata', min: 0.010, max: 0.022 },
+      'Mantello Rinforzato': { type: 'goldMult',               min: 0.010, max: 0.022 },
+      'Pettorale':           { type: 'arenaDmgMult',           min: 0.008, max: 0.018 },
+    },
+    anello: {
+      'Anello':        { type: 'xpGlobal',                     min: 0.006, max: 0.016 },
+      'Sigillo':       { type: 'goldMult',                     min: 0.014, max: 0.028 },
+      'Fascia Incisa': { type: 'xpMult', activity: 'corsa',    min: 0.010, max: 0.022 },
+    },
+    amuleto: {
+      'Amuleto':   { type: 'goldMult',                         min: 0.008, max: 0.020 },
+      'Talismano': { type: 'xpGlobal',                         min: 0.008, max: 0.020 },
+      'Ciondolo':  { type: 'xpMult', activity: 'camminata',    min: 0.010, max: 0.022 },
+      'Reliquia':  { type: 'arenaDmgMult',                     min: 0.008, max: 0.018 },
+    },
+  };
+
+  const SECONDARY_AFFIX_POOL = [
+    { type: 'xpGlobal',                          min: 0.004, max: 0.010 },
+    { type: 'goldMult',                          min: 0.005, max: 0.012 },
+    { type: 'woodMult',                          min: 0.006, max: 0.014 },
+    { type: 'stoneMult',                         min: 0.006, max: 0.014 },
+    { type: 'xpMult', activity: 'corsa',         min: 0.005, max: 0.012 },
+    { type: 'xpMult', activity: 'camminata',     min: 0.005, max: 0.012 },
+    { type: 'xpMult', activity: 'cyclette',      min: 0.005, max: 0.012 },
+    { type: 'arenaDmgMult',                      min: 0.004, max: 0.010 },
+    { type: 'arenaHpMult',                       min: 0.004, max: 0.010 },
+  ];
+
+
   /* Nomi per indice immagine — garantisce che nome e immagine corrispondano sempre */
   const ARMA_NAMES_BY_IMG = {
     comune:      ['Pugnale', 'Ascia', 'Mazza', 'Pugnale', 'Lancia', 'Lancia', 'Ascia', 'Coltello'],
@@ -959,13 +1029,20 @@ const RPG = (() => {
     oscuro:      ['Falce', 'Bastone', 'Mazza', 'Pugnale', 'Spada', 'Pugnale'],
   };
 
+  function rollAffix(def, scale) {
+    const raw = def.min + Math.random() * (def.max - def.min);
+    const af = { type: def.type, value: +((raw * scale).toFixed(4)) };
+    if (def.activity) af.activity = def.activity;
+    return af;
+  }
+
+
   function genItem(level, minRarity, forcedSlot, forcedRarity) {
     const rarity = forcedRarity || rollRarity(level, minRarity);
     const slot = forcedSlot ||
       EQUIP_SLOTS[Math.floor(Math.random() * EQUIP_SLOTS.length)];
 
     const id = 'i' + Math.random().toString(36).slice(2, 11) + Date.now().toString(36);
-    /* Hash identico a lootImgSrc — permette di derivare il nome dall'immagine */
     const h = [...id].reduce((s, c) => (s * 33 + c.charCodeAt(0)) % 9973, 7);
 
     let base;
@@ -976,23 +1053,51 @@ const RPG = (() => {
       base = ITEM_BASES[slot][Math.floor(Math.random() * ITEM_BASES[slot].length)];
     }
 
+    const scale = RARITY_TYPE_SCALE[rarity] || 1;
+    const affixes = [];
+
+    const primaryDef = (ITEM_TYPE_AFFIX[slot] || {})[base];
+    if (primaryDef) affixes.push(rollAffix(primaryDef, scale));
+
+    const secCount = RARITY_SECONDARY_COUNT[rarity] || 0;
+    const used = new Set(affixes.map(a => a.type + (a.activity || '')));
+    for (let si = 0; si < secCount; si++) {
+      const avail = SECONDARY_AFFIX_POOL.filter(p => !used.has(p.type + (p.activity || '')));
+      if (!avail.length) break;
+      const pick = avail[Math.floor(Math.random() * avail.length)];
+      affixes.push(rollAffix(pick, scale));
+      used.add(pick.type + (pick.activity || ''));
+    }
+
     const suf = RARITY_SUFFIX[rarity][Math.floor(Math.random() * RARITY_SUFFIX[rarity].length)];
     const r = RARITIES[rarity];
     return {
-      id, slot, rarity,
+      id, slot, rarity, base,
       name: `${base} ${suf}`,
       icon: SLOTS[slot].icon,
       xp: r.xp,
       value: r.value,
-      desc: descForItem(slot, rarity),
+      affixes,
+      desc: descForItem(slot, rarity, base, affixes),
     };
   }
 
-  function descForItem(slot, rarity) {
+  function descForItem(slot, rarity, base, affixes) {
     const r = RARITIES[rarity];
-    const what = { arma: 'Un\'arma', scudo: 'Uno scudo', elmo: 'Un elmo',
-      armatura: 'Un\'armatura', anello: 'Un anello', amuleto: 'Un amuleto' }[slot];
-    return `${what} di rarità ${r.label}. Equipaggiato: +${r.xp}% XP da ogni allenamento. Valore di mercato: ${r.value} monete.`;
+    const label = base || { arma: 'Arma', scudo: 'Scudo', elmo: 'Elmo',
+      armatura: 'Armatura', anello: 'Anello', amuleto: 'Amuleto' }[slot];
+    const parts = [`+${r.xp}% XP`];
+    (affixes || []).forEach(a => {
+      const pct = Math.round(a.value * 1000) / 10;
+      if (a.type === 'arenaDmgMult')           parts.push(`+${pct}% danni Arena`);
+      else if (a.type === 'arenaHpMult')       parts.push(`+${pct}% HP Arena`);
+      else if (a.type === 'goldMult')          parts.push(`+${pct}% oro`);
+      else if (a.type === 'woodMult')          parts.push(`+${pct}% legna`);
+      else if (a.type === 'stoneMult')         parts.push(`+${pct}% pietra`);
+      else if (a.type === 'xpGlobal')          parts.push(`+${pct}% XP (tutti)`);
+      else if (a.type === 'xpMult' && a.activity) parts.push(`+${pct}% XP ${a.activity}`);
+    });
+    return `${label} ${r.label}. ${parts.join(' · ')}. Valore: ${r.value} monete.`;
   }
 
   // Genera loot per un eroe, applicando il talento dell'Alchimista
@@ -1023,6 +1128,30 @@ const RPG = (() => {
       if (it) tot += it.xp;
     });
     return tot; // in %
+  }
+
+  /* Aggrega tutti gli affix degli item equipaggiati (stesso formato di furnitureAggregate) */
+  function equipTypeBonusAggregate(hero) {
+    const out = {
+      xpMult: { camminata: 0, corsa: 0, cyclette: 0, global: 0 },
+      goldMult: 0, woodMult: 0, stoneMult: 0,
+      arenaDmgMult: 0, arenaHpMult: 0,
+    };
+    Object.values(hero.equipment || {}).forEach(id => {
+      if (!id) return;
+      const it = (hero.items || []).find(i => i.id === id);
+      if (!it || !it.affixes) return;
+      it.affixes.forEach(a => {
+        if      (a.type === 'arenaDmgMult')               out.arenaDmgMult        += a.value;
+        else if (a.type === 'arenaHpMult')                out.arenaHpMult         += a.value;
+        else if (a.type === 'goldMult')                   out.goldMult            += a.value;
+        else if (a.type === 'woodMult')                   out.woodMult            += a.value;
+        else if (a.type === 'stoneMult')                  out.stoneMult           += a.value;
+        else if (a.type === 'xpGlobal')                   out.xpMult.global       += a.value;
+        else if (a.type === 'xpMult' && a.activity)       out.xpMult[a.activity]  = (out.xpMult[a.activity] || 0) + a.value;
+      });
+    });
+    return out;
   }
 
   /* ── Missioni della storia ────────────────────────────────── */
@@ -2345,6 +2474,13 @@ const RPG = (() => {
     resMult += skillBonus(hero, 'resMult');
     let localWoodMult = resMult + furn.woodMult;
     let localStoneMult = resMult + furn.stoneMult;
+
+    // Affix equipaggiamento (tipo-specifici, unici per ogni item)
+    const equipType = equipTypeBonusAggregate(hero);
+    xpMult    += (equipType.xpMult[type] || 0) + equipType.xpMult.global;
+    goldMult  += equipType.goldMult;
+    localWoodMult  += equipType.woodMult;
+    localStoneMult += equipType.stoneMult;
     // Dualità: Cittadella dell'Eclissi, +risorse dopo le 18:00
     if (furn.flags.dualityBonus && new Date().getHours() >= 18) {
       goldMult += furn.flags.dualityBonus;
@@ -2698,6 +2834,44 @@ const RPG = (() => {
     return null;
   }
 
+  /* Genera affix deterministici per gli item della Fucina (stesso seme = stesso risultato) */
+  function forgeAffixes(s, rarity, seed, idx) {
+    const scale = RARITY_TYPE_SCALE[rarity] || 1;
+    const affixes = [];
+    /* Base del tipo: usa indice di immagine per le armi, ITEM_BASES per gli altri */
+    let base;
+    if (s === 'arma' && ARMA_NAMES_BY_IMG[rarity]) {
+      const names = ARMA_NAMES_BY_IMG[rarity];
+      const imgH = Math.abs(seed + idx * 31) % names.length;
+      base = names[imgH];
+    } else {
+      base = ITEM_BASES[s][Math.abs(seed + idx * 3) % ITEM_BASES[s].length];
+    }
+    const primaryDef = (ITEM_TYPE_AFFIX[s] || {})[base];
+    if (primaryDef) {
+      /* Valore deterministico: interpola min-max con una frazione derivata dal seme */
+      const frac = (Math.abs(seed * 1664525 + idx * 1013904223) % 10000) / 10000;
+      const raw = primaryDef.min + frac * (primaryDef.max - primaryDef.min);
+      const af = { type: primaryDef.type, value: +((raw * scale).toFixed(4)) };
+      if (primaryDef.activity) af.activity = primaryDef.activity;
+      affixes.push(af);
+    }
+    const secCount = RARITY_SECONDARY_COUNT[rarity] || 0;
+    const used = new Set(affixes.map(a => a.type + (a.activity || '')));
+    for (let si = 0; si < secCount; si++) {
+      const avail = SECONDARY_AFFIX_POOL.filter(p => !used.has(p.type + (p.activity || '')));
+      if (!avail.length) break;
+      const pick = avail[Math.abs(seed + idx * 17 + si * 7) % avail.length];
+      const frac = (Math.abs(seed * 6364136 + idx * 1442695037 + si) % 10000) / 10000;
+      const raw = pick.min + frac * (pick.max - pick.min);
+      const af = { type: pick.type, value: +((raw * scale).toFixed(4)) };
+      if (pick.activity) af.activity = pick.activity;
+      affixes.push(af);
+      used.add(pick.type + (pick.activity || ''));
+    }
+    return { base, affixes };
+  }
+
   // La Fucina propone ogni giorno 3 pezzi (armi/armature), uguali per data
   function forgeOffers(hero) {
     const today = todayStamp();
@@ -2708,24 +2882,24 @@ const RPG = (() => {
     const discount = 1 - Math.min(0.6, furn.marketDiscount + skillBonus(hero, 'marketDiscount'));
     for (let i = 0; i < 3; i++) {
       const s = slots[(seed + i * 7) % slots.length];
-      // rarità pseudo-casuale ma stabile nel giorno
       const rIdx = (seed + i * 13) % 100;
       let rarity = 'comune';
       if (rIdx > 55) rarity = 'non_comune';
       if (rIdx > 80) rarity = 'raro';
       if (rIdx > 93 && hero.level >= 16) rarity = 'epico';
       if (rIdx > 98 && hero.level >= 31) rarity = 'leggendario';
-      const base = ITEM_BASES[s][(seed + i * 3) % ITEM_BASES[s].length];
+      const { base, affixes } = forgeAffixes(s, rarity, seed, i);
       const suf = RARITY_SUFFIX[rarity][(seed + i * 5) % RARITY_SUFFIX[rarity].length];
       const r = RARITIES[rarity];
       offers.push({
         id: 'forge-' + today + '-' + i,
-        slot: s, rarity,
+        slot: s, rarity, base,
         name: `${base} ${suf}`,
         icon: SLOTS[s].icon,
         xp: r.xp, value: r.value,
+        affixes,
         price: Math.round(r.value * 2 * (isClass(hero, 'fabbro') ? 0.8 : 1) * discount),
-        desc: descForItem(s, rarity),
+        desc: descForItem(s, rarity, base, affixes),
       });
     }
     // L'OCCASIONE DEL SABATO: un pezzo della miglior rarità disponibile, -30%, solo oggi!
@@ -2733,20 +2907,21 @@ const RPG = (() => {
       const avail = availableRarities(hero.level);
       const rarity = avail[avail.length - 1];
       const s = slots[seed % slots.length];
-      const base = ITEM_BASES[s][(seed + 11) % ITEM_BASES[s].length];
+      const { base, affixes } = forgeAffixes(s, rarity, seed, 99);
       const suf = RARITY_SUFFIX[rarity][(seed + 17) % RARITY_SUFFIX[rarity].length];
       const r = RARITIES[rarity];
       const full = Math.round(r.value * 2 * (isClass(hero, 'fabbro') ? 0.8 : 1) * discount);
       offers.push({
         id: 'forge-' + today + '-occasione',
-        slot: s, rarity,
+        slot: s, rarity, base,
         name: `${base} ${suf}`,
         icon: SLOTS[s].icon,
         xp: r.xp, value: r.value,
+        affixes,
         price: Math.round(full * 0.7),
         fullPrice: full,
         special: true,
-        desc: descForItem(s, rarity),
+        desc: descForItem(s, rarity, base, affixes),
       });
     }
     return offers;
@@ -4938,6 +5113,7 @@ const RPG = (() => {
     packAuraActive,
     FURNITURE_SETS, furnitureSetById, furnitureSetOwnedCount, furnitureSetComplete,
     furnitureUnlockedSets, furnitureAggregate, buyFurniture,
+    equipTypeBonusAggregate,
     ACHIEVEMENTS, achievementsUnlocked, claimAchievement,
     CONSUMABLE_ACHIEVEMENTS, consumableAchievementsUnlocked, craftConsumable,
     applyXp,
