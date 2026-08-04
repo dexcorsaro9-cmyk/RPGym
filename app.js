@@ -4652,9 +4652,10 @@ function renderFucina(c) {
       (o.special ? `<span class="tag tag-sale">🔥 -30% SOLO OGGI · <span data-cd="midnight">…</span></span><br>` : '') +
       `${itemIconHtml(o, 'item-icon')} <b>${esc(o.name)}</b> <span class="tag">${RPG.RARITIES[o.rarity].label}</span><br>
        <span class="small muted">+${o.xp}% XP · ${RPG.SLOTS[o.slot].label}${o.special ? ` · <s>🪙${o.fullPrice}</s>` : ''}</span>`));
-    const btn = el('button', 'btn btn-small', `🪙${o.price}`);
-    if (HERO.gold >= o.price && !bought) btn.classList.add('btn-primary');
-    if (bought) { btn.textContent = '✅'; btn.disabled = true; }
+    const canBuy = HERO.gold >= o.price && !bought;
+    const btn = el('button', 'btn btn-small' + (canBuy ? ' btn-primary' : ''), bought ? '✅' : `🪙${o.price}`);
+    btn.disabled = !canBuy;
+    if (!bought && HERO.gold < o.price) btn.title = 'Oro insufficiente';
     btn.addEventListener('click', () => {
       const err = RPG.buyForgeItem(HERO, o);
       persist(); renderHUD();
