@@ -1852,7 +1852,7 @@ function renderSantuarioView(c) {
     giveBtn.addEventListener('click', () => {
       const r = RPG.feedPet(HERO, pet.wish.item);
       persist();
-      if (r && r.ok) { toast(r.wishFulfilled ? '🎉 Desiderio esaudito!' : `${food.icon} sfamato!`); sfx('coin'); }
+      if (r && r.ok) { checkPetEvolution(r); toast(r.wishFulfilled ? '🎉 Desiderio esaudito!' : `${food.icon} sfamato!`); sfx('coin'); }
       else toast(r);
       renderHUD(); setTab('camp');
     });
@@ -1939,6 +1939,7 @@ function renderSantuarioView(c) {
       const r = RPG.collectExpedition(HERO);
       persist();
       if (r) {
+        checkPetEvolution(r);
         toast(r.epic ? `🌟 Bottino epico! 🪙${r.gold} 🪵${r.wood} 🪨${r.stone}` : `🎒 Bottino: 🪵${r.wood} 🪨${r.stone}`);
         sfx('chest');
       }
@@ -2076,7 +2077,7 @@ function openFeedPicker() {
       const r = RPG.feedPet(HERO, key);
       persist();
       closeModal();
-      if (r && r.ok) { toast(r.wishFulfilled ? '🎉 Desiderio esaudito!' : `${food.icon} Nutrito!`); sfx('coin'); renderHUD(); }
+      if (r && r.ok) { checkPetEvolution(r); toast(r.wishFulfilled ? '🎉 Desiderio esaudito!' : `${food.icon} Nutrito!`); sfx('coin'); renderHUD(); }
       else toast(r);
       setTab('camp');
     });

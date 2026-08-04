@@ -3334,8 +3334,8 @@ const RPG = (() => {
       hero.pet.wish = null;
       wishFulfilled = true;
     }
-    addPetXp(hero, 5);
-    return { ok: true, wishFulfilled };
+    const evoFeed = addPetXp(hero, 5);
+    return { ok: true, wishFulfilled, ...(evoFeed || {}) };
   }
 
   function playWithPet(hero) {
@@ -3345,8 +3345,8 @@ const RPG = (() => {
     tickPet(hero);
     hero.stamina -= STAMINA_COST;
     hero.pet.mood = clamp01to100(hero.pet.mood + 25);
-    addPetXp(hero, 8);
-    return { ok: true };
+    const evoPlay = addPetXp(hero, 8);
+    return { ok: true, ...(evoPlay || {}) };
   }
 
   function cleanPet(hero) {
@@ -3357,8 +3357,8 @@ const RPG = (() => {
     hero.wood -= WOOD_COST; hero.stone -= STONE_COST;
     hero.pet.kmAtLastClean = hero.totalKm;
     hero.pet.hygiene = 100;
-    addPetXp(hero, 4);
-    return { ok: true };
+    const evoClean = addPetXp(hero, 4);
+    return { ok: true, ...(evoClean || {}) };
   }
 
   function sleepPet(hero) {
@@ -3468,8 +3468,8 @@ const RPG = (() => {
     result.stone = Math.round(result.stone * expMult);
     result.gold  = Math.round(result.gold  * expMult);
     hero.wood += result.wood; hero.stone += result.stone; hero.gold += result.gold;
-    addPetXp(hero, 10);
-    return result;
+    const evoExp = addPetXp(hero, 10);
+    return { ...result, ...(evoExp || {}) };
   }
 
   /* ═══════════════════════════════════════════════════════════
