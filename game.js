@@ -9,7 +9,7 @@ const RPG = (() => {
   const SAVE_KEY = 'rpgym_save_v1';
   const MAX_LEVEL = 100;
   let itemSeq = 0;
-  const LEVEL_CAP_1 = 20; // sigillo: serve l'Amuleto del Viaggiatore Esperto
+  const LEVEL_CAP_1 = MAX_LEVEL; // progressione libera fino al livello 100
 
   /* ── Attività: moltiplicatori XP per km ───────────────────── */
   const ACTIVITIES = {
@@ -1194,8 +1194,8 @@ const RPG = (() => {
       reward: { gold: 250, card: 'card_golem', items: 2 } },
     { id: 'amuleto',   zone: 'Le Pianure del Vento', name: 'L\'Amuleto del Viaggiatore Esperto',
       km: 30, minLevel: 19, requires: 'golem',
-      desc: 'Forgia l\'amuleto che spezza il sigillo del Livello 20. Il Drago ti attende oltre.',
-      reward: { gold: 300, unlocks: 'ascension', card: 'card_amuleto', items: 2, minRarity: 'epico' } },
+      desc: 'Forgia l\'amuleto leggendario del Viaggiatore: un cimelio che porta fortuna a chi non si ferma mai.',
+      reward: { gold: 300, card: 'card_amuleto', items: 2, minRarity: 'epico' } },
   ];
 
   // Missioni di esplorazione: una per bioma, sbloccate col livello
@@ -2605,9 +2605,8 @@ const RPG = (() => {
     const newLore = checkLoreUnlock(hero);
     if (newLore.length) report.loreUnlocked = newLore;
 
-    // Livelli (con sigillo al 20 finché non c'è l'Ascensione)
-    const cap = hero.ascended ? MAX_LEVEL : LEVEL_CAP_1;
-    while (hero.level < cap && hero.xp >= xpForLevel(hero.level)) {
+    // Livelli — progressione libera fino al livello 100
+    while (hero.level < MAX_LEVEL && hero.xp >= xpForLevel(hero.level)) {
       hero.xp -= xpForLevel(hero.level);
       hero.level++;
       earnSkillPoints(hero);
@@ -2617,9 +2616,8 @@ const RPG = (() => {
         report.unlocks.push('🏡 Livello 5! Puoi costruire la tua casa nel Rifugio.');
       }
     }
-    if (hero.level >= cap && hero.xp > xpForLevel(hero.level)) {
+    if (hero.level >= MAX_LEVEL && hero.xp > xpForLevel(hero.level)) {
       hero.xp = xpForLevel(hero.level);
-      if (!hero.ascended) report.capReached = true;
     }
 
     // Sacchi del Viaggiatore → oggetti equipaggiabili
@@ -2816,8 +2814,7 @@ const RPG = (() => {
       report.unlocks.push(`🐺 EVENTO DEL RISVEGLIO! Il Lupo Astrale ti ha scelto: è la tua cavalcatura in missione (+10% km). Nello stesso istante, un misterioso uovo di ${sp.name} ${sp.icon} è apparso al Rifugio: visita il Santuario dei Famigli per prendertene cura e vederlo evolvere!`);
     }
     if (r.unlocks === 'ascension') {
-      hero.ascended = true;
-      report.unlocks.push('🔮 ASCENSIONE! Il sigillo del Livello 20 è spezzato: puoi crescere fino al Livello 100. Il Drago ti attende.');
+      hero.ascended = true; // retrocompatibilità con salvataggi esistenti
     }
   }
 
@@ -4377,9 +4374,8 @@ const RPG = (() => {
 
   function applyXp(hero, amount) {
     hero.xp = (hero.xp || 0) + amount;
-    const cap = hero.ascended ? MAX_LEVEL : LEVEL_CAP_1;
     const levelsGained = [];
-    while (hero.level < cap && hero.xp >= xpForLevel(hero.level)) {
+    while (hero.level < MAX_LEVEL && hero.xp >= xpForLevel(hero.level)) {
       hero.xp -= xpForLevel(hero.level);
       hero.level++;
       levelsGained.push(hero.level);
@@ -4387,7 +4383,7 @@ const RPG = (() => {
         hero.cards.push('card_casa');
       }
     }
-    if (hero.level >= cap && hero.xp > xpForLevel(hero.level)) {
+    if (hero.level >= MAX_LEVEL && hero.xp > xpForLevel(hero.level)) {
       hero.xp = xpForLevel(hero.level);
     }
     return levelsGained;
