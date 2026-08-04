@@ -251,6 +251,161 @@ const FB = (() => {
     } catch (e) {}
   }
 
+  /* ── Gilde ───────────────────────────────────────────────── */
+
+  function _guildCode() {
+    const C = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let s = '';
+    for (let i = 0; i < 6; i++) s += C[Math.floor(Math.random() * C.length)];
+    return s;
+  }
+
+  function _weekStart() {
+    const d = new Date();
+    const dow = (d.getDay() + 6) % 7;
+    const mon = new Date(d);
+    mon.setDate(d.getDate() - dow);
+    return mon.toISOString().slice(0, 10);
+  }
+
+  async function createGuild(hero, { name, tag, emblem, description, isPublic }) {
+    if (!ok()) return { error: 'offline' };
+    const guildId = 'g' + Math.random().toString(36).slice(2, 11) + Date.now().toString(36);
+    const inviteCode = _guildCode();
+    const batch = db.batch();
+    const guildRef = db.collection('guilds').doc(guildId);
+    const memberRef = guildRef.collection('members').doc(hero.id);
+    batch.set(guildRef, {
+      name, tag: tag.toUpperCase(), emblem, description,
+      founderHeroId: hero.id, founderName: hero.name,
+      level: 1, totalKm: 0, weeklyKm: 0, weekStart: _weekStart(),
+      memberCount: 1, maxMembers: 20, inviteCode, isPublic: !!isPublic,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    batch.set(memberRef, {
+      heroId: hero.id, heroName: hero.name,
+      storyId: hero.storyId || 'eroe1', level: hero.level || 1,
+      role: 'founder', weeklyKm: 0, totalKm: 0, weekStart: _weekStart(),
+      lastActive: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    try {
+      await batch.commit();
+      return { ok: true, guildId, inviteCode };
+    } catch (e) { return { error: e.message }; }
+  }
+
+  async function joinGuildByCode(hero, code) {
+    if (!ok()) return { error: 'offline' };
+    const normalized = code.trim().toUpperCase();
+    try {
+      const snap = await db.collection('guilds')
+        .where('inviteCode', '==', normalized).limit(1).get();
+      if (snap.empty) return { error: 'not_found' };
+      const guildDoc = snap.docs[0];
+      const guildId  = guildDoc.id;
+      const data     = guildDoc.data();
+      if ((data.memberCount || 0) >= (data.maxMembers || 20)) return { error: 'full' };
+      const memberRef = db.collection('guilds').doc(guildId)
+                          .collection('members').doc(hero.id);
+      const existing  = await memberRef.get();
+      if (existing.exists) return { error: 'already_member' };
+      const batch = db.batch();
+      batch.set(memberRef, {
+        heroId: hero.id, heroName: hero.name,
+        storyId: hero.storyId || 'eroe1', level: hero.level || 1,
+        role: 'member', weeklyKm: 0, totalKm: 0, weekStart: _weekStart(),
+        lastActive: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      batch.update(guildDoc.ref, {
+        memberCount: firebase.firestore.FieldValue.increment(1),
+      });
+      await batch.commit();
+      return { ok: true, guildId, name: data.name, emblem: data.emblem, tag: data.tag };
+    } catch (e) { return { error: e.message }; }
+  }
+
+  async function leaveGuild(hero) {
+    if (!ok() || !hero.guild) return;
+    const { guildId, role } = hero.guild;
+    try {
+      const guildRef  = db.collection('guilds').doc(guildId);
+      const memberRef = guildRef.collection('members').doc(hero.id);
+      if (role === 'founder') {
+        // Dissolve guild: delete all members then guild doc
+        const members = await guildRef.collection('members').get();
+        const batch   = db.batch();
+        members.forEach(m => batch.delete(m.ref));
+        batch.delete(guildRef);
+        await batch.commit();
+      } else {
+        const batch = db.batch();
+        batch.delete(memberRef);
+        batch.update(guildRef, {
+          memberCount: firebase.firestore.FieldValue.increment(-1),
+        });
+        await batch.commit();
+      }
+    } catch (e) { console.warn('[FB] leaveGuild:', e.message); }
+  }
+
+  async function getGuild(guildId) {
+    if (!ok() || !guildId) return null;
+    try {
+      const doc = await db.collection('guilds').doc(guildId).get();
+      return doc.exists ? { id: doc.id, ...doc.data() } : null;
+    } catch (e) { return null; }
+  }
+
+  async function getGuildMembers(guildId) {
+    if (!ok() || !guildId) return [];
+    try {
+      const snap = await db.collection('guilds').doc(guildId)
+        .collection('members').orderBy('weeklyKm', 'desc').limit(30).get();
+      return snap.docs.map(d => d.data());
+    } catch (e) { return []; }
+  }
+
+  async function searchGuilds(query) {
+    if (!ok()) return [];
+    try {
+      // Cerca per nome (prefix match non supportato nativamente — usa isPublic=true + client-side filter)
+      const snap = await db.collection('guilds')
+        .where('isPublic', '==', true)
+        .orderBy('totalKm', 'desc').limit(50).get();
+      const q = (query || '').toLowerCase();
+      return snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(g => !q || g.name.toLowerCase().includes(q) || (g.tag || '').toLowerCase().includes(q));
+    } catch (e) { return []; }
+  }
+
+  async function contributeToGuild(hero, kmAdded) {
+    if (!ok() || !hero.guild || !(kmAdded > 0)) return;
+    const { guildId } = hero.guild;
+    const ws = _weekStart();
+    try {
+      const memberRef = db.collection('guilds').doc(guildId)
+                          .collection('members').doc(hero.id);
+      const guildRef  = db.collection('guilds').doc(guildId);
+      await db.runTransaction(async tx => {
+        const mDoc = await tx.get(memberRef);
+        if (!mDoc.exists) return;
+        const m = mDoc.data();
+        const weeklyKm = (m.weekStart === ws ? (m.weeklyKm || 0) : 0) + kmAdded;
+        tx.update(memberRef, {
+          weeklyKm, weekStart: ws,
+          totalKm: firebase.firestore.FieldValue.increment(kmAdded),
+          heroName: hero.name, level: hero.level || 1,
+          lastActive: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+        tx.update(guildRef, {
+          totalKm: firebase.firestore.FieldValue.increment(kmAdded),
+          weeklyKm: firebase.firestore.FieldValue.increment(kmAdded),
+        });
+      });
+    } catch (e) { console.warn('[FB] contributeToGuild:', e.message); }
+  }
+
   return {
     syncHero,
     getLeaderboard,
@@ -263,5 +418,12 @@ const FB = (() => {
     sendChallengeInvite,
     getPendingInvites,
     clearPendingInvite,
+    createGuild,
+    joinGuildByCode,
+    leaveGuild,
+    getGuild,
+    getGuildMembers,
+    searchGuilds,
+    contributeToGuild,
   };
 })();

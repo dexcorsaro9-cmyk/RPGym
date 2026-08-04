@@ -6350,3 +6350,103 @@ img.camp-layer {
 .ticket-comune      { border-color: rgba(200,160,40,0.4); }
 .ticket-raro        { border-color: rgba(77,217,232,0.4); }
 .ticket-leggendario { border-color: rgba(240,192,64,0.5); box-shadow: 0 0 12px rgba(240,192,64,0.2); }
+
+/* ── Gilda ──────────────────────────────────────────────────── */
+.guild-panel { }
+.guild-join-row {
+  display: flex;
+  gap: .5rem;
+  margin: .6rem 0;
+  align-items: center;
+}
+.guild-code-input {
+  flex: 1;
+  background: var(--input-bg, rgba(0,0,0,.25));
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: .5rem .7rem;
+  color: var(--text);
+  font-size: .9rem;
+  font-family: var(--font-body);
+  min-width: 0;
+}
+.guild-search-wrap { margin-top: .8rem; }
+.guild-search-label { font-size: .8rem; font-weight: 600; letter-spacing: .04em; color: var(--muted); margin-bottom: .35rem; }
+.guild-search-results { margin-top: .4rem; }
+.guild-result-row {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .5rem .3rem;
+  border-bottom: 1px solid var(--border);
+}
+.guild-result-row:last-child { border-bottom: none; }
+.guild-result-emblem { font-size: 1.5rem; flex-shrink: 0; }
+.guild-result-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .1rem; }
+.guild-result-name { font-size: .88rem; font-weight: 600; }
+.guild-result-meta { }
+.tag-pill {
+  display: inline-block;
+  background: rgba(180,140,60,.2);
+  border: 1px solid rgba(180,140,60,.4);
+  border-radius: 4px;
+  padding: 0 4px;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  color: var(--gold-bright, #f5b800);
+  vertical-align: middle;
+}
+.guild-info-card {
+  background: rgba(0,0,0,.15);
+  border-radius: 10px;
+  padding: .7rem .8rem;
+  margin-bottom: .6rem;
+}
+.guild-card-top {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  margin-bottom: .4rem;
+}
+.guild-card-emblem { font-size: 2.2rem; flex-shrink: 0; }
+.guild-card-meta { min-width: 0; }
+.guild-card-name { font-family: var(--font-head); font-size: .95rem; font-weight: 700; }
+.guild-card-lv { font-size: .78rem; color: var(--muted); margin-top: .1rem; }
+.guild-card-bonus { font-size: .8rem; color: var(--gold-bright, #f5b800); margin-top: .2rem; font-weight: 600; }
+.guild-code-row {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-bottom: .5rem;
+  flex-wrap: wrap;
+}
+.guild-code-display {
+  font-family: monospace;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: .15em;
+  background: rgba(255,255,255,.07);
+  border-radius: 6px;
+  padding: .2rem .5rem;
+}
+.guild-members-wrap { margin-top: .4rem; }
+.guild-member-list { margin-top: .25rem; }
+.guild-leave-btn { display: block; width: 100%; }
+.guild-emblem-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+  margin: .4rem 0;
+}
+.guild-emblem-btn {
+  font-size: 1.4rem;
+  padding: .25rem;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background: rgba(255,255,255,.06);
+  cursor: pointer;
+  transition: border-color .15s;
+}
+.guild-emblem-btn.selected { border-color: var(--gold, #c9952a); }
+.guild-create-form { padding: .2rem .2rem .4rem; }

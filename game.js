@@ -2125,6 +2125,8 @@ const RPG = (() => {
       h.onboardingStep = (h.tutorialDone || (h.totalKm || 0) > 0) ? 3 : 0;
     }
 
+    h.guild = h.guild || null; // { guildId, role, joinedAt, name, emblem, tag, level, totalKm }
+
     /* Migrazione nomi armi: ricalcola base+nome dall'immagine per item vecchi */
     (h.items || []).forEach(it => {
       if (it.slot !== 'arma') return;
@@ -2497,6 +2499,14 @@ const RPG = (() => {
     goldMult  += equipType.goldMult;
     localWoodMult  += equipType.woodMult;
     localStoneMult += equipType.stoneMult;
+
+    // Bonus gilda (applica se hero.guild ha il livello cached)
+    if (hero.guild && hero.guild.totalKm != null) {
+      const gb = guildBonus(hero.guild.totalKm);
+      xpMult   += (gb.xpPct || 0) / 100;
+      goldMult += (gb.goldPct || 0) / 100;
+    }
+
     // Dualità: Cittadella dell'Eclissi, +risorse dopo le 18:00
     if (furn.flags.dualityBonus && new Date().getHours() >= 18) {
       goldMult += furn.flags.dualityBonus;
@@ -5091,6 +5101,32 @@ const RPG = (() => {
     return null;
   }
 
+  /* ── Gilde ──────────────────────────────────────────────── */
+  const GUILD_LEVELS = [
+    { km: 0,     xpPct: 0,  goldPct: 0,  arenaDmg: 0, arenaHp: 0 },
+    { km: 50,    xpPct: 2,  goldPct: 0,  arenaDmg: 0, arenaHp: 0 },
+    { km: 150,   xpPct: 4,  goldPct: 0,  arenaDmg: 0, arenaHp: 0 },
+    { km: 400,   xpPct: 5,  goldPct: 2,  arenaDmg: 0, arenaHp: 0 },
+    { km: 900,   xpPct: 8,  goldPct: 4,  arenaDmg: 0, arenaHp: 0 },
+    { km: 2000,  xpPct: 10, goldPct: 5,  arenaDmg: 2, arenaHp: 0 },
+    { km: 4500,  xpPct: 12, goldPct: 8,  arenaDmg: 3, arenaHp: 0 },
+    { km: 10000, xpPct: 15, goldPct: 10, arenaDmg: 5, arenaHp: 0 },
+    { km: 22000, xpPct: 18, goldPct: 12, arenaDmg: 7, arenaHp: 2 },
+    { km: 50000, xpPct: 20, goldPct: 15, arenaDmg: 10, arenaHp: 5 },
+  ];
+
+  function guildLevel(totalKm) {
+    let lv = 0;
+    for (let i = 0; i < GUILD_LEVELS.length; i++) {
+      if (totalKm >= GUILD_LEVELS[i].km) lv = i;
+    }
+    return lv;
+  }
+
+  function guildBonus(totalKm) {
+    return GUILD_LEVELS[guildLevel(totalKm)];
+  }
+
   return {
     ACTIVITIES, MISSIONS, CARDS, BESTIARY, TROPHIES,
     WEEKLY_BOSSES, rolloverWeeklyBoss, weeklyBossStatus, claimWeeklyBoss,
@@ -5151,6 +5187,7 @@ const RPG = (() => {
     CONSUMABLES, CONSUMABLE_IMG, consumableById, sellValueConsumable, buyPriceConsumable,
     addConsumable, useConsumable, sellConsumable, dropConsumable,
     TICKET_TYPES, addTicket, getUnscratchedTickets, scratchTicket,
+    GUILD_LEVELS, guildLevel, guildBonus,
   };
 })();
 

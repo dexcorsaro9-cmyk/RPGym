@@ -631,7 +631,7 @@ function enterGame() {
 
   // Sincronizzazione automatica da Apple Salute (URL params o clipboard)
   const healthReport = applyHealthSyncFromURL(HERO);
-  if (healthReport) { persist(); renderHUD(); FB.syncHero(HERO).catch(() => {}); maybeSyncChallenge(); }
+  if (healthReport) { persist(); renderHUD(); FB.syncHero(HERO).catch(() => {}); if (HERO.guild && healthReport.km > 0) FB.contributeToGuild(HERO, healthReport.km).catch(() => {}); maybeSyncChallenge(); }
 
   // Coda dei popup di apertura
   OPEN_QUEUE = [];
@@ -3319,6 +3319,287 @@ function renderAvampostoView(c) {
   }
 }
 
+/* ── Gilda ───────────────────────────────────────────────────── */
+function _renderGuildPanel() {
+  const p = el('div', 'panel pvp-panel guild-panel');
+  p.appendChild(el('div', 'pvp-panel-title', '🏰 La tua Gilda'));
+
+  if (!HERO.guild) {
+    _renderGuildJoinView(p);
+  } else {
+    _renderGuildInfoView(p);
+  }
+  return p;
+}
+
+function _renderGuildJoinView(container) {
+  // Create guild button
+  const createBtn = el('button', 'btn btn-primary wide', '⚔️ Fonda una Gilda');
+  createBtn.addEventListener('click', _showCreateGuildModal);
+  container.appendChild(createBtn);
+
+  // Join by code
+  const joinRow = el('div', 'guild-join-row');
+  const codeInput = el('input', 'guild-code-input');
+  codeInput.type = 'text';
+  codeInput.placeholder = 'Codice invito (es. AB12CD)';
+  codeInput.maxLength = 6;
+  const joinBtn = el('button', 'btn btn-small', 'Unisciti');
+  joinBtn.addEventListener('click', async () => {
+    const code = codeInput.value.trim();
+    if (code.length < 6) { toast('Inserisci il codice a 6 caratteri.'); return; }
+    joinBtn.disabled = true;
+    joinBtn.textContent = '…';
+    const res = await FB.joinGuildByCode(HERO, code);
+    joinBtn.disabled = false;
+    joinBtn.textContent = 'Unisciti';
+    if (res && res.ok) {
+      HERO.guild = { guildId: res.guildId, name: res.name, emblem: res.emblem || '🏰', tag: res.tag, role: 'member', totalKm: 0 };
+      persist();
+      toast(`🏰 Benvenuto in [${res.tag}] ${res.name}!`);
+      setTab('map');
+    } else {
+      const msgs = { not_found: 'Codice non trovato.', full: 'Gilda al completo!', already_member: 'Sei già in questa gilda.', offline: 'Sei offline.' };
+      toast(msgs[res && res.error] || 'Errore. Riprova.');
+    }
+  });
+  joinRow.appendChild(codeInput);
+  joinRow.appendChild(joinBtn);
+  container.appendChild(joinRow);
+
+  // Search public guilds
+  const searchWrap = el('div', 'guild-search-wrap');
+  const searchTitle = el('div', 'guild-search-label', '🔍 Cerca gilde pubbliche');
+  searchWrap.appendChild(searchTitle);
+  const searchRow = el('div', 'guild-join-row');
+  const searchInput = el('input', 'guild-code-input');
+  searchInput.type = 'text';
+  searchInput.placeholder = 'Nome o tag…';
+  const searchBtn = el('button', 'btn btn-small', 'Cerca');
+  const resultList = el('div', 'guild-search-results');
+
+  const doSearch = async () => {
+    searchBtn.disabled = true;
+    resultList.innerHTML = '<div class="lb-loading">Ricerca…</div>';
+    const results = await FB.searchGuilds(searchInput.value.trim());
+    searchBtn.disabled = false;
+    if (!results.length) { resultList.innerHTML = '<div class="lb-loading muted">Nessuna gilda trovata.</div>'; return; }
+    resultList.innerHTML = '';
+    results.slice(0, 10).forEach(g => {
+      const row = el('div', 'guild-result-row');
+      const lvData = RPG.guildLevel(g.totalKm || 0);
+      row.innerHTML = `<span class="guild-result-emblem">${esc(g.emblem || '🏰')}</span>
+        <div class="guild-result-info">
+          <span class="guild-result-name">${esc(g.name)} <span class="tag-pill">[${esc(g.tag)}]</span></span>
+          <span class="guild-result-meta muted small">Liv. ${lvData + 1} · ${(g.totalKm || 0).toFixed(0)} km · ${g.memberCount || 0}/${g.maxMembers || 20} membri</span>
+        </div>`;
+      const joinBtn2 = el('button', 'btn btn-small', 'Entra');
+      joinBtn2.addEventListener('click', async () => {
+        joinBtn2.disabled = true;
+        joinBtn2.textContent = '…';
+        codeInput.value = g.inviteCode || '';
+        const res = await FB.joinGuildByCode(HERO, g.inviteCode || '');
+        if (res && res.ok) {
+          HERO.guild = { guildId: res.guildId, name: g.name, emblem: g.emblem || '🏰', tag: g.tag, role: 'member', totalKm: g.totalKm || 0 };
+          persist();
+          toast(`🏰 Benvenuto in [${g.tag}] ${g.name}!`);
+          setTab('map');
+        } else {
+          joinBtn2.disabled = false;
+          joinBtn2.textContent = 'Entra';
+          const msgs = { full: 'Gilda al completo!', already_member: 'Sei già in questa gilda.', offline: 'Sei offline.' };
+          toast(msgs[res && res.error] || 'Errore. Riprova.');
+        }
+      });
+      row.appendChild(joinBtn2);
+      resultList.appendChild(row);
+    });
+  };
+
+  searchBtn.addEventListener('click', doSearch);
+  searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+  searchRow.appendChild(searchInput);
+  searchRow.appendChild(searchBtn);
+  searchWrap.appendChild(searchRow);
+  searchWrap.appendChild(resultList);
+  container.appendChild(searchWrap);
+}
+
+function _showCreateGuildModal() {
+  const emblems = ['🏰','⚔️','🛡️','🐉','🦅','🌙','☀️','🔥','🌊','⚡','🌿','💀','🦁','🐺','🦊'];
+  let selectedEmblem = emblems[0];
+
+  modal(`
+    <div class="guild-create-form">
+      <h3 class="panel-title center">⚔️ Fonda la tua Gilda</h3>
+      <label class="field-label">Nome della Gilda</label>
+      <input id="gc-name" class="create-name-input" type="text" maxlength="30" placeholder="Es. I Guardiani dell'Alba">
+      <label class="field-label" style="margin-top:.8rem">Tag [3 lettere]</label>
+      <input id="gc-tag" class="create-name-input" type="text" maxlength="3" placeholder="GAR" style="text-transform:uppercase">
+      <label class="field-label" style="margin-top:.8rem">Emblema</label>
+      <div id="gc-emblems" class="guild-emblem-grid">${emblems.map(e => `<button class="guild-emblem-btn${e === selectedEmblem ? ' selected' : ''}" data-e="${e}">${e}</button>`).join('')}</div>
+      <label class="field-label" style="margin-top:.8rem">Descrizione (opzionale)</label>
+      <input id="gc-desc" class="create-name-input" type="text" maxlength="80" placeholder="Cercasi eroi valorosi…">
+      <label class="field-label" style="margin-top:.8rem">Visibilità</label>
+      <div style="display:flex;gap:.5rem;margin-bottom:.5rem">
+        <button id="gc-pub" class="btn btn-small btn-primary">🌍 Pubblica</button>
+        <button id="gc-priv" class="btn btn-small">🔒 Privata</button>
+      </div>
+      <div id="gc-error" style="color:var(--danger,#c0392b);font-size:.85rem;min-height:1rem;margin:.3rem 0"></div>
+      <button id="gc-confirm" class="btn btn-primary wide big">🔥 Fonda!</button>
+    </div>
+  `);
+
+  let isPublic = true;
+  document.getElementById('gc-pub').addEventListener('click', () => {
+    isPublic = true;
+    document.getElementById('gc-pub').classList.add('btn-primary');
+    document.getElementById('gc-priv').classList.remove('btn-primary');
+  });
+  document.getElementById('gc-priv').addEventListener('click', () => {
+    isPublic = false;
+    document.getElementById('gc-priv').classList.add('btn-primary');
+    document.getElementById('gc-pub').classList.remove('btn-primary');
+  });
+  document.getElementById('gc-emblems').addEventListener('click', e => {
+    const btn = e.target.closest('.guild-emblem-btn');
+    if (!btn) return;
+    selectedEmblem = btn.dataset.e;
+    document.querySelectorAll('.guild-emblem-btn').forEach(b => b.classList.toggle('selected', b.dataset.e === selectedEmblem));
+  });
+  document.getElementById('gc-confirm').addEventListener('click', async () => {
+    const name = document.getElementById('gc-name').value.trim();
+    const tag  = document.getElementById('gc-tag').value.trim().toUpperCase();
+    const desc = document.getElementById('gc-desc').value.trim();
+    const errEl = document.getElementById('gc-error');
+    if (name.length < 3)  { errEl.textContent = 'Il nome deve avere almeno 3 caratteri.'; return; }
+    if (tag.length !== 3) { errEl.textContent = 'Il tag deve essere di esattamente 3 lettere.'; return; }
+    const btn = document.getElementById('gc-confirm');
+    btn.disabled = true; btn.textContent = 'Fondazione…';
+    const res = await FB.createGuild(HERO, { name, tag, emblem: selectedEmblem, description: desc, isPublic });
+    if (res && res.ok) {
+      HERO.guild = { guildId: res.guildId, name, emblem: selectedEmblem, tag, role: 'founder', inviteCode: res.inviteCode, totalKm: 0 };
+      persist();
+      closeModal();
+      toast(`🏰 Gilda [${tag}] ${name} fondata!`);
+      setTab('map');
+    } else {
+      btn.disabled = false; btn.textContent = '🔥 Fonda!';
+      errEl.textContent = res && res.error === 'offline' ? 'Sei offline. Connettiti e riprova.' : 'Errore nella creazione. Riprova.';
+    }
+  });
+}
+
+function _renderGuildInfoView(container) {
+  const g = HERO.guild;
+  const lv = RPG.guildLevel(g.totalKm || 0);
+  const bonus = RPG.guildBonus(g.totalKm || 0);
+  const nextLv = RPG.GUILD_LEVELS[lv + 1];
+
+  // Guild card
+  const card = el('div', 'guild-info-card');
+  const bonusLines = [];
+  if (bonus.xpPct)    bonusLines.push(`+${bonus.xpPct}% XP`);
+  if (bonus.goldPct)  bonusLines.push(`+${bonus.goldPct}% Oro`);
+  if (bonus.arenaDmg) bonusLines.push(`+${bonus.arenaDmg}% Danno Arena`);
+  if (bonus.arenaHp)  bonusLines.push(`+${bonus.arenaHp}% HP Arena`);
+  const bonusStr = bonusLines.length ? bonusLines.join(' · ') : 'Nessun bonus (sali di livello!)';
+  const nextStr = nextLv ? `Prossimo Liv. ${lv + 2}: ${nextLv.km} km totali` : 'Livello massimo raggiunto!';
+  card.innerHTML = `
+    <div class="guild-card-top">
+      <span class="guild-card-emblem">${esc(g.emblem || '🏰')}</span>
+      <div class="guild-card-meta">
+        <div class="guild-card-name">${esc(g.name)} <span class="tag-pill">[${esc(g.tag || '')}]</span></div>
+        <div class="guild-card-lv muted small">Liv. ${lv + 1} · ${(g.totalKm || 0).toFixed(0)} km totali</div>
+        <div class="guild-card-bonus small">${bonusStr}</div>
+      </div>
+    </div>
+    <div class="membar slim" style="margin-top:.4rem">
+      <div class="membar-fill gold" style="width:${nextLv ? Math.min(100, Math.round((g.totalKm || 0) / nextLv.km * 100)) : 100}%"></div>
+      <span>${nextStr}</span>
+    </div>`;
+  container.appendChild(card);
+
+  // Invite code (founder/officer)
+  if (g.inviteCode || g.role === 'founder') {
+    const codeRow = el('div', 'guild-code-row');
+    const displayCode = g.inviteCode || '??????';
+    codeRow.innerHTML = `<span class="muted small">Codice invito:</span>
+      <span class="guild-code-display">${esc(displayCode)}</span>`;
+    const copyBtn = el('button', 'btn btn-small', '📋 Copia');
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard && navigator.clipboard.writeText(displayCode).then(() => toast('Codice copiato!')).catch(() => {});
+    });
+    codeRow.appendChild(copyBtn);
+    container.appendChild(codeRow);
+  }
+
+  // Members list (loaded async)
+  const membersWrap = el('div', 'guild-members-wrap');
+  const mHdr = el('div', 'pvp-panel-hdr');
+  mHdr.innerHTML = '<span class="pvp-panel-title" style="font-size:.9rem">📊 Classifica settimanale</span>';
+  const refreshBtn = el('button', 'btn btn-small pvp-refresh-btn', '↻');
+  mHdr.appendChild(refreshBtn);
+  membersWrap.appendChild(mHdr);
+  const memberList = el('div', 'guild-member-list');
+  memberList.innerHTML = '<div class="lb-loading">Caricamento…</div>';
+  membersWrap.appendChild(memberList);
+
+  const loadMembers = async () => {
+    refreshBtn.disabled = true;
+    memberList.innerHTML = '<div class="lb-loading">Caricamento…</div>';
+    const members = await FB.getGuildMembers(g.guildId);
+    if (!members.length) { memberList.innerHTML = '<div class="lb-loading muted">Nessun membro trovato.</div>'; refreshBtn.disabled = false; return; }
+    memberList.innerHTML = '';
+    members.forEach((m, i) => {
+      const isMe = m.heroId === HERO.id;
+      const row = el('div', 'lb-row' + (isMe ? ' lb-me' : ''));
+      row.innerHTML = `
+        <span class="lb-rank">${i + 1}</span>
+        <span class="lb-avatar">${CLASS_EMOJI[m.storyId] || '🧑'}</span>
+        <span class="lb-name">${esc(m.heroName)}${isMe ? ' <span class="lb-me-tag">tu</span>' : ''}${m.role === 'founder' ? ' <span class="lb-me-tag" style="background:var(--gold-bright,#f5b800);color:#222">✦</span>' : ''}</span>
+        <span class="lb-lv">Lv ${m.level || 1}</span>
+        <span class="lb-km">${(m.weeklyKm || 0).toFixed(1)} km</span>`;
+      memberList.appendChild(row);
+    });
+    // Also refresh guild totalKm from live data
+    const freshGuild = await FB.getGuild(g.guildId);
+    if (freshGuild) {
+      HERO.guild = { ...HERO.guild, totalKm: freshGuild.totalKm, weeklyKm: freshGuild.weeklyKm, memberCount: freshGuild.memberCount, inviteCode: freshGuild.inviteCode };
+      persist();
+    }
+    refreshBtn.disabled = false;
+  };
+  refreshBtn.addEventListener('click', loadMembers);
+  loadMembers();
+  container.appendChild(membersWrap);
+
+  // Leave guild button
+  const leaveBtn = el('button', 'btn btn-small guild-leave-btn', g.role === 'founder' ? '💀 Sciogliere la Gilda' : '🚪 Lascia la Gilda');
+  leaveBtn.style.cssText = 'margin-top:.8rem;color:var(--danger,#c0392b)';
+  leaveBtn.addEventListener('click', () => {
+    const msg = g.role === 'founder'
+      ? 'Sei il fondatore. Sciogliere la gilda la cancellerà per tutti i membri. Sicuro?'
+      : `Vuoi davvero lasciare [${g.tag}] ${g.name}?`;
+    modal(`<div class="center" style="padding:1rem">
+      <p>${esc(msg)}</p>
+      <div style="display:flex;gap:.5rem;justify-content:center;margin-top:1rem">
+        <button class="btn btn-primary" id="guild-leave-confirm">${g.role === 'founder' ? '💀 Sciogli' : '🚪 Lascia'}</button>
+        <button class="btn" onclick="closeModal()">Annulla</button>
+      </div>
+    </div>`);
+    document.getElementById('guild-leave-confirm').addEventListener('click', async () => {
+      closeModal();
+      await FB.leaveGuild(HERO);
+      HERO.guild = null;
+      persist();
+      toast(g.role === 'founder' ? '💀 Gilda sciolta.' : '🚪 Hai lasciato la gilda.');
+      setTab('map');
+    });
+  });
+  container.appendChild(leaveBtn);
+}
+
 function renderPantheonView(c) {
   // Check for pending challenge invites each time the Pantheon is opened
   (async () => {
@@ -3344,6 +3625,7 @@ function renderPantheonView(c) {
   c.appendChild(_renderLeaderboardPanel());
   c.appendChild(_renderRivalsPanel());
   c.appendChild(_renderPvpPanel());
+  c.appendChild(_renderGuildPanel());
 }
 
 function renderAtlasView(c) {
@@ -3527,6 +3809,7 @@ function renderTrain(c) {
     if (report) {
       if (isFirst) HERO.onboardingStep = 2;
       persist(); renderHUD(); FB.syncHero(HERO);
+      if (HERO.guild && report.km > 0) FB.contributeToGuild(HERO, report.km).catch(() => {});
       showHealthSyncResult(report);
       if (isFirst) OPEN_QUEUE.push(showFirstWorkoutCelebration);
       checkMapNotify(); maybeSyncChallenge();
@@ -6005,7 +6288,7 @@ function applyStepsSync(steps, banner) {
   const km = Math.round(steps * 0.00075 * 100) / 100;
   if (km < 0.05) { toast(`${steps} passi (${km} km) — troppo pochi.`); return; }
   const report = RPG.logHealthSync(HERO, 'camminata', km);
-  if (report) { persist(); renderHUD(); FB.syncHero(HERO).catch(() => {}); showHealthSyncResult(report); maybeSyncChallenge(); }
+  if (report) { persist(); renderHUD(); FB.syncHero(HERO).catch(() => {}); if (HERO.guild && report.km > 0) FB.contributeToGuild(HERO, report.km).catch(() => {}); showHealthSyncResult(report); maybeSyncChallenge(); }
   else toast('Attività già sincronizzata per oggi.');
 }
 
