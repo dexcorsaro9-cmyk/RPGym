@@ -389,7 +389,7 @@ function renderProfiles() {
     list.appendChild(emptyState('⚔️', 'Nessun eroe ancora. Tocca + per crearne uno!'));
   }
   STATE.heroes.forEach(h => {
-    const storyId = (h.avatar || '').replace('assets/avatars/', '').replace('.png', '');
+    const storyId = (h.avatar || '').replace('assets/avatars/', '').replace('.webp', '');
     const col = AVATAR_COLORS[storyId] || { bg: '#0e0804', glow: '#c9932e' };
     const avatarMeta = AVATARS.find(a => a.storyId === storyId);
     const classLabel = avatarMeta ? avatarMeta.label : '';
@@ -901,7 +901,7 @@ function renderHUD() {
   av.innerHTML = '';
   av.appendChild(avatarEl(HERO, 'hud-avatar-inner'));
   // accent color from hero class
-  const _sid = (HERO.avatar || '').replace('assets/avatars/', '').replace('.png', '');
+  const _sid = (HERO.avatar || '').replace('assets/avatars/', '').replace('.webp', '');
   const _col = AVATAR_COLORS[_sid] || { glow: 'var(--gold)' };
   av.style.boxShadow = `0 0 10px ${_col.glow}70, 0 0 0 2px ${_col.glow}`;
   av.style.borderRadius = '50%';
@@ -1281,7 +1281,7 @@ function renderCamp(c) {
   // 3. Background stage — <img> object-fit:cover, no inset shorthand (compatibilità iOS Safari < 14.5)
   const bgImg = document.createElement('img');
   bgImg.className = 'camp-bg-stage-img';
-  bgImg.src = `assets/rifugio/scene/bg_stage${stageIdx}.jpg`;
+  bgImg.src = `assets/rifugio/scene/bg_stage${stageIdx}.webp`;
   bgImg.alt = '';
   bgImg.style.cssText = 'position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;object-fit:cover;object-position:center center;display:block;z-index:3';
   panorama.appendChild(bgImg);
@@ -1302,7 +1302,7 @@ function renderCamp(c) {
       cfWrap.style.cssText = `left:${cfL}%;bottom:${cfB}%;width:${cfW}%;z-index:${layer.z}`;
       const cfImg = document.createElement('img');
       cfImg.className = 'camp-campfire-img';
-      cfImg.src = `assets/rifugio/scene/campfire_${isNightTime ? 'night' : 'day'}.png`;
+      cfImg.src = `assets/rifugio/scene/campfire_${isNightTime ? 'night' : 'day'}.webp`;
       cfImg.alt = '';
       cfImg.onerror = () => {
         cfImg.remove();
@@ -1327,7 +1327,7 @@ function renderCamp(c) {
     } else {
       const img = el('img', 'camp-layer camp-layer-appear');
       img.loading = 'eager';
-      img.src = `assets/rifugio/scene/${layer.id}.png`;
+      img.src = `assets/rifugio/scene/${layer.id}.webp`;
       img.alt = '';
       const sv = HERO.campLayout?.[layer.id];
       const lL = sv ? sv.left   : layer.left;
@@ -1372,7 +1372,7 @@ function renderCamp(c) {
     for (const nl of RPG.CAMP_NIGHT_LAYERS) {
       const nImg = el('img', 'camp-layer camp-night-layer camp-layer-appear');
       nImg.loading = 'eager';
-      nImg.src = `assets/rifugio/scene/${nl.id}.png`;
+      nImg.src = `assets/rifugio/scene/${nl.id}.webp`;
       nImg.alt = '';
       nImg.style.cssText = `left:${nl.left}%;bottom:${nl.bottom}%;width:${nl.width}%;z-index:${nl.z}`;
       nImg.onerror = () => nImg.remove();
@@ -1652,7 +1652,7 @@ function showAllyBase(o) {
 
 function petImageSrc(pet) {
   const stage = RPG.petStage(pet.level);
-  return `assets/pet/${pet.species}/${stage}.png`;
+  return `assets/pet/${pet.species}/${stage}.webp`;
 }
 
 function renderEggView(c) {
@@ -2027,7 +2027,7 @@ function openStruttureStageModal(stage) {
     const has = ownedIds.includes(it.id);
     const locked = HERO.level < it.minLevel;
     const row = el('div', 'loot loot-with-img furniture-item-row' + (has ? ' equipped' : '') + (locked ? ' locked' : ''));
-    const imgSrc = `assets/rifugio/scene/${it.id}.png`;
+    const imgSrc = `assets/rifugio/scene/${it.id}.webp`;
     row.innerHTML = `
       <img class="item-icon-big" src="${imgSrc}" onerror="this.outerHTML='<span class=\\"item-icon-big\\">${it.icon}</span>'">
       <div class="loot-body">
@@ -2180,8 +2180,8 @@ function renderMap(c) {
   const slug = RPG.biomeSlug(biome);
   if (slug) {
     const bg = new Image();
-    bg.onload = () => { hdr.style.backgroundImage = `linear-gradient(180deg, rgba(28,18,9,.25), rgba(28,18,9,.85)), url('assets/biomi/${slug}.jpg')`; hdr.classList.add('has-diorama'); };
-    bg.src = `assets/biomi/${slug}.jpg`;
+    bg.onload = () => { hdr.style.backgroundImage = `linear-gradient(180deg, rgba(28,18,9,.25), rgba(28,18,9,.85)), url('assets/biomi/${slug}.webp')`; hdr.classList.add('has-diorama'); };
+    bg.src = `assets/biomi/${slug}.webp`;
   }
   c.appendChild(hdr);
 
@@ -2192,7 +2192,7 @@ function renderMap(c) {
     p.appendChild(el('h3', 'panel-title', `⚡ INCURSIONE — solo oggi!`));
     if (inc.enemy !== 'cavaliere-drago') {
       const img = el('img', 'incursion-img');
-      img.src = `assets/bestiario/${inc.enemy}.png`;
+      img.src = `assets/bestiario/${inc.enemy}.webp`;
       p.appendChild(img);
     }
     p.appendChild(el('p', 'center', `<b>${esc(inc.name)}</b>`));
@@ -2597,7 +2597,7 @@ function renderBiscaView(c) {
 
   const cardA = el('div', 'bisca-fighter bisca-fighter-a');
   const imgA = document.createElement('img');
-  imgA.src = `assets/bestiario/${a.id}.png`;
+  imgA.src = `assets/bestiario/${a.id}.webp`;
   imgA.className = 'bisca-fighter-img';
   imgA.alt = '';
   imgA.onerror = () => imgA.remove();
@@ -2614,7 +2614,7 @@ function renderBiscaView(c) {
 
   const cardB = el('div', 'bisca-fighter bisca-fighter-b');
   const imgB = document.createElement('img');
-  imgB.src = `assets/bestiario/${b.id}.png`;
+  imgB.src = `assets/bestiario/${b.id}.webp`;
   imgB.className = 'bisca-fighter-img';
   imgB.alt = '';
   imgB.onerror = () => imgB.remove();
@@ -2847,6 +2847,7 @@ function _renderLeaderboardPanel() {
     refreshBtn.disabled = true;
     list.innerHTML = '<div class="lb-loading">Caricamento…</div>';
     const rows = await FB.getLeaderboard(25);
+    if (rows === null) { list.innerHTML = '<div class="lb-loading muted">⚠️ Server non raggiungibile. Controlla la connessione e riprova.</div>'; refreshBtn.disabled = false; return; }
     if (!rows.length) { list.innerHTML = '<div class="lb-loading muted">Nessun eroe ancora online.</div>'; refreshBtn.disabled = false; return; }
     list.innerHTML = '';
     rows.forEach((h, i) => {
@@ -2913,6 +2914,7 @@ function _renderRivalsPanel() {
   p.appendChild(list);
 
   (async () => {
+    try {
     list.innerHTML = '';
     // Carica tutti i rivali in parallelo
     const heroData = await Promise.all(friends.map(fid => FB.getHero(fid)));
@@ -2972,6 +2974,9 @@ function _renderRivalsPanel() {
     });
 
     if (!list.children.length) list.innerHTML = '<div class="muted small">Lista vuota.</div>';
+    } catch (e) {
+      list.innerHTML = '<div class="lb-loading muted">⚠️ Errore di connessione. Riapri il Pantheon per riprovare.</div>';
+    }
   })();
 
   return p;
@@ -3015,19 +3020,28 @@ function _renderPvpPanel() {
 
   const refresh = async () => {
     inner.innerHTML = '<div class="lb-loading">…</div>';
-    const ac = HERO.cloud && HERO.cloud.activeChallenge;
+    try {
+      const ac = HERO.cloud && HERO.cloud.activeChallenge;
 
-    if (ac) {
-      // Carica dati sfida attiva
-      const ch = await FB.getChallenge(ac.id);
-      if (!ch) {
-        // Sfida non trovata — pulisci
-        HERO.cloud.activeChallenge = null; persist();
-        inner.innerHTML = ''; _buildPvpIdle(inner, refresh); return;
+      if (ac) {
+        // Carica dati sfida attiva
+        const ch = await FB.getChallenge(ac.id);
+        if (!ch) {
+          // Sfida non trovata — pulisci
+          HERO.cloud.activeChallenge = null; persist();
+          inner.innerHTML = ''; _buildPvpIdle(inner, refresh); return;
+        }
+        _buildPvpActive(inner, ch, refresh);
+      } else {
+        _buildPvpIdle(inner, refresh);
       }
-      _buildPvpActive(inner, ch, refresh);
-    } else {
-      _buildPvpIdle(inner, refresh);
+    } catch (e) {
+      inner.innerHTML = '';
+      const errMsg = el('div', 'lb-loading muted', '⚠️ Errore di connessione.');
+      const retryBtn = el('button', 'btn btn-small pvp-refresh-btn', 'Riprova');
+      retryBtn.addEventListener('click', refresh);
+      inner.appendChild(errMsg);
+      inner.appendChild(retryBtn);
     }
   };
 
@@ -3237,7 +3251,7 @@ function renderAvampostoView(c) {
     const prog = el('div', 'active-mission-prog');
     if (boss) {
       const bossImg = el('img', 'mission-boss-img');
-      bossImg.src = `assets/bestiario/${boss.id}.png`;
+      bossImg.src = `assets/bestiario/${boss.id}.webp`;
       bossImg.alt = boss.name;
       bossImg.onerror = () => bossImg.remove();
       prog.appendChild(bossImg);
@@ -3338,7 +3352,7 @@ function renderAtlasView(c) {
     const card = el('div', cls);
     if (open && slug) {
       const bg = el('img', 'bac-bg');
-      bg.src = `assets/biomi/${slug}.jpg`;
+      bg.src = `assets/biomi/${slug}.webp`;
       bg.alt = '';
       bg.loading = 'lazy';
       card.appendChild(bg);
@@ -3600,7 +3614,7 @@ function renderTrain(c) {
         const btn = el('button', `quick-cons-btn rarity-${co.rarity}`, '');
         btn.title = `${co.name} (×${owned[co.id]}) — ${co.desc}`;
         const img = el('img', 'quick-cons-img');
-        img.src = `assets/consumables/${encodeURIComponent(RPG.CONSUMABLE_IMG[co.id] || co.id)}.png`;
+        img.src = `assets/consumables/${encodeURIComponent(RPG.CONSUMABLE_IMG[co.id] || co.id)}.webp`;
         img.alt = co.name;
         img.addEventListener('error', () => { img.style.display = 'none'; btn.prepend(el('span', 'quick-cons-emoji', co.icon)); });
         const badge = el('span', 'quick-cons-badge', `×${owned[co.id]}`);
@@ -3710,7 +3724,7 @@ function renderTrain(c) {
       const bosses = RPG.BESTIARY.filter(b => b.boss && !b.final);
       const v = bosses[Math.floor(Math.random() * bosses.length)];
       if (!v) { toast('Nessun boss disponibile.'); return; }
-      const fig = `<img class="arena-intro-img" src="assets/bestiario/${v.id}.png" onerror="this.style.display='none'">`;
+      const fig = `<img class="arena-intro-img" src="assets/bestiario/${v.id}.webp" onerror="this.style.display='none'">`;
       modal(`<div class="arena-intro">
         <p class="center big-news">📋 Boss Straordinario!</p>
         ${fig}
@@ -4061,7 +4075,7 @@ function showReport(r) {
     html += `<p>🔍 Hai trovato <b>${r.fragments} Frammento/i di Memoria</b>!</p>`;
   if (r.sighting) {
     html += `<div class="sighting">
-      <img class="sighting-img" src="assets/bestiario/${r.sighting.id}.png" alt="">
+      <img class="sighting-img" src="assets/bestiario/${r.sighting.id}.webp" alt="">
       <div><b>👁️ Avvistamento!</b><br>${r.sighting.name}<br>
       <span class="small muted">Aggiunto al Bestiario</span></div>
     </div>`;
@@ -4091,7 +4105,7 @@ function showReport(r) {
     html += `<p class="big-news">🏆 MISSIONE COMPLETATA: ${r.missionComplete.name}!</p>`;
     if (r.bossDefeated) {
       html += `<div class="sighting boss-defeated">
-        <img class="sighting-img" src="assets/bestiario/${r.bossDefeated.id}.png" alt="">
+        <img class="sighting-img" src="assets/bestiario/${r.bossDefeated.id}.webp" alt="">
         <div><b>⚔️ BOSS SCONFITTO!</b><br>${r.bossDefeated.name}<br>
         <span class="small muted">Aggiunto al Bestiario</span></div>
       </div>`;
@@ -4364,12 +4378,58 @@ function renderMarket(c) {
     c.appendChild(fp);
   }
 
-  // ── 4 sezioni del Borgo come pannelli di entrata ──
+  // ── Bisca e Taverna in cima per visibilità immediata ──
+
+  // ── La Bisca Oscura ──
+  {
+    const biscaEntry = el('div', 'panel borgo-entry-panel bisca-entry-panel');
+    const biscaEntryThumb = document.createElement('img');
+    biscaEntryThumb.loading = 'eager';
+    biscaEntryThumb.src = 'assets/backgrounds/bg-bisca.webp';
+    biscaEntryThumb.alt = '';
+    biscaEntryThumb.className = 'borgo-entry-header';
+    biscaEntryThumb.onerror = () => biscaEntryThumb.remove();
+    biscaEntry.appendChild(biscaEntryThumb);
+    biscaEntry.appendChild(el('h3', 'panel-title', '🃏 La Bisca Oscura'));
+    biscaEntry.appendChild(el('p', 'muted small borgo-entry-quote',
+      '«Nessuno sa chi organizza gli scontri. Nessuno chiede. Le monete parlano per tutti.»'));
+    RPG.biscaResetIfNeeded(HERO);
+    const biscaBetsLeft2 = (HERO.bisca && HERO.bisca.betsLeft !== undefined) ? HERO.bisca.betsLeft : RPG.BISCA_DAILY_BETS;
+    biscaEntry.appendChild(el('div', biscaBetsLeft2 > 0 ? 'bisca-avail-badge' : 'bisca-avail-badge bisca-exhausted',
+      biscaBetsLeft2 > 0 ? `🎰 ${biscaBetsLeft2} scommesse disponibili` : '⛔ Scommesse esaurite per oggi'));
+    const enterBiscaBtn2 = el('button', 'btn btn-primary wide', '🃏 Entra nella Bisca');
+    enterBiscaBtn2.addEventListener('click', () => { MARKET_VIEW = 'bisca'; setTab('market'); });
+    biscaEntry.appendChild(enterBiscaBtn2);
+    c.appendChild(biscaEntry);
+  }
+
+  // ── La Taverna delle Sfide ──
+  {
+    const tavernaEntry2 = el('div', 'panel borgo-entry-panel taverna-entry-panel');
+    const tavernaThumb2 = document.createElement('img');
+    tavernaThumb2.loading = 'eager';
+    tavernaThumb2.src = 'assets/ui/taverna-header.webp';
+    tavernaThumb2.alt = '';
+    tavernaThumb2.className = 'borgo-entry-header';
+    tavernaThumb2.onerror = () => tavernaThumb2.remove();
+    tavernaEntry2.appendChild(tavernaThumb2);
+    tavernaEntry2.appendChild(el('h3', 'panel-title', '🍺 La Taverna delle Sfide'));
+    tavernaEntry2.appendChild(el('p', 'muted small borgo-entry-quote',
+      '«Tra dadi truccati e boccali volanti, qui si separa chi ha nervi saldi da chi torna a casa vuoto.»'));
+    const totalRemMkt2 = MG_CATEGORIES.flatMap(cat => cat.games).reduce((s, g) => s + Math.max(0, MG_MAX[g.id] - getMG(g.id).n), 0);
+    if (totalRemMkt2 > 0) tavernaEntry2.appendChild(el('div', 'taverna-avail-badge', `🎮 ${totalRemMkt2} partite disponibili`));
+    const enterTavernaBtn2 = el('button', 'btn btn-primary wide', '🍺 Entra nella Taverna');
+    enterTavernaBtn2.addEventListener('click', () => { MARKET_VIEW = 'taverna'; setTab('market'); });
+    tavernaEntry2.appendChild(enterTavernaBtn2);
+    c.appendChild(tavernaEntry2);
+  }
+
+  // ── Altre sezioni del Borgo ──
   const borgoSections = [
-    { key: 'stalla',    emoji: '🐴', title: 'La Stalla',             quote: '«La tua cavalcatura ti porta lontano — trattala bene e moltiplicherà ogni tuo passo.»',    img: 'assets/ui/header stalla.webp',       btn: '🐴 Entra nella Stalla' },
-    { key: 'nero',      emoji: '🕯️', title: 'Il Mercato Nero',       quote: '«Nessuna domanda, nessun registro. Solo oro che cambia mano nel buio.»',                    img: 'assets/ui/header contrabbando.webp', btn: '🕯️ Entra nel Mercato Nero' },
     { key: 'fucina',    emoji: '⚒️', title: 'La Fucina',             quote: '«Batto il ferro dall\'alba. Portami il tuo pezzo peggiore: te lo riforgio meglio di prima.»', img: 'assets/ui/header fucina.webp',        btn: '⚒️ Entra nella Fucina' },
     { key: 'erborista', emoji: '🧪', title: 'Il Bazar',               quote: '«Rimedi, rune e reliquie — tutto ciò che un viandante non sapeva di volere, finché non lo vede.»', img: 'assets/header bazar.webp', btn: '🧪 Entra nel Bazar' },
+    { key: 'nero',      emoji: '🕯️', title: 'Il Mercato Nero',       quote: '«Nessuna domanda, nessun registro. Solo oro che cambia mano nel buio.»',                    img: 'assets/ui/header contrabbando.webp', btn: '🕯️ Entra nel Mercato Nero' },
+    { key: 'stalla',    emoji: '🐴', title: 'La Stalla',             quote: '«La tua cavalcatura ti porta lontano — trattala bene e moltiplicherà ogni tuo passo.»',    img: 'assets/ui/header stalla.webp',       btn: '🐴 Entra nella Stalla' },
   ];
   borgoSections.forEach(({ key, emoji, title, quote, img, btn }) => {
     const panel = el('div', 'panel borgo-entry-panel');
@@ -4388,50 +4448,6 @@ function renderMarket(c) {
     c.appendChild(panel);
   });
 
-  // ── La Taverna delle Sfide ──
-  const tavernaEntry = el('div', 'panel borgo-entry-panel taverna-entry-panel');
-  const tavernaThumb = document.createElement('img');
-  tavernaThumb.loading = 'lazy';
-  tavernaThumb.src = 'assets/ui/taverna-header.webp';
-  tavernaThumb.alt = '';
-  tavernaThumb.className = 'borgo-entry-header';
-  tavernaThumb.onerror = () => tavernaThumb.remove();
-  tavernaEntry.appendChild(tavernaThumb);
-  tavernaEntry.appendChild(el('h3', 'panel-title', '🍺 La Taverna delle Sfide'));
-  tavernaEntry.appendChild(el('p', 'muted small borgo-entry-quote',
-    '«Tra dadi truccati e boccali volanti, qui si separa chi ha nervi saldi da chi torna a casa vuoto.»'));
-  const totalRemMkt = MG_CATEGORIES.flatMap(cat => cat.games).reduce((s, g) => s + Math.max(0, MG_MAX[g.id] - getMG(g.id).n), 0);
-  if (totalRemMkt > 0) {
-    tavernaEntry.appendChild(el('div', 'taverna-avail-badge', `🎮 ${totalRemMkt} partite disponibili`));
-  }
-  const enterTavernaBtn = el('button', 'btn btn-primary wide', '🍺 Entra nella Taverna');
-  enterTavernaBtn.addEventListener('click', () => { MARKET_VIEW = 'taverna'; setTab('market'); });
-  tavernaEntry.appendChild(enterTavernaBtn);
-  c.appendChild(tavernaEntry);
-
-  // ── La Bisca Oscura ──
-  const biscaEntry = el('div', 'panel borgo-entry-panel bisca-entry-panel');
-  const biscaEntryThumb = document.createElement('img');
-  biscaEntryThumb.loading = 'lazy';
-  biscaEntryThumb.src = 'assets/backgrounds/bg-bisca.webp';
-  biscaEntryThumb.alt = '';
-  biscaEntryThumb.className = 'borgo-entry-header';
-  biscaEntryThumb.onerror = () => biscaEntryThumb.remove();
-  biscaEntry.appendChild(biscaEntryThumb);
-  biscaEntry.appendChild(el('h3', 'panel-title', '🃏 La Bisca Oscura'));
-  biscaEntry.appendChild(el('p', 'muted small borgo-entry-quote',
-    '«Nessuno sa chi organizza gli scontri. Nessuno chiede. Le monete parlano per tutti.»'));
-  RPG.biscaResetIfNeeded(HERO);
-  const biscaBetsLeft = (HERO.bisca && HERO.bisca.betsLeft !== undefined) ? HERO.bisca.betsLeft : RPG.BISCA_DAILY_BETS;
-  if (biscaBetsLeft > 0) {
-    biscaEntry.appendChild(el('div', 'bisca-avail-badge', `🎰 ${biscaBetsLeft} scommesse disponibili`));
-  } else {
-    biscaEntry.appendChild(el('div', 'bisca-avail-badge bisca-exhausted', '⛔ Scommesse esaurite per oggi'));
-  }
-  const enterBiscaBtn = el('button', 'btn btn-primary wide', '🃏 Entra nella Bisca');
-  enterBiscaBtn.addEventListener('click', () => { MARKET_VIEW = 'bisca'; setTab('market'); });
-  biscaEntry.appendChild(enterBiscaBtn);
-  c.appendChild(biscaEntry);
 }
 
 function npcBanner(imgPath, name, quote) {
@@ -4670,7 +4686,7 @@ function renderErborista(c) {
     const card = el('div', `consumable-card rarity-${co.rarity} erborista-offer-card`);
     const imgWrap = el('div', 'consumable-img-wrap');
     const img = el('img', 'consumable-img');
-    img.src = `assets/consumables/${encodeURIComponent(RPG.CONSUMABLE_IMG[co.id] || co.id)}.png`;
+    img.src = `assets/consumables/${encodeURIComponent(RPG.CONSUMABLE_IMG[co.id] || co.id)}.webp`;
     img.alt = co.name;
     img.addEventListener('error', () => { img.style.display = 'none'; imgWrap.appendChild(el('span', 'consumable-emoji', co.icon)); });
     imgWrap.appendChild(img);
@@ -4715,7 +4731,7 @@ function renderErborista(c) {
     const card  = el('div', `consumable-card rarity-${co.rarity}`);
     const imgWrap = el('div', 'consumable-img-wrap');
     const img = el('img', 'consumable-img');
-    img.src = `assets/consumables/${encodeURIComponent(RPG.CONSUMABLE_IMG[co.id] || co.id)}.png`;
+    img.src = `assets/consumables/${encodeURIComponent(RPG.CONSUMABLE_IMG[co.id] || co.id)}.webp`;
     img.alt = co.name;
     img.addEventListener('error', () => { img.style.display = 'none'; imgWrap.appendChild(el('span', 'consumable-emoji', co.icon)); });
     imgWrap.appendChild(img);
@@ -4847,8 +4863,8 @@ function renderHero(c) {
     const b = el('button', 'btn submenu-btn');
     b.innerHTML = `<span class="submenu-emoji">${emoji}</span><span>${label}</span>`;
     const img = new Image();
-    img.onload = () => { b.innerHTML = `<img class="submenu-icon" src="assets/ui/eroe/${file}.png"><span>${label}</span>`; };
-    img.src = `assets/ui/eroe/${file}.png`;
+    img.onload = () => { b.innerHTML = `<img class="submenu-icon" src="assets/ui/eroe/${file}.webp"><span>${label}</span>`; };
+    img.src = `assets/ui/eroe/${file}.webp`;
     b.addEventListener('click', () => { HERO_VIEW = k; setTab('hero'); });
     sub.appendChild(b);
   });
@@ -5036,7 +5052,7 @@ function renderDiaryView(c) {
     ];
     impreseRows.forEach(([file, label, val]) => {
       const row = el('div', 'stat-row');
-      row.innerHTML = `<span class="stat-row-label"><img class="stat-row-icon" src="assets/ui/eroe/imprese_${file}.png" onerror="this.style.display='none'">${label}</span><b>${val}</b>`;
+      row.innerHTML = `<span class="stat-row-label"><img class="stat-row-icon" src="assets/ui/eroe/imprese_${file}.webp" onerror="this.style.display='none'">${label}</span><b>${val}</b>`;
       stats.appendChild(row);
     });
     c.appendChild(stats);
@@ -5694,7 +5710,7 @@ function showBeastDetail(b) {
   const known = (HERO.bestiary || []).includes(b.id);
   const fig = b.id === 'cavaliere-drago'
     ? `<div class="bd-emoji">${known ? '🐉' : '❓'}</div>`
-    : `<img class="bd-img${known ? '' : ' bd-unknown'}" src="assets/bestiario/${b.id}.png" alt="${b.name}">`;
+    : `<img class="bd-img${known ? '' : ' bd-unknown'}" src="assets/bestiario/${b.id}.webp" alt="${b.name}">`;
   modal(`<div class="beast-detail">
     <div class="bd-fig">${fig}</div>
     ${b.boss ? `<div class="bd-boss-tag"><span class="tag tag-boss">${b.final ? 'NEMESI' : 'BOSS'}</span></div>` : ''}
@@ -5744,7 +5760,7 @@ function renderBestiaryView(c) {
         imgWrap.appendChild(el('div', 'beast-emoji', known ? '🐉' : '❓'));
       } else {
         const img = el('img', 'beast-img' + (known ? '' : ' beast-silhouette'));
-        img.src = `assets/bestiario/${b.id}.png`;
+        img.src = `assets/bestiario/${b.id}.webp`;
         img.loading = 'lazy';
         imgWrap.appendChild(img);
       }
@@ -5810,8 +5826,8 @@ const UI_ICONS = {
 };
 const RES_ICONS = {
   gold:  'assets/ui/res-oro.webp',
-  wood:  'assets/ui/res-legna.png',
-  stone: 'assets/ui/res-pietra.png',
+  wood:  'assets/ui/res-legna.webp',
+  stone: 'assets/ui/res-pietra.webp',
 };
 (() => {
   Object.entries(UI_ICONS).forEach(([tab, path]) => {
@@ -6561,7 +6577,7 @@ function renderZainoView(c) {
       const card = el('div', `consumable-card rarity-${co.rarity}`);
       const imgWrap = el('div', 'consumable-img-wrap');
       const img = el('img', 'consumable-img');
-      img.src = `assets/consumables/${encodeURIComponent(RPG.CONSUMABLE_IMG[co.id] || co.id)}.png`;
+      img.src = `assets/consumables/${encodeURIComponent(RPG.CONSUMABLE_IMG[co.id] || co.id)}.webp`;
       img.alt = co.name;
       img.addEventListener('error', () => { img.style.display = 'none'; imgWrap.appendChild(el('span', 'consumable-emoji', co.icon)); });
       imgWrap.appendChild(img);
@@ -6577,14 +6593,14 @@ function renderZainoView(c) {
         if (err) { toast(err); return; }
         persist(); renderHUD();
         toast(`${co.icon} ${co.name} usato!`);
-        setTab('camp');
+        setTab('hero');
       });
       const sellBtn = el('button', 'btn btn-small', `Vendi (${RPG.sellValueConsumable(co.id)}🪙)`);
       sellBtn.addEventListener('click', () => {
         RPG.sellConsumable(HERO, co.id);
         persist(); renderHUD();
         toast(`${co.icon} Venduto per ${RPG.sellValueConsumable(co.id)} monete.`);
-        setTab('camp');
+        setTab('hero');
       });
       actions.appendChild(useBtn);
       actions.appendChild(sellBtn);
@@ -6662,7 +6678,7 @@ function renderZainoView(c) {
       const card = el('div', `consumable-card rarity-${co.rarity} locked`);
       const imgWrap = el('div', 'consumable-img-wrap');
       const img = el('img', 'consumable-img');
-      img.src = `assets/consumables/${encodeURIComponent(RPG.CONSUMABLE_IMG[co.id] || co.id)}.png`;
+      img.src = `assets/consumables/${encodeURIComponent(RPG.CONSUMABLE_IMG[co.id] || co.id)}.webp`;
       img.alt = co.name;
       img.addEventListener('error', () => { img.style.display = 'none'; imgWrap.appendChild(el('span', 'consumable-emoji', co.icon)); });
       imgWrap.appendChild(img);
@@ -7058,14 +7074,14 @@ function showBiomePreview(b, open) {
         const known = HERO.bestiary.includes(x.id);
         return x.id === 'cavaliere-drago'
           ? `<div class="preview-beast">❓</div>`
-          : `<img class="preview-beast${known && open ? '' : ' shadow'}" src="assets/bestiario/${x.id}.png">`;
+          : `<img class="preview-beast${known && open ? '' : ' shadow'}" src="assets/bestiario/${x.id}.webp">`;
       }).join('') + `</div>`;
   } else {
     beasts = `<p class="small muted center">Nessuno è mai tornato per raccontare quali creature si aggirino qui…</p>`;
   }
   const slug = RPG.biomeSlug(b);
   const figHtml = slug
-    ? `<img class="preview-diorama${open ? '' : ' locked-diorama'}" src="assets/biomi/${slug}.jpg" onerror="this.outerHTML='<p class=&quot;center&quot; style=&quot;font-size:3rem&quot;>${b.icon}</p>'">`
+    ? `<img class="preview-diorama${open ? '' : ' locked-diorama'}" src="assets/biomi/${slug}.webp" onerror="this.outerHTML='<p class=&quot;center&quot; style=&quot;font-size:3rem&quot;>${b.icon}</p>'">`
     : `<p class="center" style="font-size:3rem">${b.icon}</p>`;
   modal(`
     ${figHtml}
