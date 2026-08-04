@@ -1799,10 +1799,17 @@ function renderSantuarioView(c) {
     <div class="membar slim"><div class="membar-fill gold" style="width:${xpPct}%"></div></div>`;
   head.appendChild(xpWrap);
 
-  // Sblocchi futuri (solo se non leggendario)
-  if (!isLegendary) {
+  // Messaggio blocco leggendario: pet a lv max stadio 4 ma eroe < 60
+  const heroLvForLeg = HERO.level || 1;
+  const blockedBeforeLegendary = pet.level >= RPG.PET_MAX_LEVEL_BEFORE_LEGENDARY && heroLvForLeg < RPG.PET_LEGENDARY_HERO_LV;
+  if (blockedBeforeLegendary) {
+    xpWrap.innerHTML += `<div class="small pet-leg-locked" style="margin-top:.4rem">
+      ⏳ Pronto a evolvere — raggiungi il <b>Livello ${RPG.PET_LEGENDARY_HERO_LV} da eroe</b> per sbloccare la Forma Leggendaria
+      <span style="color:var(--muted)">(sei al ${heroLvForLeg})</span>
+    </div>`;
+  } else if (!isLegendary) {
     const nextStage = stage + 1;
-    const nextLv = (nextStage - 1) * RPG.PET_LEVELS_PER_STAGE + 1; // livello che attiva lo stadio
+    const nextLv = (nextStage - 1) * RPG.PET_LEVELS_PER_STAGE + 1;
     const nextUnlockLabels = { 2: '🎒 Spedizioni', 3: '💭 Desideri', 4: '⚔️ Arena max', 5: '🌟 Leggendario' };
     const nextLabel = nextUnlockLabels[nextStage];
     if (nextLabel) xpWrap.innerHTML += `<div class="small muted" style="margin-top:.3rem">Prossimo stadio (Liv.${nextLv}): ${nextLabel}</div>`;

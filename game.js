@@ -3399,12 +3399,22 @@ const RPG = (() => {
     return { ok: true };
   }
 
+  // Il famiglio si blocca allo stadio 4 finché l'eroe non raggiunge il livello 60.
+  const PET_LEGENDARY_HERO_LV = 60;
+  const PET_MAX_LEVEL_BEFORE_LEGENDARY = PET_LEVELS_PER_STAGE * (PET_EVOLUTION_STAGES - 1); // 16
+
   function addPetXp(hero, amount) {
     if (!hero.pet || hero.pet.hunger <= 0) return; // affamato: non cresce
     const bonus = hero.pet.restedBonusActive ? 1.2 : 1;
     hero.pet.xp += Math.round(amount * bonus);
     const prevStage = petStage(hero.pet.level);
+    const heroLv = hero.level || 1;
     while (hero.pet.xp >= petXpForLevel(hero.pet.level)) {
+      // Blocca allo stadio 4 finché l'eroe non raggiunge lv 60
+      if (hero.pet.level >= PET_MAX_LEVEL_BEFORE_LEGENDARY && heroLv < PET_LEGENDARY_HERO_LV) {
+        hero.pet.xp = petXpForLevel(hero.pet.level) - 1; // barra quasi piena ma ferma
+        break;
+      }
       hero.pet.xp -= petXpForLevel(hero.pet.level);
       hero.pet.level++;
     }
@@ -5222,6 +5232,7 @@ const RPG = (() => {
     MI_TIERS, rolloverMappaInfuocata, mappaInfuocataStatus, activateMappaInfuocata, claimMappaInfuocata,
     rolloverFugitiveMerchant, getFugitiveMerchant, todayKm, buyFromFugitiveMerchant,
     PET_PERSONALITIES, PET_FOODS, PET_ACCESSORIES, PET_SPECIES, PET_STAGE_REWARDS,
+    PET_LEGENDARY_HERO_LV, PET_MAX_LEVEL_BEFORE_LEGENDARY,
     PHOENIX_POTION_PRICE, EXPEDITION_HOURS, WISH_WINDOW_MINUTES,
     createPet, petXpForLevel, petStage, petStageUnlocks, petSpeciesBonus, tickPet, petArenaBonus, classArenaBonus,
     EGG_KM_NEEDED, eggProgress, hatchPet,
