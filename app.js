@@ -18,23 +18,23 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 
 /* ── Avatar dei protagonisti (creati con l'IA) ── */
 const AVATARS = [
-  { path: 'assets/avatars/eroe1.png',      storyId: 'eroe1',      label: 'Il Viandante' },
-  { path: 'assets/avatars/eroe2.png',      storyId: 'eroe2',      label: 'La Viandante' },
-  { path: 'assets/avatars/fabbro.png',     storyId: 'fabbro',     label: 'Il Fabbro' },
-  { path: 'assets/avatars/stregone.png',   storyId: 'stregone',   label: 'Lo Stregone' },
-  { path: 'assets/avatars/alchimista.png', storyId: 'alchimista', label: 'L\'Alchimista' },
-  { path: 'assets/avatars/furfante.png',   storyId: 'furfante',   label: 'Il Furfante' },
-  { path: 'assets/avatars/maga.png',       storyId: 'maga',       label: 'La Maga' },
-  { path: 'assets/avatars/paladino.png',          storyId: 'paladino',         label: 'Il Paladino' },
-  { path: 'assets/avatars/ranger.png',            storyId: 'ranger',           label: 'Il Ranger' },
-  { path: 'assets/avatars/fata.png',              storyId: 'fata',             label: 'La Fata Elfica' },
-  { path: 'assets/avatars/principe.png',          storyId: 'principe',         label: 'Il Principe delle Aquile' },
-  { path: 'assets/avatars/principessa.png',       storyId: 'principessa',      label: 'La Principessa Farfallosa' },
-  { path: 'assets/avatars/regina.png',            storyId: 'regina',           label: 'La Regina Oscura' },
-  { path: 'assets/avatars/predone.png',           storyId: 'predone',          label: 'Il Re dei Predoni' },
-  { path: 'assets/avatars/principessa-ghiacci.png', storyId: 'principessa_ghiacci', label: 'La Principessa dei Ghiacci' },
-  { path: 'assets/avatars/sacerdotessa-sole.png',   storyId: 'sacerdotessa_sole',   label: 'La Sacerdotessa del Sole' },
-  { path: 'assets/avatars/principessa-draghi.png',  storyId: 'principessa_draghi',  label: 'La Principessa dei Draghi' },
+  { path: 'assets/avatars/eroe1.webp',      storyId: 'eroe1',      label: 'Il Viandante' },
+  { path: 'assets/avatars/eroe2.webp',      storyId: 'eroe2',      label: 'La Viandante' },
+  { path: 'assets/avatars/fabbro.webp',     storyId: 'fabbro',     label: 'Il Fabbro' },
+  { path: 'assets/avatars/stregone.webp',   storyId: 'stregone',   label: 'Lo Stregone' },
+  { path: 'assets/avatars/alchimista.webp', storyId: 'alchimista', label: 'L\'Alchimista' },
+  { path: 'assets/avatars/furfante.webp',   storyId: 'furfante',   label: 'Il Furfante' },
+  { path: 'assets/avatars/maga.webp',       storyId: 'maga',       label: 'La Maga' },
+  { path: 'assets/avatars/paladino.webp',          storyId: 'paladino',         label: 'Il Paladino' },
+  { path: 'assets/avatars/ranger.webp',            storyId: 'ranger',           label: 'Il Ranger' },
+  { path: 'assets/avatars/fata.webp',              storyId: 'fata',             label: 'La Fata Elfica' },
+  { path: 'assets/avatars/principe.webp',          storyId: 'principe',         label: 'Il Principe delle Aquile' },
+  { path: 'assets/avatars/principessa.webp',       storyId: 'principessa',      label: 'La Principessa Farfallosa' },
+  { path: 'assets/avatars/regina.webp',            storyId: 'regina',           label: 'La Regina Oscura' },
+  { path: 'assets/avatars/predone.webp',           storyId: 'predone',          label: 'Il Re dei Predoni' },
+  { path: 'assets/avatars/principessa-ghiacci.webp', storyId: 'principessa_ghiacci', label: 'La Principessa dei Ghiacci' },
+  { path: 'assets/avatars/sacerdotessa-sole.webp',   storyId: 'sacerdotessa_sole',   label: 'La Sacerdotessa del Sole' },
+  { path: 'assets/avatars/principessa-draghi.webp',  storyId: 'principessa_draghi',  label: 'La Principessa dei Draghi' },
 ];
 
 /* ── Le storie dei protagonisti ── */
@@ -998,13 +998,27 @@ document.addEventListener('touchend', e => {
 // Tocco sulle risorse dell'header → popup dettaglio
 document.querySelector('.hud-right').addEventListener('click', () => { if (HERO) showResources(); });
 
+/* Salva lo scroll dell'hub principale per market e map, in modo da
+   ripristinarlo quando si torna dalla sotto-view all'hub. */
+let _marketHubScroll = 0;
+let _mapHubScroll    = 0;
+
 function setTab(tab, dir) {
   const c = $('#tab-content');
-  const prevTab      = CURRENT_TAB;
-  const prevScroll   = c.scrollTop;
-  const prevCampView = CAMP_VIEW;
-  const prevMapView  = MAP_VIEW;
-  const prevHeroView = HERO_VIEW;
+  const prevTab        = CURRENT_TAB;
+  const prevScroll     = c.scrollTop;
+  const prevCampView   = CAMP_VIEW;
+  const prevMapView    = MAP_VIEW;
+  const prevMarketView = MARKET_VIEW;
+  const prevHeroView   = HERO_VIEW;
+
+  /* Salva lo scroll dell'hub prima di entrare in una sotto-view */
+  if (tab === 'market' && prevTab === 'market' && prevMarketView === 'hub' && MARKET_VIEW !== 'hub') {
+    _marketHubScroll = prevScroll;
+  }
+  if (tab === 'map' && prevTab === 'map' && prevMapView === 'main' && MAP_VIEW !== 'main') {
+    _mapHubScroll = prevScroll;
+  }
 
   CURRENT_TAB = tab;
   document.querySelectorAll('#tabbar .tab').forEach(t =>
@@ -1020,10 +1034,23 @@ function setTab(tab, dir) {
   ({ camp: renderCamp, map: renderMap, train: renderTrain, market: renderMarket, hero: renderHero }[tab])(c);
 
   const sameSubView = tab === prevTab && !dir &&
-    (tab !== 'camp'   || CAMP_VIEW === prevCampView) &&
-    (tab !== 'map'    || MAP_VIEW  === prevMapView)  &&
-    (tab !== 'hero'   || HERO_VIEW === prevHeroView);
-  c.scrollTop = sameSubView ? prevScroll : 0;
+    (tab !== 'camp'   || CAMP_VIEW   === prevCampView)   &&
+    (tab !== 'map'    || MAP_VIEW    === prevMapView)     &&
+    (tab !== 'market' || MARKET_VIEW === prevMarketView)  &&
+    (tab !== 'hero'   || HERO_VIEW   === prevHeroView);
+
+  /* Ripristina lo scroll corretto in base al contesto */
+  if (sameSubView) {
+    c.scrollTop = prevScroll;
+  } else if (tab === 'market' && MARKET_VIEW === 'hub' && prevMarketView !== 'hub') {
+    /* ritorno all'hub del Borgo: ripristina la posizione pre-sub-view */
+    c.scrollTop = _marketHubScroll;
+  } else if (tab === 'map' && MAP_VIEW === 'main' && prevMapView !== 'main') {
+    /* ritorno alla Mappa principale: ripristina la posizione pre-sub-view */
+    c.scrollTop = _mapHubScroll;
+  } else {
+    c.scrollTop = 0;
+  }
 
   requestAnimationFrame(() => {
     if (dir === 'left')       c.classList.add('tab-slide-left');
@@ -1463,7 +1490,7 @@ function renderCamp(c) {
   if (HERO.companion && HERO.pet && !HERO.pet.hatched) {
     const egg = RPG.eggProgress(HERO);
     const sp = el('div', 'panel borgo-entry-panel santuario-teaser');
-    const sanctHdr0 = document.createElement('img'); sanctHdr0.src = 'assets/ui/santuario-famigli.jpg'; sanctHdr0.alt = ''; sanctHdr0.className = 'borgo-entry-header'; sanctHdr0.onerror = () => sanctHdr0.remove(); sp.appendChild(sanctHdr0);
+    const sanctHdr0 = document.createElement('img'); sanctHdr0.src = 'assets/ui/santuario-famigli.webp'; sanctHdr0.alt = ''; sanctHdr0.className = 'borgo-entry-header'; sanctHdr0.onerror = () => sanctHdr0.remove(); sp.appendChild(sanctHdr0);
     sp.appendChild(el('h3', 'panel-title', '🥚 Uovo Misterioso'));
     const thumb = el('img', 'pet-thumb' + (egg.ready ? ' egg-shake' : ''));
     thumb.src = petImageSrc(HERO.pet);
@@ -1480,7 +1507,7 @@ function renderCamp(c) {
     RPG.tickPet(HERO); persist();
     const p = HERO.pet;
     const sp = el('div', 'panel borgo-entry-panel santuario-teaser');
-    const sanctHdr1 = document.createElement('img'); sanctHdr1.src = 'assets/ui/santuario-famigli.jpg'; sanctHdr1.alt = ''; sanctHdr1.className = 'borgo-entry-header'; sanctHdr1.onerror = () => sanctHdr1.remove(); sp.appendChild(sanctHdr1);
+    const sanctHdr1 = document.createElement('img'); sanctHdr1.src = 'assets/ui/santuario-famigli.webp'; sanctHdr1.alt = ''; sanctHdr1.className = 'borgo-entry-header'; sanctHdr1.onerror = () => sanctHdr1.remove(); sp.appendChild(sanctHdr1);
     sp.appendChild(el('h3', 'panel-title', '🐾 Il Santuario dei Famigli'));
     const thumb = el('img', 'pet-thumb');
     thumb.src = petImageSrc(p);
@@ -1499,7 +1526,7 @@ function renderCamp(c) {
     // Teaser bloccato — visibile finché il Santuario non è sbloccato
     const sanctEntry = el('div', 'panel borgo-entry-panel santuario-entry-panel');
     const sanctThumb = document.createElement('img');
-    sanctThumb.src = 'assets/ui/santuario-famigli.jpg';
+    sanctThumb.src = 'assets/ui/santuario-famigli.webp';
     sanctThumb.alt = '';
     sanctThumb.className = 'borgo-entry-header';
     sanctThumb.onerror = () => sanctThumb.remove();
@@ -1525,7 +1552,7 @@ function renderCamp(c) {
 
     // Header immagine
     const cantThumb = el('img', 'borgo-entry-header');
-    cantThumb.src = 'assets/ui/rifugio/cantiere-eroe.jpg';
+    cantThumb.src = 'assets/ui/rifugio/cantiere-eroe.webp';
     cantThumb.alt = '';
     cp.appendChild(cantThumb);
 
@@ -1558,7 +1585,7 @@ function renderCamp(c) {
     const dangerCount  = HERO.greenhouse.pots.filter(p => p.status === 'growing' && p.health < 40).length;
     const gp = el('div', readyCount ? 'panel panel-featured borgo-entry-panel' : 'panel borgo-entry-panel');
     const serraThumb = el('img', 'borgo-entry-header');
-    serraThumb.src = 'assets/minigames/serra/SERRA.jpg';
+    serraThumb.src = 'assets/minigames/serra/SERRA.webp';
     serraThumb.alt = '';
     gp.appendChild(serraThumb);
     gp.appendChild(el('h3', 'panel-title', '🌿 La Serra del Viandante'));
@@ -1583,8 +1610,8 @@ function renderCamp(c) {
     const vTitle = el('h3', 'panel-title', '🪞 Visita il Rifugio del tuo Alleato');
     vp.appendChild(vTitle);
     const trofeoImg = new Image();
-    trofeoImg.onload = () => { vTitle.innerHTML = `<img class="panel-title-icon" src="assets/ui/rifugio/trofeo-alleato.png"> Visita il Rifugio del tuo Alleato`; };
-    trofeoImg.src = 'assets/ui/rifugio/trofeo-alleato.png';
+    trofeoImg.onload = () => { vTitle.innerHTML = `<img class="panel-title-icon" src="assets/ui/rifugio/trofeo-alleato.webp"> Visita il Rifugio del tuo Alleato`; };
+    trofeoImg.src = 'assets/ui/rifugio/trofeo-alleato.webp';
     others.forEach(o => {
       const btn = el('button', 'btn wide', `Guarda la base di ${esc(o.name)}`);
       btn.addEventListener('click', () => showAllyBase(o));
@@ -1700,7 +1727,7 @@ function renderSantuarioView(c) {
   backBtn.addEventListener('click', () => { CAMP_VIEW = 'main'; setTab('camp'); });
   c.appendChild(backBtn);
   const sanctHdrImg = document.createElement('img');
-  sanctHdrImg.src = 'assets/ui/santuario-famigli.jpg';
+  sanctHdrImg.src = 'assets/ui/santuario-famigli.webp';
   sanctHdrImg.alt = ''; sanctHdrImg.className = 'borgo-sub-header';
   sanctHdrImg.onerror = () => sanctHdrImg.remove();
   c.appendChild(sanctHdrImg);
@@ -1945,7 +1972,7 @@ function renderStruttureView(c) {
   backBtn.addEventListener('click', () => { CAMP_VIEW = 'main'; setTab('camp'); });
   c.appendChild(backBtn);
   const cantHdrImg = document.createElement('img');
-  cantHdrImg.src = 'assets/ui/rifugio/cantiere-eroe.jpg';
+  cantHdrImg.src = 'assets/ui/rifugio/cantiere-eroe.webp';
   cantHdrImg.alt = ''; cantHdrImg.className = 'borgo-sub-header';
   cantHdrImg.onerror = () => cantHdrImg.remove();
   c.appendChild(cantHdrImg);
@@ -2049,7 +2076,7 @@ function renderArredamentoView(c) {
   backBtn.addEventListener('click', () => { CAMP_VIEW = 'main'; setTab('camp'); });
   c.appendChild(backBtn);
   const arredHdrImg = document.createElement('img');
-  arredHdrImg.src = 'assets/ui/rifugio/bottega-arredamento.jpg';
+  arredHdrImg.src = 'assets/ui/rifugio/bottega-arredamento.webp';
   arredHdrImg.alt = ''; arredHdrImg.className = 'borgo-sub-header';
   arredHdrImg.onerror = () => arredHdrImg.remove();
   c.appendChild(arredHdrImg);
@@ -2217,7 +2244,7 @@ function renderMap(c) {
     const { progressKm, claimed } = tmStatus;
     const allClaimed = claimed.length >= RPG.TREASURE_MAP_TIERS.length;
     const TIERS = RPG.TREASURE_MAP_TIERS;
-    const WP_IMGS = ['assets/map/waypoint-1.png', 'assets/map/waypoint-2.png', 'assets/map/waypoint-3.png'];
+    const WP_IMGS = ['assets/map/waypoint-1.webp', 'assets/map/waypoint-2.webp', 'assets/map/waypoint-3.webp'];
 
     const tp = el('div', 'panel treasure-map-panel');
     tp.appendChild(el('h3', 'panel-title', '🗺️ Mappa del Tesoro'));
@@ -2250,7 +2277,7 @@ function renderMap(c) {
         const toKm = TIERS[i + 1].km;
         const seg = el('div', 'tm-segment');
         const sImg = document.createElement('img');
-        sImg.src = 'assets/map/sentiero.png';
+        sImg.src = 'assets/map/sentiero.webp';
         sImg.alt = '';
         seg.appendChild(sImg);
 
@@ -2360,7 +2387,7 @@ function renderMap(c) {
     const pt = pvpTitle(pvpWins);
     const pvpEntry = el('div', 'panel borgo-entry-panel pantheon-entry-panel');
     const pantheonThumb = document.createElement('img');
-    pantheonThumb.src = 'assets/ui/pantheon-header.jpg';
+    pantheonThumb.src = 'assets/ui/pantheon-header.webp';
     pantheonThumb.alt = '';
     pantheonThumb.className = 'borgo-entry-header';
     pantheonThumb.onerror = () => pantheonThumb.remove();
@@ -2417,7 +2444,7 @@ function renderMap(c) {
     const active = HERO.activeMission ? RPG.MISSIONS.find(x => x.id === HERO.activeMission.id) : null;
     const avamposto = el('div', 'panel avamposto-entry-panel');
     const thumb = document.createElement('img');
-    thumb.src = 'assets/ui/avamposto.jpg';
+    thumb.src = 'assets/ui/avamposto.webp';
     thumb.alt = '';
     thumb.className = 'camp-panel-thumb';
     avamposto.appendChild(thumb);
@@ -2499,14 +2526,14 @@ function renderTavernaView(c) {
   c.appendChild(backBtn);
 
   const heroImg = document.createElement('img');
-  heroImg.src = 'assets/ui/taverna-header.jpg';
+  heroImg.src = 'assets/ui/taverna-header.webp';
   heroImg.alt = '';
   heroImg.className = 'borgo-sub-header';
   heroImg.onerror = () => heroImg.remove();
   c.appendChild(heroImg);
 
   const grukBanner = npcBanner(
-    'assets/avatars/npc/locandiere-orco.png',
+    'assets/avatars/npc/locandiere-orco.webp',
     'Gruk il Bonaccione',
     '«Il nome è Gruk. Se perdi, paghi. Se vinci, offro io un boccale. Parola di oste.»'
   );
@@ -2522,7 +2549,7 @@ function renderBiscaView(c) {
   c.appendChild(backBtn);
 
   const headerImg = document.createElement('img');
-  headerImg.src = 'assets/backgrounds/bg-bisca.jpg';
+  headerImg.src = 'assets/backgrounds/bg-bisca.webp';
   headerImg.className = 'bisca-header-img';
   headerImg.alt = '';
   headerImg.onerror = () => headerImg.remove();
@@ -2538,7 +2565,7 @@ function renderBiscaView(c) {
   // NPC biscazziere
   const npcBanner = el('div', 'npc-banner bisca-npc-banner');
   const npcImg = document.createElement('img');
-  npcImg.src = 'assets/npcs/biscazziere.jpg';
+  npcImg.src = 'assets/npcs/biscazziere.webp';
   npcImg.className = 'npc-img bisca-npc-img';
   npcImg.alt = 'Il Biscazziere';
   npcImg.onerror = () => npcImg.remove();
@@ -3252,7 +3279,7 @@ function renderAvampostoView(c) {
         vimg.className = 'plaque-img-small';
         btn.appendChild(vimg);
       };
-      vimg.src = 'assets/ui/btn-viaggio.png';
+      vimg.src = 'assets/ui/btn-viaggio.webp';
       btn.disabled = !!HERO.activeMission;
       btn.addEventListener('click', () => {
         RPG.startMission(HERO, m.id); persist();
@@ -3472,7 +3499,7 @@ function renderTrain(c) {
     sssInput.value = '';
     if (report) {
       if (isFirst) HERO.onboardingStep = 2;
-      persist(); renderHUD();
+      persist(); renderHUD(); FB.syncHero(HERO);
       showHealthSyncResult(report);
       if (isFirst) OPEN_QUEUE.push(showFirstWorkoutCelebration);
       checkMapNotify(); maybeSyncChallenge();
@@ -3612,13 +3639,14 @@ function renderTrain(c) {
   const form = el('div', 'panel');
   form.appendChild(el('label', 'field-label', 'Tipo di attività'));
   const actRow = el('div', 'act-row');
-  const ACT_ICON_FILES = { cyclette: 'assets/ui/act-cyclette.png', camminata: 'assets/ui/act-camminata.png', corsa: 'assets/ui/act-corsa.png' };
+  const ACT_ICON_FILES = { cyclette: 'assets/ui/act-cyclette.webp', camminata: 'assets/ui/act-camminata.webp', corsa: 'assets/ui/act-corsa.webp' };
   const mount = HERO.mount ? RPG.mountById(HERO.mount) : null;
   Object.entries(RPG.ACTIVITIES).forEach(([key, a]) => {
     const b = el('button', 'act-choice' + (key === chosen ? ' selected' : ''));
     const iconHolder = el('div', 'act-icon-holder', a.icon);
     if (ACT_ICON_FILES[key]) {
-      const img = el('img', 'act-icon');
+      const img = document.createElement('img');
+      img.className = 'act-icon';
       img.addEventListener('load', () => { iconHolder.textContent = ''; iconHolder.appendChild(img); });
       img.src = ACT_ICON_FILES[key];
       if (img.complete && img.naturalWidth) { iconHolder.textContent = ''; iconHolder.appendChild(img); }
@@ -3661,7 +3689,6 @@ function renderTrain(c) {
     </div>
   </div>
   <button class="btn${dungeonAvail ? ' btn-primary' : ''} dungeon-strip-btn" id="btn-dungeon-open" ${dungeonAvail ? '' : 'disabled'}>${dungeonAvail ? '▶ Parti' : '✓ Fatto'}</button>`;
-  ap.appendChild(dp);
   if (dungeonAvail) {
     dp.querySelector('#btn-dungeon-open').addEventListener('click', openDungeon);
   }
@@ -4291,8 +4318,8 @@ function renderMarket(c) {
   const marketTitle = el('h2', 'section-title', '🏘️ Il Borgo');
   c.appendChild(marketTitle);
   const marketIcon = new Image();
-  marketIcon.onload = () => { marketTitle.innerHTML = `<img class="title-icon" src="assets/ui/tab-mercato.png"> Il Borgo`; };
-  marketIcon.src = 'assets/ui/tab-mercato.png';
+  marketIcon.onload = () => { marketTitle.innerHTML = `<img class="title-icon" src="assets/ui/tab-mercato.webp"> Il Borgo`; };
+  marketIcon.src = 'assets/ui/tab-mercato.webp';
 
   // ── Mercante Fuggiasco ──
   const fm = RPG.getFugitiveMerchant(HERO);
@@ -4339,14 +4366,15 @@ function renderMarket(c) {
 
   // ── 4 sezioni del Borgo come pannelli di entrata ──
   const borgoSections = [
-    { key: 'stalla',    emoji: '🐴', title: 'La Stalla',             quote: '«La tua cavalcatura ti porta lontano — trattala bene e moltiplicherà ogni tuo passo.»',    img: 'assets/ui/header stalla.jpg',       btn: '🐴 Entra nella Stalla' },
-    { key: 'nero',      emoji: '🕯️', title: 'Il Mercato Nero',       quote: '«Nessuna domanda, nessun registro. Solo oro che cambia mano nel buio.»',                    img: 'assets/ui/header contrabbando.jpg', btn: '🕯️ Entra nel Mercato Nero' },
-    { key: 'fucina',    emoji: '⚒️', title: 'La Fucina',             quote: '«Batto il ferro dall\'alba. Portami il tuo pezzo peggiore: te lo riforgio meglio di prima.»', img: 'assets/ui/header fucina.jpg',        btn: '⚒️ Entra nella Fucina' },
-    { key: 'erborista', emoji: '🧪', title: 'Il Bazar',               quote: '«Rimedi, rune e reliquie — tutto ciò che un viandante non sapeva di volere, finché non lo vede.»', img: 'assets/header bazar.jpg', btn: '🧪 Entra nel Bazar' },
+    { key: 'stalla',    emoji: '🐴', title: 'La Stalla',             quote: '«La tua cavalcatura ti porta lontano — trattala bene e moltiplicherà ogni tuo passo.»',    img: 'assets/ui/header stalla.webp',       btn: '🐴 Entra nella Stalla' },
+    { key: 'nero',      emoji: '🕯️', title: 'Il Mercato Nero',       quote: '«Nessuna domanda, nessun registro. Solo oro che cambia mano nel buio.»',                    img: 'assets/ui/header contrabbando.webp', btn: '🕯️ Entra nel Mercato Nero' },
+    { key: 'fucina',    emoji: '⚒️', title: 'La Fucina',             quote: '«Batto il ferro dall\'alba. Portami il tuo pezzo peggiore: te lo riforgio meglio di prima.»', img: 'assets/ui/header fucina.webp',        btn: '⚒️ Entra nella Fucina' },
+    { key: 'erborista', emoji: '🧪', title: 'Il Bazar',               quote: '«Rimedi, rune e reliquie — tutto ciò che un viandante non sapeva di volere, finché non lo vede.»', img: 'assets/header bazar.webp', btn: '🧪 Entra nel Bazar' },
   ];
   borgoSections.forEach(({ key, emoji, title, quote, img, btn }) => {
     const panel = el('div', 'panel borgo-entry-panel');
     const thumb = document.createElement('img');
+    thumb.loading = 'lazy';
     thumb.src = img;
     thumb.alt = '';
     thumb.className = 'borgo-entry-header';
@@ -4363,7 +4391,8 @@ function renderMarket(c) {
   // ── La Taverna delle Sfide ──
   const tavernaEntry = el('div', 'panel borgo-entry-panel taverna-entry-panel');
   const tavernaThumb = document.createElement('img');
-  tavernaThumb.src = 'assets/ui/taverna-header.jpg';
+  tavernaThumb.loading = 'lazy';
+  tavernaThumb.src = 'assets/ui/taverna-header.webp';
   tavernaThumb.alt = '';
   tavernaThumb.className = 'borgo-entry-header';
   tavernaThumb.onerror = () => tavernaThumb.remove();
@@ -4383,7 +4412,8 @@ function renderMarket(c) {
   // ── La Bisca Oscura ──
   const biscaEntry = el('div', 'panel borgo-entry-panel bisca-entry-panel');
   const biscaEntryThumb = document.createElement('img');
-  biscaEntryThumb.src = 'assets/backgrounds/bg-bisca.jpg';
+  biscaEntryThumb.loading = 'lazy';
+  biscaEntryThumb.src = 'assets/backgrounds/bg-bisca.webp';
   biscaEntryThumb.alt = '';
   biscaEntryThumb.className = 'borgo-entry-header';
   biscaEntryThumb.onerror = () => biscaEntryThumb.remove();
@@ -4429,13 +4459,13 @@ function _borgoSubView(c, headerSrc, title, renderFn) {
   renderFn(c);
 }
 
-function renderStallaView(c)    { _borgoSubView(c, 'assets/ui/header stalla.jpg',        '🐴 La Stalla',        renderStalla); }
-function renderNeroView(c)      { _borgoSubView(c, 'assets/ui/header contrabbando.jpg',   '🕯️ Il Mercato Nero',  renderNero); }
-function renderFucinaView(c)    { _borgoSubView(c, 'assets/ui/header fucina.jpg',         '⚒️ La Fucina',        renderFucina); }
-function renderErboristaView(c) { _borgoSubView(c, 'assets/header bazar.jpg',           '🧪 Il Bazar',         renderErborista); }
+function renderStallaView(c)    { _borgoSubView(c, 'assets/ui/header stalla.webp',        '🐴 La Stalla',        renderStalla); }
+function renderNeroView(c)      { _borgoSubView(c, 'assets/ui/header contrabbando.webp',   '🕯️ Il Mercato Nero',  renderNero); }
+function renderFucinaView(c)    { _borgoSubView(c, 'assets/ui/header fucina.webp',         '⚒️ La Fucina',        renderFucina); }
+function renderErboristaView(c) { _borgoSubView(c, 'assets/header bazar.webp',           '🧪 Il Bazar',         renderErborista); }
 
 function renderStalla(c) {
-  c.appendChild(npcBanner('assets/avatars/npc/stalliere.jpg', 'Ferro di Vecchio',
+  c.appendChild(npcBanner('assets/avatars/npc/stalliere.webp', 'Ferro di Vecchio',
     '«Fieno, striglio e pazienza — le bestie lo sentono subito chi ha buon cuore. E anche chi non ce l\'ha.»'));
   c.appendChild(el('p', 'muted small center',
     'Le cavalcature aumentano i km "virtuali" di ogni allenamento. Una nuova compagna di viaggio ogni 5 livelli: tocca una miniatura per conoscere la sua storia…'));
@@ -4512,7 +4542,7 @@ function showItemPreview(it) {
 }
 
 function renderNero(c) {
-  const nerobanner = npcBanner('assets/avatars/npc/contrabbandiere.jpg', 'Ombra Senza Nome',
+  const nerobanner = npcBanner('assets/avatars/npc/contrabbandiere.webp', 'Ombra Senza Nome',
     '«Non chiedo da dove vengono. Non ti chiedo chi sei. Oro in mano — affare fatto. Sparisci prima dell\'alba.»');
   nerobanner.classList.add('npc-banner-nero');
   c.appendChild(nerobanner);
@@ -4553,7 +4583,7 @@ function renderFucina(c) {
   HERO.forgeSeen = todayISO();
   persist();
   updateBadges();
-  c.appendChild(npcBanner('assets/avatars/fabbro.png', 'Mastro Brontolo',
+  c.appendChild(npcBanner('assets/avatars/fabbro.webp', 'Mastro Brontolo',
     '«Batto il ferro dall\'alba, ragazzino. Tre pezzi al giorno, prendere o lasciare. E non toccare l\'incudine!»'));
   const offers = RPG.forgeOffers(HERO);
   const op = el('div', 'panel');
@@ -4629,7 +4659,7 @@ function _erboristaOffers() {
 }
 
 function renderErborista(c) {
-  c.appendChild(npcBanner('assets/avatars/npc/mercante-contrabbando.png', 'Messer Bilancia',
+  c.appendChild(npcBanner('assets/avatars/npc/mercante-contrabbando.webp', 'Messer Bilancia',
     '«Ogni oggetto ha il suo giusto peso in monete… la mia bilancia non sbaglia mai. Vendimi pure, qui non si fanno domande.»'));
 
   /* Offerta del Giorno */
@@ -4738,12 +4768,12 @@ function renderHero(c) {
   const rightSlots = equipSlots.slice(3);
 
   const EMPTY_SLOT_IMG = {
-    elmo: 'assets/ui/eroe/slot_elmo.png',
-    armatura: 'assets/ui/eroe/slot_armatura.png',
-    arma: 'assets/ui/eroe/slot_arma.png',
-    scudo: 'assets/ui/eroe/slot_scudo.png',
-    anello: 'assets/ui/eroe/slot_anello.png',
-    amuleto: 'assets/ui/eroe/slot_amuleto.png',
+    elmo: 'assets/ui/eroe/slot_elmo.webp',
+    armatura: 'assets/ui/eroe/slot_armatura.webp',
+    arma: 'assets/ui/eroe/slot_arma.webp',
+    scudo: 'assets/ui/eroe/slot_scudo.webp',
+    anello: 'assets/ui/eroe/slot_anello.webp',
+    amuleto: 'assets/ui/eroe/slot_amuleto.webp',
   };
   const makeSlot = key => {
     const s = RPG.SLOTS[key];
@@ -4993,8 +5023,8 @@ function renderDiaryView(c) {
     const impreseTitle = el('h3', 'panel-title', '📊 Imprese');
     stats.appendChild(impreseTitle);
     const shieldImg = new Image();
-    shieldImg.onload = () => { impreseTitle.innerHTML = `<img class="panel-title-icon" src="assets/ui/eroe/imprese_spade.png"> Imprese`; };
-    shieldImg.src = 'assets/ui/eroe/imprese_spade.png';
+    shieldImg.onload = () => { impreseTitle.innerHTML = `<img class="panel-title-icon" src="assets/ui/eroe/imprese_spade.webp"> Imprese`; };
+    shieldImg.src = 'assets/ui/eroe/imprese_spade.webp';
     const impreseRows = [
       ['stivale', 'Km totali', `${HERO.totalKm.toFixed(1)}`],
       ['cavallo', 'In sella', `${(HERO.kmByType.cyclette || 0).toFixed(1)} km`],
@@ -5210,11 +5240,19 @@ function renderDiaryView(c) {
   if (!HERO.log.length) {
     lp.appendChild(emptyState('📜', 'Nessuna attività registrata ancora.'));
   } else {
+    const grouped = {};
     HERO.log.slice().reverse().forEach(l => {
-      const a = RPG.ACTIVITIES[l.type];
-      const d = new Date(l.date);
-      lp.appendChild(el('div', 'log-row',
-        `${a.icon} <b>${l.km} km</b> di ${a.label.toLowerCase()} — +${l.xp} XP <span class="muted small">(${d.toLocaleDateString('it-IT')})</span>`));
+      const dateKey = l.date.slice(0, 10);
+      if (!grouped[dateKey]) grouped[dateKey] = [];
+      grouped[dateKey].push(l);
+    });
+    Object.entries(grouped).forEach(([dateKey, entries]) => {
+      const d = new Date(dateKey);
+      lp.appendChild(el('div', 'log-date-header', d.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })));
+      entries.forEach(l => {
+        const a = RPG.ACTIVITIES[l.type];
+        lp.appendChild(el('div', 'log-row', `${a.icon} <b>${l.km} km</b> di ${a.label.toLowerCase()} — +${l.xp} XP`));
+      });
     });
   }
   c.appendChild(lp);
@@ -5537,8 +5575,8 @@ function renderCardsView(c) {
   const cardsTitle = el('h2', 'section-title on-parchment-title', '🎴 Il Tomo delle Memorie');
   c.appendChild(cardsTitle);
   const tomeImg = new Image();
-  tomeImg.onload = () => { cardsTitle.innerHTML = `<img class="title-icon" src="assets/ui/eroe/carte.png"> Il Tomo delle Memorie`; };
-  tomeImg.src = 'assets/ui/eroe/carte.png';
+  tomeImg.onload = () => { cardsTitle.innerHTML = `<img class="title-icon" src="assets/ui/eroe/carte.webp"> Il Tomo delle Memorie`; };
+  tomeImg.src = 'assets/ui/eroe/carte.webp';
   c.appendChild(el('p', 'muted small center',
     `${HERO.cards.length} / ${Object.keys(RPG.CARDS).length} carte collezionate`));
   const grid = el('div', 'card-grid');
@@ -5759,19 +5797,19 @@ let PARCHMENT_OK = false;
     PARCHMENT_OK = true;
     if (CURRENT_TAB === 'hero') $('#tab-content').classList.add('bg-parchment');
   };
-  probe.src = 'assets/backgrounds/pergamena.jpg';
+  probe.src = 'assets/backgrounds/pergamena.webp';
 })();
 
 /* ── Icone UI personalizzate ── */
 const UI_ICONS = {
-  camp:   'assets/ui/tab-rifugio.png',
-  map:    'assets/ui/tab-mappa.png',
-  train:  'assets/ui/tab-allenati.png',
-  market: 'assets/ui/tab-mercato.png',
-  hero:   'assets/ui/tab-eroe.png',
+  camp:   'assets/ui/tab-rifugio.webp',
+  map:    'assets/ui/tab-mappa.webp',
+  train:  'assets/ui/tab-allenati.webp',
+  market: 'assets/ui/tab-mercato.webp',
+  hero:   'assets/ui/tab-eroe.webp',
 };
 const RES_ICONS = {
-  gold:  'assets/ui/res-oro.png',
+  gold:  'assets/ui/res-oro.webp',
   wood:  'assets/ui/res-legna.png',
   stone: 'assets/ui/res-pietra.png',
 };
@@ -6476,7 +6514,7 @@ function renderZainoView(c) {
   const sw = el('div', 'coll-switch');
   ZAINO_CATS.forEach(cat => {
     const b = el('button', 'coll-btn' + (ZAINO_CAT === cat.id ? ' active' : ''), cat.label);
-    b.addEventListener('click', () => { ZAINO_CAT = cat.id; setTab('camp'); });
+    b.addEventListener('click', () => { ZAINO_CAT = cat.id; setTab('hero'); });
     sw.appendChild(b);
   });
   c.appendChild(sw);
@@ -6646,7 +6684,7 @@ function renderSerraView(c) {
   backBtn.addEventListener('click', () => { c.classList.remove('in-serra'); CAMP_VIEW = 'main'; setTab('camp'); });
   c.appendChild(backBtn);
   const serraHdrImg = document.createElement('img');
-  serraHdrImg.src = 'assets/minigames/serra/SERRA.jpg';
+  serraHdrImg.src = 'assets/minigames/serra/SERRA.webp';
   serraHdrImg.alt = ''; serraHdrImg.className = 'borgo-sub-header';
   serraHdrImg.onerror = () => serraHdrImg.remove();
   c.appendChild(serraHdrImg);
@@ -6659,7 +6697,7 @@ function renderSerraView(c) {
     HERO.greenhouse.metNpc = true;
     persist();
     modal(`<div class="npc-dialogue-modal">
-      <img src="assets/minigames/serra/messer-ortica.png" class="npc-portrait-fullbody" alt="Messer Ortica">
+      <img src="assets/minigames/serra/messer-ortica.webp" class="npc-portrait-fullbody" alt="Messer Ortica">
       <h3 class="panel-title" style="margin-top:8px">Messer Ortica</h3>
       <p class="muted small center" style="margin-bottom:12px"><i>Gnomo giardiniere della Serra</i></p>
       <p>"Benvenuto, Viandante! Questa è la tua Serra personale. Ogni km che corri diventa Sudore Vitale — la nostra acqua magica."</p>
@@ -6674,7 +6712,7 @@ function renderSerraView(c) {
   }
 
   // Banner permanente Messer Ortica
-  c.appendChild(npcBanner('assets/minigames/serra/messer-ortica.png', 'Messer Ortica',
+  c.appendChild(npcBanner('assets/minigames/serra/messer-ortica.webp', 'Messer Ortica',
     '"Corri, annaffia, raccogli. La Serra non dimentica chi la cura."'));
 
   const kmToday = RPG.todayKm(HERO);
@@ -6688,16 +6726,16 @@ function renderSerraView(c) {
   c.appendChild(tank);
 
   const PLANT_IMGS = {
-    muschio:  "assets/minigames/serra/muschio soffice di oakhaven.png",
-    mentuccia:"assets/minigames/serra/mentuccia di oakhaven.jpeg",
-    bosso:    "assets/minigames/serra/bosso scudo delle pianure.png",
-    cactus:   "assets/minigames/serra/cactus di cenere.png",
-    giglio:   "assets/minigames/serra/giglio della pioggia.png",
-    orchidea: "assets/minigames/serra/orchidea del vento.png",
-    edera:    "assets/minigames/serra/edera vampira.png",
-    girasole: "assets/minigames/serra/girasole radiante.png",
-    bonsai:   "assets/minigames/serra/Bonsai di Yggdrasil.png",
-    loto:     "assets/minigames/serra/loto dell'abisso.png",
+    muschio:  "assets/minigames/serra/muschio soffice di oakhaven.webp",
+    mentuccia:"assets/minigames/serra/mentuccia di oakhaven.webp",
+    bosso:    "assets/minigames/serra/bosso scudo delle pianure.webp",
+    cactus:   "assets/minigames/serra/cactus di cenere.webp",
+    giglio:   "assets/minigames/serra/giglio della pioggia.webp",
+    orchidea: "assets/minigames/serra/orchidea del vento.webp",
+    edera:    "assets/minigames/serra/edera vampira.webp",
+    girasole: "assets/minigames/serra/girasole radiante.webp",
+    bonsai:   "assets/minigames/serra/Bonsai di Yggdrasil.webp",
+    loto:     "assets/minigames/serra/loto dell'abisso.webp",
   };
   const plantIcon = (seedId, fallback) => {
     const src = PLANT_IMGS[seedId];
@@ -6714,7 +6752,7 @@ function renderSerraView(c) {
         <div class="pot-name">Sblocca al Liv. ${unlockLvl}</div>`;
 
     } else if (pot.status === 'empty') {
-      pEl.innerHTML = `<div class="pot-emoji"><img src="assets/minigames/serra/vaso vuoto.png" class="pot-img" alt=""></div>
+      pEl.innerHTML = `<div class="pot-emoji"><img src="assets/minigames/serra/vaso vuoto.webp" class="pot-img" alt=""></div>
         <div class="pot-name">Vaso Vuoto</div>
         <div class="muted small">Tocca per piantare</div>`;
       pEl.classList.add('pickable');
