@@ -141,17 +141,17 @@ function renderMiniGamesHub(c) {
 
 /* ── 🃏 CARTE DEL MERCANTE ── */
 const CARD_IMGS = [
-  "assets/cards/caduta del generale goblin.png",
-  "assets/cards/ciclista del vento.png",
-  "assets/cards/cuore di pietra spento.png",
-  "assets/cards/esploratore delle terre selvagge.png",
-  "assets/cards/il cavaliere del drago.png",
-  "assets/cards/il lupo astrale.png",
-  "assets/cards/il primo passo.png",
-  "assets/cards/l'amuleto del viaggiatore esperto.png",
-  "assets/cards/lo stemma bruciato.png",
-  "assets/cards/oltre le mura.png",
-  "assets/cards/radici nuove.png",
+  "assets/cards/caduta del generale goblin.webp",
+  "assets/cards/ciclista del vento.webp",
+  "assets/cards/cuore di pietra spento.webp",
+  "assets/cards/esploratore delle terre selvagge.webp",
+  "assets/cards/il cavaliere del drago.webp",
+  "assets/cards/il lupo astrale.webp",
+  "assets/cards/il primo passo.webp",
+  "assets/cards/l'amuleto del viaggiatore esperto.webp",
+  "assets/cards/lo stemma bruciato.webp",
+  "assets/cards/oltre le mura.webp",
+  "assets/cards/radici nuove.webp",
 ];
 
 function openCardsGame() {
@@ -177,7 +177,7 @@ function openCardsGame() {
     <div class="mg-cards-row" id="mgc-row"></div>
     <div class="mg-result-area" id="mgc-res"></div>
     <button class="btn mg-close-btn hidden" id="mgc-close">Continua ›</button>`;
-  mgOverlay(wrap, 'assets/backgrounds/carte del mercante.jpg');
+  mgOverlay(wrap, 'assets/backgrounds/carte del mercante.webp');
   const row = document.getElementById('mgc-row');
   const hint = document.getElementById('mgc-hint');
   const resEl = document.getElementById('mgc-res');
@@ -243,7 +243,7 @@ function openArcheryGame() {
     <div class="mga-total">Punteggio: <span id="mga-score">0</span>/90</div>
     <div class="mg-result-area" id="mga-res"></div>
     <button class="btn mg-close-btn hidden" id="mga-close">Continua ›</button>`;
-  mgOverlay(wrap, 'assets/backgrounds/tiro alla balestra.jpg');
+  mgOverlay(wrap, 'assets/backgrounds/tiro alla balestra.webp');
   const bar = document.getElementById('mga-bar');
   const hint = document.getElementById('mga-hint');
   const scoreEl = document.getElementById('mga-score');
@@ -322,10 +322,10 @@ function openBoccaleGame() {
     <div class="mg-game-title">🍺 La Sfida dell'Oste</div>
     <p class="mg-hint" id="mgb-hint">Tieni premuto per caricare, rilascia per lanciare!</p>
     <div class="mgb-arena" id="mgb-arena">
-      <img src="assets/minigames/boccale/sottobicchiere.png" class="mgb-target" id="mgb-target" alt="Bersaglio">
+      <img src="assets/minigames/boccale/sottobicchiere.webp" class="mgb-target" id="mgb-target" alt="Bersaglio">
       <div class="mgb-mug" id="mgb-mug">
-        <img src="assets/minigames/boccale/boccale.png" class="mgb-mug-img" alt="Boccale">
-        <img src="assets/minigames/boccale/splash birra.png" class="mgb-splash" id="mgb-splash" alt="">
+        <img src="assets/minigames/boccale/boccale.webp" class="mgb-mug-img" alt="Boccale">
+        <img src="assets/minigames/boccale/splash birra.webp" class="mgb-splash" id="mgb-splash" alt="">
       </div>
       <div class="mgb-power-wrap">
         <div class="mgb-power-fill" id="mgb-power-fill"></div>
@@ -544,7 +544,7 @@ function openDadiGame() {
     // Oste section
     const osteSection = document.createElement('div');
     osteSection.className = 'mgd-oste-section';
-    osteSection.innerHTML = `<img class="mgd-oste-avatar" src="assets/minigames/dadi-del-bluff/oste.png" alt="Oste">`;
+    osteSection.innerHTML = `<img class="mgd-oste-avatar" src="assets/minigames/dadi-del-bluff/oste.webp" alt="Oste">`;
     const osteLabel = document.createElement('div');
     osteLabel.className = 'mgd-section-label';
     osteLabel.textContent = 'Dadi dell\'Oste';
@@ -723,7 +723,7 @@ function openDadiGame() {
     <div class="mg-result-area" id="mgd-res"></div>
     <button class="btn mg-close-btn hidden" id="mgd-close">Continua ›</button>`;
 
-  mgOverlay(wrap, 'assets/minigames/dadi-del-bluff/tavolo.jpg');
+  mgOverlay(wrap, 'assets/minigames/dadi-del-bluff/tavolo.webp');
 
   startRound();
 
@@ -756,7 +756,7 @@ function openPescaGame() {
     <div class="mgp-arena" id="mgp-arena">
       <div class="mgp-bar-col" id="mgp-bar">
         <div class="mgp-zone" id="mgp-zone"></div>
-        <img src="assets/minigames/pesca-del-fossato/pesce.png" class="mgp-fish" id="mgp-fish" alt="">
+        <img src="assets/minigames/pesca-del-fossato/pesce.webp" class="mgp-fish" id="mgp-fish" alt="">
       </div>
       <div class="mgp-prog-col">
         <div class="mgp-prog-fill" id="mgp-prog-fill"></div>
@@ -765,7 +765,7 @@ function openPescaGame() {
     <div class="mg-result-area" id="mgp-res"></div>
     <button class="btn mg-close-btn hidden" id="mgp-close">Continua ›</button>`;
 
-  mgOverlay(wrap, 'assets/minigames/pesca-del-fossato/fossato.png');
+  mgOverlay(wrap, 'assets/minigames/pesca-del-fossato/fossato.webp');
 
   const arenaEl  = document.getElementById('mgp-arena');
   const barEl    = document.getElementById('mgp-bar');
@@ -889,7 +889,7 @@ function openBraccioGame() {
     <p class="mg-hint" id="mgbf-msg">Tocca la zona per vincere il braccio di ferro!</p>
     <div class="mgbf-avatars">
       <div class="mgbf-avatar-wrap">
-        <img src="assets/minigames/braccio-di-ferro/sfidante.png" class="mgbf-avatar-img" alt="Nano">
+        <img src="assets/minigames/braccio-di-ferro/sfidante.webp" class="mgbf-avatar-img" alt="Nano">
         <span class="mgbf-avatar-lbl">Nano</span>
       </div>
       <div class="mgbf-avatar-wrap">
@@ -998,7 +998,7 @@ function openColtelloGame() {
     <p class="mg-hint" id="mgck-msg">Pianta tutti e 5 i coltelli!</p>
     <div class="mgck-arena" id="mgck-arena">
       <div class="mgck-log-wrap" id="mgck-log-wrap">
-        <img src="assets/minigames/lancio-coltello/ceppo.png" class="mgck-log-img" alt="Ceppo">
+        <img src="assets/minigames/lancio-coltello/ceppo.webp" class="mgck-log-img" alt="Ceppo">
       </div>
       <div class="mgck-knife-active" id="mgck-knife">🗡️</div>
       <div class="mgck-ammo" id="mgck-ammo"></div>

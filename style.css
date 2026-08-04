@@ -511,14 +511,14 @@ body {
   background-color: #2a1d0e;
   background:
     linear-gradient(180deg, rgba(20,14,8,.08) 0%, rgba(20,14,8,.18) 100%),
-    url('assets/backgrounds/pergamena.jpg') center top / cover no-repeat;
+    url('assets/backgrounds/pergamena.webp') center top / cover no-repeat;
 }
 /* ── Rifugio ── */
 #tab-content.bg-rifugio {
   background-color: #0e0703;
   background:
     linear-gradient(180deg, rgba(5,3,2,.60) 0%, rgba(10,6,3,.35) 40%, rgba(5,3,2,.58) 100%),
-    url('assets/backgrounds/bg-camp-fire.jpg');
+    url('assets/backgrounds/bg-camp-fire.webp');
   background-size: cover; background-position: center 30%;
 }
 /* ── Mappa ── */
@@ -526,7 +526,7 @@ body {
   background-color: #090b12;
   background:
     linear-gradient(180deg, rgba(5,6,10,.62) 0%, rgba(8,9,14,.40) 45%, rgba(5,6,10,.60) 100%),
-    url('assets/backgrounds/bg-map.jpg');
+    url('assets/backgrounds/bg-map.webp');
   background-size: cover; background-position: center 30%;
 }
 /* ── Allenati ── */
@@ -534,7 +534,7 @@ body {
   background-color: #100602;
   background:
     linear-gradient(180deg, rgba(8,4,2,.62) 0%, rgba(12,6,3,.40) 45%, rgba(8,4,2,.60) 100%),
-    url('assets/backgrounds/bg-train.jpg');
+    url('assets/backgrounds/bg-train.webp');
   background-size: cover; background-position: center 20%;
 }
 /* ── Mercato ── */
@@ -542,7 +542,7 @@ body {
   background-color: #080710;
   background:
     linear-gradient(180deg, rgba(5,4,10,.62) 0%, rgba(7,5,13,.38) 45%, rgba(5,4,10,.60) 100%),
-    url('assets/backgrounds/bg-market.jpg');
+    url('assets/backgrounds/bg-market.webp');
   background-size: cover; background-position: center top;
 }
 .hero-showcase { padding: 12px 0 4px; }
@@ -2224,7 +2224,7 @@ img.camp-layer {
   position: fixed; inset: 0; z-index: 100;
   background:
     linear-gradient(180deg, rgba(10,6,8,.35), rgba(5,3,4,.7)),
-    url('assets/backgrounds/arena-bg.png');
+    url('assets/backgrounds/arena-bg.webp');
   background-size: cover; background-position: center;
   display: flex; align-items: center; justify-content: center;
   padding: calc(10px + env(safe-area-inset-top)) 12px calc(10px + env(safe-area-inset-bottom));
@@ -2237,7 +2237,7 @@ img.camp-layer {
 .battle-header-frame {
   background:
     linear-gradient(180deg, rgba(20,10,6,.72) 0%, rgba(10,5,3,.55) 100%),
-    url('assets/backgrounds/template-header.jpg');
+    url('assets/backgrounds/template-header.webp');
   background-size: cover; background-position: center top;
   border-radius: 12px 12px 6px 6px;
   border: 2px solid rgba(200,160,80,.45);
@@ -2248,7 +2248,7 @@ img.camp-layer {
 .battle-footer-frame {
   background:
     linear-gradient(0deg, rgba(20,10,6,.78) 0%, rgba(10,5,3,.55) 100%),
-    url('assets/backgrounds/template-footer.jpg');
+    url('assets/backgrounds/template-footer.webp');
   background-size: cover; background-position: center bottom;
   border-radius: 6px 6px 12px 12px;
   border: 2px solid rgba(200,160,80,.45);
@@ -2654,13 +2654,13 @@ img.camp-layer {
 /* ── Avamposto delle Spedizioni ── */
 .avamposto-entry-panel { border-color: #8a6a30 !important; }
 .avamposto-hero-banner {
-  background-image: url('assets/ui/avamposto-header.jpg');
+  background-image: url('assets/ui/avamposto-header.webp');
   background-position: center 30%;
 }
 
 /* ── Pantheon dei Campioni ── */
 .pantheon-hero-banner {
-  background-image: url('assets/ui/pantheon-header.jpg');
+  background-image: url('assets/ui/pantheon-header.webp');
   background-position: center 40%;
 }
 
@@ -2731,7 +2731,7 @@ img.camp-layer {
 
 /* ── Splash Screen ── */
 .splash-screen {
-  background: url('assets/icons/watermarked_img_6703389115759478461.png') center / cover no-repeat;
+  background: url('assets/icons/watermarked_img_6703389115759478461.webp') center / cover no-repeat;
   display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
   padding: 0 0 9dvh;
 }
@@ -5107,7 +5107,7 @@ img.camp-layer {
   width: 100%; height: 52vh;
   min-height: 320px; max-height: 500px;
   border-radius: 10px; overflow: hidden;
-  background: url('assets/minigames/boccale/tavolo birra.jpg') center/cover no-repeat;
+  background: url('assets/minigames/boccale/tavolo birra.webp') center/cover no-repeat;
   touch-action: none; user-select: none;
   cursor: pointer;
   margin-bottom: .75rem;
@@ -5770,7 +5770,7 @@ img.camp-layer {
 
 .serra-hero-banner {
   width: 100%; height: 140px;
-  background: url('assets/minigames/serra/SERRA.jpg') center 40%/cover no-repeat;
+  background: url('assets/minigames/serra/SERRA.webp') center 40%/cover no-repeat;
   border-radius: 12px;
   margin-bottom: 14px;
   position: relative;
