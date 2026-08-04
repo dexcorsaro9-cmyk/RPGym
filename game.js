@@ -4958,7 +4958,8 @@ const RPG = (() => {
     ];
 
     function biscaResetIfNeeded(hero) {
-      const today = todayStamp();
+      const d = new Date();
+      const today = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
       if (!hero.bisca) hero.bisca = {};
       if (hero.bisca.lastDate !== today) {
         hero.bisca.betsLeft = BISCA_DAILY_BETS;
