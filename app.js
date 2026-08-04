@@ -4645,18 +4645,21 @@ function renderFucina(c) {
   const offers = RPG.forgeOffers(HERO);
   const op = el('div', 'panel');
   op.appendChild(el('h3', 'panel-title', '🔥 In vetrina oggi'));
+  op.appendChild(el('p', 'small muted', `🪙 Oro disponibile: ${HERO.gold}`));
   offers.forEach(o => {
     const bought = HERO.items.some(i => i.forgeId === o.id);
+    const hasGold = HERO.gold >= o.price;
     const row = el('div', 'mission-row' + (o.special ? ' special-offer' : ''));
     row.appendChild(el('div', 'mission-mid',
       (o.special ? `<span class="tag tag-sale">🔥 -30% SOLO OGGI · <span data-cd="midnight">…</span></span><br>` : '') +
       `${itemIconHtml(o, 'item-icon')} <b>${esc(o.name)}</b> <span class="tag">${RPG.RARITIES[o.rarity].label}</span><br>
-       <span class="small muted">+${o.xp}% XP · ${RPG.SLOTS[o.slot].label}${o.special ? ` · <s>🪙${o.fullPrice}</s>` : ''}</span>`));
-    const canBuy = HERO.gold >= o.price && !bought;
-    const btn = el('button', 'btn btn-small' + (canBuy ? ' btn-primary' : ''), bought ? '✅' : `🪙${o.price}`);
-    btn.disabled = !canBuy;
-    if (!bought && HERO.gold < o.price) btn.title = 'Oro insufficiente';
+       <span class="small muted">+${o.xp}% XP · ${RPG.SLOTS[o.slot].label}${o.special ? ` · <s>🪙${o.fullPrice}</s>` : ''}</span><br>
+       <span class="small" style="color:${bought ? 'green' : hasGold ? 'inherit' : 'red'}">${bought ? '✅ già acquistato' : hasGold ? `✔ oro sufficiente (serve 🪙${o.price})` : `❌ oro insufficiente (serve 🪙${o.price})`}</span>`));
+    const canBuy = hasGold && !bought;
+    const btn = el('button', 'btn btn-small' + (canBuy ? ' btn-primary' : ''), bought ? '✅ Acquistato' : `🪙${o.price}`);
     btn.addEventListener('click', () => {
+      if (bought) { toast('⚠️ Già acquistato oggi (id:' + o.id + ')'); return; }
+      if (!hasGold) { toast('❌ Oro insufficiente — serve 🪙' + o.price + ', hai 🪙' + HERO.gold); return; }
       const err = RPG.buyForgeItem(HERO, o);
       persist(); renderHUD();
       toast(err || `${o.icon} ${o.name} acquistato!`);
