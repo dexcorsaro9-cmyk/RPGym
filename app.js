@@ -4492,8 +4492,6 @@ function showReport(r) {
     html += `<div class="report-levelup">🆙 LIVELLO ${newLevel}!<br><span class="small">${RPG.heroTitle(newLevel)}</span>${ptsNow > 0 ? `<br><span class="small">🌟 +1 punto abilità disponibile!</span>` : ''}</div>`;
     setTimeout(() => showLevelUp(newLevel), 350);
   }
-  if (r.capReached)
-    html += `<p class="muted small">🔒 Livello 20 raggiunto: per l'Ascensione serve l'<b>Amuleto del Viaggiatore Esperto</b> (guarda la Mappa).</p>`;
   if (r.loot.length) {
     html += `<h4>🎒 Sacchi del Viaggiatore:</h4><div class="loot-list">`;
     r.loot.forEach(it => { html += itemHtml(it); });
