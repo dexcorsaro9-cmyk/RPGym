@@ -2143,6 +2143,11 @@ const RPG = (() => {
       it.desc = descForItem(it.slot, it.rarity, it.base, it.affixes || []);
     });
 
+    /* Aggiunge desc agli item pre-sistema affix che ne sono privi */
+    (h.items || []).forEach(it => {
+      if (!it.desc) it.desc = descForItem(it.slot, it.rarity, it.base || null, it.affixes || []);
+    });
+
     h.schemaVersion = SCHEMA_VERSION;
     return h;
   }
