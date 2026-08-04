@@ -6456,3 +6456,17 @@ img.camp-layer {
   color: var(--danger, #c0392b);
   border-color: rgba(192, 57, 43, .4);
 }
+
+/* Guild create form inputs — override cinematic light-text style for modal context */
+.guild-create-form .create-name-input {
+  background: var(--input-bg, rgba(0,0,0,.12));
+  color: var(--text);
+  border-color: var(--border);
+}
+.guild-create-form .create-name-input::placeholder {
+  color: var(--muted, rgba(0,0,0,.4));
+}
+.guild-create-form .create-name-input:focus {
+  border-color: var(--gold, #c9952a);
+  background: var(--input-bg, rgba(0,0,0,.12));
+}
