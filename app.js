@@ -4487,9 +4487,7 @@ function renderMarket(c) {
 
   } catch (err) {
     console.error('[renderMarket]', err);
-    const errDiv = el('div', 'panel muted center', '');
-    errDiv.innerHTML = `⚠️ Errore Borgo — <code style="font-size:.75rem">${esc(String(err))}</code>`;
-    c.appendChild(errDiv);
+    c.appendChild(el('div', 'panel muted center', '⚠️ Errore nel caricamento del Borgo. Riprova toccando la tab.'));
   }
 }
 
@@ -4648,7 +4646,7 @@ function renderFucina(c) {
   const op = el('div', 'panel');
   op.appendChild(el('h3', 'panel-title', '🔥 In vetrina oggi'));
   offers.forEach(o => {
-    const bought = HERO.items.some(i => i.name === o.name && i.rarity === o.rarity);
+    const bought = HERO.items.some(i => i.forgeId === o.id);
     const row = el('div', 'mission-row' + (o.special ? ' special-offer' : ''));
     row.appendChild(el('div', 'mission-mid',
       (o.special ? `<span class="tag tag-sale">🔥 -30% SOLO OGGI · <span data-cd="midnight">…</span></span><br>` : '') +
