@@ -1,6 +1,9 @@
 /* ══════════════════════════════════════════════════════════════
    Hero's Pace — Firebase helpers
    Classifica globale + Sfide PvP (Firestore)
+   Tutte le sfide PvP sono archiviate nel documento heroes/{creatorId}
+   (campi challengeCode + challengeData) per evitare problemi di regole
+   sulla collection separata "challenges".
    ══════════════════════════════════════════════════════════════ */
 
 const FIREBASE_CONFIG = {
@@ -36,13 +39,13 @@ const FB = (() => {
         streak:  (hero.streak && hero.streak.count) || 0,
         prestige:(hero.prestige && hero.prestige.count) || 0,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      }, { merge: true }); // merge: preserva pendingInvites e altri campi non gestiti qui
+      }, { merge: true });
     } catch (e) { console.warn('[FB] syncHero:', e.message); }
   }
 
   /* ── Classifica ──────────────────────────────────────────── */
   async function getLeaderboard(n = 25) {
-    if (!ok()) return null; // null = firebase non disponibile (distingue da [] = nessun eroe)
+    if (!ok()) return null;
     try {
       const snap = await db.collection('heroes')
         .orderBy('totalKm', 'desc').limit(n).get();
@@ -53,8 +56,7 @@ const FB = (() => {
     }
   }
 
-  /* ── Sfide PvP ───────────────────────────────────────────── */
-  // Genera codice 6 char senza caratteri ambigui
+  /* ── Sfide PvP — archiviate in heroes/{creatorId} ────────── */
   function _code() {
     const C = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     let s = '';
@@ -62,31 +64,36 @@ const FB = (() => {
     return s;
   }
 
+  // Crea sfida: salva challengeCode + challengeData nel doc del creatore
   async function createChallenge(hero) {
     if (!ok()) return null;
     const id    = _code();
     const start = new Date().toISOString().slice(0, 10);
     const end   = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
     try {
-      await db.collection('challenges').doc(id).set({
-        creatorId:       hero.id,
-        creatorName:     hero.name,
-        creatorStoryId:  hero.storyId || 'eroe1',
-        creatorLevel:    hero.level   || 1,
-        creatorKmStart:  hero.totalKm || 0,
-        creatorKmNow:    hero.totalKm || 0,
-        opponentId:      null,
-        opponentName:    null,
-        opponentStoryId: null,
-        opponentLevel:   null,
-        opponentKmStart: null,
-        opponentKmNow:   null,
-        startDate: start,
-        endDate:   end,
-        status:    'waiting',
-        winnerId:  null,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      });
+      await db.collection('heroes').doc(hero.id).set({
+        challengeCode: id,
+        challengeData: {
+          id,
+          creatorId:       hero.id,
+          creatorName:     hero.name,
+          creatorStoryId:  hero.storyId || 'eroe1',
+          creatorLevel:    hero.level   || 1,
+          creatorKmStart:  hero.totalKm || 0,
+          creatorKmNow:    hero.totalKm || 0,
+          opponentId:      null,
+          opponentName:    null,
+          opponentStoryId: null,
+          opponentLevel:   null,
+          opponentKmStart: null,
+          opponentKmNow:   null,
+          startDate: start,
+          endDate:   end,
+          status:    'waiting',
+          winnerId:  null,
+          createdAt: new Date().toISOString(),
+        },
+      }, { merge: true });
       return id;
     } catch (e) {
       console.warn('[FB] createChallenge:', e.message);
@@ -94,19 +101,44 @@ const FB = (() => {
     }
   }
 
-  async function getChallenge(code) {
+  // Legge sfida. Se creatorId è noto lo usa direttamente, altrimenti cerca per codice.
+  async function getChallenge(code, creatorId) {
     if (!ok() || !code) return null;
+    const normalized = code.trim().toUpperCase();
     try {
-      const doc = await db.collection('challenges')
-        .doc(code.trim().toUpperCase()).get();
-      return doc.exists ? { id: doc.id, ...doc.data() } : null;
-    } catch (e) { return null; }
+      if (creatorId) {
+        const doc = await db.collection('heroes').doc(creatorId).get();
+        if (!doc.exists) return null;
+        const d = doc.data().challengeData;
+        return (d && d.id === normalized) ? { id: d.id, ...d } : null;
+      }
+      // Fallback: ricerca per codice (richiede indice su challengeCode)
+      const snap = await db.collection('heroes')
+        .where('challengeCode', '==', normalized).limit(1).get();
+      if (snap.empty) return null;
+      const d = snap.docs[0].data().challengeData;
+      return d ? { id: d.id, ...d } : null;
+    } catch (e) {
+      console.warn('[FB] getChallenge:', e.message);
+      return null;
+    }
   }
 
+  // Accetta sfida: aggiorna il doc del creatore con i dati dell'avversario.
+  // Ritorna { ok: true, creatorId } oppure false.
   async function joinChallenge(code, hero) {
     if (!ok()) return false;
     try {
-      await db.collection('challenges').doc(code.toUpperCase()).update({
+      const snap = await db.collection('heroes')
+        .where('challengeCode', '==', code.toUpperCase()).limit(1).get();
+      if (snap.empty) return false;
+      const creatorRef  = snap.docs[0].ref;
+      const creatorDocId = snap.docs[0].id;
+      const existing    = snap.docs[0].data().challengeData;
+      if (!existing || existing.status !== 'waiting') return false;
+
+      const updated = {
+        ...existing,
         opponentId:      hero.id,
         opponentName:    hero.name,
         opponentStoryId: hero.storyId || 'eroe1',
@@ -114,26 +146,31 @@ const FB = (() => {
         opponentKmStart: hero.totalKm || 0,
         opponentKmNow:   hero.totalKm || 0,
         status: 'active',
-      });
-      return true;
+      };
+      await creatorRef.set({ challengeData: updated }, { merge: true });
+      return { ok: true, creatorId: creatorDocId };
     } catch (e) {
       console.warn('[FB] joinChallenge:', e.message);
       return false;
     }
   }
 
-  // Aggiorna i km dell'eroe nella sfida attiva, e verifica la scadenza
+  // Aggiorna i km nel doc del creatore. hero.cloud.activeChallenge.creatorId
+  // è necessario per gli avversari.
   async function updateChallenge(hero) {
     if (!ok() || !hero.cloud || !hero.cloud.activeChallenge) return;
-    const { id, role } = hero.cloud.activeChallenge;
+    const { id, role, creatorId } = hero.cloud.activeChallenge;
+    const docId = role === 'creator' ? hero.id : (creatorId || null);
+    if (!docId) return;
     const field = role === 'creator' ? 'creatorKmNow' : 'opponentKmNow';
     try {
-      const doc = await db.collection('challenges').doc(id).get();
+      const doc = await db.collection('heroes').doc(docId).get();
       if (!doc.exists) return;
-      const data   = doc.data();
-      const updates = { [field]: hero.totalKm || 0 };
+      const data = doc.data().challengeData;
+      if (!data) return;
+
+      const updates = { ...data, [field]: hero.totalKm || 0 };
       if (data.status === 'active' && new Date() > new Date(data.endDate + 'T23:59:59')) {
-        // Use the hero's live km for their own field, not the stale Firestore value
         const cKmNow = role === 'creator'  ? (hero.totalKm || 0) : (data.creatorKmNow  || 0);
         const oKmNow = role === 'opponent' ? (hero.totalKm || 0) : (data.opponentKmNow || 0);
         const cDelta = cKmNow - (data.creatorKmStart  || 0);
@@ -141,13 +178,30 @@ const FB = (() => {
         updates.status   = 'completed';
         updates.winnerId = cDelta > oDelta ? data.creatorId : cDelta < oDelta ? data.opponentId : null;
       }
-      await db.collection('challenges').doc(id).update(updates);
+      await db.collection('heroes').doc(docId).set({ challengeData: updates }, { merge: true });
     } catch (e) { console.warn('[FB] updateChallenge:', e.message); }
   }
 
-  async function deleteChallenge(id) {
+  // Elimina sfida: rimuove challengeCode e challengeData dal doc del creatore.
+  // creatorId opzionale — se noto evita la query.
+  async function deleteChallenge(id, creatorId) {
     if (!ok()) return;
-    try { await db.collection('challenges').doc(id).delete(); } catch (e) {}
+    try {
+      let ref = null;
+      if (creatorId) {
+        ref = db.collection('heroes').doc(creatorId);
+      } else {
+        const snap = await db.collection('heroes')
+          .where('challengeCode', '==', String(id).toUpperCase()).limit(1).get();
+        if (!snap.empty) ref = snap.docs[0].ref;
+      }
+      if (ref) {
+        await ref.update({
+          challengeCode: firebase.firestore.FieldValue.delete(),
+          challengeData: firebase.firestore.FieldValue.delete(),
+        });
+      }
+    } catch (e) { console.warn('[FB] deleteChallenge:', e.message); }
   }
 
   /* ── Sistema Rivali ──────────────────────────────────────── */
@@ -162,7 +216,6 @@ const FB = (() => {
   async function sendChallengeInvite(challengeId, fromHero, toHeroId) {
     if (!ok()) return false;
     try {
-      // set+merge invece di update: funziona anche se il documento non esiste ancora
       await db.collection('heroes').doc(toHeroId).set({
         pendingInvites: firebase.firestore.FieldValue.arrayUnion({
           challengeId,
