@@ -1891,6 +1891,10 @@ const RPG = (() => {
     h.incursion    = h.incursion    || null;
     h.bestiary     = h.bestiary     || [];
     h.storyId      = h.storyId      || (h.avatar && String(h.avatar).includes('eroe2') ? 'eroe2' : 'eroe1');
+    // Normalizza percorso avatar da .png a .webp (migrazione asset)
+    if (h.avatar && h.avatar.startsWith('assets/') && h.avatar.endsWith('.png')) {
+      h.avatar = h.avatar.slice(0, -4) + '.webp';
+    }
     h.forgeSeen    = h.forgeSeen    || null;
     h.summarySeen  = h.summarySeen  || null;
     h.eventNotified= h.eventNotified|| null;
