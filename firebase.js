@@ -36,20 +36,20 @@ const FB = (() => {
         streak:  (hero.streak && hero.streak.count) || 0,
         prestige:(hero.prestige && hero.prestige.count) || 0,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      });
+      }, { merge: true }); // merge: preserva pendingInvites e altri campi non gestiti qui
     } catch (e) { console.warn('[FB] syncHero:', e.message); }
   }
 
   /* ── Classifica ──────────────────────────────────────────── */
   async function getLeaderboard(n = 25) {
-    if (!ok()) return [];
+    if (!ok()) return null; // null = firebase non disponibile (distingue da [] = nessun eroe)
     try {
       const snap = await db.collection('heroes')
         .orderBy('totalKm', 'desc').limit(n).get();
       return snap.docs.map(d => ({ id: d.id, ...d.data() }));
     } catch (e) {
       console.warn('[FB] getLeaderboard:', e.message);
-      return [];
+      return null;
     }
   }
 
@@ -162,7 +162,8 @@ const FB = (() => {
   async function sendChallengeInvite(challengeId, fromHero, toHeroId) {
     if (!ok()) return false;
     try {
-      await db.collection('heroes').doc(toHeroId).update({
+      // set+merge invece di update: funziona anche se il documento non esiste ancora
+      await db.collection('heroes').doc(toHeroId).set({
         pendingInvites: firebase.firestore.FieldValue.arrayUnion({
           challengeId,
           fromId:      fromHero.id,
@@ -171,7 +172,7 @@ const FB = (() => {
           fromLevel:   fromHero.level   || 1,
           sentAt:      new Date().toISOString(),
         }),
-      });
+      }, { merge: true });
       return true;
     } catch (e) { console.warn('[FB] sendChallengeInvite:', e.message); return false; }
   }

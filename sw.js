@@ -5,10 +5,10 @@
 
 
 
-const CACHE = 'heropace-v309';
+const CACHE = 'heropace-v311';
 const NOTIF_CACHE = 'heropace-notif-v1'; // stato notifiche (non cancellare mai)
 
-/* File solo per fallback offline — NON pre-cachati all'install */
+/* File locali per fallback offline */
 const OFFLINE_ASSETS = [
   'index.html',
   'style.css',
@@ -20,9 +20,20 @@ const OFFLINE_ASSETS = [
   'manifest.webmanifest',
 ];
 
+/* Script Firebase CDN — pre-cachati per garantire disponibilità offline */
+const FIREBASE_CDN = [
+  'https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js',
+  'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js',
+];
+
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(OFFLINE_ASSETS).catch(() => {}))
+    caches.open(CACHE).then(c =>
+      Promise.all([
+        c.addAll(OFFLINE_ASSETS).catch(() => {}),
+        c.addAll(FIREBASE_CDN).catch(() => {}),
+      ])
+    )
   );
   self.skipWaiting();
 });

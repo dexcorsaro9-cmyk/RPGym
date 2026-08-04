@@ -327,8 +327,8 @@ const RPG = (() => {
 
   /* ── Camp Evolution ──
    * Panorama 2:1 (width:height). Coordinate: left%, bottom%, width% relativi al contenitore.
-   * Background PNG: assets/rifugio/scene/bg_stage{0-4}.png  (2000×1000px consigliato)
-   * Layer PNG:      assets/rifugio/scene/{id}.png            (PNG con trasparenza)
+   * Background PNG: assets/rifugio/scene/bg_stage{0-4}.webp  (2000×1000px consigliato)
+   * Layer PNG:      assets/rifugio/scene/{id}.webp            (PNG con trasparenza)
    */
   const CAMP_STAGES = [
     { id: 0, minLevel: 0,  label: 'Accampamento' },
@@ -820,7 +820,7 @@ const RPG = (() => {
   ];
   MOUNTS.forEach((m, i) => {
     m.level = (i + 1) * 5;
-    m.img = 'assets/cavalcature/' + m.num + '.png';
+    m.img = 'assets/cavalcature/' + m.num + '.webp';
     m.price = Math.round(15 * Math.pow(m.level, 1.8) / 10) * 10;
     m.bonus = Math.round(3 + m.level * 0.45);
   });
@@ -905,7 +905,7 @@ const RPG = (() => {
     const pool = (LOOT_IMG[item.rarity] || {})[item.slot];
     if (!pool) return null;
     const h = [...String(item.id)].reduce((s, c) => (s * 33 + c.charCodeAt(0)) % 9973, 7);
-    return `assets/loot/${item.rarity}/${item.slot}-${h % pool}.png`;
+    return `assets/loot/${item.rarity}/${item.slot}-${h % pool}.webp`;
   }
 
   const ITEM_BASES = {
