@@ -2774,7 +2774,37 @@ img.camp-layer {
 }
 .screen-enter { animation: screen-enter .25s ease both; }
 
-/* ── Uovo del Famiglio: incubazione e schiusa ── */
+/* ── Uovo del Famiglio: vista centrata ── */
+.egg-view-wrap {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 8px 16px 0; text-align: center;
+}
+.egg-view-title {
+  font-family: var(--font-head); font-size: 1rem; letter-spacing: .08em;
+  color: var(--gold); text-transform: uppercase; margin-bottom: 12px;
+}
+.egg-img-wrap {
+  width: 100%; display: flex; justify-content: center; align-items: center;
+  margin-bottom: 12px;
+}
+.egg-portrait {
+  max-width: 75%; max-height: 260px; object-fit: contain;
+  filter: drop-shadow(0 8px 18px rgba(0,0,0,.5));
+}
+.egg-portrait-fallback { font-size: 6rem; }
+.egg-name {
+  font-family: var(--font-head); font-size: 1.25rem; font-weight: 700;
+  color: var(--ink); margin-bottom: 8px;
+}
+.egg-desc { font-size: .88rem; color: var(--muted); max-width: 340px; line-height: 1.5; }
+
+/* Bonus specie nel pannello famiglio */
+.pet-species-bonus {
+  text-align: center; color: var(--gold); margin: 2px 0 6px;
+  font-style: italic; letter-spacing: .02em;
+}
+
+/* ── Uovo del Famiglio: animazione schiusa ── */
 .egg-shake { animation: eggShake .5s ease-in-out infinite; }
 @keyframes eggShake {
   0%, 100% { transform: rotate(0deg) translateX(0); }
