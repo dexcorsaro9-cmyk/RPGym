@@ -2046,7 +2046,17 @@ function openStruttureStageModal(stage) {
           `🪵 ${it.price.wood} · 🪨 ${it.price.stone}`
         }</div>
       </div>`;
-    if (!has && !locked) {
+    if (has) {
+      const demolishBtn = el('button', 'btn btn-small strutture-demolish-btn', '🗑️ Demolisci');
+      demolishBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        HERO.furniture.owned = HERO.furniture.owned.filter(id => id !== it.id);
+        persist(); renderHUD();
+        toast(`${it.icon} ${it.name} rimossa dal campo.`);
+        closeModal(); openStruttureStageModal(stage);
+      });
+      row.querySelector('.loot-body').appendChild(demolishBtn);
+    } else if (!locked) {
       const hasFreeLayer = HERO.consumableBuffs && HERO.consumableBuffs.freeLayer;
       if (hasFreeLayer) {
         const freeTag = el('span', 'free-layer-tag', '🏰 GRATIS (Progetto)');
@@ -2055,7 +2065,6 @@ function openStruttureStageModal(stage) {
       row.classList.add('pickable');
       row.addEventListener('click', () => {
         if (hasFreeLayer) {
-          /* bypass costo: aggiungi direttamente e consuma il buff */
           HERO.consumableBuffs.freeLayer = false;
           if (!HERO.furniture) HERO.furniture = { owned: [] };
           HERO.furniture.owned.push(it.id);
@@ -6711,9 +6720,7 @@ function updateBadges() {
   const wc = RPG.getWeeklyChallenges(HERO);
   set('train', dc.list.some(ch => ch.progress >= ch.target && !ch.claimed)
     || wc.list.some(ch => ch.progress >= ch.target && !ch.claimed));
-  const expReady = HERO.pet && HERO.pet.hatched && HERO.pet.expedition && RPG.expeditionStatus(HERO)?.ready;
-  const eggReady = HERO.pet && !HERO.pet.hatched && RPG.eggProgress(HERO)?.ready;
-  set('camp', !!(expReady || eggReady));
+  set('camp', false);
 }
 
 /* ── Countdown live (aggiornati ogni secondo) ── */

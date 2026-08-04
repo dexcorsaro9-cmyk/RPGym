@@ -6450,3 +6450,9 @@ img.camp-layer {
 }
 .guild-emblem-btn.selected { border-color: var(--gold, #c9952a); }
 .guild-create-form { padding: .2rem .2rem .4rem; }
+
+.strutture-demolish-btn {
+  margin-top: .35rem;
+  color: var(--danger, #c0392b);
+  border-color: rgba(192, 57, 43, .4);
+}
