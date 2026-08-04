@@ -2803,6 +2803,11 @@ img.camp-layer {
   text-align: center; color: var(--gold); margin: 2px 0 6px;
   font-style: italic; letter-spacing: .02em;
 }
+.pet-leg-locked {
+  color: var(--gold); text-align: center; line-height: 1.45;
+  background: rgba(200,147,46,.08); border-radius: 6px;
+  padding: 6px 10px; border: 1px solid rgba(200,147,46,.25);
+}
 
 /* ── Uovo del Famiglio: animazione schiusa ── */
 .egg-shake { animation: eggShake .5s ease-in-out infinite; }
