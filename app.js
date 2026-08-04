@@ -4484,7 +4484,9 @@ function renderMarket(c) {
 
   } catch (err) {
     console.error('[renderMarket]', err);
-    c.appendChild(el('div', 'panel muted center', '⚠️ Errore nel caricamento del Borgo. Riprova toccando la tab.'));
+    const errDiv = el('div', 'panel muted center', '');
+    errDiv.innerHTML = `⚠️ Errore Borgo — <code style="font-size:.75rem">${esc(String(err))}</code>`;
+    c.appendChild(errDiv);
   }
 }
 
