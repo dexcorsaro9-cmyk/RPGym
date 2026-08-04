@@ -8,6 +8,7 @@ const RPG = (() => {
 
   const SAVE_KEY = 'rpgym_save_v1';
   const MAX_LEVEL = 100;
+  let itemSeq = 0;
   const LEVEL_CAP_1 = 20; // sigillo: serve l'Amuleto del Viaggiatore Esperto
 
   /* ── Attività: moltiplicatori XP per km ───────────────────── */
