@@ -894,8 +894,8 @@ const RPG = (() => {
   const LOOT_IMG = {
     comune:      { arma: 8,  scudo: 5, elmo: 5, armatura: 4, anello: 3, amuleto: 4 },
     non_comune:  { arma: 7,  scudo: 5, elmo: 6, armatura: 4, anello: 5, amuleto: 7 },
-    raro:        { arma: 17, scudo: 8, elmo: 8, armatura: 8, anello: 9, amuleto: 9 },
-    epico:       { arma: 16, scudo: 2, elmo: 7, armatura: 8, anello: 9, amuleto: 5 },
+    raro:        { arma: 16, scudo: 8, elmo: 8, armatura: 8, anello: 9, amuleto: 9 },
+    epico:       { arma: 14, scudo: 2, elmo: 7, armatura: 8, anello: 9, amuleto: 5 },
     leggendario: { arma: 4,  scudo: 3, elmo: 3, armatura: 4, anello: 2, amuleto: 5 },
     divino:      { arma: 4,  scudo: 1, elmo: 2, armatura: 3, anello: 1, amuleto: 2 },
     oscuro:      { arma: 6,  scudo: 1, elmo: 2, armatura: 3, anello: 1, amuleto: 2 },
@@ -1022,8 +1022,8 @@ const RPG = (() => {
   const ARMA_NAMES_BY_IMG = {
     comune:      ['Pugnale', 'Ascia', 'Mazza', 'Pugnale', 'Lancia', 'Lancia', 'Ascia', 'Coltello'],
     non_comune:  ['Spada', 'Ascia', 'Pugnale', 'Pugnale', 'Mazza', 'Arco', 'Martello'],
-    raro:        ['Ascia', 'Spada', 'Spada', 'Spada', 'Spada', 'Spada', 'Ascia', 'Spada', 'Mazza', 'Arco', 'Pugnale', 'Pugnale', 'Balestra', 'Flagello', 'Lancia', 'Martello', 'Martello'],
-    epico:       ['Spada', 'Ascia', 'Pugnale', 'Martello', 'Ascia', 'Balestra', 'Ascia', 'Mazza', 'Falce', 'Falce', 'Pugnale', 'Spada', 'Martello', 'Spada', 'Bastone', 'Bastone'],
+    raro:        ['Ascia', 'Spada', 'Spada', 'Spada', 'Spada', 'Ascia', 'Spada', 'Mazza', 'Arco', 'Pugnale', 'Pugnale', 'Balestra', 'Flagello', 'Lancia', 'Martello', 'Martello'],
+    epico:       ['Spada', 'Ascia', 'Pugnale', 'Martello', 'Ascia', 'Balestra', 'Ascia', 'Mazza', 'Falce', 'Falce', 'Pugnale', 'Spada', 'Martello', 'Spada'],
     leggendario: ['Spada', 'Mazza', 'Tridente', 'Balestra'],
     divino:      ['Bastone', 'Spada', 'Martello', 'Arco'],
     oscuro:      ['Falce', 'Bastone', 'Mazza', 'Pugnale', 'Spada', 'Pugnale'],
