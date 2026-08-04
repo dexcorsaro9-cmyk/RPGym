@@ -11,7 +11,7 @@ function openArena() {
     if (!v) { toast('Errore: nessuno sfidante trovato. Riprova.'); return; }
     const isFinal = v.id === 'cavaliere-drago';
     const fig = isFinal ? '<div class="battle-emoji">🐉</div>'
-      : `<img class="arena-intro-img" src="assets/bestiario/${v.id}.png" onerror="this.style.display='none'">`;
+      : `<img class="arena-intro-img" src="assets/bestiario/${v.id}.webp" onerror="this.style.display='none'">`;
     modal(`
       <div class="arena-intro">
         <p class="center big-news">⚔️ Uno sfidante appare!</p>
