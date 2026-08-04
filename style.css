@@ -1452,6 +1452,77 @@ img.camp-layer {
   50%      { opacity: .25; transform: scale(.92); }
 }
 
+/* ── Mappa del Tesoro (tappa a tappe) ── */
+.treasure-map-panel { overflow: hidden; }
+.tm-track {
+  display: flex; align-items: center;
+  padding: 10px 4px 6px; gap: 0;
+}
+.tm-medal-wrap {
+  position: relative; flex-shrink: 0;
+  width: 58px; display: flex; justify-content: center;
+}
+.tm-medal {
+  width: 52px; height: 52px; border-radius: 50%;
+  border: 3px solid var(--leather);
+  overflow: hidden; background: rgba(0,0,0,.25);
+  display: flex; align-items: center; justify-content: center;
+  transition: box-shadow .2s;
+}
+.tm-medal.done   { border-color: var(--gold); box-shadow: 0 0 10px rgba(201,147,46,.5); }
+.tm-medal.claimed{ border-color: var(--gold-bright); box-shadow: 0 0 6px rgba(232,182,76,.3); filter: brightness(.8); }
+.tm-medal.locked { filter: grayscale(.7) brightness(.6); }
+.tm-medal img    { width: 100%; height: 100%; object-fit: cover; }
+.tm-badge {
+  position: absolute; top: -4px; right: 2px;
+  width: 18px; height: 18px; border-radius: 50%;
+  font-size: .65rem; font-weight: 900; line-height: 18px;
+  text-align: center; border: 2px solid var(--bg);
+}
+.tm-badge.ready   { background: var(--gold); color: #1c1209; }
+.tm-badge.claimed { background: #6fcf97; color: #0e2218; }
+.tm-segment {
+  flex: 1; height: 8px; position: relative;
+  overflow: visible;
+}
+.tm-segment img {
+  position: absolute; inset: -6px 0; width: 100%; height: 20px;
+  object-fit: cover; object-position: center;
+  opacity: .7;
+}
+.tm-flag {
+  position: absolute; top: -14px;
+  transform: translateX(-50%);
+  font-size: 1.1rem; line-height: 1;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.6));
+}
+.tm-labels {
+  display: flex; justify-content: space-between;
+  padding: 2px 4px 6px;
+}
+.tm-label {
+  width: 58px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.tm-reward {
+  font-size: .72rem; color: var(--ink-light);
+  white-space: nowrap;
+}
+.tm-reward.ready { color: var(--gold-bright); font-weight: 700; }
+.tm-km-label { font-size: .72rem; color: var(--ink-light); opacity: .7; }
+.tm-claimed-label { font-size: .72rem; color: #6fcf97; }
+.tm-claim-btn {
+  font-size: .7rem; padding: 3px 7px; border-radius: 6px;
+  background: var(--gold); color: #1c1209;
+  border: none; cursor: pointer; font-weight: 700;
+  white-space: nowrap;
+}
+.tm-claim-btn.reveal-active { background: var(--magic); color: #fff; }
+.tm-progress-label {
+  font-size: .76rem; color: var(--ink-light); opacity: .75;
+  text-align: center; padding-bottom: 6px;
+}
+
 /* ── Tesoro giornaliero ── */
 .streak-row { display: flex; gap: 6px; justify-content: center; margin: 10px 0; }
 .streak-day {

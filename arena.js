@@ -73,7 +73,7 @@ function drawBattle() {
     const isFinal = b.v.id === 'cavaliere-drago';
     const battleBiome = RPG.BIOMES.find(bi => bi.name === b.v.zone) || RPG.currentBiome(HERO.level);
     const vFig = isFinal ? '<div class="battle-emoji big">🐉</div>'
-      : `<img class="battle-villain-img" id="battle-villain-img" src="assets/bestiario/${b.v.id}.png" onerror="this.outerHTML='<div class=&quot;battle-emoji&quot;>👹</div>'">`;
+      : `<img class="battle-villain-img" id="battle-villain-img" src="assets/bestiario/${b.v.id}.webp" onerror="this.outerHTML='<div class=&quot;battle-emoji&quot;>👹</div>'">`;
     const heroFig = isImageAvatar(HERO)
       ? `<img class="battle-hero-img" id="battle-hero-fig" src="${HERO.avatar}" onerror="this.outerHTML='<div class=&quot;battle-hero-img battle-hero-emoji&quot;>🧑</div>'">`
       : `<div class="battle-hero-img battle-hero-emoji" id="battle-hero-fig">${HERO.avatar || '🧑‍🌾'}</div>`;
