@@ -1650,7 +1650,7 @@ img.camp-layer {
 }
 
 .npc-banner {
-  display: flex; align-items: center; gap: 12px;
+  display: flex; align-items: stretch; gap: 12px;
   background:
     radial-gradient(ellipse at 30% 20%, rgba(255,255,255,.35), transparent 60%),
     linear-gradient(160deg, var(--parchment), var(--parchment-dark));
@@ -1658,9 +1658,9 @@ img.camp-layer {
   padding: 10px 12px; margin-bottom: 12px;
   box-shadow: 0 3px 10px rgba(0,0,0,.35);
 }
-.npc-img { height: 110px; max-width: 110px; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,.35)); }
-.npc-banner-lg .npc-img { height: 110px; max-width: 110px; width: auto; object-fit: contain; border-radius: 0; }
-.npc-quote { flex: 1; font-style: italic; font-weight: 500; color: var(--ink); }
+.npc-img { width: auto; max-width: 120px; min-height: 110px; object-fit: contain; object-position: center bottom; align-self: stretch; filter: drop-shadow(0 4px 6px rgba(0,0,0,.35)); }
+.npc-banner-lg .npc-img { max-width: 130px; }
+.npc-quote { flex: 1; font-style: italic; font-weight: 500; color: var(--ink); align-self: center; }
 
 /* ── Talenti di classe ── */
 .avatar-talent {
@@ -6190,13 +6190,12 @@ img.camp-layer {
 .bisca-npc-banner { background: #1e1035; border-color: #4c1d95; }
 .bisca-npc-banner .npc-quote { color: #fff; font-weight: 700; font-style: normal; }
 .bisca-npc-img {
-  height: 110px; width: 80px; max-width: 80px;
-  object-fit: contain; object-position: center center;
+  min-height: 110px; width: auto; max-width: 90px; align-self: stretch;
+  object-fit: contain; object-position: center bottom;
   border-radius: 6px; filter: drop-shadow(0 3px 6px rgba(0,0,0,.5));
 }
 .npc-banner-nero .npc-img {
-  height: 110px; max-width: 110px; width: auto;
-  object-fit: contain; object-position: center bottom;
+  max-width: 120px;
 }
 
 /* Back link — pill sottile e discreto */
