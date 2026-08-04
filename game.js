@@ -2511,6 +2511,10 @@ const RPG = (() => {
       xpMult   += (gb.xpPct || 0) / 100;
       goldMult += (gb.goldPct || 0) / 100;
     }
+    // Bonus specie famiglio (Volt: +XP eroe; Silvano: +legna)
+    const petSb = petSpeciesBonus(hero);
+    if (petSb.heroXpMult) xpMult        += petSb.heroXpMult;
+    if (petSb.woodMult)   localWoodMult += petSb.woodMult;
 
     // Dualità: Cittadella dell'Eclissi, +risorse dopo le 18:00
     if (furn.flags.dualityBonus && new Date().getHours() >= 18) {
@@ -3094,22 +3098,59 @@ const RPG = (() => {
      ═══════════════════════════════════════════════════════════ */
 
   const PET_SPECIES = {
-    ignis:   { name: 'Ignis',   icon: '🔥', desc: 'Nato da un frammento di lava incandescente, cresce fino a diventare un drago di fuoco.' },
-    aqua:    { name: 'Marea',   icon: '🌊', desc: 'Sboccia da una perla di corallo e matura in un drago dei mari.' },
-    glacio:  { name: 'Glacio',  icon: '❄️', desc: 'Un cristallo di ghiaccio antico che si risveglia in un lupo glaciale.' },
-    terras:  { name: 'Terras',  icon: '🏜️', desc: 'Un uovo di sabbia sigillato da geroglifici, custode dei segreti del deserto.' },
-    umbra:   { name: 'Umbra',   icon: '🌑', desc: 'Un frammento d\'ombra stellata che diventa una tigre cosmica.' },
-    volt:    { name: 'Volt',    icon: '⚡', desc: 'Scintille pure imprigionate in un uovo, destinate a un rapace della tempesta.' },
-    silvano: { name: 'Silvano', icon: '🌿', desc: 'Un seme millenario che germoglia in un guardiano della foresta.' },
-    chronos: { name: 'Chronos', icon: '⏳', desc: 'Un ingranaggio incantato che si trasforma in un gufo dei meccanismi del tempo.' },
+    ignis:   { name: 'Ignis',   icon: '🔥', desc: 'Nato da un frammento di lava incandescente, cresce fino a diventare un drago di fuoco.',
+               bonus: { arenaDmg: 0.10 },        bonusDesc: '+10% danno in Arena' },
+    aqua:    { name: 'Marea',   icon: '🌊', desc: 'Sboccia da una perla di corallo e matura in un drago dei mari.',
+               bonus: { hygieneDecayMult: 0.5 }, bonusDesc: 'Igiene decade 2× più lentamente' },
+    glacio:  { name: 'Glacio',  icon: '❄️', desc: 'Un cristallo di ghiaccio antico che si risveglia in un lupo glaciale.',
+               bonus: { moodDecayMult: 0.8 },    bonusDesc: 'Umore decade 20% più lentamente' },
+    terras:  { name: 'Terras',  icon: '🏜️', desc: 'Un uovo di sabbia sigillato da geroglifici, custode dei segreti del deserto.',
+               bonus: { expeditionMult: 1.3 },   bonusDesc: '+30% risorse dalle spedizioni' },
+    umbra:   { name: 'Umbra',   icon: '🌑', desc: 'Un frammento d\'ombra stellata che diventa una tigre cosmica.',
+               bonus: { arenaDodge: 0.05 },      bonusDesc: '+5% schivata in Arena' },
+    volt:    { name: 'Volt',    icon: '⚡', desc: 'Scintille pure imprigionate in un uovo, destinate a un rapace della tempesta.',
+               bonus: { heroXpMult: 0.10 },      bonusDesc: '+10% XP eroe dagli allenamenti' },
+    silvano: { name: 'Silvano', icon: '🌿', desc: 'Un seme millenario che germoglia in un guardiano della foresta.',
+               bonus: { woodMult: 0.20 },        bonusDesc: '+20% legna raccolta' },
+    chronos: { name: 'Chronos', icon: '⏳', desc: 'Un ingranaggio incantato che si trasforma in un gufo dei meccanismi del tempo.',
+               bonus: { hungerDecayMult: 0.8 },  bonusDesc: 'Fame decade 20% più lentamente' },
   };
   const PET_SPECIES_KEYS = Object.keys(PET_SPECIES);
   const PET_EVOLUTION_STAGES = 5;
   const PET_LEVELS_PER_STAGE = 4;
 
+  // Ricompense e sblocchi per stadio (stadio 1 = schiusa immediata)
+  const PET_STAGE_REWARDS = {
+    2: { gold: 30,               msg: '🎒 Spedizioni di Foraggiamento sbloccate!' },
+    3: { gold: 60,  wood: 20,   msg: '💭 Desideri Improvvisi del famiglio attivati!' },
+    4: { gold: 100, wood: 30, stone: 30, msg: '⚔️ Bonus Arena al massimo!' },
+    5: { gold: 200, wood: 50, stone: 50, msg: '🌟 FORMA LEGGENDARIA! Bonus specie raddoppiato!' },
+  };
+
   function petStage(level) {
     if (level <= 1) return 1;
     return Math.min(PET_EVOLUTION_STAGES, Math.floor((level - 1) / PET_LEVELS_PER_STAGE) + 1);
+  }
+
+  function petStageUnlocks(stage) {
+    return {
+      care:       stage >= 1, // subito dopo schiusa
+      expedition: stage >= 2, // livello 5
+      wish:       stage >= 3, // livello 9
+      fullArena:  stage >= 4, // livello 13
+      legendary:  stage >= 5, // livello 17 — bonus specie x2
+    };
+  }
+
+  function petSpeciesBonus(hero) {
+    if (!hero.pet || !hero.pet.hatched || hero.pet.sick) return {};
+    const sp = PET_SPECIES[hero.pet.species];
+    if (!sp || !sp.bonus) return {};
+    const isLegendary = petStage(hero.pet.level) >= PET_EVOLUTION_STAGES;
+    const mult = isLegendary ? 2 : 1;
+    const b = {};
+    for (const k of Object.keys(sp.bonus)) b[k] = sp.bonus[k] * mult;
+    return b;
   }
 
   const PET_PERSONALITIES = {
@@ -3167,7 +3208,7 @@ const RPG = (() => {
     };
   }
 
-  function petXpForLevel(level) { return 40 + level * 20; }
+  function petXpForLevel(level) { return 40 + level * 20 + Math.floor(level * level * 1.5); }
 
   // L'Incubatrice: prima della schiusa il famiglio è solo un uovo che
   // si scalda con i km reali percorsi. Nessun'altra meccanica esiste
@@ -3198,18 +3239,20 @@ const RPG = (() => {
     if (!hero.pet || !hero.pet.hatched) return;
     const p = hero.pet;
     const pers = PET_PERSONALITIES[p.personality] || PET_PERSONALITIES.goloso;
+    const sb = petSpeciesBonus(hero);
     const now = Date.now();
     const hoursElapsed = Math.max(0, (now - p.lastTick) / 3600000);
     if (hoursElapsed > 0) {
-      const hungerRate = (20 / 6) * pers.hungerRateMult;
-      const moodRate = (25 / 24) * pers.moodRateMult;
+      const hungerRate = (20 / 6) * pers.hungerRateMult * (sb.hungerDecayMult || 1);
+      const moodRate = (25 / 24) * pers.moodRateMult * (sb.moodDecayMult || 1);
       p.hunger = clamp01to100(p.hunger - hungerRate * hoursElapsed);
       p.mood = clamp01to100(p.mood - moodRate * hoursElapsed);
       p.lastTick = now;
     }
     // Igiene: legata ai km percorsi dall'ultimo bagno, non al tempo
     const kmDirty = Math.max(0, hero.totalKm - (p.kmAtLastClean || 0));
-    p.hygiene = clamp01to100(100 - Math.floor(kmDirty / 3.5) * 20);
+    const hygieneKmPerTick = 3.5 / (sb.hygieneDecayMult ? 1 / sb.hygieneDecayMult : 1);
+    p.hygiene = clamp01to100(100 - Math.floor(kmDirty / hygieneKmPerTick) * 20);
 
     // Rollover giornaliero: energia (sonno) + malattia
     const today = todayStamp();
@@ -3232,7 +3275,7 @@ const RPG = (() => {
     // Scadenza della richiesta improvvisa
     if (p.wish && now > p.wish.deadline) p.wish = null;
     // Genera una nuova richiesta ogni tanto (se non ce n'è già una attiva)
-    if (!p.wish && now > (p.wishCooldownUntil || 0) && Math.random() < 0.15) {
+    if (!p.wish && now > (p.wishCooldownUntil || 0) && Math.random() < 0.15 && petStageUnlocks(petStage(p.level)).wish) {
       const foodKeys = Object.keys(PET_FOODS);
       const item = foodKeys[Math.floor(Math.random() * foodKeys.length)];
       p.wish = { item, deadline: now + WISH_WINDOW_MINUTES * 60000 };
@@ -3261,6 +3304,10 @@ const RPG = (() => {
       if (best[0] === 'cyclette') out.hpBonus = Math.round(20 * moodFactor);
       if (best[0] === 'camminata') out.dmgBonus = Math.round(6 * moodFactor);
     }
+    // Bonus passivo della specie
+    const sb = petSpeciesBonus(hero);
+    if (sb.arenaDmg)   out.dmgBonus   += Math.round(34 * sb.arenaDmg);
+    if (sb.arenaDodge) out.dodgeChance = Math.min(0.30, out.dodgeChance + sb.arenaDodge);
     return out;
   }
 
@@ -3361,11 +3408,20 @@ const RPG = (() => {
       hero.pet.xp -= petXpForLevel(hero.pet.level);
       hero.pet.level++;
     }
-    return petStage(hero.pet.level) > prevStage ? { evolved: true, stage: petStage(hero.pet.level) } : null;
+    const newStage = petStage(hero.pet.level);
+    if (newStage > prevStage) {
+      const reward = PET_STAGE_REWARDS[newStage] || {};
+      if (reward.gold)  hero.gold  = (hero.gold  || 0) + reward.gold;
+      if (reward.wood)  hero.wood  = (hero.wood  || 0) + reward.wood;
+      if (reward.stone) hero.stone = (hero.stone || 0) + reward.stone;
+      return { evolved: true, stage: newStage, reward };
+    }
+    return null;
   }
 
   function startExpedition(hero) {
     if (!hero.pet || !hero.pet.hatched) return 'Il tuo famiglio è ancora un uovo: aspetta la schiusa!';
+    if (!petStageUnlocks(petStage(hero.pet.level)).expedition) return `Le spedizioni si sbloccano allo Stadio 2 (livello 5). Ora sei al livello ${hero.pet.level}.`;
     if (hero.pet.expedition) return 'Il tuo famiglio è già in spedizione.';
     if (hero.pet.sick) return 'Il tuo famiglio è malato: deve prima guarire.';
     hero.pet.expedition = { startedAt: Date.now(), kmAtStart: hero.totalKm };
@@ -3396,6 +3452,11 @@ const RPG = (() => {
       result.wood = 3 + Math.round(Math.random() * 5);
       result.stone = 1 + Math.round(Math.random() * 3);
     }
+    const sb = petSpeciesBonus(hero);
+    const expMult = sb.expeditionMult || 1;
+    result.wood  = Math.round(result.wood  * expMult);
+    result.stone = Math.round(result.stone * expMult);
+    result.gold  = Math.round(result.gold  * expMult);
     hero.wood += result.wood; hero.stone += result.stone; hero.gold += result.gold;
     addPetXp(hero, 10);
     return result;
@@ -5160,9 +5221,9 @@ const RPG = (() => {
     restoreStreak,
     MI_TIERS, rolloverMappaInfuocata, mappaInfuocataStatus, activateMappaInfuocata, claimMappaInfuocata,
     rolloverFugitiveMerchant, getFugitiveMerchant, todayKm, buyFromFugitiveMerchant,
-    PET_PERSONALITIES, PET_FOODS, PET_ACCESSORIES, PET_SPECIES,
+    PET_PERSONALITIES, PET_FOODS, PET_ACCESSORIES, PET_SPECIES, PET_STAGE_REWARDS,
     PHOENIX_POTION_PRICE, EXPEDITION_HOURS, WISH_WINDOW_MINUTES,
-    createPet, petXpForLevel, petStage, tickPet, petArenaBonus, classArenaBonus,
+    createPet, petXpForLevel, petStage, petStageUnlocks, petSpeciesBonus, tickPet, petArenaBonus, classArenaBonus,
     EGG_KM_NEEDED, eggProgress, hatchPet,
     feedPet, playWithPet, cleanPet, sleepPet, curePet,
     buyAccessory, addPetXp,

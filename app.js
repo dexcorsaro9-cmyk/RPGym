@@ -1667,22 +1667,31 @@ function renderEggView(c) {
   const speciesInfo = RPG.PET_SPECIES[pet.species];
   const egg = RPG.eggProgress(HERO);
 
-  const backBtn = el('button', 'btn btn-small', '↩ Torna al Rifugio');
+  const backBtn = el('button', 'view-back-link', '‹ Rifugio');
   backBtn.addEventListener('click', () => { CAMP_VIEW = 'main'; setTab('camp'); });
   c.appendChild(backBtn);
 
-  c.appendChild(el('h2', 'section-title', '🥚 Uovo Misterioso'));
+  // Uovo al centro — titolo sopra come nell'immagine di riferimento
+  const eggWrap = el('div', 'egg-view-wrap');
+  const eggTitle = el('div', 'egg-view-title');
+  eggTitle.innerHTML = `🥚 Uovo Misterioso`;
+  eggWrap.appendChild(eggTitle);
 
-  const head = el('div', 'panel center');
-  const img = el('img', 'pet-portrait-img' + (egg.ready ? ' egg-shake' : ''));
+  const imgWrap = el('div', 'egg-img-wrap');
+  const img = el('img', 'egg-portrait' + (egg.ready ? ' egg-shake' : ''));
   img.loading = 'eager';
   img.src = petImageSrc(pet);
-  img.onerror = () => { img.outerHTML = `<div class="pet-portrait">🥚</div>`; };
-  head.appendChild(img);
-  head.appendChild(el('h3', 'hero-name-plate center', `Uovo di ${esc(speciesInfo.name)}`));
-  head.appendChild(el('p', 'small muted center',
-    'Finché l\'uovo non si schiude non ha bisogno di nulla: si scalda un passo alla volta con i chilometri che percorri. Il mistero si svelerà alla schiusa.'));
-  c.appendChild(head);
+  img.onerror = () => { img.outerHTML = `<div class="egg-portrait-fallback">🥚</div>`; };
+  imgWrap.appendChild(img);
+  eggWrap.appendChild(imgWrap);
+
+  const eggName = el('div', 'egg-name', `Uovo di ${esc(speciesInfo.name)}`);
+  eggWrap.appendChild(eggName);
+
+  const eggDesc = el('p', 'egg-desc',
+    'Finché l\'uovo non si schiude non ha bisogno di nulla: si scalda un passo alla volta con i chilometri che percorri. Il mistero si svelerà alla schiusa.');
+  eggWrap.appendChild(eggDesc);
+  c.appendChild(eggWrap);
 
   const progPanel = el('div', 'panel');
   progPanel.appendChild(el('h3', 'panel-title', '🔥 Incubazione'));
@@ -1743,6 +1752,8 @@ function renderSantuarioView(c) {
 
   const speciesInfo = RPG.PET_SPECIES[pet.species];
   const stage = RPG.petStage(pet.level);
+  const unlocks = RPG.petStageUnlocks(stage);
+  const isLegendary = stage >= 5;
   const head = el('div', 'panel center');
   const portraitWrap = el('div', 'pet-portrait-wrap');
   const img = el('img', 'pet-portrait-img');
@@ -1752,7 +1763,17 @@ function renderSantuarioView(c) {
   portraitWrap.appendChild(img);
   if (pet.accessory) portraitWrap.appendChild(el('div', 'pet-accessory-badge', RPG.PET_ACCESSORIES[pet.accessory].icon));
   head.appendChild(portraitWrap);
-  head.appendChild(el('div', 'pet-stage-tag small', `${speciesInfo.icon} ${speciesInfo.name} · Stadio ${stage}/5`));
+
+  const stageLabel = isLegendary
+    ? `${speciesInfo.icon} ${speciesInfo.name} · ⭐ Leggendario`
+    : `${speciesInfo.icon} ${speciesInfo.name} · Stadio ${stage}/5`;
+  head.appendChild(el('div', 'pet-stage-tag small', stageLabel));
+
+  // Bonus passivo specie
+  if (speciesInfo.bonusDesc) {
+    const bonusMult = isLegendary ? ' (×2 🌟)' : '';
+    head.appendChild(el('div', 'pet-species-bonus small', `✦ ${speciesInfo.bonusDesc}${bonusMult}`));
+  }
 
   // Nome + tasto rinomina
   const nameRow = el('div', 'pet-name-row');
@@ -1778,6 +1799,15 @@ function renderSantuarioView(c) {
     <div class="membar slim"><div class="membar-fill gold" style="width:${xpPct}%"></div></div>`;
   head.appendChild(xpWrap);
 
+  // Sblocchi futuri (solo se non leggendario)
+  if (!isLegendary) {
+    const nextStage = stage + 1;
+    const nextLv = (nextStage - 1) * RPG.PET_LEVELS_PER_STAGE + 1; // livello che attiva lo stadio
+    const nextUnlockLabels = { 2: '🎒 Spedizioni', 3: '💭 Desideri', 4: '⚔️ Arena max', 5: '🌟 Leggendario' };
+    const nextLabel = nextUnlockLabels[nextStage];
+    if (nextLabel) xpWrap.innerHTML += `<div class="small muted" style="margin-top:.3rem">Prossimo stadio (Liv.${nextLv}): ${nextLabel}</div>`;
+  }
+
   head.appendChild(el('p', 'small muted', `${pers.icon} <b>${pers.name}</b><br>${pers.desc}`));
   if (pet.restedBonusActive) head.appendChild(el('div', 'pet-rested-badge', '😴 Riposato! XP +20% oggi'));
   c.appendChild(head);
@@ -1802,7 +1832,7 @@ function renderSantuarioView(c) {
     c.appendChild(sickP);
   }
 
-  if (pet.wish) {
+  if (pet.wish && unlocks.wish) {
     const food = RPG.PET_FOODS[pet.wish.item];
     const minLeft = Math.max(0, Math.ceil((pet.wish.deadline - Date.now()) / 60000));
     const wp = el('div', 'panel incursion-panel');
@@ -1880,7 +1910,9 @@ function renderSantuarioView(c) {
   const expStatus = RPG.expeditionStatus(HERO);
   const expPanel = el('div', 'panel');
   expPanel.appendChild(el('h3', 'panel-title', '🎒 Spedizione di Foraggiamento'));
-  if (!pet.expedition) {
+  if (!unlocks.expedition) {
+    expPanel.appendChild(el('p', 'muted small center', `🔒 Si sblocca allo Stadio 2 (livello 5). Ancora ${5 - pet.level} livello/i mancanti.`));
+  } else if (!pet.expedition) {
     expPanel.appendChild(el('p', 'muted small', `Invia ${esc(pet.name)} in esplorazione per ${RPG.EXPEDITION_HOURS} ore. Più km percorri nel frattempo, più ricco sarà il bottino al ritorno!`));
     const startBtn = el('button', 'btn btn-primary wide', '🚀 Invia in spedizione');
     startBtn.disabled = !!pet.sick;
@@ -1936,7 +1968,16 @@ function checkPetEvolution(r) {
   if (r && r.evolved) {
     sfx('level');
     vibrate([100, 50, 100, 50, 200]);
-    toast(`✨ ${esc(HERO.pet.name)} è evoluto! Stadio ${r.stage}/5 raggiunto!`);
+    const reward = r.reward || {};
+    const rewardParts = [
+      reward.gold  ? `🪙 +${reward.gold}`  : '',
+      reward.wood  ? `🪵 +${reward.wood}`  : '',
+      reward.stone ? `🪨 +${reward.stone}` : '',
+    ].filter(Boolean);
+    const rewardStr = rewardParts.length ? ` · ${rewardParts.join(' ')}` : '';
+    const unlockMsg = reward.msg ? `\n${reward.msg}` : '';
+    toast(`✨ ${esc(HERO.pet.name)} è evoluto allo Stadio ${r.stage}/5!${rewardStr}${unlockMsg}`);
+    renderHUD();
   }
 }
 
