@@ -5950,7 +5950,7 @@ const RPG = (() => {
     const POZZO_COST = 40;
     const POZZO_RARITIES = [
       { rarity: 'comune',      weight: 50 },
-      { rarity: 'non comune',  weight: 28 },
+      { rarity: 'non_comune',  weight: 28 },
       { rarity: 'raro',        weight: 14 },
       { rarity: 'epico',       weight: 6  },
       { rarity: 'leggendario', weight: 2  },
@@ -5963,7 +5963,9 @@ const RPG = (() => {
       let r = Math.random() * total;
       let entry = POZZO_RARITIES[POZZO_RARITIES.length - 1];
       for (const e of POZZO_RARITIES) { r -= e.weight; if (r <= 0) { entry = e; break; } }
-      const item = RPG.genItemFor(hero, entry.rarity);
+      // forcedRarity garantisce che l'oggetto abbia ESATTAMENTE la rarità estratta,
+      // indipendentemente dal livello dell'eroe
+      const item = RPG.genItem(hero.level, null, null, entry.rarity);
       hero.items.push(item);
       return { ok: true, item, rarity: entry.rarity };
     }

@@ -749,9 +749,16 @@ function _buildTutScene(scene) {
       <div class="tut-hub-item">⚔️<span class="tut-hub-label">Arena</span></div>`;
   } else if (scene === 'guide') {
     d.innerHTML = `<div class="tut-scene-inner tut-guide-inner">
-      <div class="tut-guide-phone">⚙️</div>
-      <div class="tut-guide-arrow">→</div>
-      <div class="tut-guide-book">📖</div>
+      <div class="tut-guide-phone-frame">
+        <div class="tut-guide-tabbar">
+          <span class="tut-guide-tab">🏠</span>
+          <span class="tut-guide-tab">🗺️</span>
+          <span class="tut-guide-tab tut-guide-tab-center">⚡</span>
+          <span class="tut-guide-tab">🏘️</span>
+          <span class="tut-guide-tab tut-guide-tab-active">👤<div class="tut-guide-tab-label">EROE</div></span>
+        </div>
+        <div class="tut-guide-arrow-up">⬆ tocca qui poi ⚙️</div>
+      </div>
     </div>`;
   } else if (scene === 'start') {
     d.innerHTML = `<div class="tut-scene-inner"><span class="tut-start-icon">⚔️</span></div>`;
