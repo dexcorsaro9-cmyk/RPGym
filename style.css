@@ -2397,6 +2397,19 @@ img.camp-layer {
   border-radius: 8px; padding: 6px 10px; font-size: .8rem; color: #4a3020;
 }
 .sc-enemy-tells-lbl { font-size: .57rem; font-weight: 700; letter-spacing: .08em; color: #c0392b; text-transform: uppercase; margin-bottom: 2px; }
+.sc-enemy-tells.double { background: rgba(192,57,43,.12); border-color: rgba(232,80,70,.35); }
+.sc-enemy-tells.poison { background: rgba(140,40,190,.1);  border-color: rgba(170,70,220,.3); }
+.sc-enemy-tells.guard  { background: rgba(26,79,168,.1);   border-color: rgba(74,159,216,.3); }
+.sc-enemy-tells.rage   { background: rgba(200,100,0,.12);  border-color: rgba(255,140,0,.3); }
+.sc-enemy-tells-lbl.double { color: #ff6b5b; }
+.sc-enemy-tells-lbl.poison { color: #c060e0; }
+.sc-enemy-tells-lbl.guard  { color: #4a9fd8; }
+.sc-enemy-tells-lbl.rage   { color: #ff9040; }
+.sc-poison-badge {
+  display: inline-block; font-size: .6rem; padding: 1px 5px; border-radius: 8px;
+  background: rgba(150,50,200,.2); border: 1px solid rgba(180,80,240,.4);
+  color: #c060e0; font-weight: 700; vertical-align: middle; margin-left: 4px;
+}
 .sc-boss-tag {
   font-size: .54rem; font-family: 'Cinzel', serif; letter-spacing: .06em;
   background: rgba(255,100,32,.12); border: 1px solid rgba(255,100,32,.45); color: #e85020;
@@ -2469,6 +2482,13 @@ img.camp-layer {
 .sc-die.atk .sc-die-assign { color: #ff8878; }
 .sc-die.def .sc-die-assign { color: #6abce8; }
 .sc-die.mag .sc-die-assign { color: #c080f0; }
+.sc-die.jolly {
+  background: linear-gradient(145deg, #1e8040, #0d4820);
+  border-color: #42d46e;
+  box-shadow: 0 4px 0 #071f10, 0 6px 12px rgba(10,100,40,.55), inset 0 1px 2px rgba(100,255,150,.3);
+  color: #fff;
+}
+.sc-die.jolly .sc-die-assign { color: #6afa96; }
 
 /* Buckets */
 .sc-buckets { display: flex; gap: 6px; }
@@ -2583,6 +2603,38 @@ img.camp-layer {
 .sc-int-choice-body { flex: 1; display: flex; flex-direction: column; gap: 2px; }
 .sc-int-choice-name { font-weight: 700; font-size: .9rem; color: rgba(255,255,255,.9); }
 .sc-int-choice-desc { font-size: .76rem; color: rgba(255,255,255,.45); }
+
+/* Shop styles */
+.sc-shop-gold {
+  font-size: .82rem; color: rgba(255,255,255,.55); text-align: center;
+  margin-top: -4px; margin-bottom: 2px;
+}
+.sc-shop-gold b { color: #e8c04c; }
+.sc-shop-items { display: flex; flex-direction: column; gap: 7px; }
+.sc-shop-item {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1);
+  border-radius: 10px; padding: 10px 12px;
+}
+.sc-shop-item-icon { font-size: 1.4rem; flex-shrink: 0; line-height: 1; }
+.sc-shop-item-body { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.sc-shop-item-name { font-weight: 700; font-size: .86rem; color: rgba(255,255,255,.88); }
+.sc-shop-item-desc { font-size: .72rem; color: rgba(255,255,255,.4); }
+.sc-shop-buy {
+  flex-shrink: 0; font-size: .76rem; font-weight: 700; padding: 5px 10px;
+  border-radius: 8px; background: rgba(201,147,46,.2); border: 1px solid rgba(201,147,46,.4);
+  color: #e8c04c; cursor: pointer; transition: background .15s, opacity .15s;
+  white-space: nowrap;
+}
+.sc-shop-buy:hover:not(:disabled) { background: rgba(201,147,46,.35); }
+.sc-shop-buy:disabled { cursor: default; }
+.sc-shop-continue {
+  width: 100%; padding: 13px; border-radius: 10px; font-weight: 700; font-size: .9rem;
+  background: linear-gradient(135deg, #4a7a2a, #2a4a14); border: 1px solid rgba(106,218,106,.25);
+  color: #8adc8a; cursor: pointer; transition: filter .15s;
+  font-family: 'Cinzel', serif; letter-spacing: .06em;
+}
+.sc-shop-continue:hover { filter: brightness(1.12); }
 
 /* ── showScalataEnd ──────────────────────────────────────────────────────── */
 .sc-end { display: flex; flex-direction: column; gap: 12px; }
