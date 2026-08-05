@@ -5266,11 +5266,15 @@ function _drawWheel(canvas, angleDeg, landedIdx) {
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Clip everything to a circle so no transparent pixels leak outside
+  // Solid opaque fill for the entire canvas — elimina ogni pixel trasparente in iOS Safari
+  ctx.fillStyle = '#050010';
+  ctx.fillRect(0, 0, S, S);
+
+  // Clip tutto al cerchio
   ctx.save();
   ctx.beginPath(); ctx.arc(cx, cy, R + 2, 0, Math.PI * 2); ctx.clip();
 
-  // Background circle
+  // Background radiale
   const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, R + 5);
   bg.addColorStop(0,    '#1e0845');
   bg.addColorStop(0.75, '#0d0128');
@@ -5289,7 +5293,7 @@ function _drawWheel(canvas, angleDeg, landedIdx) {
 
     ctx.beginPath(); ctx.moveTo(cx, cy);
     ctx.arc(cx, cy, innerR, cumRad, endRad); ctx.closePath();
-    ctx.fillStyle = sector.color + (landed ? 'ff' : 'cc'); ctx.fill();
+    ctx.fillStyle = sector.color; ctx.fill();
     if (landed) {
       ctx.beginPath(); ctx.moveTo(cx, cy);
       ctx.arc(cx, cy, innerR, cumRad, endRad); ctx.closePath();
