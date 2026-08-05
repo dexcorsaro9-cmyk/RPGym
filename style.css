@@ -539,11 +539,7 @@ body {
 }
 /* ── Mercato ── */
 #tab-content.bg-market {
-  background-color: #080710;
-  background:
-    linear-gradient(180deg, rgba(5,4,10,.62) 0%, rgba(7,5,13,.38) 45%, rgba(5,4,10,.60) 100%),
-    url('assets/backgrounds/bg-market.webp');
-  background-size: cover; background-position: center top;
+  background: #0c0918;
 }
 .hero-showcase { padding: 12px 0 4px; }
 .hero-fullbody {
@@ -7356,7 +7352,7 @@ img.fiche-inline {
 .pozzo-rarity-label { font-size: .72rem; font-weight: 700; letter-spacing: .08em; margin-bottom: 6px; }
 
 /* ── Catena del Fato ── */
-.catena-cards-img { width: 100%; max-height: 140px; object-fit: contain; margin: 6px 0 12px; display: block; }
+.catena-cards-img { width: 100%; max-height: 140px; object-fit: contain; margin: 6px 0 12px; display: block; background: #0c0918; border-radius: 10px; }
 .catena-chain {
   display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 12px 0;
 }
