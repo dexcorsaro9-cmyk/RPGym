@@ -4215,7 +4215,25 @@ function renderTrain(c) {
   const left = RPG.battlesLeft(HERO);
   const ap = el('div', 'arena-v2');
 
-  // Banner (immagine + overlay titolo)
+  // Pips HTML inline
+  const SWORD_SVG = active =>
+    `<div class="${active ? 'arena-pip active' : 'arena-pip used'}">
+      <svg viewBox="0 0 14 38" width="14" height="38" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="7,1 5,7 9,7" fill="${active ? '#e8dba0' : 'rgba(200,200,200,.25)'}"/>
+        <rect x="5.5" y="6" width="3" height="17" rx="0.5" fill="${active ? '#c8a840' : 'rgba(200,200,200,.2)'}"/>
+        <rect x="0" y="20" width="14" height="3.5" rx="1" fill="${active ? '#8b6420' : 'rgba(200,200,200,.15)'}"/>
+        <rect x="5.5" y="23.5" width="3" height="8" rx="1" fill="${active ? '#5a3012' : 'rgba(200,200,200,.15)'}"/>
+        <circle cx="7" cy="34" r="3" fill="${active ? '#8b6420' : 'rgba(200,200,200,.2)'}"/>
+      </svg>
+    </div>`;
+  const pipsHtml = Array.from({length: RPG.BATTLE_MAX_DAY}, (_, i) => SWORD_SVG(i < left)).join('');
+
+  const actionHtml = left > 0
+    ? `<div class="arena-avail-label">${left} sfid${left === 1 ? 'a disponibile' : 'e disponibili'}</div>
+       <button class="btn arena-enter-btn wide big" id="btn-arena-enter">⚔️&ensp;ENTRA NELL'ARENA</button>`
+    : `<div class="arena-exhausted">⌛&ensp;Sfide esaurite — torna domani</div>`;
+
+  // Banner (immagine + overlay titolo + pips + azione)
   const bannerEl = el('div', 'arena-banner');
   bannerEl.innerHTML = `
     <img class="arena-banner-img" src="assets/arena/arena-banner.webp"
@@ -4223,38 +4241,11 @@ function renderTrain(c) {
     <div class="arena-banner-overlay">
       <div class="arena-banner-title">L'Arena dei Guerrieri</div>
       <div class="arena-banner-sub">Fendente · Parata · Incantesimo</div>
+      <div class="arena-pips-row">${pipsHtml}</div>
+      ${actionHtml}
     </div>`;
   ap.appendChild(bannerEl);
-
-  // Pip spade — una per sfida
-  const pipsRow = el('div', 'arena-pips-row');
-  const SWORD_PIP = active => {
-    const d = el('div', active ? 'arena-pip active' : 'arena-pip used');
-    d.innerHTML = `<svg viewBox="0 0 14 38" width="14" height="38" xmlns="http://www.w3.org/2000/svg">
-      <polygon points="7,1 5,7 9,7" fill="${active ? '#e8dba0' : '#3a2a18'}"/>
-      <rect x="5.5" y="6" width="3" height="17" rx="0.5" fill="${active ? '#c8a840' : '#2e1e10'}"/>
-      <rect x="0" y="20" width="14" height="3.5" rx="1" fill="${active ? '#8b6420' : '#251508'}"/>
-      <rect x="5.5" y="23.5" width="3" height="8" rx="1" fill="${active ? '#5a3012' : '#1e0e06'}"/>
-      <circle cx="7" cy="34" r="3" fill="${active ? '#8b6420' : '#251508'}"/>
-    </svg>`;
-    return d;
-  };
-  for (let i = 0; i < RPG.BATTLE_MAX_DAY; i++) pipsRow.appendChild(SWORD_PIP(i < left));
-  ap.appendChild(pipsRow);
-
-  // Azione principale
-  const aWrap = el('div', 'arena-action-wrap');
-  if (left > 0) {
-    const lbl = el('div', 'arena-avail-label',
-      `${left} sfid${left === 1 ? 'a disponibile' : 'e disponibili'}`);
-    const abtn = el('button', 'btn arena-enter-btn wide big', '⚔️  ENTRA NELL\'ARENA');
-    abtn.addEventListener('click', openArena);
-    aWrap.appendChild(lbl);
-    aWrap.appendChild(abtn);
-  } else {
-    aWrap.innerHTML = `<div class="arena-exhausted">⌛&ensp;Sfide esaurite — torna domani</div>`;
-  }
-  ap.appendChild(aWrap);
+  if (left > 0) bannerEl.querySelector('#btn-arena-enter').addEventListener('click', openArena);
 
   /* Il Covo dell'Orda */
   const dungeonAvail = RPG.canStartDungeon(HERO);
