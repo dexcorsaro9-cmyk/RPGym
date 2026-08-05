@@ -543,6 +543,12 @@ function showDungeonDefeat(reward) {
    LA SCALATA DELL'EROE
    ═══════════════════════════════════════════════════════════════ */
 
+function _dieFaceHTML(n, type) {
+  const patterns = { 0: [], 1: ['mc'], 2: ['tr', 'bl'], 3: ['tr', 'mc', 'bl'], 4: ['tl', 'tr', 'bl', 'br'] };
+  const pips = (patterns[n] || []).map(p => `<span class="dp ${p}"></span>`).join('');
+  return `<div class="die-face df-${type}${n === 0 ? ' df-empty' : ''}">${pips}</div>`;
+}
+
 function openScalata() {
   const active = HERO.activeScalata && !HERO.activeScalata.done;
   const can = RPG.canStartScalata(HERO);
@@ -597,6 +603,7 @@ function showScalataFloor() {
   const isBoss = s.isBoss;
   const eHpPct = Math.max(0, (s.enemyHp / s.enemyMaxHp) * 100);
   const hHpPct = Math.max(0, (s.heroHp / s.heroMaxHp) * 100);
+  const hpCrit = s.heroHp / s.heroMaxHp < 0.3;
   const floorLabel = isBoss ? `🌟 Piano ${s.floor} — BOSS` : `Piano ${s.floor}`;
   const best = HERO.scalataRecord?.bestFloor || 0;
 
@@ -607,12 +614,12 @@ function showScalataFloor() {
     </div>
 
     <div class="scalata-combatants">
-      <div class="scalata-fighter">
+      <div class="scalata-fighter" id="fighter-hero">
         <div class="scalata-fighter-label">❤️ Eroe</div>
         <div class="scalata-hpbar-wrap">
-          <div class="scalata-hpfill hero-fill" style="width:${hHpPct}%"></div>
+          <div class="scalata-hpfill hero-fill${hpCrit ? ' critical' : ''}" style="width:${hHpPct}%"></div>
         </div>
-        <div class="scalata-hp-num">${s.heroHp} / ${s.heroMaxHp}</div>
+        <div class="scalata-hp-num${hpCrit ? ' crit-text' : ''}">${s.heroHp} / ${s.heroMaxHp}</div>
       </div>
       <div class="scalata-vs">VS</div>
       <div class="scalata-fighter">
@@ -632,30 +639,33 @@ function showScalataFloor() {
       <div class="scalata-dice-grid">
         <div class="scalata-die-slot" id="slot-atk">
           <div class="scalata-die-top">⚔️ <b>Attacco</b></div>
-          <div class="scalata-die-hint">1→18 · 2→38 · 3→60 · 4→85</div>
+          <div id="die-face-wrap-atk">${_dieFaceHTML(0, 'atk')}</div>
           <div class="scalata-die-ctrl">
             <button class="scalata-die-btn" data-t="atk" data-d="-1">−</button>
             <span class="scalata-die-num" id="cnt-atk">0</span>
             <button class="scalata-die-btn" data-t="atk" data-d="1">+</button>
           </div>
+          <div class="scalata-die-hint">1→18 · 2→38 · 3→60 · 4→85</div>
         </div>
         <div class="scalata-die-slot" id="slot-def">
           <div class="scalata-die-top">🛡️ <b>Difesa</b></div>
-          <div class="scalata-die-hint">1→20 · 2→42 · 3→65 · 4→90</div>
+          <div id="die-face-wrap-def">${_dieFaceHTML(0, 'def')}</div>
           <div class="scalata-die-ctrl">
             <button class="scalata-die-btn" data-t="def" data-d="-1">−</button>
             <span class="scalata-die-num" id="cnt-def">0</span>
             <button class="scalata-die-btn" data-t="def" data-d="1">+</button>
           </div>
+          <div class="scalata-die-hint">1→20 · 2→42 · 3→65 · 4→90</div>
         </div>
         <div class="scalata-die-slot" id="slot-mag">
           <div class="scalata-die-top">✨ <b>Magia</b></div>
-          <div class="scalata-die-hint">1→+10blocc · 2→+22dmg · 3→stordisci</div>
+          <div id="die-face-wrap-mag">${_dieFaceHTML(0, 'mag')}</div>
           <div class="scalata-die-ctrl">
             <button class="scalata-die-btn" data-t="mag" data-d="-1">−</button>
             <span class="scalata-die-num" id="cnt-mag">0</span>
             <button class="scalata-die-btn" data-t="mag" data-d="1">+</button>
           </div>
+          <div class="scalata-die-hint">1→+10bl · 2→+22dmg · 3→stordisci</div>
         </div>
       </div>
       <div class="scalata-remaining">Dadi rimasti: <b id="dice-left">4</b> / 4</div>
@@ -674,6 +684,14 @@ function showScalataFloor() {
     ['atk', 'def', 'mag'].forEach(t => {
       document.getElementById('cnt-' + t).textContent = state[t];
       document.getElementById('slot-' + t).classList.toggle('active', state[t] > 0);
+      const wrap = document.getElementById('die-face-wrap-' + t);
+      if (wrap) {
+        wrap.innerHTML = _dieFaceHTML(state[t], t);
+        if (state[t] > 0) {
+          const face = wrap.querySelector('.die-face');
+          if (face) { face.classList.add('df-bounce'); setTimeout(() => face.classList.remove('df-bounce'), 260); }
+        }
+      }
     });
     const resolveBtn = document.getElementById('btn-resolve');
     if (resolveBtn) resolveBtn.disabled = total !== 4;
@@ -701,6 +719,12 @@ function showScalataFloor() {
     const result = RPG.scalataResolveDice(HERO, state);
     if (!result) return;
     persist();
+
+    // Shake hero fighter if they took damage
+    if (result.enemyHit > 0) {
+      const hf = document.getElementById('fighter-hero');
+      if (hf) { hf.classList.add('hit-shake'); setTimeout(() => hf.classList.remove('hit-shake'), 400); }
+    }
 
     const logEl = document.getElementById('scalata-log');
     const diceEl = document.getElementById('scalata-dice-section');

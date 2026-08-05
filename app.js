@@ -4124,7 +4124,7 @@ function renderTrain(c) {
 
   /* Il Covo dell'Orda */
   const dungeonAvail = RPG.canStartDungeon(HERO);
-  const dp = el('div', 'dungeon-strip' + (dungeonAvail ? '' : ' dungeon-done'));
+  const dp = el('div', 'dungeon-strip strip-covo' + (dungeonAvail ? '' : ' dungeon-done'));
   dp.innerHTML = `<div class="dungeon-strip-left">
     <span class="dungeon-strip-icon">🗡️</span>
     <div>
@@ -4142,7 +4142,7 @@ function renderTrain(c) {
   const scalataActive = HERO.activeScalata && !HERO.activeScalata.done;
   const scalataAvail  = RPG.canStartScalata(HERO);
   const scalataBest   = HERO.scalataRecord?.bestFloor || 0;
-  const sp = el('div', 'dungeon-strip' + (scalataAvail ? '' : ' dungeon-done'));
+  const sp = el('div', 'dungeon-strip strip-scalata' + (scalataAvail ? '' : ' dungeon-done'));
   sp.innerHTML = `<div class="dungeon-strip-left">
     <span class="dungeon-strip-icon">🏔️</span>
     <div>
