@@ -2811,6 +2811,15 @@ const RPG = (() => {
       }
     }
 
+    // Famiglio: XP da attività fisica (fonte primaria di crescita)
+    if (hero.pet && hero.pet.hatched) {
+      tickPet(hero);
+      const petXpGained = Math.round(km * 3);
+      const evoPet = addPetXp(hero, petXpGained);
+      report.petXp = petXpGained;
+      if (evoPet) Object.assign(report, evoPet);
+    }
+
     return report;
   }
 
@@ -3527,7 +3536,7 @@ const RPG = (() => {
       wishFulfilled = true;
     }
     addPetVirtue(hero, 'lealta', 2);
-    const evoFeed = addPetXp(hero, 5);
+    const evoFeed = addPetXp(hero, 1);
     return { ok: true, wishFulfilled, ...(evoFeed || {}) };
   }
 
@@ -3539,7 +3548,7 @@ const RPG = (() => {
     hero.stamina -= STAMINA_COST;
     hero.pet.mood = clamp01to100(hero.pet.mood + 25);
     addPetVirtue(hero, 'lealta', 3);
-    const evoPlay = addPetXp(hero, 8);
+    const evoPlay = addPetXp(hero, 1);
     return { ok: true, ...(evoPlay || {}) };
   }
 
@@ -3551,7 +3560,7 @@ const RPG = (() => {
     hero.wood -= WOOD_COST; hero.stone -= STONE_COST;
     hero.pet.kmAtLastClean = hero.totalKm;
     hero.pet.hygiene = 100;
-    const evoClean = addPetXp(hero, 4);
+    const evoClean = addPetXp(hero, 1);
     return { ok: true, ...(evoClean || {}) };
   }
 
