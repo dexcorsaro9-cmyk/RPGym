@@ -5746,7 +5746,7 @@ const RPG = (() => {
     PET_PERSONALITIES, PET_FOODS, PET_ACCESSORIES, PET_SPECIES, PET_STAGE_REWARDS,
     PET_LEVELS_PER_STAGE, PET_LEGENDARY_HERO_LV, PET_MAX_LEVEL_BEFORE_LEGENDARY,
     PET_VIRTUE_META, PET_EXPEDITION_ZONES,
-    PHOENIX_POTION_PRICE, EXPEDITION_HOURS, WISH_WINDOW_MINUTES,
+    PHOENIX_POTION_PRICE, EXPEDITION_HOURS,
     createPet, petXpForLevel, petStage, petStageUnlocks, petSpeciesBonus, tickPet, petArenaBonus, classArenaBonus,
     EGG_KM_NEEDED, eggProgress, hatchPet,
     feedPet, playWithPet, cleanPet, sleepPet, curePet,
