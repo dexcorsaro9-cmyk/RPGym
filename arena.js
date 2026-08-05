@@ -610,153 +610,177 @@ function openScalata() {
 function showScalataFloor() {
   const s = HERO.activeScalata;
   if (!s || s.done) return;
+  s.roundNum = (s.roundNum || 0) + 1;
 
-  const enemy = RPG.BESTIARY.find(b => b.id === s.enemyId) || { name: 'Nemico Misterioso', id: '_', boss: false };
+  const enemy  = RPG.BESTIARY.find(b => b.id === s.enemyId) || { name: 'Nemico Misterioso', id: '_', boss: false };
   const isBoss = s.isBoss;
   const eHpPct = Math.max(0, (s.enemyHp / s.enemyMaxHp) * 100);
   const hHpPct = Math.max(0, (s.heroHp / s.heroMaxHp) * 100);
   const hpCrit = s.heroHp / s.heroMaxHp < 0.3;
-  const floorLabel = isBoss ? `🌟 Piano ${s.floor} — BOSS` : `Piano ${s.floor}`;
-  const best = HERO.scalataRecord?.bestFloor || 0;
 
-  modal(`<div class="scalata-wrap">
-    <div class="scalata-top-row">
-      <span class="scalata-floor-badge${isBoss ? ' boss' : ''}">${floorLabel}</span>
-      <span class="scalata-rec-chip">🏆 ${best}</span>
-    </div>
-
-    <div class="scalata-combatants">
-      <div class="scalata-fighter" id="fighter-hero">
-        <div class="scalata-fighter-label">❤️ Eroe</div>
-        <div class="scalata-hpbar-wrap">
-          <div class="scalata-hpfill hero-fill${hpCrit ? ' critical' : ''}" style="width:${hHpPct}%"></div>
+  modal(`<div class="sf-wrap">
+    <div class="sf-header">
+      <div class="sf-title-block">
+        <span class="sf-tower-icon">🗼</span>
+        <div>
+          <div class="sf-main-title">TORRE INFINITA</div>
+          <div class="sf-floor-label${isBoss ? ' boss' : ''}">${isBoss ? '⭐ BOSS · ' : ''}Piano ${s.floor}</div>
         </div>
-        <div class="scalata-hp-num${hpCrit ? ' crit-text' : ''}">${s.heroHp} / ${s.heroMaxHp}</div>
       </div>
-      <div class="scalata-vs">VS</div>
-      <div class="scalata-fighter">
-        <div class="scalata-fighter-label">${esc(enemy.name)}${isBoss ? ' <span class="scalata-boss-tag">BOSS</span>' : ''}</div>
-        <img class="scalata-enemy-img" src="assets/bestiario/${enemy.id}.webp" onerror="this.style.display='none'">
-        <div class="scalata-hpbar-wrap">
-          <div class="scalata-hpfill enemy-fill" style="width:${eHpPct}%"></div>
-        </div>
-        <div class="scalata-hp-num">${s.enemyHp} / ${s.enemyMaxHp} · ⚔️ ${s.enemyDmg}/r</div>
+      <div class="sf-hero-hp">
+        <div class="sf-hero-hp-text${hpCrit ? ' crit' : ''}">❤️ ${s.heroHp}/${s.heroMaxHp}</div>
+        <div class="sf-hero-hpbar"><div class="sf-hero-hpfill${hpCrit ? ' crit' : ''}" style="width:${hHpPct}%"></div></div>
       </div>
     </div>
 
-    <div class="scalata-result-log hidden" id="scalata-log"></div>
-
-    <div id="scalata-dice-section">
-      <div class="scalata-dice-title">Alloca i 4 Dadi</div>
-      <div class="scalata-dice-grid">
-        <div class="scalata-die-slot" id="slot-atk">
-          <div class="scalata-die-top">⚔️ <b>Attacco</b></div>
-          <div id="die-face-wrap-atk">${_dieFaceHTML(0, 'atk')}</div>
-          <div class="scalata-die-ctrl">
-            <button class="scalata-die-btn" data-t="atk" data-d="-1">−</button>
-            <span class="scalata-die-num" id="cnt-atk">0</span>
-            <button class="scalata-die-btn" data-t="atk" data-d="1">+</button>
-          </div>
-          <div class="scalata-die-hint">1→18 · 2→38 · 3→60 · 4→85</div>
-        </div>
-        <div class="scalata-die-slot" id="slot-def">
-          <div class="scalata-die-top">🛡️ <b>Difesa</b></div>
-          <div id="die-face-wrap-def">${_dieFaceHTML(0, 'def')}</div>
-          <div class="scalata-die-ctrl">
-            <button class="scalata-die-btn" data-t="def" data-d="-1">−</button>
-            <span class="scalata-die-num" id="cnt-def">0</span>
-            <button class="scalata-die-btn" data-t="def" data-d="1">+</button>
-          </div>
-          <div class="scalata-die-hint">1→20 · 2→42 · 3→65 · 4→90</div>
-        </div>
-        <div class="scalata-die-slot" id="slot-mag">
-          <div class="scalata-die-top">✨ <b>Magia</b></div>
-          <div id="die-face-wrap-mag">${_dieFaceHTML(0, 'mag')}</div>
-          <div class="scalata-die-ctrl">
-            <button class="scalata-die-btn" data-t="mag" data-d="-1">−</button>
-            <span class="scalata-die-num" id="cnt-mag">0</span>
-            <button class="scalata-die-btn" data-t="mag" data-d="1">+</button>
-          </div>
-          <div class="scalata-die-hint">1→+10bl · 2→+22dmg · 3→stordisci</div>
-        </div>
+    <div class="sf-enemy-card${isBoss ? ' boss' : ''}">
+      <img class="sf-enemy-img" src="assets/bestiario/${enemy.id}.webp" onerror="this.style.display='none'">
+      <div class="sf-enemy-body">
+        <div class="sf-enemy-name">${esc(enemy.name)}${isBoss ? ' <span class="sf-boss-tag">BOSS</span>' : ''}</div>
+        <div class="sf-enemy-hpbar"><div class="sf-enemy-hpfill" style="width:${eHpPct}%"></div></div>
+        <div class="sf-enemy-hp-text">${s.enemyHp} / ${s.enemyMaxHp} PF</div>
       </div>
-      <div class="scalata-remaining">Dadi rimasti: <b id="dice-left">4</b> / 4</div>
-      <button class="btn btn-primary wide big" id="btn-resolve" disabled>🎲 Risolvi Round</button>
     </div>
 
-    <button class="btn wide scalata-retreat" id="btn-retreat">🏳️ Ritirati</button>
+    <div class="sf-move-warn">
+      <div class="sf-move-warn-title">⚠️ PROSSIMA MOSSA</div>
+      <div class="sf-move-warn-desc">Attacca per <b>${s.enemyDmg}</b> danni!</div>
+    </div>
+
+    <div class="sf-log hidden" id="sf-log"></div>
+
+    <div id="sf-dice-section">
+      <div class="sf-section-title">ALLOCA I DADI · Round <b>${s.roundNum}</b></div>
+      <div class="sf-dice-grid">
+        ${[0,1,2,3].map(i => `
+        <div class="sf-die-card sf-die-libero" data-idx="${i}" id="sf-die-${i}">
+          <div class="sf-die-face-wrap" id="sf-die-face-${i}"><div class="die-face df-libero"><span class="df-icon">?</span></div></div>
+          <div class="sf-die-type-label" id="sf-die-lbl-${i}">LIBERO</div>
+        </div>`).join('')}
+      </div>
+
+      <div class="sf-preview">
+        <div class="sf-pb atk">
+          <div class="sf-pb-icon">⚔️</div>
+          <div class="sf-pb-val" id="prev-atk-val">—</div>
+          <div class="sf-pb-label">DANNO</div>
+        </div>
+        <div class="sf-pb def">
+          <div class="sf-pb-icon">🛡️</div>
+          <div class="sf-pb-val" id="prev-def-val">—</div>
+          <div class="sf-pb-label">BLOCCO</div>
+        </div>
+        <div class="sf-pb mag">
+          <div class="sf-pb-icon">✨</div>
+          <div class="sf-pb-val" id="prev-mag-val">—</div>
+          <div class="sf-pb-label">MAGIA</div>
+        </div>
+      </div>
+
+      <div class="sf-net" id="sf-net">Danno previsto: <b>—</b></div>
+      <button class="sf-confirm-btn" id="sf-confirm" disabled>🎲 CONFERMA ALLOCAZIONE</button>
+    </div>
+
+    <button class="sf-retreat-btn" id="sf-retreat">🏳️ Ritirati</button>
   </div>`);
 
-  const state = { atk: 0, def: 0, mag: 0 };
+  $('#modal-box').classList.add('scalata-dark-modal');
 
-  function refreshDice() {
-    const total = state.atk + state.def + state.mag;
-    const left  = 4 - total;
-    document.getElementById('dice-left').textContent = left;
-    ['atk', 'def', 'mag'].forEach(t => {
-      document.getElementById('cnt-' + t).textContent = state[t];
-      document.getElementById('slot-' + t).classList.toggle('active', state[t] > 0);
-      const wrap = document.getElementById('die-face-wrap-' + t);
-      if (wrap) {
-        wrap.innerHTML = _dieFaceHTML(state[t], t);
-        if (state[t] > 0) {
-          const face = wrap.querySelector('.die-face');
-          if (face) { face.classList.add('df-bounce'); setTimeout(() => face.classList.remove('df-bounce'), 260); }
-        }
+  const TYPES      = ['libero', 'atk', 'def', 'mag'];
+  const TYPE_LABELS = { libero: 'LIBERO', atk: 'ATTACCO', def: 'DIFESA', mag: 'MAGIA' };
+  const ATK_TABLE  = RPG.SCALATA_ATK || [18, 38, 60, 85];
+  const DEF_TABLE  = RPG.SCALATA_DEF || [20, 42, 65, 90];
+  const diceState  = [0, 0, 0, 0];
+
+  function refreshUI() {
+    const counts = { atk: 0, def: 0, mag: 0 };
+    diceState.forEach(t => { if (t > 0) counts[TYPES[t]]++; });
+    const allAssigned = diceState.every(t => t > 0);
+
+    diceState.forEach((t, i) => {
+      const card    = document.getElementById('sf-die-' + i);
+      const faceWrap = document.getElementById('sf-die-face-' + i);
+      const lbl     = document.getElementById('sf-die-lbl-' + i);
+      const typeName = TYPES[t];
+      card.className = 'sf-die-card sf-die-' + typeName;
+      lbl.textContent = TYPE_LABELS[typeName];
+      if (t === 0) {
+        faceWrap.innerHTML = '<div class="die-face df-libero"><span class="df-icon">?</span></div>';
+      } else {
+        faceWrap.innerHTML = _dieFaceHTML(1, typeName);
+        const face = faceWrap.querySelector('.die-face');
+        if (face) { face.classList.add('df-bounce'); setTimeout(() => face.classList.remove('df-bounce'), 260); }
       }
     });
-    const resolveBtn = document.getElementById('btn-resolve');
-    if (resolveBtn) resolveBtn.disabled = total !== 4;
-    document.querySelectorAll('.scalata-die-btn').forEach(btn => {
-      const t = btn.dataset.t;
-      const d = parseInt(btn.dataset.d);
-      btn.disabled = d > 0 ? (left <= 0 || state[t] >= 4) : (state[t] <= 0);
-    });
+
+    const atkDmg = counts.atk > 0 ? ATK_TABLE[Math.min(counts.atk - 1, 3)] : 0;
+    const defBlk = counts.def > 0 ? DEF_TABLE[Math.min(counts.def - 1, 3)] : 0;
+    let magText = '—', magBlock = 0;
+    if (counts.mag >= 3)       { magText = 'Stordisci!'; }
+    else if (counts.mag >= 2)  { magText = '+22 veleno'; }
+    else if (counts.mag === 1) { magText = '+10 blocco'; magBlock = 10; }
+
+    document.getElementById('prev-atk-val').textContent = counts.atk ? atkDmg + ' HP' : '—';
+    document.getElementById('prev-def-val').textContent = counts.def ? defBlk + ' HP' : '—';
+    document.getElementById('prev-mag-val').textContent = magText;
+
+    const totalBlock = defBlk + magBlock;
+    const stunned    = counts.mag >= 3;
+    const netHit     = stunned ? 0 : Math.max(0, s.enemyDmg - totalBlock);
+    const netEl      = document.getElementById('sf-net');
+    if (allAssigned) {
+      if (stunned) {
+        netEl.innerHTML = '✨ Nemico stordito — nessun danno subito!';
+        netEl.className = 'sf-net safe';
+      } else if (netHit === 0) {
+        netEl.innerHTML = '🛡️ Blocco totale! Nessun danno subito.';
+        netEl.className = 'sf-net safe';
+      } else {
+        netEl.innerHTML = `⚡ Danno previsto: <b>${netHit}</b> HP`;
+        netEl.className = 'sf-net danger';
+      }
+    } else {
+      netEl.innerHTML = 'Danno previsto: <b>—</b>';
+      netEl.className = 'sf-net';
+    }
+    document.getElementById('sf-confirm').disabled = !allAssigned;
   }
 
-  document.querySelectorAll('.scalata-die-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const t = btn.dataset.t;
-      const d = parseInt(btn.dataset.d);
-      const total = state.atk + state.def + state.mag;
-      if (d > 0 && total >= 4) return;
-      if (d < 0 && state[t] <= 0) return;
-      state[t] += d;
-      refreshDice();
+  document.querySelectorAll('.sf-die-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const idx = parseInt(card.dataset.idx);
+      diceState[idx] = (diceState[idx] + 1) % 4;
+      refreshUI();
     });
   });
-  refreshDice();
 
-  document.getElementById('btn-resolve').addEventListener('click', () => {
-    const result = RPG.scalataResolveDice(HERO, state);
+  document.getElementById('sf-confirm').addEventListener('click', () => {
+    const counts = { atk: 0, def: 0, mag: 0 };
+    diceState.forEach(t => { if (t > 0) counts[TYPES[t]]++; });
+
+    const result = RPG.scalataResolveDice(HERO, counts);
     if (!result) return;
     persist();
 
-    // Shake hero fighter if they took damage
-    if (result.enemyHit > 0) {
-      const hf = document.getElementById('fighter-hero');
-      if (hf) { hf.classList.add('hit-shake'); setTimeout(() => hf.classList.remove('hit-shake'), 400); }
-    }
+    const logEl    = document.getElementById('sf-log');
+    const diceEl   = document.getElementById('sf-dice-section');
+    const retreatBtn = document.getElementById('sf-retreat');
 
-    const logEl = document.getElementById('scalata-log');
-    const diceEl = document.getElementById('scalata-dice-section');
-    const retreatBtn = document.getElementById('btn-retreat');
-
-    let html = '<div class="scalata-log-rows">';
+    let html = '<div class="sf-log-rows">';
     if (result.heroDmg > 0)
-      html += `<div class="scalata-log-row hero-row">⚔️ Attacco: <b>−${result.heroDmg} HP</b> al nemico</div>`;
+      html += `<div class="sf-log-row hero-row">⚔️ Attacco: <b>−${result.heroDmg} HP</b> al nemico</div>`;
     if (result.magEffect === 'stun')
-      html += `<div class="scalata-log-row mag-row">✨ Stordisci! Il nemico non attacca.</div>`;
+      html += `<div class="sf-log-row mag-row">✨ Stordisci! Il nemico non attacca.</div>`;
     else if (result.magEffect === 'poison')
-      html += `<div class="scalata-log-row mag-row">✨ Veleno: <b>−${result.magExtra} HP</b> extra al nemico</div>`;
+      html += `<div class="sf-log-row mag-row">✨ Veleno: <b>−${result.magExtra} HP</b> extra al nemico</div>`;
     else if (result.magEffect === 'weaken')
-      html += `<div class="scalata-log-row mag-row">✨ Debolezza: +10 blocc aggiunto</div>`;
+      html += `<div class="sf-log-row mag-row">✨ Debolezza: +10 blocco aggiunto</div>`;
     if (result.enemyHit > 0)
-      html += `<div class="scalata-log-row enemy-row">🗡️ Nemico: <b>−${result.enemyHit} HP</b> a te</div>`;
+      html += `<div class="sf-log-row enemy-row">🗡️ Nemico: <b>−${result.enemyHit} HP</b> a te</div>`;
     else if (!result.heroDefeated && result.magEffect !== 'stun')
-      html += `<div class="scalata-log-row block-row">🛡️ Blocco totale! Nessun danno subito.</div>`;
+      html += `<div class="sf-log-row block-row">🛡️ Blocco totale! Nessun danno subito.</div>`;
     if (result.enemyDefeated && !result.heroDefeated)
-      html += `<div class="scalata-log-row win-row">✅ Piano superato! +${result.goldGained}🪙 +${result.xpGained}⭐</div>`;
+      html += `<div class="sf-log-row win-row">✅ Piano superato! +${result.goldGained}🪙 +${result.xpGained}⭐</div>`;
     html += '</div>';
 
     logEl.innerHTML = html;
@@ -764,21 +788,24 @@ function showScalataFloor() {
     diceEl.classList.add('hidden');
     if (retreatBtn) retreatBtn.classList.add('hidden');
 
+    function cleanupDark() { $('#modal-box').classList.remove('scalata-dark-modal'); }
+
     if (result.heroDefeated) {
-      logEl.insertAdjacentHTML('beforeend', '<div class="scalata-log-row defeat-row">💀 Sei caduto!</div>');
+      logEl.insertAdjacentHTML('beforeend', '<div class="sf-log-row defeat-row">💀 Sei caduto!</div>');
       sfx('defeat');
-      setTimeout(() => { closeModal(); showScalataEnd(); }, 2000);
+      setTimeout(() => { cleanupDark(); closeModal(); showScalataEnd(); }, 2000);
     } else if (result.enemyDefeated) {
       sfx('win');
-      setTimeout(() => { closeModal(); showScalataInterlude(); }, 1800);
+      setTimeout(() => { cleanupDark(); closeModal(); showScalataInterlude(); }, 1800);
     } else {
-      setTimeout(() => { closeModal(); showScalataFloor(); }, 1500);
+      setTimeout(() => { cleanupDark(); closeModal(); showScalataFloor(); }, 1500);
     }
   });
 
-  document.getElementById('btn-retreat').addEventListener('click', () => {
+  document.getElementById('sf-retreat').addEventListener('click', () => {
     RPG.scalataGiveUp(HERO);
     persist();
+    $('#modal-box').classList.remove('scalata-dark-modal');
     closeModal();
     showScalataEnd();
   });
