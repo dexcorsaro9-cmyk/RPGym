@@ -7246,6 +7246,7 @@ img.camp-layer {
 .pozzo-rarity-label { font-size: .72rem; font-weight: 700; letter-spacing: .08em; margin-bottom: 6px; }
 
 /* ── Catena del Fato ── */
+.catena-cards-img { width: 100%; max-height: 140px; object-fit: contain; margin: 6px 0 12px; display: block; }
 .catena-chain {
   display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 12px 0;
 }
