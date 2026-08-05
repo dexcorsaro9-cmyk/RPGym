@@ -2579,6 +2579,38 @@ img.camp-layer {
 }
 .sf-retreat-btn:hover { color: rgba(255,255,255,.52); border-color: rgba(255,255,255,.2); }
 
+/* ── Scalata interlude v2 — dark theme ───────────────────────────── */
+.si-wrap { display: flex; flex-direction: column; gap: 14px; color: rgba(255,255,255,.87); }
+
+.si-header { display: flex; flex-direction: column; align-items: center; gap: 5px; padding-bottom: 2px; }
+.si-check { font-size: 2.6rem; line-height: 1; }
+.si-title { font-family: 'Cinzel', serif; font-size: 1.05rem; font-weight: 700; color: var(--gold-bright); text-align: center; }
+.si-next { font-size: .82rem; color: rgba(255,255,255,.48); text-align: center; }
+.si-next.boss { color: #ff9040; font-weight: 700; }
+
+.si-hp-block { display: flex; flex-direction: column; gap: 5px; }
+.si-hp-label { font-size: .82rem; color: rgba(255,255,255,.5); font-variant-numeric: tabular-nums; }
+.si-hp-label.crit { color: #e87070; font-weight: 700; }
+.si-hpbar { height: 5px; background: rgba(255,255,255,.1); border-radius: 3px; overflow: hidden; }
+.si-hpfill { height: 100%; background: linear-gradient(90deg, #4cde7a, #2fa855); border-radius: 3px; transition: width .4s ease; }
+.si-hpfill.crit { background: #e84545; }
+
+.si-choices-title { font-family: 'Cinzel', serif; font-size: .68rem; font-weight: 700; color: rgba(255,255,255,.32); letter-spacing: .14em; }
+.si-choices { display: flex; flex-direction: column; gap: 8px; }
+.si-choice {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  padding: 13px 14px; border-radius: 10px; text-align: left; cursor: pointer;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1);
+  transition: background .18s, border-color .18s, transform .1s;
+}
+.si-choice:hover { background: rgba(201,147,46,.1); border-color: rgba(201,147,46,.38); }
+.si-choice:active { transform: scale(.98); background: rgba(201,147,46,.17); }
+.si-choice-icon { font-size: 1.55rem; flex-shrink: 0; line-height: 1; }
+.si-choice-body { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.si-choice-name { font-weight: 700; font-size: .9rem; color: rgba(255,255,255,.88); }
+.si-choice-desc { font-size: .76rem; color: rgba(255,255,255,.42); }
+.si-choice-arrow { font-size: 1.3rem; color: rgba(255,255,255,.18); flex-shrink: 0; line-height: 1; }
+
 /* Intro sfidante */
 .arena-intro { display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .arena-intro-img {

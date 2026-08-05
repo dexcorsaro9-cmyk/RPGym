@@ -6303,6 +6303,7 @@ function renderBestiaryView(c) {
 /* ══════════════ Modal & toast ══════════════ */
 function modal(html) {
   const box = $('#modal-box');
+  box.classList.remove('scalata-dark-modal');
   box.innerHTML = html;
   box.classList.remove('modal-opening');
   $('#modal').classList.remove('hidden');
@@ -6310,7 +6311,7 @@ function modal(html) {
 }
 function closeModal() {
   $('#modal').classList.add('hidden');
-  $('#modal-box').classList.remove('modal-opening');
+  $('#modal-box').classList.remove('modal-opening', 'scalata-dark-modal');
 }
 $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
 
