@@ -5814,8 +5814,10 @@ const RPG = (() => {
       'carica brutale', 'magia nera', 'presa stritolante', 'lama di vento',
     ];
 
+    function _biscaToday() { const d = new Date(); d.setHours(d.getHours() - 4); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+
     function biscaResetIfNeeded(hero) {
-      const today = todayStamp();
+      const today = _biscaToday();
       if (!hero.bisca) hero.bisca = {};
       if (hero.bisca.lastDate !== today) {
         hero.bisca.betsLeft = BISCA_DAILY_BETS;
@@ -5884,9 +5886,11 @@ const RPG = (() => {
 /* ── La Cartomante — Tenda del Fato ─────────────────────────────────────── */
 {
   const _C = (() => {
+    function _cartToday() { const d = new Date(); d.setHours(d.getHours() - 4); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+
     function cartReset(hero) {
       if (!hero.cartomante) hero.cartomante = {};
-      const t = todayStamp();
+      const t = _cartToday();
       if (hero.cartomante.date !== t) {
         hero.cartomante.date             = t;
         hero.cartomante.ruotaSpins       = 0;
