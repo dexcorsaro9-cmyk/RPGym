@@ -2075,7 +2075,7 @@ const RPG = (() => {
       id: 'h' + Date.now(),
       name, avatar,
       level: 1, xp: 0,
-      gold: 0, wood: 0, stone: 0,
+      gold: 0, wood: 0, stone: 0, fiches: 0,
       totalKm: 0,
       kmByType: { cyclette: 0, camminata: 0, corsa: 0 },
       lootBagsOpened: 0,
@@ -2202,6 +2202,9 @@ const RPG = (() => {
     if (h.onboardingStep === undefined) {
       h.onboardingStep = (h.tutorialDone || (h.totalKm || 0) > 0) ? 3 : 0;
     }
+
+    h.fiches = h.fiches || 0;
+    h.cartomante = h.cartomante || null;
 
     h.guild = h.guild || null; // { guildId, role, joinedAt, name, emblem, tag, level, totalKm }
 
@@ -5869,4 +5872,206 @@ const RPG = (() => {
   RPG.biscaResetIfNeeded  = _B.biscaResetIfNeeded;
   RPG.biscaPickFighters   = _B.biscaPickFighters;
   RPG.biscaBet            = _B.biscaBet;
+}
+
+/* ── La Cartomante — Tenda del Fato ─────────────────────────────────────── */
+{
+  const _C = (() => {
+    function todayStr() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+
+    function cartReset(hero) {
+      if (!hero.cartomante) hero.cartomante = {};
+      const t = todayStr();
+      if (hero.cartomante.date !== t) {
+        hero.cartomante.date             = t;
+        hero.cartomante.ruotaSpins       = 0;
+        hero.cartomante.catenaStep       = 0;
+        hero.cartomante.catenaDone       = false;
+        hero.cartomante.cassaOpenedToday = {};
+      }
+      if (!hero.cartomante.cassaOpenedToday) hero.cartomante.cassaOpenedToday = {};
+    }
+
+    /* ── Ruota del Fato ── */
+    const RUOTA_SECTORS = [
+      { id: 'gold_sm',    label: '🪙 ×30',        color: '#e8b64c', weight: 28 },
+      { id: 'fiches_sm',  label: '🎴 ×5',         color: '#9c6ae1', weight: 24 },
+      { id: 'wood',       label: '🪵 ×20',        color: '#a0714f', weight: 14 },
+      { id: 'nothing',    label: '💨 Vento',      color: '#6b7280', weight: 12 },
+      { id: 'gold_big',   label: '🪙 ×100',       color: '#f59e0b', weight: 8  },
+      { id: 'item',       label: '🎁 Oggetto',    color: '#3b82f6', weight: 7  },
+      { id: 'fiches_big', label: '🎴 ×20',        color: '#7c3aed', weight: 5  },
+      { id: 'jackpot',    label: '⭐ JACKPOT',    color: '#f97316', weight: 2  },
+    ];
+
+    function _ruotaResolve(hero, sectorId) {
+      switch (sectorId) {
+        case 'gold_sm':   hero.gold  += 30;                                        return { gold: 30 };
+        case 'gold_big':  hero.gold  += 100;                                       return { gold: 100 };
+        case 'fiches_sm': hero.fiches = (hero.fiches||0) + 5;                     return { fiches: 5 };
+        case 'fiches_big':hero.fiches = (hero.fiches||0) + 20;                    return { fiches: 20 };
+        case 'wood':      hero.wood  += 20;                                        return { wood: 20 };
+        case 'jackpot':   hero.gold += 300; hero.fiches = (hero.fiches||0) + 50;  return { gold: 300, fiches: 50, jackpot: true };
+        case 'item': {
+          const it = RPG.genItemFor(hero);
+          hero.items.push(it);
+          return { item: it };
+        }
+        default: return { nothing: true };
+      }
+    }
+
+    function spinRuota(hero) {
+      cartReset(hero);
+      const spins = hero.cartomante.ruotaSpins || 0;
+      const cost  = spins === 0 ? 0 : 15;
+      if (cost > 0 && (hero.fiches||0) < cost) return { error: 'no_fiches', cost };
+      if (cost > 0) hero.fiches -= cost;
+      const total = RUOTA_SECTORS.reduce((s, x) => s + x.weight, 0);
+      let r = Math.random() * total;
+      let idx = RUOTA_SECTORS.length - 1;
+      for (let i = 0; i < RUOTA_SECTORS.length; i++) { r -= RUOTA_SECTORS[i].weight; if (r <= 0) { idx = i; break; } }
+      const sector = RUOTA_SECTORS[idx];
+      const reward = _ruotaResolve(hero, sector.id);
+      hero.cartomante.ruotaSpins = spins + 1;
+      return { ok: true, idx, sector, reward, cost, spinsUsed: spins + 1 };
+    }
+
+    /* ── Pozzo delle Evocazioni ── */
+    const POZZO_COST = 40;
+    const POZZO_RARITIES = [
+      { rarity: 'comune',      weight: 50 },
+      { rarity: 'non comune',  weight: 28 },
+      { rarity: 'raro',        weight: 14 },
+      { rarity: 'epico',       weight: 6  },
+      { rarity: 'leggendario', weight: 2  },
+    ];
+
+    function pullPozzo(hero) {
+      if ((hero.fiches||0) < POZZO_COST) return { error: 'no_fiches', cost: POZZO_COST };
+      hero.fiches -= POZZO_COST;
+      const total = POZZO_RARITIES.reduce((s, x) => s + x.weight, 0);
+      let r = Math.random() * total;
+      let entry = POZZO_RARITIES[POZZO_RARITIES.length - 1];
+      for (const e of POZZO_RARITIES) { r -= e.weight; if (r <= 0) { entry = e; break; } }
+      const item = RPG.genItemFor(hero, entry.rarity);
+      hero.items.push(item);
+      return { ok: true, item, rarity: entry.rarity };
+    }
+
+    /* ── Catena del Fato ── */
+    const CATENA_STEPS = [
+      { gold: 20,  fiches: 2,  bust: 0.06 },
+      { gold: 45,  fiches: 4,  bust: 0.12 },
+      { gold: 90,  fiches: 7,  bust: 0.20 },
+      { gold: 160, fiches: 12, bust: 0.30 },
+      { gold: 260, fiches: 18, bust: 0.42 },
+      { gold: 400, fiches: 28, bust: 0.56 },
+      { gold: 600, fiches: 45, bust: 0.72 },
+    ];
+
+    function catenaRoll(hero) {
+      cartReset(hero);
+      if (hero.cartomante.catenaDone) return { error: 'done' };
+      const step = Math.min(hero.cartomante.catenaStep || 0, CATENA_STEPS.length - 1);
+      const s = CATENA_STEPS[step];
+      const busted = Math.random() < s.bust;
+      if (busted) {
+        hero.cartomante.catenaDone = true;
+        return { ok: true, busted: true, step };
+      }
+      hero.cartomante.catenaStep = step + 1;
+      const atMax = hero.cartomante.catenaStep >= CATENA_STEPS.length;
+      if (atMax) hero.cartomante.catenaDone = true;
+      return { ok: true, busted: false, step, goldPending: s.gold, fichesPending: s.fiches, atMax };
+    }
+
+    function catenaCashOut(hero) {
+      cartReset(hero);
+      if (hero.cartomante.catenaDone) return { error: 'done' };
+      const step = hero.cartomante.catenaStep || 0;
+      if (step === 0) return { error: 'no_progress' };
+      let totalGold = 0, totalFiches = 10; // +10 cash-out bonus
+      for (let i = 0; i < step; i++) { totalGold += CATENA_STEPS[i].gold; totalFiches += CATENA_STEPS[i].fiches; }
+      hero.gold  += totalGold;
+      hero.fiches = (hero.fiches||0) + totalFiches;
+      hero.cartomante.catenaDone = true;
+      return { ok: true, gold: totalGold, fiches: totalFiches };
+    }
+
+    /* ── Casse Chiuse ── */
+    const CASSA_TYPES = [
+      { id: 'bronzo',  name: 'Cassa di Bronzo',   emoji: '🥉', keyCost: 20,
+        pool: [
+          { w: 55, resolve: h => { const i = RPG.genItemFor(h,'comune');     h.items.push(i); return { item:i, rarity:'comune' }; } },
+          { w: 28, resolve: h => { const i = RPG.genItemFor(h,'non comune'); h.items.push(i); return { item:i, rarity:'non_comune' }; } },
+          { w: 10, resolve: h => { h.gold += 25; return { gold:25 }; } },
+          { w: 7,  resolve: h => { const i = RPG.genItemFor(h,'raro');       h.items.push(i); return { item:i, rarity:'raro' }; } },
+        ]},
+      { id: 'argento', name: 'Cassa d\'Argento',  emoji: '🥈', keyCost: 40,
+        pool: [
+          { w: 38, resolve: h => { const i = RPG.genItemFor(h,'non comune'); h.items.push(i); return { item:i, rarity:'non_comune' }; } },
+          { w: 32, resolve: h => { const i = RPG.genItemFor(h,'raro');       h.items.push(i); return { item:i, rarity:'raro' }; } },
+          { w: 15, resolve: h => { h.gold += 70; return { gold:70 }; } },
+          { w: 10, resolve: h => { const i = RPG.genItemFor(h,'epico');      h.items.push(i); return { item:i, rarity:'epico' }; } },
+          { w: 5,  resolve: h => { h.fiches = (h.fiches||0)+25; return { fiches:25 }; } },
+        ]},
+      { id: 'oro',    name: 'Cassa d\'Oro',       emoji: '🥇', keyCost: 80,
+        pool: [
+          { w: 38, resolve: h => { const i = RPG.genItemFor(h,'raro');        h.items.push(i); return { item:i, rarity:'raro' }; } },
+          { w: 28, resolve: h => { const i = RPG.genItemFor(h,'epico');       h.items.push(i); return { item:i, rarity:'epico' }; } },
+          { w: 15, resolve: h => { h.gold += 180; return { gold:180 }; } },
+          { w: 12, resolve: h => { const i = RPG.genItemFor(h,'leggendario'); h.items.push(i); return { item:i, rarity:'leggendario' }; } },
+          { w: 7,  resolve: h => { h.fiches = (h.fiches||0)+50; return { fiches:50 }; } },
+        ]},
+    ];
+
+    function openCassa(hero, cassaId) {
+      cartReset(hero);
+      const type = CASSA_TYPES.find(c => c.id === cassaId);
+      if (!type) return { error: 'invalid' };
+      if ((hero.fiches||0) < type.keyCost) return { error: 'no_fiches', cost: type.keyCost };
+      hero.fiches -= type.keyCost;
+      const pool  = type.pool;
+      const total = pool.reduce((s, x) => s + x.w, 0);
+      let r = Math.random() * total;
+      let entry = pool[pool.length - 1];
+      for (const e of pool) { r -= e.w; if (r <= 0) { entry = e; break; } }
+      const reward = entry.resolve(hero);
+      return { ok: true, reward };
+    }
+
+    /* ── Lascio o Raddoppio ── */
+    function lascioBet(hero, goldAmount, pick) {
+      if (!goldAmount || goldAmount <= 0) return { error: 'no_gold' };
+      if (pick === 'lascio') return { ok: true, kept: goldAmount };
+      const won = Math.random() < 0.50;
+      if (won) {
+        hero.gold  += goldAmount;
+        hero.fiches = (hero.fiches||0) + 5;
+        return { ok: true, won: true, bonus: goldAmount, fiches: 5 };
+      } else {
+        hero.gold = Math.max(0, (hero.gold||0) - goldAmount);
+        return { ok: true, won: false, lost: goldAmount };
+      }
+    }
+
+    return { RUOTA_SECTORS, CATENA_STEPS, CASSA_TYPES, POZZO_COST,
+             cartReset, spinRuota, pullPozzo, catenaRoll, catenaCashOut, openCassa, lascioBet };
+  })();
+
+  RPG.RUOTA_SECTORS   = _C.RUOTA_SECTORS;
+  RPG.CATENA_STEPS    = _C.CATENA_STEPS;
+  RPG.CASSA_TYPES     = _C.CASSA_TYPES;
+  RPG.POZZO_COST      = _C.POZZO_COST;
+  RPG.cartReset       = _C.cartReset;
+  RPG.spinRuota       = _C.spinRuota;
+  RPG.pullPozzo       = _C.pullPozzo;
+  RPG.catenaRoll      = _C.catenaRoll;
+  RPG.catenaCashOut   = _C.catenaCashOut;
+  RPG.openCassa       = _C.openCassa;
+  RPG.lascioBet       = _C.lascioBet;
 }
