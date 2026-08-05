@@ -593,7 +593,9 @@ function openScalata() {
       : `<p class="center muted small" style="margin-top:4px">🗝️ Con una <b>Chiave della Scalata</b> potresti ritentare oggi.</p>`;
     modal(`<div class="sc-open">
       <div class="sc-open-banner">
-        <div class="sc-open-tower">🗼</div>
+        <img class="sc-open-tower-img" src="assets/scalata/torre.webp" alt="" aria-hidden="true"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <div class="sc-open-tower-fallback" style="display:none">🏰</div>
         <div class="sc-open-title">LA SCALATA DELL'EROE</div>
         <div class="sc-open-sub">Hai già affrontato la Scalata oggi.<br>Torna domani per scalare di nuovo.</div>
       </div>
@@ -619,31 +621,40 @@ function openScalata() {
     return;
   }
 
-  const best  = HERO.scalataRecord?.bestFloor || 0;
-  const runs  = HERO.scalataRecord?.totalRuns || 0;
+  const best  = HERO.scalataRecord?.bestFloor ?? 0;
+  const runs  = HERO.scalataRecord?.totalRuns  ?? 0;
+  const firstTime = runs === 0;
+  const recordsHtml = firstTime
+    ? `<div class="sc-open-first">
+        <span class="sc-open-first-badge">⚔️ Prima sfida</span>
+        <span class="sc-open-first-txt">Nessun record da battere — solo da stabilire.</span>
+       </div>`
+    : `<div class="sc-open-records">
+        <div class="sc-open-rec">
+          <div class="sc-open-rec-val">${best}</div>
+          <div class="sc-open-rec-lbl">Piano massimo</div>
+        </div>
+        <div class="sc-open-rec">
+          <div class="sc-open-rec-val">${runs}</div>
+          <div class="sc-open-rec-lbl">Run totali</div>
+        </div>
+      </div>`;
   modal(`<div class="sc-open">
     <div class="sc-open-banner">
-      <div class="sc-open-tower">🗼</div>
+      <img class="sc-open-tower-img" src="assets/scalata/torre.webp" alt="" aria-hidden="true"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+      <div class="sc-open-tower-fallback" style="display:none">🏰</div>
       <div class="sc-open-title">LA SCALATA DELL'EROE</div>
       <div class="sc-open-sub">Scala piani infiniti finché cadi. Una chance al giorno.</div>
     </div>
-    <div class="sc-open-records">
-      <div class="sc-open-rec">
-        <div class="sc-open-rec-val">${best || '—'}</div>
-        <div class="sc-open-rec-lbl">Piano massimo</div>
-      </div>
-      <div class="sc-open-rec">
-        <div class="sc-open-rec-val">${runs || '—'}</div>
-        <div class="sc-open-rec-lbl">Run totali</div>
-      </div>
-    </div>
+    ${recordsHtml}
     <div class="sc-open-rules">
-      <div class="sc-open-rule">⚔️ Alloca 4 dadi ogni round tra Attacco, Difesa e Magia</div>
-      <div class="sc-open-rule">🛡️ Gli HP persistono tra un piano e l'altro</div>
-      <div class="sc-open-rule">⭐ Ogni 5° piano incontra un Boss potente</div>
+      <div class="sc-open-rule"><span class="sc-rule-ico">⚔️</span> Alloca 4 dadi ogni round tra Attacco, Difesa e Magia</div>
+      <div class="sc-open-rule"><span class="sc-rule-ico">🛡️</span> Gli HP persistono tra un piano e l'altro</div>
+      <div class="sc-open-rule"><span class="sc-rule-ico">⭐</span> Ogni 5° piano incontra un Boss potente</div>
     </div>
-    <button class="sc-enter-btn" id="btn-scalata-start">🗼 INIZIA LA SCALATA</button>
-    <button class="btn wide" onclick="closeModal()">Forse dopo…</button>
+    <button class="sc-enter-btn" id="btn-scalata-start">🏰 INIZIA LA SCALATA</button>
+    <button class="btn btn-ghost wide sc-later-btn" onclick="closeModal()">Forse dopo…</button>
   </div>`);
   document.getElementById('btn-scalata-start').addEventListener('click', () => {
     RPG.startScalata(HERO);
