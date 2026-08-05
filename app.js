@@ -5043,7 +5043,7 @@ function renderMarket(c) {
     const cartEntry = el('div', 'panel borgo-entry-panel cartomante-entry-panel');
     const cartThumb = document.createElement('img');
     cartThumb.loading = 'eager';
-    cartThumb.src = 'assets/cartomante/header-cartomante.webp';
+    cartThumb.src = 'assets/cartomante/header-cartomante.jpg';
     cartThumb.alt = '';
     cartThumb.className = 'borgo-entry-header';
     cartThumb.onerror = () => cartThumb.remove();
@@ -5155,12 +5155,16 @@ function renderCartomanteView(c) {
   c.appendChild(_cartBack('hub'));
 
   const hImg = document.createElement('img');
-  hImg.src = 'assets/cartomante/header-cartomante.webp';
+  hImg.src = 'assets/cartomante/header-cartomante.jpg';
   hImg.alt = ''; hImg.className = 'borgo-sub-header';
   hImg.onerror = () => hImg.remove();
   c.appendChild(hImg);
 
   c.appendChild(el('h2', 'section-title', '🔮 La Tenda del Fato'));
+
+  // NPC banner
+  c.appendChild(npcBanner('assets/cartomante/cartomante-npc.webp', 'La Cartomante',
+    '«Le stelle non mentono. Entrate, se avete il coraggio di sapere cosa vi riserva il destino.»'));
 
   // Fiches balance
   const bal = el('div', 'cart-balance-bar');
@@ -5168,7 +5172,7 @@ function renderCartomanteView(c) {
   c.appendChild(bal);
 
   c.appendChild(el('p', 'muted small center',
-    'La Cartomante custodisce cinque misteri. Le Fiches si guadagnano vincendo al Lascio o Raddoppio dopo ogni allenamento.'));
+    'Le Fiches si guadagnano vincendo al <b>Lascio o Raddoppio</b> dopo ogni allenamento.'));
 
   // 5 station cards
   const stations = [
@@ -5220,7 +5224,7 @@ function renderRuotaView(c) {
   c.appendChild(_cartBack('cartomante'));
 
   const hImg = document.createElement('img');
-  hImg.src = 'assets/cartomante/header-cartomante.webp';
+  hImg.src = 'assets/cartomante/header-cartomante.jpg';
   hImg.alt = ''; hImg.className = 'borgo-sub-header'; hImg.onerror = () => hImg.remove();
   c.appendChild(hImg);
 
@@ -5328,7 +5332,7 @@ function renderPozzoView(c) {
   c.appendChild(_cartBack('cartomante'));
 
   const hImg = document.createElement('img');
-  hImg.src = 'assets/cartomante/header-cartomante.webp';
+  hImg.src = 'assets/cartomante/header-cartomante.jpg';
   hImg.alt = ''; hImg.className = 'borgo-sub-header'; hImg.onerror = () => hImg.remove();
   c.appendChild(hImg);
 
@@ -5394,11 +5398,16 @@ function renderCatenaView(c) {
   c.appendChild(_cartBack('cartomante'));
 
   const hImg = document.createElement('img');
-  hImg.src = 'assets/cartomante/header-cartomante.webp';
+  hImg.src = 'assets/cartomante/header-cartomante.jpg';
   hImg.alt = ''; hImg.className = 'borgo-sub-header'; hImg.onerror = () => hImg.remove();
   c.appendChild(hImg);
 
   c.appendChild(el('h2', 'section-title', '⛓️ La Catena del Fato'));
+
+  const catenaCardsImg = document.createElement('img');
+  catenaCardsImg.src = 'assets/cartomante/carte-catena.webp';
+  catenaCardsImg.className = 'catena-cards-img'; catenaCardsImg.onerror = () => catenaCardsImg.remove();
+  c.appendChild(catenaCardsImg);
 
   const cart = HERO.cartomante;
   const step  = cart.catenaStep || 0;
@@ -5485,7 +5494,7 @@ function renderCasseView(c) {
   c.appendChild(_cartBack('cartomante'));
 
   const hImg = document.createElement('img');
-  hImg.src = 'assets/cartomante/header-cartomante.webp';
+  hImg.src = 'assets/cartomante/header-cartomante.jpg';
   hImg.alt = ''; hImg.className = 'borgo-sub-header'; hImg.onerror = () => hImg.remove();
   c.appendChild(hImg);
 
