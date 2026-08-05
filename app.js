@@ -899,6 +899,7 @@ function showResources() {
     <div class="res-detail"><span class="res-detail-icon">🪙</span><div><b>Moneta d'Oro</b><br><span class="small muted">La valuta del reame: compra cavalcature, armi e armature.</span></div><b class="res-detail-qty">${HERO.gold}</b></div>
     <div class="res-detail"><span class="res-detail-icon">🪵</span><div><b>Legno</b><br><span class="small muted">Materiale da costruzione per il tuo Rifugio.</span></div><b class="res-detail-qty">${HERO.wood}</b></div>
     <div class="res-detail"><span class="res-detail-icon">🪨</span><div><b>Roccia</b><br><span class="small muted">Pietra grezza per le strutture più solide.</span></div><b class="res-detail-qty">${HERO.stone}</b></div>
+    <div class="res-detail res-detail-fiches"><span class="res-detail-icon">🎴</span><div><b>Fiches del Fato</b><br><span class="small muted">Valuta della Cartomante: vinci al Lascio o Raddoppio, spendi alla Tenda del Fato.</span></div><b class="res-detail-qty">${HERO.fiches||0}</b></div>
     <button class="btn btn-primary wide" onclick="closeModal()">Chiudi</button>
   `);
 }
@@ -947,6 +948,7 @@ function renderHUD() {
   bumpRes('res-gold', HERO.gold);
   bumpRes('res-wood', HERO.wood);
   bumpRes('res-stone', HERO.stone);
+  bumpRes('res-fiches', HERO.fiches || 0);
   updateBadges();
 }
 
@@ -4675,6 +4677,25 @@ function showReport(r) {
   if (navigator.share) {
     html += `<button class="btn wide" id="btn-share-rpt">📤 Condividi risultato</button>`;
   }
+
+  // ── Lascio o Raddoppio ─────────────────────────────────────────────────
+  const showLR = r.gold > 0 && !PENDING_CHEST;
+  if (showLR) {
+    html += `<div id="lr-section" class="lr-section">
+      <div class="lr-header">
+        <img class="lr-fiche-icon" src="assets/cartomante/fiche-del-fato.webp" onerror="this.style.display='none'">
+        <span class="lr-title">🎴 Lascio o Raddoppio?</span>
+      </div>
+      <p class="muted small center">La Cartomante ti propone una sfida: metti a rischio i tuoi <b>${r.gold} 🪙</b> per raddoppiarli, oppure tienili.</p>
+      <div id="lr-btns" class="lr-btns">
+        <button class="btn wide lr-btn-safe" id="btn-lr-lascio">✋ Lascio (tengo ${r.gold} 🪙)</button>
+        <button class="btn btn-primary wide lr-btn-risk" id="btn-lr-raddoppio">🎴 Raddoppio! (×2 o zero)</button>
+      </div>
+      <div id="lr-result" class="lr-result" style="display:none"></div>
+    </div>`;
+  }
+  // ───────────────────────────────────────────────────────────────────────
+
   if (pendingBiomeLore) {
     html += `<button class="btn btn-primary wide" id="btn-report-close">📜 Continua il Viaggio</button>`;
   } else {
@@ -4694,6 +4715,35 @@ function showReport(r) {
         setTimeout(() => showBiomeParchment(pendingBiomeLore), 300);
       }
     });
+
+    // ── L/R handlers ──────────────────────────────────────────────────
+    const lrLascio    = $('#btn-lr-lascio');
+    const lrRaddoppio = $('#btn-lr-raddoppio');
+    if (lrLascio) {
+      lrLascio.addEventListener('click', () => {
+        document.getElementById('lr-btns').style.display   = 'none';
+        document.getElementById('lr-result').style.display = '';
+        document.getElementById('lr-result').innerHTML     =
+          `<div class="lr-kept">✋ Saggio. Tieni i tuoi <b>${r.gold} 🪙</b>.</div>`;
+      });
+    }
+    if (lrRaddoppio) {
+      lrRaddoppio.addEventListener('click', () => {
+        const res = RPG.lascioBet(HERO, r.gold, 'raddoppio');
+        persist(); renderHUD();
+        document.getElementById('lr-btns').style.display = 'none';
+        const resultEl = document.getElementById('lr-result');
+        resultEl.style.display = '';
+        if (res.won) {
+          resultEl.innerHTML = `<div class="lr-win">🎉 LA SORTE È CON TE! +${res.bonus} 🪙<br><span class="small">+5 🎴 Fiches del Fato guadagnate!</span></div>`;
+          sfx('coin'); vibrate([100, 50, 200, 50, 300]);
+        } else {
+          resultEl.innerHTML = `<div class="lr-lose">💀 Il dado era contro di te. Perdi ${res.lost} 🪙.</div>`;
+          vibrate([400]);
+        }
+      });
+    }
+    // ────────────────────────────────────────────────────────────────
   }, 50);
 
   // Animate XP bar
@@ -4874,12 +4924,17 @@ let NERO_FILTER = 'all';
 
 function renderMarket(c) {
   try {
-  if (MARKET_VIEW === 'taverna')   { renderTavernaView(c);   return; }
-  if (MARKET_VIEW === 'bisca')     { renderBiscaView(c);     return; }
-  if (MARKET_VIEW === 'stalla')    { renderStallaView(c);    return; }
-  if (MARKET_VIEW === 'nero')      { renderNeroView(c);      return; }
-  if (MARKET_VIEW === 'fucina')    { renderFucinaView(c);    return; }
-  if (MARKET_VIEW === 'erborista') { renderErboristaView(c); return; }
+  if (MARKET_VIEW === 'taverna')     { renderTavernaView(c);     return; }
+  if (MARKET_VIEW === 'bisca')       { renderBiscaView(c);       return; }
+  if (MARKET_VIEW === 'stalla')      { renderStallaView(c);      return; }
+  if (MARKET_VIEW === 'nero')        { renderNeroView(c);        return; }
+  if (MARKET_VIEW === 'fucina')      { renderFucinaView(c);      return; }
+  if (MARKET_VIEW === 'erborista')   { renderErboristaView(c);   return; }
+  if (MARKET_VIEW === 'cartomante')  { renderCartomanteView(c);  return; }
+  if (MARKET_VIEW === 'ruota')       { renderRuotaView(c);       return; }
+  if (MARKET_VIEW === 'pozzo')       { renderPozzoView(c);       return; }
+  if (MARKET_VIEW === 'catena')      { renderCatenaView(c);      return; }
+  if (MARKET_VIEW === 'casse')       { renderCasseView(c);       return; }
 
   const marketTitle = el('h2', 'section-title', '🏘️ Il Borgo');
   c.appendChild(marketTitle);
@@ -4981,6 +5036,29 @@ function renderMarket(c) {
     c.appendChild(biscaEntry);
   }
 
+  // ── La Cartomante ──
+  {
+    RPG.cartReset(HERO);
+    const cart = HERO.cartomante || {};
+    const cartEntry = el('div', 'panel borgo-entry-panel cartomante-entry-panel');
+    const cartThumb = document.createElement('img');
+    cartThumb.loading = 'eager';
+    cartThumb.src = 'assets/cartomante/header-cartomante.webp';
+    cartThumb.alt = '';
+    cartThumb.className = 'borgo-entry-header';
+    cartThumb.onerror = () => cartThumb.remove();
+    cartEntry.appendChild(cartThumb);
+    cartEntry.appendChild(el('h3', 'panel-title', '🔮 La Cartomante'));
+    cartEntry.appendChild(el('p', 'muted small borgo-entry-quote',
+      '«Le stelle non mentono. Entrate, se avete il coraggio di sapere cosa vi riserva il destino.»'));
+    const fichesNow = HERO.fiches || 0;
+    cartEntry.appendChild(el('div', 'cart-badge-row', `<span class="cart-fiches-badge">🎴 ${fichesNow} Fiches</span>${cart.ruotaSpins > 0 ? '' : ' <span class="cart-free-badge">✨ Giro gratis disponibile</span>'}`));
+    const enterCartBtn = el('button', 'btn btn-primary wide', '🔮 Entra nella Tenda');
+    enterCartBtn.addEventListener('click', () => { MARKET_VIEW = 'cartomante'; setTab('market'); });
+    cartEntry.appendChild(enterCartBtn);
+    c.appendChild(cartEntry);
+  }
+
   // ── La Taverna delle Sfide ──
   {
     const tavernaEntry2 = el('div', 'panel borgo-entry-panel taverna-entry-panel');
@@ -5061,6 +5139,419 @@ function renderStallaView(c)    { _borgoSubView(c, 'assets/ui/header stalla.webp
 function renderNeroView(c)      { _borgoSubView(c, 'assets/ui/header contrabbando.webp',   '🕯️ Il Mercato Nero',  renderNero); }
 function renderFucinaView(c)    { _borgoSubView(c, 'assets/ui/header fucina.webp',         '⚒️ La Fucina',        renderFucina); }
 function renderErboristaView(c) { _borgoSubView(c, 'assets/header bazar.webp',           '🧪 Il Bazar',         renderErborista); }
+
+/* ══════════════════════════════════════════════════════════
+   CARTOMANTE — Tenda del Fato
+   ══════════════════════════════════════════════════════════ */
+
+function _cartBack(view) {
+  const btn = el('button', 'view-back-link', view === 'hub' ? '‹ Il Borgo' : '‹ La Cartomante');
+  btn.addEventListener('click', () => { MARKET_VIEW = view; setTab('market'); });
+  return btn;
+}
+
+function renderCartomanteView(c) {
+  RPG.cartReset(HERO);
+  c.appendChild(_cartBack('hub'));
+
+  const hImg = document.createElement('img');
+  hImg.src = 'assets/cartomante/header-cartomante.webp';
+  hImg.alt = ''; hImg.className = 'borgo-sub-header';
+  hImg.onerror = () => hImg.remove();
+  c.appendChild(hImg);
+
+  c.appendChild(el('h2', 'section-title', '🔮 La Tenda del Fato'));
+
+  // Fiches balance
+  const bal = el('div', 'cart-balance-bar');
+  bal.innerHTML = `<span class="cart-bal-label">🎴 Le tue Fiches del Fato:</span> <b class="cart-bal-num">${HERO.fiches||0}</b>`;
+  c.appendChild(bal);
+
+  c.appendChild(el('p', 'muted small center',
+    'La Cartomante custodisce cinque misteri. Le Fiches si guadagnano vincendo al Lascio o Raddoppio dopo ogni allenamento.'));
+
+  // 5 station cards
+  const stations = [
+    { key: 'ruota',  emoji: '🎡', title: 'Ruota del Fato',         img: 'assets/cartomante/ruota-del-fato.webp',
+      desc: 'Girala: il primo giro ogni giorno è gratis. I successivi costano 15 🎴.',
+      badge: (() => { const s = HERO.cartomante && HERO.cartomante.ruotaSpins || 0; return s === 0 ? '✨ Giro gratis!' : `🎡 ${s} giri oggi`; })() },
+    { key: 'pozzo',  emoji: '🌀', title: 'Pozzo delle Evocazioni',  img: 'assets/cartomante/pozzo-evocazioni.webp',
+      desc: `Estrai un oggetto casuale dal Pozzo. Costa ${RPG.POZZO_COST} 🎴 a evocazione.`,
+      badge: `🎴 ${RPG.POZZO_COST} per pull` },
+    { key: 'catena', emoji: '⛓️', title: 'Catena del Fato',         img: 'assets/cartomante/dado-destino.webp',
+      desc: 'Accumula oro e fiches ad ogni anello. Incassa quando vuoi — o rischia di perdere tutto.',
+      badge: (() => { const done = HERO.cartomante && HERO.cartomante.catenaDone; const step = HERO.cartomante && HERO.cartomante.catenaStep || 0; return done ? '✅ Completata oggi' : step > 0 ? `⛓️ Anello ${step}` : '⛓️ Disponibile'; })() },
+    { key: 'casse',  emoji: '📦', title: 'Casse Chiuse',            img: 'assets/cartomante/casse.webp',
+      desc: 'Tre casse con ricompense crescenti. Ogni chiave costa Fiches del Fato.',
+      badge: '📦 20 / 40 / 80 🎴' },
+  ];
+
+  stations.forEach(({ key, emoji, title, img, desc, badge }) => {
+    const card = el('div', 'panel borgo-entry-panel cart-station-card');
+    const thumb = document.createElement('img');
+    thumb.loading = 'lazy'; thumb.src = img; thumb.alt = '';
+    thumb.className = 'borgo-entry-header'; thumb.onerror = () => thumb.remove();
+    card.appendChild(thumb);
+    card.appendChild(el('h3', 'panel-title', `${emoji} ${title}`));
+    card.appendChild(el('p', 'muted small borgo-entry-quote', desc));
+    card.appendChild(el('div', 'cart-station-badge', badge));
+    const btn = el('button', 'btn btn-primary wide', `${emoji} Gioca`);
+    btn.addEventListener('click', () => { MARKET_VIEW = key; setTab('market'); });
+    card.appendChild(btn);
+    c.appendChild(card);
+  });
+
+  // L/R teaser
+  const lr = el('div', 'panel cart-lr-teaser');
+  lr.innerHTML = `
+    <div class="cart-lr-teaser-inner">
+      <img class="cart-lr-icon" src="assets/cartomante/fiche-del-fato.webp" onerror="this.style.display='none'">
+      <div>
+        <b>🎴 Lascio o Raddoppio</b><br>
+        <span class="small muted">Si attiva automaticamente dopo ogni allenamento. Vinci: +5 Fiches. Perdi: addio all'oro di quella sessione.</span>
+      </div>
+    </div>`;
+  c.appendChild(lr);
+}
+
+/* ── Ruota del Fato ── */
+function renderRuotaView(c) {
+  RPG.cartReset(HERO);
+  c.appendChild(_cartBack('cartomante'));
+
+  const hImg = document.createElement('img');
+  hImg.src = 'assets/cartomante/header-cartomante.webp';
+  hImg.alt = ''; hImg.className = 'borgo-sub-header'; hImg.onerror = () => hImg.remove();
+  c.appendChild(hImg);
+
+  c.appendChild(el('h2', 'section-title', '🎡 Ruota del Fato'));
+
+  const spins = HERO.cartomante.ruotaSpins || 0;
+  const cost  = spins === 0 ? 0 : 15;
+
+  const fichesBar = el('div', 'cart-balance-bar');
+  fichesBar.innerHTML = `🎴 <b id="ruota-fiches">${HERO.fiches||0}</b> Fiches &nbsp;·&nbsp; ${spins === 0 ? '<span class="cart-free-badge">1° giro gratis!</span>' : `Giri oggi: <b>${spins}</b> · Costo: 15 🎴`}`;
+  c.appendChild(fichesBar);
+
+  // Wheel visual
+  const wheelWrap = el('div', 'ruota-wrap');
+  const wheelImg = document.createElement('img');
+  wheelImg.src = 'assets/cartomante/ruota-del-fato.webp';
+  wheelImg.className = 'ruota-img'; wheelImg.id = 'ruota-img';
+  wheelImg.onerror = () => wheelImg.remove();
+  wheelWrap.appendChild(wheelImg);
+
+  // Sector strip
+  const strip = el('div', 'ruota-strip');
+  RPG.RUOTA_SECTORS.forEach((s, i) => {
+    const chip = el('span', 'ruota-chip', s.label);
+    chip.style.borderColor = s.color;
+    strip.appendChild(chip);
+  });
+  wheelWrap.appendChild(strip);
+  c.appendChild(wheelWrap);
+
+  // Result area
+  const resultArea = el('div', 'ruota-result-area'); resultArea.id = 'ruota-result';
+  c.appendChild(resultArea);
+
+  // Spin button
+  const spinBtn = el('button', 'btn btn-primary wide ruota-spin-btn',
+    cost === 0 ? '🎡 Gira la Ruota! (Gratis)' : `🎡 Gira la Ruota! (${cost} 🎴)`);
+  spinBtn.disabled = (cost > 0 && (HERO.fiches||0) < cost);
+  c.appendChild(spinBtn);
+
+  spinBtn.addEventListener('click', () => {
+    spinBtn.disabled = true;
+    resultArea.innerHTML = `<div class="ruota-spinning">🎡 La ruota gira…</div>`;
+
+    // Animate wheel rotation
+    const img = document.getElementById('ruota-img');
+    if (img) {
+      const baseRot = 1440 + Math.floor(Math.random() * 360);
+      img.style.transition = 'transform 3.2s cubic-bezier(0.17,0.67,0.12,0.99)';
+      img.style.transform  = `rotate(${baseRot}deg)`;
+    }
+
+    setTimeout(() => {
+      const res = RPG.spinRuota(HERO);
+      persist(); renderHUD();
+
+      if (res.error === 'no_fiches') {
+        resultArea.innerHTML = `<div class="ruota-result-box ruota-lose">🎴 Fiches insufficienti! Servono ${res.cost}.</div>`;
+        spinBtn.disabled = false;
+        return;
+      }
+
+      const sector = res.sector;
+      // Highlight landed chip
+      document.querySelectorAll('.ruota-chip').forEach((chip, i) => {
+        chip.classList.toggle('ruota-chip-active', i === res.idx);
+      });
+
+      let rewardText = '';
+      const rw = res.reward;
+      if (rw.jackpot)    rewardText = `<b>⭐ JACKPOT!</b> +${rw.gold} 🪙 +${rw.fiches} 🎴`;
+      else if (rw.gold)  rewardText = `+${rw.gold} 🪙 Oro`;
+      else if (rw.fiches)rewardText = `+${rw.fiches} 🎴 Fiches`;
+      else if (rw.wood)  rewardText = `+${rw.wood} 🪵 Legna`;
+      else if (rw.item)  rewardText = `🎁 ${esc(rw.item.name)} (${rw.item.rarity})`;
+      else               rewardText = '💨 Il vento ti ha voltato le spalle.';
+
+      const isGood = !rw.nothing;
+      resultArea.innerHTML = `<div class="ruota-result-box ${isGood ? 'ruota-win' : 'ruota-nothing'}">
+        <div class="ruota-sector-name">${sector.label}</div>
+        <div class="ruota-reward-text">${rewardText}</div>
+      </div>`;
+
+      if (isGood && !rw.nothing) { sfx('coin'); vibrate([80, 40, 120]); }
+      if (rw.jackpot) vibrate([200, 100, 200, 100, 300]);
+
+      // Update fiches display
+      const fichesEl = document.getElementById('ruota-fiches');
+      if (fichesEl) fichesEl.textContent = HERO.fiches || 0;
+
+      // New spin button
+      const nextCost = 15;
+      const newSpinBtn = el('button', 'btn btn-primary wide ruota-spin-btn',
+        `🎡 Gira ancora (${nextCost} 🎴)`);
+      newSpinBtn.disabled = (HERO.fiches||0) < nextCost;
+      newSpinBtn.addEventListener('click', () => { MARKET_VIEW = 'ruota'; setTab('market'); });
+      c.appendChild(newSpinBtn);
+    }, 3400);
+  });
+}
+
+/* ── Pozzo delle Evocazioni ── */
+function renderPozzoView(c) {
+  RPG.cartReset(HERO);
+  c.appendChild(_cartBack('cartomante'));
+
+  const hImg = document.createElement('img');
+  hImg.src = 'assets/cartomante/header-cartomante.webp';
+  hImg.alt = ''; hImg.className = 'borgo-sub-header'; hImg.onerror = () => hImg.remove();
+  c.appendChild(hImg);
+
+  c.appendChild(el('h2', 'section-title', '🌀 Il Pozzo delle Evocazioni'));
+
+  const bal = el('div', 'cart-balance-bar');
+  bal.innerHTML = `🎴 <b id="pozzo-fiches">${HERO.fiches||0}</b> Fiches &nbsp;·&nbsp; Costo: <b>${RPG.POZZO_COST}</b> 🎴 per evocazione`;
+  c.appendChild(bal);
+
+  const wellWrap = el('div', 'pozzo-wrap');
+  const wellImg = document.createElement('img');
+  wellImg.src = 'assets/cartomante/pozzo-evocazioni.webp';
+  wellImg.className = 'pozzo-img'; wellImg.onerror = () => wellImg.remove();
+  wellWrap.appendChild(wellImg);
+  c.appendChild(wellWrap);
+
+  c.appendChild(el('p', 'muted small center',
+    'Le probabilità: Comune 50% · Non comune 28% · Raro 14% · Epico 6% · Leggendario 2%'));
+
+  const resultArea = el('div', 'pozzo-result'); resultArea.id = 'pozzo-result';
+  c.appendChild(resultArea);
+
+  const pullBtn = el('button', 'btn btn-primary wide',
+    `🌀 Evoca! (${RPG.POZZO_COST} 🎴)`);
+  pullBtn.disabled = (HERO.fiches||0) < RPG.POZZO_COST;
+  c.appendChild(pullBtn);
+
+  pullBtn.addEventListener('click', () => {
+    pullBtn.disabled = true;
+    resultArea.innerHTML = `<div class="pozzo-pulling">✨ Le energie del Pozzo si raccolgono…</div>`;
+    setTimeout(() => {
+      const res = RPG.pullPozzo(HERO);
+      persist(); renderHUD();
+      if (res.error === 'no_fiches') {
+        resultArea.innerHTML = `<div class="pozzo-empty">🎴 Fiches insufficienti! Servono ${res.cost}.</div>`;
+        return;
+      }
+      const { item, rarity } = res;
+      const rarColor = { comune: '#8a7a5f', 'non comune': '#2e6fb0', raro: '#2e6fb0', epico: '#7b3fbf', leggendario: '#d9822b' };
+      resultArea.innerHTML = `
+        <div class="pozzo-result-card" style="border-color:${rarColor[rarity]||'#8a7a5f'}">
+          <div class="pozzo-rarity-label" style="color:${rarColor[rarity]||'#8a7a5f'}">${rarity.toUpperCase()}</div>
+          ${itemHtml(item)}
+        </div>`;
+      sfx('coin');
+      if (rarity === 'leggendario' || rarity === 'epico') vibrate([200, 100, 200, 100, 300]);
+      else vibrate([80, 40, 120]);
+
+      const fichesEl = document.getElementById('pozzo-fiches');
+      if (fichesEl) fichesEl.textContent = HERO.fiches || 0;
+
+      const again = el('button', 'btn btn-primary wide', `🌀 Evoca ancora (${RPG.POZZO_COST} 🎴)`);
+      again.disabled = (HERO.fiches||0) < RPG.POZZO_COST;
+      again.addEventListener('click', () => { MARKET_VIEW = 'pozzo'; setTab('market'); });
+      c.appendChild(again);
+    }, 1600);
+  });
+}
+
+/* ── Catena del Fato ── */
+function renderCatenaView(c) {
+  RPG.cartReset(HERO);
+  c.appendChild(_cartBack('cartomante'));
+
+  const hImg = document.createElement('img');
+  hImg.src = 'assets/cartomante/header-cartomante.webp';
+  hImg.alt = ''; hImg.className = 'borgo-sub-header'; hImg.onerror = () => hImg.remove();
+  c.appendChild(hImg);
+
+  c.appendChild(el('h2', 'section-title', '⛓️ La Catena del Fato'));
+
+  const cart = HERO.cartomante;
+  const step  = cart.catenaStep || 0;
+  const done  = cart.catenaDone;
+
+  const bal = el('div', 'cart-balance-bar');
+  bal.innerHTML = `🪙 <b id="catena-gold">${HERO.gold}</b> &nbsp;·&nbsp; 🎴 <b id="catena-fiches">${HERO.fiches||0}</b>`;
+  c.appendChild(bal);
+
+  // Chain progress display
+  const chainEl = el('div', 'catena-chain');
+  RPG.CATENA_STEPS.forEach((s, i) => {
+    const node = el('div', `catena-node${i < step ? ' catena-done' : i === step && !done ? ' catena-current' : ' catena-future'}`);
+    node.innerHTML = `<span class="catena-node-num">${i + 1}</span>
+      <span class="catena-node-reward">🪙${s.gold}+🎴${s.fiches}</span>
+      <span class="catena-node-risk">${Math.round(s.bust * 100)}%💀</span>`;
+    chainEl.appendChild(node);
+  });
+  c.appendChild(chainEl);
+
+  const msgEl = el('div', 'catena-msg'); msgEl.id = 'catena-msg';
+  c.appendChild(msgEl);
+
+  if (done) {
+    const wasBusted = step === 0 || (step < RPG.CATENA_STEPS.length && cart.catenaDone);
+    msgEl.innerHTML = step === 0
+      ? `<div class="catena-bust">💀 La catena si è spezzata. Torna domani.</div>`
+      : `<div class="catena-cashed">✅ Hai incassato all'anello ${step}. Torna domani!</div>`;
+    return;
+  }
+
+  const btnRow = el('div', 'catena-btn-row');
+
+  if (step > 0) {
+    // Calculate pending total
+    let totalG = 0, totalF = 10;
+    for (let i = 0; i < step; i++) { totalG += RPG.CATENA_STEPS[i].gold; totalF += RPG.CATENA_STEPS[i].fiches; }
+    const cashBtn = el('button', 'btn wide catena-cash-btn', `✋ Incassa (${totalG} 🪙 + ${totalF} 🎴)`);
+    cashBtn.addEventListener('click', () => {
+      const res = RPG.catenaCashOut(HERO);
+      persist(); renderHUD();
+      MARKET_VIEW = 'catena'; setTab('market');
+      toast(`✋ Incassato! +${res.gold} 🪙 +${res.fiches} 🎴`);
+    });
+    btnRow.appendChild(cashBtn);
+  }
+
+  const rollBtn = el('button', 'btn btn-primary catena-roll-btn',
+    step === 0 ? '⛓️ Inizia la Catena' : `⛓️ Avanza (${Math.round(RPG.CATENA_STEPS[step].bust * 100)}% di bust)`);
+  rollBtn.addEventListener('click', () => {
+    rollBtn.disabled = true;
+    if (step > 0 && btnRow.querySelector('.catena-cash-btn')) btnRow.querySelector('.catena-cash-btn').disabled = true;
+    const res = RPG.catenaRoll(HERO);
+    persist(); renderHUD();
+
+    if (res.busted) {
+      msgEl.innerHTML = `<div class="catena-bust">💀 La catena si è spezzata! Niente oro oggi. Torna domani.</div>`;
+      document.querySelectorAll('.catena-node').forEach((n, i) => {
+        if (i === res.step) n.classList.add('catena-busted');
+      });
+      vibrate([500]);
+    } else {
+      if (res.atMax) {
+        // Auto cash-out at max step
+        const cashRes = RPG.catenaCashOut(HERO);
+        persist(); renderHUD();
+        msgEl.innerHTML = `<div class="catena-cashed">🏆 Catena completa! +${cashRes.gold} 🪙 +${cashRes.fiches} 🎴</div>`;
+        sfx('coin'); vibrate([200, 100, 200, 100, 400]);
+      } else {
+        msgEl.innerHTML = `<div class="catena-advance">✅ Anello ${res.step + 1} superato! +${res.goldPending} 🪙 +${res.fichesPending} 🎴 in sospeso</div>`;
+        sfx('coin'); vibrate([80, 40, 120]);
+        // Refresh the view for next roll
+        setTimeout(() => { MARKET_VIEW = 'catena'; setTab('market'); }, 1200);
+      }
+    }
+  });
+  btnRow.appendChild(rollBtn);
+  c.appendChild(btnRow);
+}
+
+/* ── Casse Chiuse ── */
+function renderCasseView(c) {
+  RPG.cartReset(HERO);
+  c.appendChild(_cartBack('cartomante'));
+
+  const hImg = document.createElement('img');
+  hImg.src = 'assets/cartomante/header-cartomante.webp';
+  hImg.alt = ''; hImg.className = 'borgo-sub-header'; hImg.onerror = () => hImg.remove();
+  c.appendChild(hImg);
+
+  c.appendChild(el('h2', 'section-title', '📦 Le Casse Chiuse'));
+
+  const bal = el('div', 'cart-balance-bar');
+  bal.innerHTML = `🎴 <b id="casse-fiches">${HERO.fiches||0}</b> Fiches`;
+  c.appendChild(bal);
+
+  c.appendChild(el('p', 'muted small center',
+    'Ogni cassa contiene ricompense di rarità crescente. Aprine una con le tue Fiches del Fato.'));
+
+  const resultArea = el('div', 'casse-result'); resultArea.id = 'casse-result';
+  c.appendChild(resultArea);
+
+  // Hero image of chest+key — shown once at top
+  const casseHeroImg = document.createElement('img');
+  casseHeroImg.src = 'assets/cartomante/casse.webp';
+  casseHeroImg.className = 'casse-hero-img';
+  casseHeroImg.onerror = () => casseHeroImg.remove();
+  c.appendChild(casseHeroImg);
+
+  RPG.CASSA_TYPES.forEach(ct => {
+    const card = el('div', `panel casse-card casse-${ct.id}`);
+    card.appendChild(el('h4', 'panel-title', `${ct.emoji} ${ct.name}`));
+    card.appendChild(el('div', 'casse-cost', `🗝️ Chiave: ${ct.keyCost} 🎴`));
+    const btn = el('button', 'btn btn-primary wide', `${ct.emoji} Apri!`);
+    btn.disabled = (HERO.fiches||0) < ct.keyCost;
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.casse-card button').forEach(b => b.disabled = true);
+      resultArea.innerHTML = `<div class="casse-opening">📦 La cassa si apre…</div>`;
+      setTimeout(() => {
+        const res = RPG.openCassa(HERO, ct.id);
+        persist(); renderHUD();
+        if (res.error === 'no_fiches') {
+          resultArea.innerHTML = `<div class="casse-opening">🎴 Fiches insufficienti!</div>`;
+          return;
+        }
+        const rw = res.reward;
+        let rewardHtml = '';
+        if (rw.item) {
+          const rarColor = { comune: '#8a7a5f', non_comune: '#2e6fb0', raro: '#2e6fb0', epico: '#7b3fbf', leggendario: '#d9822b' };
+          rewardHtml = `<div class="pozzo-result-card" style="border-color:${rarColor[rw.rarity]||'#8a7a5f'}">${itemHtml(rw.item)}</div>`;
+        } else if (rw.gold) rewardHtml = `<div class="casse-reward-text">🪙 +${rw.gold} Oro</div>`;
+        else if (rw.fiches) rewardHtml = `<div class="casse-reward-text">🎴 +${rw.fiches} Fiches</div>`;
+
+        resultArea.innerHTML = `
+          <div class="casse-result-wrap">
+            <div class="casse-result-title">${ct.emoji} ${ct.name} — Contenuto:</div>
+            ${rewardHtml}
+          </div>`;
+        sfx('coin');
+        if (rw.item && (rw.rarity === 'leggendario' || rw.rarity === 'epico')) vibrate([200, 100, 300]);
+        else vibrate([80, 40, 120]);
+
+        const fichesEl = document.getElementById('casse-fiches');
+        if (fichesEl) fichesEl.textContent = HERO.fiches || 0;
+        document.querySelectorAll('.casse-card button').forEach((b, bi) => {
+          b.disabled = (HERO.fiches||0) < RPG.CASSA_TYPES[bi].keyCost;
+        });
+      }, 900);
+    });
+    card.appendChild(btn);
+    c.appendChild(card);
+  });
+}
 
 function renderStalla(c) {
   c.appendChild(npcBanner('assets/avatars/npc/stalliere.webp', 'Ferro di Vecchio',
