@@ -721,6 +721,11 @@ const TUTORIAL_SLIDES = [
     scene: 'hubs',
   },
   {
+    title: 'La Guida è nelle Impostazioni',
+    text: 'Trovi il <b>Manuale del Giocatore</b> completo nelle <b>Impostazioni</b> ⚙️ — regole, formule e segreti di Hero\'s Pace tutti in un posto.',
+    scene: 'guide',
+  },
+  {
     title: 'Inizia adesso!',
     text: 'Vai in <b>Allenati</b> e registra il tuo primo km. Il Rifugio ti aspetta — e la leggenda ha già inizio.',
     scene: 'start',
@@ -742,6 +747,12 @@ function _buildTutScene(scene) {
       <div class="tut-hub-item">🏕️<span class="tut-hub-label">Rifugio</span></div>
       <div class="tut-hub-item">🏘️<span class="tut-hub-label">Borgo</span></div>
       <div class="tut-hub-item">⚔️<span class="tut-hub-label">Arena</span></div>`;
+  } else if (scene === 'guide') {
+    d.innerHTML = `<div class="tut-scene-inner tut-guide-inner">
+      <div class="tut-guide-phone">⚙️</div>
+      <div class="tut-guide-arrow">→</div>
+      <div class="tut-guide-book">📖</div>
+    </div>`;
   } else if (scene === 'start') {
     d.innerHTML = `<div class="tut-scene-inner"><span class="tut-start-icon">⚔️</span></div>`;
   }
@@ -7249,7 +7260,8 @@ const FICHE_ICO = '<img class="fiche-inline" src="assets/ui/res-fiches.webp" alt
 
 /* ═══════════ v2.7: UX & FOMO ═══════════ */
 
-function todayISO() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function gameDateApp() { const d = new Date(); d.setHours(d.getHours() - 4); return d; }
+function todayISO() { const d = gameDateApp(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function localDate(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 
 /* ── Sincronizzazione da Apple Salute via Comandi Rapidi ──────
@@ -7716,9 +7728,12 @@ function updateBadges() {
 
 /* ── Countdown live (aggiornati ogni secondo) ── */
 function msToMidnight() {
-  const d = new Date(); const m = new Date(d);
-  m.setHours(24, 0, 0, 0);
-  return m - d;
+  // Reset alle 04:00 — conta fino alle 04:00 del giorno successivo
+  const d = new Date();
+  const next4 = new Date(d);
+  next4.setHours(4, 0, 0, 0);
+  if (next4 <= d) next4.setDate(next4.getDate() + 1);
+  return next4 - d;
 }
 /* ── Zaino dell'Avventuriero (consumabili) ──────────────────────────────── */
 const ZAINO_CATS = [

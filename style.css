@@ -4826,6 +4826,34 @@ img.fiche-inline {
   font-weight: 700;
 }
 
+/* Scene: guide (impostazioni) */
+.tut-scene-guide {
+  background: linear-gradient(135deg, #0a1020 0%, #1a2540 60%, #0f1a30 100%);
+}
+.tut-guide-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 2rem;
+}
+.tut-guide-phone {
+  animation: tut-gear-spin 3s linear infinite;
+}
+@keyframes tut-gear-spin {
+  to { transform: rotate(360deg); }
+}
+.tut-guide-arrow {
+  font-size: 1.4rem;
+  opacity: .7;
+  animation: tut-arrow-pulse .9s ease-in-out infinite alternate;
+}
+@keyframes tut-arrow-pulse {
+  from { opacity: .4; transform: translateX(-3px); }
+  to   { opacity: 1;  transform: translateX(3px);  }
+}
+.tut-guide-book { font-size: 2.2rem; }
+
 /* Scene: start */
 .tut-scene-start {
   background: radial-gradient(circle at 50% 65%, rgba(196,154,42,.22) 0%, transparent 65%),
