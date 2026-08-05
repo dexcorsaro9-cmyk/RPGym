@@ -5714,7 +5714,7 @@ const RPG = (() => {
     MI_TIERS, rolloverMappaInfuocata, mappaInfuocataStatus, activateMappaInfuocata, claimMappaInfuocata,
     rolloverFugitiveMerchant, getFugitiveMerchant, todayKm, buyFromFugitiveMerchant,
     PET_PERSONALITIES, PET_FOODS, PET_ACCESSORIES, PET_SPECIES, PET_STAGE_REWARDS,
-    PET_LEGENDARY_HERO_LV, PET_MAX_LEVEL_BEFORE_LEGENDARY,
+    PET_LEVELS_PER_STAGE, PET_LEGENDARY_HERO_LV, PET_MAX_LEVEL_BEFORE_LEGENDARY,
     PET_VIRTUE_META, PET_EXPEDITION_ZONES,
     PHOENIX_POTION_PRICE, EXPEDITION_HOURS, WISH_WINDOW_MINUTES,
     createPet, petXpForLevel, petStage, petStageUnlocks, petSpeciesBonus, tickPet, petArenaBonus, classArenaBonus,
