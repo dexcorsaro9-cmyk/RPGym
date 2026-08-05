@@ -1691,10 +1691,6 @@ const RPG = (() => {
     { id: 'drago-komodo',        name: 'Drago di Komodo',       zone: 'Le Pianure del Vento',
       boss: true, mission: 'amuleto',
       weakness: 'Metallo Celeste', lore: 'Cucciolo della stirpe del Drago Antico. Se questo è il cucciolo…' },
-    { id: 'cavaliere-drago',     name: 'Il Cavaliere del Drago', zone: 'La Vetta Oscura',
-      boss: true, final: true,
-      weakness: 'Sconosciuta', lore: 'Colui che ha distrutto Oakhaven. Il suo volto è stato rivelato dalle Memorie… ma il suo potere resta un mistero.' },
-
     /* ── Foresta Sussurrante (nuovi) ──────────────────────────── */
     { id: 'arciere-demoniaco',       name: 'Arciere Demoniaco',        zone: 'Foresta Sussurrante',
       weakness: 'Luce', lore: 'Scocca frecce di tenebra dalla chioma. I suoi occhi brillano dove la luna non arriva.' },
@@ -1995,6 +1991,11 @@ const RPG = (() => {
     { id: 'troll-del-ponte',             name: 'Troll del Ponte',               zone: 'Il Fossato Profondo',
       boss: true,
       weakness: 'Astuzia', lore: 'Custodisce l\'unico ponte sul fossato. Vuole un prezzo. Il prezzo non è mai oro.' },
+
+    /* ── La Vetta Oscura — nemesi finale ───────────────────────── */
+    { id: 'cavaliere-drago',     name: 'Il Cavaliere del Drago', zone: 'La Vetta Oscura',
+      boss: true, final: true,
+      weakness: 'Sconosciuta', lore: 'Colui che ha distrutto Oakhaven. Il suo volto è stato rivelato dalle Memorie… ma il suo potere resta un mistero.' },
   ];
 
   /* ── Strutture della casa ─────────────────────────────────── */
