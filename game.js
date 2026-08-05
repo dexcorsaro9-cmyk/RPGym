@@ -482,6 +482,7 @@ const RPG = (() => {
     { id:'clessidra_arcana',  name:'Clessidra Arcana',       cat:'utility',   rarity:'epico',      icon:'⏳', desc:'Azzera il cooldown Pozione del Giorno',      baseValue:80,  effect:{ type:'potion_reset' } },
     { id:'candeliere_spia',   name:'Candeliere Spia',        cat:'utility',   rarity:'raro',       icon:'🕯️', desc:'Rivela il contenuto del prossimo forziere',  baseValue:30,  effect:{ type:'chest_reveal' } },
     { id:'cannocchiale_arcano',name:'Cannocchiale Arcano',   cat:'utility',   rarity:'raro',       icon:'🔭', desc:'Anteprima boss della prossima settimana',    baseValue:30,  effect:{ type:'boss_preview' } },
+    { id:'chiave_scalata',    name:'Chiave della Scalata',   cat:'utility',   rarity:'epico',      icon:'🗝️', desc:'Concede un secondo accesso giornaliero alla Scalata dell\'Eroe', baseValue:90, effect:{ type:'scalata_reset' } },
     { id:'chiave_zodiacale',  name:'Chiave Zodiacale',       cat:'utility',   rarity:'epico',      icon:'🔑', desc:'Apre forziere speciale con drop raro garantito', baseValue:85, effect:{ type:'open_special_chest' } },
     { id:'contratto_mostri',  name:'Contratto dei Mostri',   cat:'utility',   rarity:'raro',       icon:'📋', desc:'Sfida un boss extra fuori dal calendario',   baseValue:40,  effect:{ type:'extra_boss' } },
     { id:'incensiere_drago',  name:'Incensiere del Drago',   cat:'utility',   rarity:'raro',       icon:'🐉', desc:'+2 legno e +2 pietra per ogni allenamento oggi', baseValue:35, effect:{ type:'res_per_session', wood:2, stone:2, expiresH:24 } },
@@ -643,6 +644,14 @@ const RPG = (() => {
       }
       case 'potion_reset':
         if (hero.dailyPotion) hero.dailyPotion.used = false;
+        break;
+      case 'scalata_reset':
+        if (hero.lastScalata === todayStamp()) {
+          hero.lastScalata = null;
+          if (hero.activeScalata && hero.activeScalata.done) hero.activeScalata = null;
+        } else {
+          return 'La Scalata è già disponibile oggi.';
+        }
         break;
       case 'chest_reveal':
         b.chestReveal = true;
