@@ -1316,7 +1316,7 @@ img.camp-layer {
   background: linear-gradient(90deg, var(--gold), var(--gold-bright));
   transition: width .6s ease;
 }
-.bestiary-prog-label { text-align: center; }
+.bestiary-prog-label { text-align: center; font-weight: 700; color: var(--gold-bright); font-size: .9rem; }
 .bestiary-zone-header {
   display: flex; justify-content: space-between; align-items: center;
   font-family: 'Cinzel', serif; font-size: .95rem;

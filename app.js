@@ -6237,7 +6237,7 @@ function renderBestiaryView(c) {
   const pct = Math.round(discovered / total * 100);
   const progWrap = el('div', 'bestiary-progress');
   progWrap.innerHTML = `<div class="bestiary-prog-bar"><div class="bestiary-prog-fill" style="width:${pct}%"></div></div>
-    <div class="bestiary-prog-label small muted">${discovered} / ${total} creature scoperte · ${pct}%</div>`;
+    <div class="bestiary-prog-label">${discovered} / ${total} creature scoperte · ${pct}%</div>`;
   c.appendChild(progWrap);
 
   const zones = [...new Set(RPG.BESTIARY.map(b => b.zone))];
