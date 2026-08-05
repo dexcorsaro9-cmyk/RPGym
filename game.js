@@ -483,6 +483,12 @@ const RPG = (() => {
     { id:'candeliere_spia',   name:'Candeliere Spia',        cat:'utility',   rarity:'raro',       icon:'🕯️', desc:'Rivela il contenuto del prossimo forziere',  baseValue:30,  effect:{ type:'chest_reveal' } },
     { id:'cannocchiale_arcano',name:'Cannocchiale Arcano',   cat:'utility',   rarity:'raro',       icon:'🔭', desc:'Anteprima boss della prossima settimana',    baseValue:30,  effect:{ type:'boss_preview' } },
     { id:'chiave_scalata',    name:'Chiave della Scalata',   cat:'utility',   rarity:'epico',      icon:'🗝️', desc:'Concede un secondo accesso giornaliero alla Scalata dell\'Eroe', baseValue:90, effect:{ type:'scalata_reset' } },
+    { id:'elmo_scalatore',    name:'Elmo dello Scalatore',   cat:'utility',   rarity:'raro',       icon:'⛑️', desc:'Prossima Scalata: parti con +30 HP massimi',                     baseValue:55, effect:{ type:'scalata_hp_bonus', value:30 } },
+    { id:'pozione_scalata',   name:'Pozione dello Scalatore',cat:'pozioni',   rarity:'comune',     icon:'🍶', desc:'Cura 30 HP all\'eroe nella Scalata in corso',                    baseValue:20, effect:{ type:'scalata_heal',     value:30 } },
+    { id:'gettone_bisca',     name:'Gettone della Bisca',    cat:'utility',   rarity:'comune',     icon:'🎟️', desc:'Aggiunge 1 scommessa extra alla Bisca Oscura oggi',              baseValue:18, effect:{ type:'bisca_extra_bet' } },
+    { id:'amuleto_vincente',  name:'Amuleto Vincente',       cat:'utility',   rarity:'raro',       icon:'🍀', desc:'Prossima scommessa alla Bisca: se vinci il payout è raddoppiato', baseValue:55, effect:{ type:'bisca_double_payout' } },
+    { id:'torcia_orda',       name:'Torcia dell\'Orda',      cat:'utility',   rarity:'comune',     icon:'🕯️', desc:'Rivela le debolezze di tutti i nemici nel prossimo assalto al Covo', baseValue:22, effect:{ type:'dungeon_reveal_weak' } },
+    { id:'runa_assalto',      name:'Runa d\'Assalto',        cat:'rune',      rarity:'raro',       icon:'🔮', desc:'+35 danni al prossimo scontro nel Covo dell\'Orda',               baseValue:50, effect:{ type:'dungeon_buff_dmg',  value:35 } },
     { id:'chiave_zodiacale',  name:'Chiave Zodiacale',       cat:'utility',   rarity:'epico',      icon:'🔑', desc:'Apre forziere speciale con drop raro garantito', baseValue:85, effect:{ type:'open_special_chest' } },
     { id:'contratto_mostri',  name:'Contratto dei Mostri',   cat:'utility',   rarity:'raro',       icon:'📋', desc:'Sfida un boss extra fuori dal calendario',   baseValue:40,  effect:{ type:'extra_boss' } },
     { id:'incensiere_drago',  name:'Incensiere del Drago',   cat:'utility',   rarity:'raro',       icon:'🐉', desc:'+2 legno e +2 pietra per ogni allenamento oggi', baseValue:35, effect:{ type:'res_per_session', wood:2, stone:2, expiresH:24 } },
@@ -652,6 +658,34 @@ const RPG = (() => {
         } else {
           return 'La Scalata è già disponibile oggi.';
         }
+        break;
+      case 'scalata_hp_bonus':
+        b.scalataHpBonus = (b.scalataHpBonus || 0) + (eff.value || 30);
+        break;
+      case 'scalata_heal': {
+        const s = hero.activeScalata;
+        if (!s || s.done) return 'Nessuna Scalata in corso.';
+        const heal = Math.min(eff.value || 30, s.heroMaxHp - s.heroHp);
+        if (heal <= 0) return 'HP già al massimo.';
+        s.heroHp += heal;
+        break;
+      }
+      case 'bisca_extra_bet': {
+        if (!hero.bisca) hero.bisca = {};
+        const tod = todayStamp();
+        if (hero.bisca.lastDate !== tod) { hero.bisca.betsLeft = 5; hero.bisca.lastDate = tod; }
+        if (hero.bisca.betsLeft == null) hero.bisca.betsLeft = 5;
+        hero.bisca.betsLeft++;
+        break;
+      }
+      case 'bisca_double_payout':
+        b.biscaDoublePayout = true;
+        break;
+      case 'dungeon_reveal_weak':
+        b.dungeonRevealWeak = true;
+        break;
+      case 'dungeon_buff_dmg':
+        b.dungeonBuffDmg = (b.dungeonBuffDmg || 0) + (eff.value || 35);
         break;
       case 'chest_reveal':
         b.chestReveal = true;
@@ -4316,6 +4350,11 @@ const RPG = (() => {
     d.enemyMaxHp = Math.max(20, base - d.buffs.debuffEnemy);
     d.enemyHp = d.enemyMaxHp;
     d.scenarioIdx = Math.floor(Math.random() * DUNGEON_SCENARIOS.length);
+    const cb = hero.consumableBuffs;
+    if (cb) {
+      if (cb.dungeonRevealWeak) { d.buffs.revealWeak = true;           delete cb.dungeonRevealWeak; }
+      if (cb.dungeonBuffDmg > 0){ d.buffs.buffDmg += cb.dungeonBuffDmg; delete cb.dungeonBuffDmg;   }
+    }
   }
 
   function dungeonGetScenario(hero) {
@@ -4438,9 +4477,11 @@ const RPG = (() => {
     const stats = scalataEnemyStats(floor);
     const enemy = scalataEnemyForFloor(floor);
     const prevBest = hero.scalataRecord.bestFloor;
+    const hpBonus = (hero.consumableBuffs?.scalataHpBonus || 0);
+    if (hpBonus > 0) delete hero.consumableBuffs.scalataHpBonus;
     hero.activeScalata = {
       floor,
-      heroHp: 100, heroMaxHp: 100,
+      heroHp: 100 + hpBonus, heroMaxHp: 100 + hpBonus,
       enemyId: enemy.id,
       enemyHp: stats.hp, enemyMaxHp: stats.hp, enemyDmg: stats.dmg, isBoss: stats.isBoss,
       done: false, interlude: false,
@@ -5510,12 +5551,14 @@ const RPG = (() => {
       hero.gold = (hero.gold || 0) - amount;
       hero.bisca.betsLeft--;
       let payout = 0;
+      const doubleActive = !!(hero.consumableBuffs?.biscaDoublePayout);
+      if (hero.consumableBuffs?.biscaDoublePayout) delete hero.consumableBuffs.biscaDoublePayout;
       if (result.winner === pick) {
-        const mult = pick === 'a' ? 2.5 : 1.7;
+        const mult = (pick === 'a' ? 2.5 : 1.7) * (doubleActive ? 2 : 1);
         payout = Math.round(amount * mult);
         hero.gold += payout;
       }
-      return { ok: true, winner: result.winner, won: result.winner === pick, payout, amount, pick, betsLeft: hero.bisca.betsLeft, atkA: result.atkA, atkB: result.atkB };
+      return { ok: true, winner: result.winner, won: result.winner === pick, payout, amount, pick, betsLeft: hero.bisca.betsLeft, atkA: result.atkA, atkB: result.atkB, doubleActive };
     }
 
     return { BISCA_DAILY_BETS, BISCA_BET_SIZES, biscaResetIfNeeded, biscaPickFighters, biscaBet };
