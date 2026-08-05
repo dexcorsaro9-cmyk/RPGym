@@ -7234,7 +7234,9 @@ img.fiche-inline {
 }
 
 /* L/R teaser card in hub */
-.cart-lr-teaser { background: rgba(124,58,237,.07); border-color: rgba(124,58,237,.3); padding: 14px; }
+.cart-lr-teaser { background: rgba(18,8,32,.88); border-color: rgba(124,58,237,.5); padding: 14px; }
+.cart-lr-teaser b { color: #e8d5ff; }
+.cart-lr-teaser .muted { color: #b8a0d8; }
 .cart-lr-teaser-inner { display: flex; align-items: center; gap: 12px; }
 .cart-lr-icon { width: 48px; height: 48px; object-fit: contain; flex-shrink: 0; }
 
