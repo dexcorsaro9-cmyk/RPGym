@@ -4122,14 +4122,14 @@ function renderTrain(c) {
   abtn.addEventListener('click', openArena);
   ap.appendChild(abtn);
 
-  /* Spedizione a tappe */
+  /* Il Covo dell'Orda */
   const dungeonAvail = RPG.canStartDungeon(HERO);
   const dp = el('div', 'dungeon-strip' + (dungeonAvail ? '' : ' dungeon-done'));
   dp.innerHTML = `<div class="dungeon-strip-left">
     <span class="dungeon-strip-icon">🗡️</span>
     <div>
-      <div class="dungeon-strip-title">Spedizione a Tappe</div>
-      <div class="dungeon-strip-sub small muted">${dungeonAvail ? '3 nemici + Boss · Oggetto Epico garantito' : 'Completata per oggi · Torna domani'}</div>
+      <div class="dungeon-strip-title">Il Covo dell'Orda</div>
+      <div class="dungeon-strip-sub small muted">${dungeonAvail ? '3 nemici + Boss · Oggetto Epico garantito' : 'Assalto completato · Torna domani'}</div>
     </div>
   </div>
   <button class="btn${dungeonAvail ? ' btn-primary' : ''} dungeon-strip-btn" id="btn-dungeon-open" ${dungeonAvail ? '' : 'disabled'}>${dungeonAvail ? '▶ Parti' : '✓ Fatto'}</button>`;

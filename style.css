@@ -2160,7 +2160,7 @@ img.camp-layer {
   color: var(--ink); font-weight: 700; padding: 4px;
 }
 
-/* ── Spedizione a Tappe ── */
+/* ── Il Covo dell'Orda ── */
 /* ── Dungeon Encounter (text-adventure) ── */
 .denc-wrap { display:flex; flex-direction:column; gap:10px; padding:2px 0; }
 .denc-header { text-align:center; }

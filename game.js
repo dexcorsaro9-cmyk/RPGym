@@ -4120,7 +4120,7 @@ const RPG = (() => {
     { type:'chest',    icon:'📦', target:6,  label:'Apri 6 scrigni di bottino',            reward:{gold:180, xp:350} },
     { type:'minigame', icon:'🎲', target:8,  label:'Gioca 8 partite alla Taverna',         reward:{gold:110, xp:200} },
     { type:'minigame', icon:'🎲', target:15, label:'Gioca 15 partite alla Taverna',        reward:{gold:180, xp:320} },
-    { type:'dungeon',  icon:'🗡️', target:1,  label:'Completa una Spedizione',              reward:{gold:200, xp:400} },
+    { type:'dungeon',  icon:'🗡️', target:1,  label:'Assalta il Covo dell\'Orda',             reward:{gold:200, xp:400} },
   ];
   const WEEKLY_CHALLENGES_BONUS = { gold: 300, xp: 600 };
 
@@ -4192,7 +4192,7 @@ const RPG = (() => {
     return { ok: true, reward: ch.reward, bonus, consumable };
   }
 
-  /* ── Spedizione a Tappe (Dungeon) ───────────────────────── */
+  /* ── Il Covo dell'Orda (Dungeon) ────────────────────────── */
   const DUNGEON_SCENARIOS = [
     { text: 'Il nemico carica con furia cieca!',
       choices: [
