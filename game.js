@@ -9,7 +9,6 @@ const RPG = (() => {
   const SAVE_KEY = 'rpgym_save_v1';
   const MAX_LEVEL = 100;
   let itemSeq = 0;
-  const LEVEL_CAP_1 = MAX_LEVEL; // progressione libera fino al livello 100
 
   /* ── Attività: moltiplicatori XP per km ───────────────────── */
   const ACTIVITIES = {
@@ -2630,7 +2629,7 @@ const RPG = (() => {
     hero.gold += report.gold;
 
     report.wood = Math.round((effKm * (1 + Math.random())) * localWoodMult);
-    report.stone = Math.round((effKm * Math.random()) * localStoneMult);
+    report.stone = Math.round(effKm * (0.3 + Math.random() * 0.7) * localStoneMult);
     hero.wood += report.wood;
     hero.stone += report.stone;
     if (report._extraWood)  { hero.wood  += report._extraWood;  report.wood  += report._extraWood; }
@@ -3173,9 +3172,15 @@ const RPG = (() => {
       const cons = dropConsumable(hero, boss ? 'raro' : 'comune');
       if (cons) chest.consumable = cons;
     }
-    // boss shield: drop garantito anche in caso di sconfitta (gestito nell'UI)
-    if (boss && hero.consumableBuffs && hero.consumableBuffs.bossShield) {
+    // boss shield: se attivo garantisce l'item drop anche in caso di sconfitta
+    if (boss && hero.consumableBuffs?.bossShield) {
       delete hero.consumableBuffs.bossShield;
+      chest.bossShieldActivated = true;
+      if (!chest.items.length) {
+        const it = genItemFor(hero, 'raro');
+        hero.items.push(it);
+        chest.items.push(it);
+      }
     }
     // Biglietto Gratta e Vinci: 20% boss → Raro, 8% normale → Comune
     const ticketRoll = Math.random();
@@ -4609,6 +4614,7 @@ const RPG = (() => {
 
     d.step++;
     updateWeeklyProgress(hero, 'arena', 1);
+    updateChallengeProgress(hero, 'arena', 1);
 
     if (d.step >= d.enemies.length) {
       d.done = true;
@@ -4619,7 +4625,6 @@ const RPG = (() => {
       const item = genItemFor(hero, 'epico');
       hero.items.push(item);
       updateWeeklyProgress(hero, 'dungeon', 1);
-      updateChallengeProgress(hero, 'arena', 1);
       return { done:true, won:true, reward:{ gold, xp, item, complete:true } };
     }
 
@@ -4921,7 +4926,9 @@ const RPG = (() => {
     if (!a) return 'Impresa sconosciuta.';
     hero.achievementsClaimed = hero.achievementsClaimed || [];
     if (hero.achievementsClaimed.includes(id)) return 'Ricompensa già ritirata.';
-    if (hero.level < a.level) return `Raggiungi il Livello ${a.level} per sbloccarla.`;
+    if (a.threshold !== undefined && (hero.consumablesUsed || 0) < a.threshold)
+      return `Usa ancora ${a.threshold - (hero.consumablesUsed || 0)} consumabili per sbloccarla.`;
+    if (a.level !== undefined && hero.level < a.level) return `Raggiungi il Livello ${a.level} per sbloccarla.`;
     hero.achievementsClaimed.push(id);
     hero.gold += a.reward.gold;
     hero.xp += a.reward.xp;
@@ -5719,7 +5726,7 @@ const RPG = (() => {
     LORE_FRAGMENTS, checkLoreUnlock,
     DAILY_POTIONS, getDailyPotion, claimDailyPotion,
     BIOMES, MOUNTS, RARITIES, SLOTS,
-    MAX_LEVEL, LEVEL_CAP_1, GOLD_PER_KM,
+    MAX_LEVEL, GOLD_PER_KM,
     xpForLevel, dailyGoalKm, heroTitle,
     currentBiome, accessibleZones, mountById, biomeSlug,
     newHero, migrateHero, load, save, deleteHero,
