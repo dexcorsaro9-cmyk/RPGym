@@ -5815,8 +5815,7 @@ const RPG = (() => {
     ];
 
     function biscaResetIfNeeded(hero) {
-      const d = new Date();
-      const today = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      const today = todayStamp();
       if (!hero.bisca) hero.bisca = {};
       if (hero.bisca.lastDate !== today) {
         hero.bisca.betsLeft = BISCA_DAILY_BETS;
@@ -5885,14 +5884,9 @@ const RPG = (() => {
 /* ── La Cartomante — Tenda del Fato ─────────────────────────────────────── */
 {
   const _C = (() => {
-    function todayStr() {
-      const d = new Date();
-      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    }
-
     function cartReset(hero) {
       if (!hero.cartomante) hero.cartomante = {};
-      const t = todayStr();
+      const t = todayStamp();
       if (hero.cartomante.date !== t) {
         hero.cartomante.date             = t;
         hero.cartomante.ruotaSpins       = 0;
