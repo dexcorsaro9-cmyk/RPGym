@@ -545,8 +545,11 @@ function showDungeonDefeat(reward) {
 
 function _dieFaceHTML(n, type) {
   const patterns = { 0: [], 1: ['mc'], 2: ['tr', 'bl'], 3: ['tr', 'mc', 'bl'], 4: ['tl', 'tr', 'bl', 'br'] };
-  const pips = (patterns[n] || []).map(p => `<span class="dp ${p}"></span>`).join('');
-  return `<div class="die-face df-${type}${n === 0 ? ' df-empty' : ''}">${pips}</div>`;
+  const icons = { atk: '⚔️', def: '🛡️', mag: '✨' };
+  const inner = n === 0
+    ? `<span class="df-icon">${icons[type] || ''}</span>`
+    : (patterns[n] || []).map(p => `<span class="dp ${p}"></span>`).join('');
+  return `<div class="die-face df-${type}${n === 0 ? ' df-empty' : ''}">${inner}</div>`;
 }
 
 function openScalata() {
