@@ -307,22 +307,22 @@ function closeBattle() {
 
 function openDungeon() {
   if (!RPG.canStartDungeon(HERO)) {
-    modal(`<h3 class="panel-title center">🗡️ Spedizione</h3>
-      <p class="center muted">Hai già affrontato una Spedizione oggi.<br>Torna domani per la prossima.</p>
+    modal(`<h3 class="panel-title center">🗡️ Il Covo dell'Orda</h3>
+      <p class="center muted">Hai già assaltato il Covo oggi.<br>Torna domani per la prossima incursione.</p>
       <button class="btn btn-primary wide" onclick="closeModal()">Ok</button>`);
     return;
   }
   modal(`<div class="dungeon-intro">
     <div class="dungeon-intro-icon">🗡️</div>
-    <h3 class="panel-title center">Spedizione a Tappe</h3>
+    <h3 class="panel-title center">Il Covo dell'Orda</h3>
     <p class="center small">Affronta <b>3 nemici</b> + un <b>Boss</b> in sequenza.<br>
     Tra gli scontri scegli come proseguire. Il boss lascia un oggetto <b>Epico</b> garantito.</p>
     <div class="dungeon-intro-rules">
       <div>📖 Scegli come affrontare ogni scontro</div>
       <div>💀 Se cadi, ottieni ricompense parziali</div>
-      <div>🔒 Una Spedizione al giorno</div>
+      <div>🔒 Un assalto al giorno</div>
     </div>
-    <button class="btn btn-primary wide big" id="btn-dungeon-start">🗡️ PARTI!</button>
+    <button class="btn btn-primary wide big" id="btn-dungeon-start">🗡️ ASSALTA!</button>
     <button class="btn wide" onclick="closeModal()">Forse dopo…</button>
   </div>`);
   document.getElementById('btn-dungeon-start').addEventListener('click', () => {
@@ -527,13 +527,13 @@ function showDungeonDefeat(reward) {
   sfx('defeat');
   modal(`<div class="dungeon-defeat">
     <div style="font-size:3rem;text-align:center">💀</div>
-    <h3 class="panel-title center">Spedizione Fallita</h3>
-    <p class="center small">Hai combattuto bravamente ma la Spedizione è terminata.</p>
+    <h3 class="panel-title center">Assalto Fallito</h3>
+    <p class="center small">Hai combattuto bravamente ma il Covo ha avuto la meglio.</p>
     <div class="chest-res-row">
       <div class="chest-res-chip gold">🪙 ${reward.gold}</div>
       <div class="chest-res-chip xp">⭐ ${reward.xp} XP</div>
     </div>
-    <p class="muted small center">Torna domani per una nuova Spedizione.</p>
+    <p class="muted small center">Torna domani per un nuovo assalto.</p>
     <button class="btn btn-primary wide" onclick="closeModal(); setTab('train')">Tornerò più forte!</button>
   </div>`);
 }
