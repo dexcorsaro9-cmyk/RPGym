@@ -4138,6 +4138,30 @@ function renderTrain(c) {
   }
   ap.appendChild(dp);
 
+  /* La Scalata dell'Eroe */
+  const scalataActive = HERO.activeScalata && !HERO.activeScalata.done;
+  const scalataAvail  = RPG.canStartScalata(HERO);
+  const scalataBest   = HERO.scalataRecord?.bestFloor || 0;
+  const sp = el('div', 'dungeon-strip' + (scalataAvail ? '' : ' dungeon-done'));
+  sp.innerHTML = `<div class="dungeon-strip-left">
+    <span class="dungeon-strip-icon">🏔️</span>
+    <div>
+      <div class="dungeon-strip-title">La Scalata dell'Eroe</div>
+      <div class="dungeon-strip-sub small muted">${
+        scalataActive
+          ? `In corso · Piano ${HERO.activeScalata.floor} · ${HERO.activeScalata.heroHp} HP rimasti`
+          : scalataAvail
+            ? `Piani infiniti · Boss ogni 5°${scalataBest > 0 ? ` · Record: ${scalataBest}` : ''}`
+            : `Completata per oggi · Record: ${scalataBest}`
+      }</div>
+    </div>
+  </div>
+  <button class="btn${scalataAvail ? ' btn-primary' : ''} dungeon-strip-btn" id="btn-scalata-open" ${scalataAvail ? '' : 'disabled'}>${scalataActive ? '▶ Riprendi' : scalataAvail ? '▶ Scala' : '✓ Fatto'}</button>`;
+  if (scalataAvail) {
+    sp.querySelector('#btn-scalata-open').addEventListener('click', openScalata);
+  }
+  ap.appendChild(sp);
+
   /* Extra Boss — Contratto dei Mostri */
   if (HERO.consumableBuffs && HERO.consumableBuffs.extraBoss) {
     const xbp = el('div', 'dungeon-strip extra-boss-strip');

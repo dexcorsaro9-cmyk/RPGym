@@ -2278,6 +2278,123 @@ img.camp-layer {
   color: var(--gold-bright); text-transform: uppercase; margin-top: 6px;
 }
 
+/* ── La Scalata dell'Eroe ──────────────────────────────────────────────── */
+.scalata-intro { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.scalata-intro-icon { font-size: 3.5rem; }
+.scalata-intro-rules {
+  width: 100%; border: 1px solid rgba(201,147,46,.25); border-radius: 10px;
+  padding: 10px 14px; display: flex; flex-direction: column; gap: 6px;
+  font-size: .85rem; color: var(--ink-light);
+}
+.scalata-record-note {
+  font-size: .84rem; color: var(--gold); font-weight: 600; text-align: center;
+}
+
+/* Combat wrapper */
+.scalata-wrap { display: flex; flex-direction: column; gap: 10px; }
+.scalata-top-row { display: flex; justify-content: space-between; align-items: center; }
+.scalata-floor-badge {
+  font-family: 'Cinzel', serif; font-size: .75rem; font-weight: 700;
+  letter-spacing: .08em; color: var(--gold-bright); padding: 3px 12px;
+  border-radius: 20px; border: 1px solid rgba(201,147,46,.4); background: rgba(201,147,46,.1);
+}
+.scalata-floor-badge.boss { color: #ff9040; border-color: rgba(255,144,64,.45); background: rgba(255,144,64,.08); }
+.scalata-rec-chip { font-size: .75rem; color: rgba(255,255,255,.45); }
+.scalata-boss-tag {
+  font-size: .6rem; font-family: 'Cinzel', serif; letter-spacing: .06em;
+  background: rgba(255,144,64,.18); border: 1px solid rgba(255,144,64,.4);
+  color: #ff9040; border-radius: 6px; padding: 0 5px; vertical-align: middle;
+}
+
+/* Combatants */
+.scalata-combatants { display: flex; gap: 8px; align-items: center; }
+.scalata-fighter { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
+.scalata-fighter-label { font-size: .78rem; font-weight: 700; color: var(--gold); text-align: center; }
+.scalata-vs { font-family: 'Cinzel', serif; font-size: .75rem; font-weight: 900; color: rgba(255,255,255,.3); flex-shrink: 0; }
+.scalata-enemy-img { height: 54px; max-width: 100%; object-fit: contain; filter: drop-shadow(0 3px 8px rgba(0,0,0,.6)); }
+.scalata-hpbar-wrap { width: 100%; height: 6px; background: rgba(255,255,255,.1); border-radius: 3px; overflow: hidden; }
+.scalata-hpfill { height: 100%; border-radius: 3px; transition: width .4s ease; }
+.scalata-hp-num { font-size: .68rem; color: rgba(255,255,255,.4); text-align: center; }
+
+/* Result log */
+.scalata-result-log { background: rgba(0,0,0,.25); border-radius: 8px; padding: 8px 10px; }
+.scalata-result-log.hidden { display: none; }
+.scalata-log-rows { display: flex; flex-direction: column; gap: 4px; }
+.scalata-log-row { font-size: .82rem; padding: 2px 0; }
+.hero-row { color: #6fd48c; }
+.enemy-row { color: #e87070; }
+.mag-row { color: #b09fe8; }
+.block-row { color: #6bb8d4; }
+.win-row { color: var(--gold-bright); font-weight: 700; margin-top: 4px; }
+.defeat-row { color: #e84545; font-weight: 700; margin-top: 4px; text-align: center; }
+
+/* Dice section */
+.scalata-dice-title { font-family: 'Cinzel', serif; font-size: .8rem; font-weight: 700; color: var(--gold); text-align: center; letter-spacing: .05em; }
+.scalata-dice-grid { display: flex; gap: 6px; }
+.scalata-die-slot {
+  flex: 1; border: 1px solid rgba(255,255,255,.12); border-radius: 10px;
+  padding: 8px 6px; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  transition: border-color .2s, background .2s;
+}
+.scalata-die-slot.active { border-color: rgba(201,147,46,.5); background: rgba(201,147,46,.07); }
+.scalata-die-top { font-size: .8rem; text-align: center; }
+.scalata-die-hint { font-size: .6rem; color: rgba(255,255,255,.35); text-align: center; line-height: 1.3; }
+.scalata-die-ctrl { display: flex; align-items: center; gap: 6px; }
+.scalata-die-btn {
+  width: 26px; height: 26px; border-radius: 6px; border: 1px solid rgba(255,255,255,.2);
+  background: rgba(255,255,255,.06); color: var(--parchment); font-size: 1rem;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background .15s;
+}
+.scalata-die-btn:disabled { opacity: .3; cursor: default; }
+.scalata-die-btn:not(:disabled):hover { background: rgba(201,147,46,.2); }
+.scalata-die-num { font-family: 'Cinzel', serif; font-size: 1.1rem; font-weight: 700; color: var(--gold-bright); min-width: 16px; text-align: center; font-variant-numeric: tabular-nums; }
+.scalata-remaining { font-size: .78rem; color: rgba(255,255,255,.5); text-align: center; }
+.scalata-retreat { font-size: .75rem; opacity: .45; margin-top: 2px; border-color: rgba(255,255,255,.1); }
+.scalata-retreat:hover { opacity: .7; }
+
+/* Interlude */
+.scalata-interlude { display: flex; flex-direction: column; gap: 12px; }
+.scalata-int-header { text-align: center; }
+.scalata-int-icon { font-size: 2.5rem; }
+.scalata-int-title { font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 700; color: var(--gold-bright); }
+.scalata-int-sub { font-size: .82rem; color: rgba(255,255,255,.55); margin-top: 3px; }
+.scalata-int-hp { display: flex; flex-direction: column; gap: 5px; }
+.scalata-int-hp-row { font-size: .82rem; color: rgba(255,255,255,.6); }
+.scalata-int-label { font-size: .8rem; color: rgba(255,255,255,.5); text-align: center; font-weight: 600; }
+.scalata-int-choices { display: flex; flex-direction: column; gap: 8px; }
+.scalata-int-choice {
+  display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+  border-radius: 10px; border: 1px solid rgba(201,147,46,.25);
+  background: rgba(255,255,255,.03); cursor: pointer; text-align: left;
+  transition: background .15s, border-color .15s; width: 100%;
+}
+.scalata-int-choice:hover { background: rgba(201,147,46,.1); border-color: rgba(201,147,46,.5); }
+.scalata-int-choice:active { background: rgba(201,147,46,.18); }
+.scalata-int-choice-icon { font-size: 1.5rem; flex-shrink: 0; }
+.scalata-int-choice-body { display: flex; flex-direction: column; gap: 2px; }
+.scalata-int-choice-name { font-weight: 700; font-size: .9rem; color: var(--parchment); }
+.scalata-int-choice-desc { font-size: .78rem; color: rgba(255,255,255,.5); }
+
+/* End screen */
+.scalata-end { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.scalata-end-icon { font-size: 3rem; }
+.scalata-end-stats { display: flex; gap: 10px; width: 100%; }
+.scalata-end-stat {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 10px 6px; border-radius: 10px; border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.03);
+}
+.scalata-end-ico { font-size: 1.4rem; }
+.scalata-end-val { font-family: 'Cinzel', serif; font-size: 1.2rem; font-weight: 700; color: var(--gold-bright); font-variant-numeric: tabular-nums; }
+.scalata-end-lbl { font-size: .65rem; color: rgba(255,255,255,.4); text-align: center; }
+.scalata-new-record {
+  font-family: 'Cinzel', serif; font-size: .9rem; font-weight: 700; color: var(--gold-bright);
+  background: rgba(201,147,46,.12); border: 1px solid rgba(201,147,46,.35);
+  padding: 6px 16px; border-radius: 20px; text-align: center;
+  animation: lup-pop .5s cubic-bezier(.17,.67,.35,1.3) both;
+}
+
 /* Intro sfidante */
 .arena-intro { display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .arena-intro-img {
