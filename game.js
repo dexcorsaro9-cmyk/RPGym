@@ -2811,13 +2811,19 @@ const RPG = (() => {
       }
     }
 
-    // Famiglio: XP da attività fisica (fonte primaria di crescita)
+    // Famiglio: XP e Virtù da attività fisica (fonte primaria di crescita)
     if (hero.pet && hero.pet.hatched) {
       tickPet(hero);
       const petXpGained = Math.round(km * 3);
       const evoPet = addPetXp(hero, petXpGained);
       report.petXp = petXpGained;
       if (evoPet) Object.assign(report, evoPet);
+      // Virtù: corsa/cyclette → Coraggio; camminata → Astuzia
+      if (type === 'corsa' || type === 'cyclette') {
+        addPetVirtue(hero, 'coraggio', Math.round(km * 0.3 * 10) / 10);
+      } else if (type === 'camminata') {
+        addPetVirtue(hero, 'astuzia', Math.round(km * 0.2 * 10) / 10);
+      }
     }
 
     return report;
@@ -3264,11 +3270,11 @@ const RPG = (() => {
 
   const PET_VIRTUE_META = {
     coraggio: { name: 'Coraggio', icon: '⚔️', color: '#e8604c',
-      desc: 'Cresce combattendo — Scalata ATK-pesante, Arena, vittorie.',
-      synergyDesc: 'Attacca il nemico per danni bonus diretti.' },
+      desc: 'Cresce con corsa e cyclette, spedizioni e combattimento in Arena.',
+      synergyDesc: 'Attacca il nemico per danni bonus diretti (solo in Scalata).' },
     astuzia:  { name: 'Astuzia',  icon: '✨', color: '#9b59b6',
-      desc: 'Cresce con la strategia — Magia, negozio, consumabili.',
-      synergyDesc: 'Forza il nemico a muoversi in modo normale questo round.' },
+      desc: 'Cresce con le camminate e i consumabili strategici.',
+      synergyDesc: 'Forza il nemico a muoversi normalmente questo round (solo in Scalata).' },
     lealta:   { name: 'Lealtà',   icon: '💚', color: '#27ae60',
       desc: 'Cresce con la cura — nutrimento, gioco, pulizia, accessi giornalieri.',
       synergyDesc: 'Ti cura per il 25% degli HP massimi.' },
@@ -3350,7 +3356,8 @@ const RPG = (() => {
         addPetMemory(hero, `ho attaccato il nemico al piano ${s.floor} della Scalata!`);
         return { ok: true, virtue, effect: 'attack', dmg, enemyDefeated };
       }
-      return { ok: true, virtue, effect: 'attack', dmg: 20 };
+      p.lastSynergyDate = null;
+      return `La sinergia di ${p.name} da Coraggio funziona solo durante una Scalata attiva.`;
     }
 
     if (virtue === 'astuzia') {
@@ -3361,7 +3368,8 @@ const RPG = (() => {
         addPetMemory(hero, `ho studiato il nemico e l'ho reso prevedibile al piano ${s.floor}!`);
         return { ok: true, virtue, effect: 'neutralize' };
       }
-      return { ok: true, virtue, effect: 'neutralize' };
+      p.lastSynergyDate = null;
+      return `La sinergia di ${p.name} da Astuzia funziona solo durante una Scalata attiva.`;
     }
 
     if (virtue === 'lealta') {
@@ -3450,7 +3458,7 @@ const RPG = (() => {
     }
     // Igiene: legata ai km percorsi dall'ultimo bagno, non al tempo
     const kmDirty = Math.max(0, hero.totalKm - (p.kmAtLastClean || 0));
-    const hygieneKmPerTick = 3.5 / (sb.hygieneDecayMult ? 1 / sb.hygieneDecayMult : 1);
+    const hygieneKmPerTick = 3.5 / (sb.hygieneDecayMult || 1);
     p.hygiene = clamp01to100(100 - Math.floor(kmDirty / hygieneKmPerTick) * 20);
 
     // Rollover giornaliero: energia (sonno) + malattia
@@ -3476,19 +3484,21 @@ const RPG = (() => {
     // Scadenza della richiesta improvvisa
     if (p.wish && now > p.wish.deadline) p.wish = null;
     // Genera una nuova richiesta ogni tanto (se non ce n'è già una attiva)
-    if (!p.wish && now > (p.wishCooldownUntil || 0) && Math.random() < 0.15 && petStageUnlocks(petStage(p.level)).wish) {
+    if (!p.wish && now > (p.wishCooldownUntil || 0) && Math.random() < 0.30 && petStageUnlocks(petStage(p.level)).wish) {
       const foodKeys = Object.keys(PET_FOODS);
       const item = foodKeys[Math.floor(Math.random() * foodKeys.length)];
-      p.wish = { item, deadline: now + WISH_WINDOW_MINUTES * 60000 };
-      p.wishCooldownUntil = now + 6 * 3600000;
+      p.wish = { item, deadline: now + 90 * 60000 };
+      p.wishCooldownUntil = now + 4 * 3600000;
     }
+    // Segnale pre-malattia: entrambe le barre critiche
+    p.atRisk = !p.sick && p.hunger < 20 && p.mood < 20;
     // Risoluzione automatica della spedizione se il tempo è scaduto
     // (rimane "da riscuotere" finché non si preme il pulsante apposito)
   }
 
   function petArenaBonus(hero) {
     const out = { dmgBonus: 0, hpBonus: 0, dodgeChance: 0, critMult: 1 };
-    if (!hero.companion || !hero.pet || !hero.pet.hatched) return out;
+    if (!hero.pet || !hero.pet.hatched) return out;
     const p = hero.pet;
     if (p.sick) return out;
     const moodFactor = p.mood >= 80 ? 1 : (p.mood >= 50 ? 0.5 : 0);
@@ -3607,7 +3617,7 @@ const RPG = (() => {
   const PET_MAX_LEVEL_BEFORE_LEGENDARY = PET_LEVELS_PER_STAGE * (PET_EVOLUTION_STAGES - 1); // 16
 
   function addPetXp(hero, amount) {
-    if (!hero.pet || hero.pet.hunger <= 0) return; // affamato: non cresce
+    if (!hero.pet || hero.pet.hunger <= 0 || hero.pet.sick) return; // affamato o malato: non cresce
     const bonus = hero.pet.restedBonusActive ? 1.2 : 1;
     hero.pet.xp += Math.round(amount * bonus);
     const prevStage = petStage(hero.pet.level);
@@ -3634,7 +3644,7 @@ const RPG = (() => {
 
   function startExpedition(hero, zone) {
     if (!hero.pet || !hero.pet.hatched) return 'Il tuo famiglio è ancora un uovo: aspetta la schiusa!';
-    if (!petStageUnlocks(petStage(hero.pet.level)).expedition) return `Le spedizioni si sbloccano allo Stadio 2 (livello 5). Ora sei al livello ${hero.pet.level}.`;
+    if (!petStageUnlocks(petStage(hero.pet.level)).expedition) return `Le spedizioni si sbloccano al livello 5. Il tuo famiglio è al livello ${hero.pet.level}.`;
     if (hero.pet.expedition) return 'Il tuo famiglio è già in spedizione.';
     if (hero.pet.sick) return 'Il tuo famiglio è malato: deve prima guarire.';
     if ((hero.pet.hunger || 0) < 30) return `${hero.pet.name} ha troppa fame per partire — nutrilo prima!`;
