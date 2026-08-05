@@ -899,7 +899,7 @@ function showResources() {
     <div class="res-detail"><span class="res-detail-icon">🪙</span><div><b>Moneta d'Oro</b><br><span class="small muted">La valuta del reame: compra cavalcature, armi e armature.</span></div><b class="res-detail-qty">${HERO.gold}</b></div>
     <div class="res-detail"><span class="res-detail-icon">🪵</span><div><b>Legno</b><br><span class="small muted">Materiale da costruzione per il tuo Rifugio.</span></div><b class="res-detail-qty">${HERO.wood}</b></div>
     <div class="res-detail"><span class="res-detail-icon">🪨</span><div><b>Roccia</b><br><span class="small muted">Pietra grezza per le strutture più solide.</span></div><b class="res-detail-qty">${HERO.stone}</b></div>
-    <div class="res-detail res-detail-fiches"><span class="res-detail-icon">🎴</span><div><b>Fiches del Fato</b><br><span class="small muted">Valuta della Cartomante: vinci al Lascio o Raddoppio, spendi alla Tenda del Fato.</span></div><b class="res-detail-qty">${HERO.fiches||0}</b></div>
+    <div class="res-detail res-detail-fiches"><span class="res-detail-icon">${FICHE_ICO}</span><div><b>Fiches del Fato</b><br><span class="small muted">Valuta della Cartomante: vinci al Lascio o Raddoppio, spendi alla Tenda del Fato.</span></div><b class="res-detail-qty">${HERO.fiches||0}</b></div>
     <button class="btn btn-primary wide" onclick="closeModal()">Chiudi</button>
   `);
 }
@@ -5077,7 +5077,7 @@ function renderMarket(c) {
     cartEntry.appendChild(el('p', 'muted small borgo-entry-quote',
       '«Le stelle non mentono. Entrate, se avete il coraggio di sapere cosa vi riserva il destino.»'));
     const fichesNow = HERO.fiches || 0;
-    cartEntry.appendChild(el('div', 'cart-badge-row', `<span class="cart-fiches-badge">🎴 ${fichesNow} Fiches</span>${cart.ruotaSpins > 0 ? '' : ' <span class="cart-free-badge">✨ Giro gratis disponibile</span>'}`));
+    cartEntry.appendChild(el('div', 'cart-badge-row', `<span class="cart-fiches-badge">${FICHE_ICO} ${fichesNow} Fiches</span>${cart.ruotaSpins > 0 ? '' : ' <span class="cart-free-badge">✨ Giro gratis disponibile</span>'}`));
     const enterCartBtn = el('button', 'btn btn-primary wide', '🔮 Entra nella Tenda');
     enterCartBtn.addEventListener('click', () => { MARKET_VIEW = 'cartomante'; setTab('market'); });
     cartEntry.appendChild(enterCartBtn);
@@ -5193,7 +5193,7 @@ function renderCartomanteView(c) {
 
   // Fiches balance
   const bal = el('div', 'cart-balance-bar');
-  bal.innerHTML = `<span class="cart-bal-label">🎴 Le tue Fiches del Fato:</span> <b class="cart-bal-num">${HERO.fiches||0}</b>`;
+  bal.innerHTML = `<span class="cart-bal-label">${FICHE_ICO} Le tue Fiches del Fato:</span> <b class="cart-bal-num">${HERO.fiches||0}</b>`;
   c.appendChild(bal);
 
   c.appendChild(el('p', 'muted small center',
@@ -5259,7 +5259,7 @@ function renderRuotaView(c) {
   const cost  = spins === 0 ? 0 : 15;
 
   const fichesBar = el('div', 'cart-balance-bar');
-  fichesBar.innerHTML = `🎴 <b id="ruota-fiches">${HERO.fiches||0}</b> Fiches &nbsp;·&nbsp; ${spins === 0 ? '<span class="cart-free-badge">1° giro gratis!</span>' : `Giri oggi: <b>${spins}</b> · Costo: 15 🎴`}`;
+  fichesBar.innerHTML = `${FICHE_ICO} <b id="ruota-fiches">${HERO.fiches||0}</b> Fiches &nbsp;·&nbsp; ${spins === 0 ? '<span class="cart-free-badge">1° giro gratis!</span>' : `Giri oggi: <b>${spins}</b> · Costo: 15 ${FICHE_ICO}`}`;
   c.appendChild(fichesBar);
 
   // Wheel visual
@@ -5364,7 +5364,7 @@ function renderPozzoView(c) {
   c.appendChild(el('h2', 'section-title', '🌀 Il Pozzo delle Evocazioni'));
 
   const bal = el('div', 'cart-balance-bar');
-  bal.innerHTML = `🎴 <b id="pozzo-fiches">${HERO.fiches||0}</b> Fiches &nbsp;·&nbsp; Costo: <b>${RPG.POZZO_COST}</b> 🎴 per evocazione`;
+  bal.innerHTML = `${FICHE_ICO} <b id="pozzo-fiches">${HERO.fiches||0}</b> Fiches &nbsp;·&nbsp; Costo: <b>${RPG.POZZO_COST}</b> ${FICHE_ICO} per evocazione`;
   c.appendChild(bal);
 
   const wellWrap = el('div', 'pozzo-wrap');
@@ -5439,7 +5439,7 @@ function renderCatenaView(c) {
   const done  = cart.catenaDone;
 
   const bal = el('div', 'cart-balance-bar');
-  bal.innerHTML = `🪙 <b id="catena-gold">${HERO.gold}</b> &nbsp;·&nbsp; 🎴 <b id="catena-fiches">${HERO.fiches||0}</b>`;
+  bal.innerHTML = `🪙 <b id="catena-gold">${HERO.gold}</b> &nbsp;·&nbsp; ${FICHE_ICO} <b id="catena-fiches">${HERO.fiches||0}</b>`;
   c.appendChild(bal);
 
   // Chain progress display
@@ -5526,7 +5526,7 @@ function renderCasseView(c) {
   c.appendChild(el('h2', 'section-title', '📦 Le Casse Chiuse'));
 
   const bal = el('div', 'cart-balance-bar');
-  bal.innerHTML = `🎴 <b id="casse-fiches">${HERO.fiches||0}</b> Fiches`;
+  bal.innerHTML = `${FICHE_ICO} <b id="casse-fiches">${HERO.fiches||0}</b> Fiches`;
   c.appendChild(bal);
 
   c.appendChild(el('p', 'muted small center',
@@ -6979,6 +6979,7 @@ const RES_ICONS = {
   stone:  'assets/ui/res-pietra.webp',
   fiches: 'assets/ui/res-fiches.webp',
 };
+const FICHE_ICO = '<img class="fiche-inline" src="assets/ui/res-fiches.webp" alt="🎴">';
 (() => {
   Object.entries(UI_ICONS).forEach(([tab, path]) => {
     const probe = new Image();
