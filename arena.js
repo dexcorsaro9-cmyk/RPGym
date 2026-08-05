@@ -263,6 +263,7 @@ function endBattle(heroWon) {
     const chest = RPG.battleReward(HERO, b.v);
     RPG.updateChallengeProgress(HERO, 'arena', 1);
     RPG.addPetVirtue(HERO, 'coraggio', b.v.boss ? 3 : 1);
+    HERO.fiches = (HERO.fiches || 0) + (b.v.boss ? 3 : 1);
     persist(); renderHUD();
     sfx('level');
     if (center) center.innerHTML = `<div class="battle-result-overlay"><div class="battle-result-text win">VITTORIA!</div></div>`;
@@ -517,6 +518,7 @@ function showDungeonReward(reward) {
   vibrate([100, 50, 100, 50, 200]);
   /* Consumabile bonus dal dungeon: 50% raro, 50% epico */
   const consBonus = RPG.dropConsumable(HERO, Math.random() < 0.5 ? 'raro' : 'epico');
+  HERO.fiches = (HERO.fiches || 0) + 3;
   persist();
   let html = `<div class="dungeon-reward">
     <div class="dungeon-reward-star">⭐</div>
@@ -524,6 +526,7 @@ function showDungeonReward(reward) {
     <div class="chest-res-row">
       <div class="chest-res-chip gold">🪙 ${reward.gold}</div>
       <div class="chest-res-chip xp">⭐ ${reward.xp} XP</div>
+      <div class="chest-res-chip" style="color:#c4b5fd">🎴 +3</div>
     </div>`;
   if (reward.item) {
     html += `<div class="dungeon-epic-label">Oggetto Epico Garantito</div>
