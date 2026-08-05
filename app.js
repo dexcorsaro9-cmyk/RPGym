@@ -1834,6 +1834,13 @@ function renderSantuarioView(c) {
     c.appendChild(el('div', 'panel done-strip', '🌟 <b>Aura del Branco attiva!</b> Entrambi i famigli sono felici: sconto e bonus drop condivisi!'));
   }
 
+  if (pet.atRisk && !pet.sick) {
+    const riskP = el('div', 'panel incursion-panel');
+    riskP.innerHTML = `<h3 class="panel-title">⚠️ ${esc(pet.name)} sta male!</h3>
+      <p class="small muted center">Sazietà e umore critici: nutrilo e giocaci subito o si ammalerà!</p>`;
+    c.appendChild(riskP);
+  }
+
   if (pet.sick) {
     const sickP = el('div', 'panel incursion-panel');
     sickP.innerHTML = `<h3 class="panel-title">🤒 ${esc(pet.name)} è malato!</h3>
@@ -1885,6 +1892,7 @@ function renderSantuarioView(c) {
 
   const actionsPanel = el('div', 'panel');
   actionsPanel.appendChild(el('h3', 'panel-title', '🤲 Prenditi cura di lui'));
+  actionsPanel.appendChild(el('p', 'muted small', '💡 La cura mantiene bisogni e virtù · l\'XP arriva dagli allenamenti!'));
   const grid = el('div', 'hero-submenu');
 
   const feedBtn = el('button', 'btn submenu-btn');
@@ -1972,7 +1980,7 @@ function renderSantuarioView(c) {
   const expPanel = el('div', 'panel');
   expPanel.appendChild(el('h3', 'panel-title', '🎒 Spedizione di Esplorazione'));
   if (!unlocks.expedition) {
-    expPanel.appendChild(el('p', 'muted small center', `🔒 Si sblocca allo Stadio 2 (livello 5). Ancora ${5 - pet.level} livello/i mancanti.`));
+    expPanel.appendChild(el('p', 'muted small center', `🔒 Si sblocca al livello 5. Ancora ${5 - pet.level} livello/i mancanti — allena per far crescere il tuo famiglio!`));
   } else if (!pet.expedition) {
     const needFull = (pet.hunger || 0) < 30 || (pet.mood || 0) < 30;
     if (needFull) {
