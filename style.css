@@ -7517,9 +7517,18 @@ img.fiche-inline {
   font-size: 1.9rem;
   flex-shrink: 0;
   line-height: 1;
-  width: 38px;
+  width: 44px; height: 44px;
   text-align: center;
+  display: flex; align-items: center; justify-content: center;
 }
+.dc-img {
+  width: 44px; height: 44px;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,.6));
+}
+.dc-img-fallback { display: none; }
 .dc-body { flex: 1; min-width: 0; }
 .dc-title {
   font-family: 'Cinzel', serif;

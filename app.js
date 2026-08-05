@@ -4252,7 +4252,11 @@ function renderTrain(c) {
   const dp = el('div', 'dungeon-card' + (dungeonAvail ? ' dc-covo' : ' dc-done'));
   dp.innerHTML = `
     <div class="dc-accent"></div>
-    <div class="dc-icon">${dungeonAvail ? '🗡️' : '💀'}</div>
+    <div class="dc-icon">
+      <img class="dc-img" src="assets/dungeons/covo.webp" alt=""
+           onerror="this.style.display='none';this.nextElementSibling.style.display='inline'">
+      <span class="dc-img-fallback">${dungeonAvail ? '🗡️' : '💀'}</span>
+    </div>
     <div class="dc-body">
       <div class="dc-title">Il Covo dell'Orda</div>
       <div class="dc-sub">${dungeonAvail ? '3 nemici + Boss · Epico garantito' : 'Assalto completato · Torna domani'}</div>
@@ -4270,7 +4274,11 @@ function renderTrain(c) {
   const sp = el('div', 'dungeon-card' + (scalataAvail ? ' dc-scalata' : ' dc-done'));
   sp.innerHTML = `
     <div class="dc-accent"></div>
-    <div class="dc-icon">${scalataActive ? '⚡' : '🏔️'}</div>
+    <div class="dc-icon">
+      <img class="dc-img" src="assets/scalata/torre.webp" alt=""
+           onerror="this.style.display='none';this.nextElementSibling.style.display='inline'">
+      <span class="dc-img-fallback">${scalataActive ? '⚡' : '🏔️'}</span>
+    </div>
     <div class="dc-body">
       <div class="dc-title">La Scalata dell'Eroe</div>
       <div class="dc-sub">${
