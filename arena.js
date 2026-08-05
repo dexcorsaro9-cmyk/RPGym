@@ -558,12 +558,21 @@ function openScalata() {
 
   if (!can && !active) {
     const best = HERO.scalataRecord?.bestFloor || 0;
+    const hasKey = (HERO.consumables?.chiave_scalata || 0) > 0;
+    const keyBtn = hasKey
+      ? `<button class="btn btn-secondary wide" style="margin-top:6px" onclick="
+          const err = RPG.useConsumable(HERO, 'chiave_scalata');
+          if (err) { toast(err); return; }
+          persist(); closeModal(); openScalata();
+        ">🗝️ Usa Chiave della Scalata</button>`
+      : `<p class="center muted small" style="margin-top:4px">🗝️ Con una <b>Chiave della Scalata</b> potresti ritentare oggi.</p>`;
     modal(`<div class="scalata-intro">
       <div class="scalata-intro-icon">🏔️</div>
       <h3 class="panel-title center">La Scalata dell'Eroe</h3>
       <p class="center muted">Hai già affrontato la Scalata oggi.<br>Torna domani per scalare di nuovo.</p>
       ${best > 0 ? `<div class="scalata-record-note">🏆 Il tuo record: Piano <b>${best}</b></div>` : ''}
-      <button class="btn btn-primary wide" onclick="closeModal()">Ok</button>
+      ${keyBtn}
+      <button class="btn btn-primary wide" style="margin-top:8px" onclick="closeModal()">Ok</button>
     </div>`);
     return;
   }
