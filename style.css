@@ -3274,6 +3274,67 @@ img.camp-layer {
   padding: 6px 10px; border: 1px solid rgba(200,147,46,.25);
 }
 
+/* ── Virtù del Famiglio ── */
+.pet-virtue-grid { display: flex; flex-direction: column; gap: 10px; }
+.pet-virtue-row { padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); }
+.pet-virtue-row.dominant { border-color: rgba(201,147,46,.35); background: rgba(201,147,46,.06); }
+.pet-virtue-head {
+  display: flex; align-items: center; gap: 6px; margin-bottom: 5px;
+}
+.pet-virtue-icon { font-size: 1.05rem; line-height: 1; }
+.pet-virtue-name { font-weight: 700; font-size: .82rem; flex: 1; }
+.pet-virtue-val { font-size: .78rem; font-variant-numeric: tabular-nums; color: var(--gold); }
+.pet-virtue-dom { color: var(--gold); font-size: .82rem; font-weight: 700; margin-left: 2px; }
+.pet-virtue-bar { height: 5px; background: rgba(255,255,255,.08); border-radius: 3px; overflow: hidden; margin-bottom: 4px; }
+.pet-virtue-fill { height: 100%; border-radius: 3px; transition: width .5s; }
+[data-virtue="coraggio"] { background: linear-gradient(90deg, #e8604c, #ff9070); }
+[data-virtue="astuzia"]  { background: linear-gradient(90deg, #9b59b6, #c080f0); }
+[data-virtue="lealta"]   { background: linear-gradient(90deg, #27ae60, #55d98a); }
+.pet-virtue-desc { font-size: .7rem; color: rgba(255,255,255,.38); }
+.pet-synergy-info {
+  margin-top: 8px; padding: 8px 10px; border-radius: 8px;
+  background: rgba(201,147,46,.07); border: 1px solid rgba(201,147,46,.2);
+  font-size: .8rem; color: rgba(255,255,255,.72); line-height: 1.5;
+}
+
+/* ── Zone spedizione ── */
+.pet-zone-grid { display: flex; flex-direction: column; gap: 7px; margin-top: 8px; }
+.pet-zone-btn {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 11px 12px; border-radius: 10px; text-align: left; cursor: pointer;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1);
+  transition: background .15s, transform .1s;
+}
+.pet-zone-btn:hover:not(:disabled) { background: rgba(255,255,255,.08); }
+.pet-zone-btn:active:not(:disabled) { transform: scale(.97); }
+.pet-zone-btn:disabled { opacity: .4; cursor: default; }
+.pet-zone-icon { font-size: 1.5rem; flex-shrink: 0; line-height: 1; }
+.pet-zone-body { display: flex; flex-direction: column; gap: 2px; }
+.pet-zone-name { font-weight: 700; font-size: .88rem; }
+.pet-zone-desc { font-size: .72rem; color: rgba(255,255,255,.4); }
+
+/* ── Memorie del Famiglio ── */
+.pet-memories { display: flex; flex-direction: column; gap: 6px; }
+.pet-memory-row { font-size: .78rem; line-height: 1.45; }
+.pet-memory-date { font-size: .65rem; color: rgba(255,255,255,.3); margin-right: 4px; }
+.pet-memory-text { color: rgba(255,255,255,.6); font-style: italic; }
+
+/* ── Sinergia in Scalata ── */
+.sc-synergy-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 10px 14px; border-radius: 10px;
+  background: linear-gradient(135deg, rgba(201,147,46,.18), rgba(201,147,46,.08));
+  border: 1px solid rgba(201,147,46,.35); color: #e8c04c;
+  font-weight: 700; font-size: .86rem; cursor: pointer;
+  transition: filter .15s; font-family: inherit;
+}
+.sc-synergy-btn:hover { filter: brightness(1.15); }
+.sc-synergy-badge {
+  font-size: .56rem; padding: 2px 6px; border-radius: 10px;
+  background: rgba(201,147,46,.25); border: 1px solid rgba(201,147,46,.4);
+  color: #e8c04c; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+}
+
 /* ── Uovo del Famiglio: animazione schiusa ── */
 .egg-shake { animation: eggShake .5s ease-in-out infinite; }
 @keyframes eggShake {

@@ -642,6 +642,21 @@ function showScalataFloor() {
   const hasJolly = (s.jollyDice || 0) > 0;
   const poisonPending = s.heroPoison || 0;
 
+  // Synergy availability
+  const pet = HERO.pet;
+  const petOk = pet && pet.hatched && !pet.sick && (pet.hunger || 0) >= 20 && (pet.mood || 0) >= 20;
+  const virtue = petOk ? RPG.petDominantVirtue(HERO) : null;
+  const today = new Date().toISOString().slice(0, 10);
+  const synergyAvail = petOk && virtue && pet.lastSynergyDate !== today;
+  const VIRTUE_ICONS = { coraggio: '⚔️', astuzia: '✨', lealta: '💚' };
+  const VIRTUE_LABELS = { coraggio: 'Attacca', astuzia: 'Neutralizza', lealta: 'Cura' };
+  const synergyBtnHtml = synergyAvail
+    ? `<button class="sc-synergy-btn" id="sc-synergy">
+        ${VIRTUE_ICONS[virtue]} ${esc(pet.name)} — ${VIRTUE_LABELS[virtue]}
+        <span class="sc-synergy-badge">SINERGIA</span>
+       </button>`
+    : '';
+
   const MOVE_TELLS = {
     normal: { icon: '⚠', lbl: 'PROSSIMA MOSSA', cls: '',       text: `Attacca per <b>${s.enemyDmg}</b> danni` },
     double: { icon: '⚡', lbl: 'DOPPIO ATTACCO',  cls: 'double', text: `Attacco doppio: <b>${s.enemyDmg * 2}</b> danni totali!` },
@@ -689,6 +704,7 @@ function showScalataFloor() {
     </div>
 
     <div class="sc-log hidden" id="sc-log"></div>
+    ${synergyBtnHtml}
 
     <div id="sc-dice-section" class="sc-dice-section">
       <div class="sc-dice-label">ALLOCA I DADI · ROUND ${s.roundNum}</div>
@@ -746,6 +762,37 @@ function showScalataFloor() {
   </div>`);
 
   $('#modal-box').classList.add('scalata-dark-modal');
+
+  if (synergyAvail) {
+    document.getElementById('sc-synergy').addEventListener('click', () => {
+      const result = RPG.usePetSynergy(HERO, 'scalata');
+      persist();
+      if (typeof result === 'string') { toast(result); return; }
+      if (!result || !result.ok) return;
+
+      const logEl = document.getElementById('sc-log');
+      let msg = '';
+      if (result.effect === 'attack') {
+        msg = `${VIRTUE_ICONS.coraggio} ${esc(pet.name)} attacca per <b>−${result.dmg} HP</b>!`;
+        if (result.enemyDefeated) msg += ' Nemico sconfitto!';
+      } else if (result.effect === 'neutralize') {
+        msg = `${VIRTUE_ICONS.astuzia} ${esc(pet.name)} studia il nemico — mossa forzata a Normale!`;
+      } else if (result.effect === 'heal') {
+        msg = `${VIRTUE_ICONS.lealta} ${esc(pet.name)} ti cura di <b>+${result.heal} HP</b>!`;
+      }
+
+      logEl.innerHTML = `<div class="sc-log-rows"><div class="sc-log-row" style="color:#e8c04c">${msg}</div></div>`;
+      logEl.classList.remove('hidden');
+      document.getElementById('sc-synergy').remove();
+
+      sfx('coin');
+      if (result.enemyDefeated) {
+        setTimeout(() => { closeModal(); showScalataInterlude(); }, 1400);
+      } else {
+        setTimeout(() => { logEl.classList.add('hidden'); }, 2000);
+      }
+    });
+  }
 
   const TYPES       = ['libero', 'atk', 'def', 'mag'];
   const TYPE_EMOJIS = { libero: '?', atk: '⚔️', def: '🛡️', mag: '✨' };
