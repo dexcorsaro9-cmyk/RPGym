@@ -1659,10 +1659,17 @@ function showAllyBase(o) {
   `);
 }
 
+function petVisualStage(pet) {
+  if (!pet.hatched) return 1;
+  const lv = pet.level || 1;
+  if (lv <= 4)  return 2;
+  if (lv <= 15) return 3;
+  if (lv <= 30) return 4;
+  return 5;
+}
+
 function petImageSrc(pet) {
-  const stage = RPG.petStage(pet.level);
-  const displayStage = pet.hatched ? Math.max(stage, 2) : stage;
-  return `assets/pet/${pet.species}/${displayStage}.webp`;
+  return `assets/pet/${pet.species}/${petVisualStage(pet)}.webp`;
 }
 
 function renderEggView(c) {
@@ -1812,10 +1819,11 @@ function renderSantuarioView(c) {
     </div>`;
   } else if (!isLegendary) {
     const nextStage = stage + 1;
-    const nextLv = (nextStage - 1) * RPG.PET_LEVELS_PER_STAGE + 1;
     const nextUnlockLabels = { 2: '🎒 Spedizioni', 3: '💭 Desideri', 4: '⚔️ Arena max', 5: '🌟 Leggendario' };
     const nextLabel = nextUnlockLabels[nextStage];
-    if (nextLabel) xpWrap.innerHTML += `<div class="small muted" style="margin-top:.3rem">Prossimo stadio (Liv.${nextLv}): ${nextLabel}</div>`;
+    // Soglie visive: 1→2 a lv5, 2→3 a lv16, 3→4 a lv31, 4→5 a lv50+
+    const visualNextLv = { 2: 5, 3: 16, 4: 31, 5: 50 }[nextStage] ?? ((nextStage - 1) * RPG.PET_LEVELS_PER_STAGE + 1);
+    if (nextLabel) xpWrap.innerHTML += `<div class="small muted" style="margin-top:.3rem">Prossimo stadio (Liv.${visualNextLv}): ${nextLabel}</div>`;
   }
 
   head.appendChild(el('p', 'small muted', `${pers.icon} <b>${pers.name}</b><br>${pers.desc}`));
