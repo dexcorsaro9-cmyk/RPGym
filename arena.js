@@ -918,8 +918,18 @@ function showScalataFloor() {
     diceState.forEach(t => { if (t > 0) counts[TYPES[t]]++; });
     if (hasJolly) counts[TYPES[jollyState]]++;
 
+    const allAssignedCheck = diceState.every(t => t > 0);
+    if (!allAssignedCheck) {
+      const logEl = document.getElementById('sc-log');
+      if (logEl) logEl.innerHTML = '<div class="sc-log-rows"><div class="sc-log-row" style="color:#e87070">⚠️ Assegna tutti i dadi prima di confermare.</div></div>';
+      return;
+    }
     const result = RPG.scalataResolveDice(HERO, counts);
-    if (!result) return;
+    if (!result) {
+      const logEl = document.getElementById('sc-log');
+      if (logEl) logEl.innerHTML = '<div class="sc-log-rows"><div class="sc-log-row" style="color:#e87070">⚠️ Errore: ricarica la pagina e riprova.</div></div>';
+      return;
+    }
     persist();
 
     const logEl     = document.getElementById('sc-log');
