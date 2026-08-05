@@ -2828,7 +2828,7 @@ function renderBiscaView(c) {
     const winnerName = res.winner === 'a' ? fighterA : fighterB;
     const verdict = el('div', res.won ? 'bisca-verdict bisca-win' : 'bisca-verdict bisca-lose');
     verdict.innerHTML = res.won
-      ? `🏆 <b>${esc(winnerName)}</b> vince lo scontro!<br>Hai guadagnato 🪙 <b>${res.payout}</b> Oro`
+      ? `🏆 <b>${esc(winnerName)}</b> vince lo scontro!<br>Hai guadagnato 🪙 <b>${res.payout}</b> Oro${res.doubleActive ? ' <span style="color:#e8b64c">🍀 ×2!</span>' : ''}`
       : `💀 <b>${esc(winnerName)}</b> trionfa… Hai perso 🪙 <b>${res.amount}</b> Oro.`;
     resultEl.appendChild(verdict);
 
