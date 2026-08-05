@@ -639,6 +639,20 @@ function showScalataFloor() {
   const hHpPct = Math.max(0, (s.heroHp / s.heroMaxHp) * 100);
   const hpCrit = s.heroHp / s.heroMaxHp < 0.3;
   const floorLbl = isBoss ? `⭐ BOSS · Piano ${s.floor}` : `Piano ${s.floor}`;
+  const hasJolly = (s.jollyDice || 0) > 0;
+  const poisonPending = s.heroPoison || 0;
+
+  const MOVE_TELLS = {
+    normal: { icon: '⚠', lbl: 'PROSSIMA MOSSA', cls: '',       text: `Attacca per <b>${s.enemyDmg}</b> danni` },
+    double: { icon: '⚡', lbl: 'DOPPIO ATTACCO',  cls: 'double', text: `Attacco doppio: <b>${s.enemyDmg * 2}</b> danni totali!` },
+    poison: { icon: '☠', lbl: 'ATTACCO VELENOSO', cls: 'poison', text: `<b>${s.enemyDmg}</b> danni + <b>veleno</b> al prossimo round` },
+    guard:  { icon: '🛡', lbl: 'IN GUARDIA',       cls: 'guard',  text: `Blocca <b>20</b> dei tuoi danni di attacco` },
+    rage:   { icon: '🔥', lbl: 'IN FURIA',         cls: 'rage',   text: `Se sopravvive guadagna <b>+15 ATK</b> permanenti!` },
+  };
+  const mv = MOVE_TELLS[s.enemyMoveType || 'normal'];
+
+  const poisonBadge = poisonPending > 0
+    ? ` <span class="sc-poison-badge">☠ −${poisonPending}</span>` : '';
 
   modal(`<div class="sc-floor">
     <div class="sc-floor-hdr">
@@ -647,7 +661,7 @@ function showScalataFloor() {
         <div class="sc-floor-round">ROUND ${s.roundNum}</div>
       </div>
       <div class="sc-hero-hp">
-        <div class="sc-hero-hp-text${hpCrit ? ' crit' : ''}">❤️ ${s.heroHp}/${s.heroMaxHp}</div>
+        <div class="sc-hero-hp-text${hpCrit ? ' crit' : ''}">❤️ ${s.heroHp}/${s.heroMaxHp}${poisonBadge}</div>
         <div class="sc-hero-hpbar"><div class="sc-hero-hpfill${hpCrit ? ' crit' : ''}" style="width:${hHpPct}%"></div></div>
       </div>
     </div>
@@ -668,9 +682,9 @@ function showScalataFloor() {
           </div>
         </div>
       </div>
-      <div class="sc-enemy-tells">
-        <div class="sc-enemy-tells-lbl">⚠ PROSSIMA MOSSA</div>
-        Attacca per <b>${s.enemyDmg}</b> danni!
+      <div class="sc-enemy-tells ${mv.cls}">
+        <div class="sc-enemy-tells-lbl ${mv.cls}">${mv.icon} ${mv.lbl}</div>
+        ${mv.text}
       </div>
     </div>
 
@@ -684,6 +698,11 @@ function showScalataFloor() {
             <span class="sc-die-emoji" id="sc-die-em-${i}">?</span>
             <span class="sc-die-assign" id="sc-die-lbl-${i}">LIBERO</span>
           </div>`).join('')}
+        ${hasJolly ? `
+          <div class="sc-die jolly" id="sc-die-jolly">
+            <span class="sc-die-emoji" id="sc-die-em-jolly">⚔️</span>
+            <span class="sc-die-assign" id="sc-die-lbl-jolly">ATTACCO</span>
+          </div>` : ''}
       </div>
 
       <div class="sc-buckets">
@@ -734,11 +753,14 @@ function showScalataFloor() {
   const ATK_TABLE   = RPG.SCALATA_ATK || [18, 38, 60, 85];
   const DEF_TABLE   = RPG.SCALATA_DEF || [20, 42, 65, 90];
   const diceState   = [0, 0, 0, 0];
+  let jollyState    = 1; // jolly die: 1=ATK, 2=DEF, 3=MAG; no LIBERO state
+  const enemyMove   = s.enemyMoveType || 'normal';
 
   function refreshUI() {
     const counts = { atk: 0, def: 0, mag: 0 };
     diceState.forEach(t => { if (t > 0) counts[TYPES[t]]++; });
-    const allAssigned = diceState.every(t => t > 0);
+    if (hasJolly) counts[TYPES[jollyState]]++;
+    const allAssigned = diceState.every(t => t > 0); // jolly always assigned
 
     diceState.forEach((t, i) => {
       const die  = document.getElementById('sc-die-' + i);
@@ -749,6 +771,12 @@ function showScalataFloor() {
       em.textContent = TYPE_EMOJIS[typeName];
       lbl.textContent = TYPE_LABELS[typeName];
     });
+
+    if (hasJolly) {
+      const typeName = TYPES[jollyState];
+      document.getElementById('sc-die-em-jolly').textContent = TYPE_EMOJIS[typeName];
+      document.getElementById('sc-die-lbl-jolly').textContent = TYPE_LABELS[typeName];
+    }
 
     const atkDmg = counts.atk > 0 ? ATK_TABLE[Math.min(counts.atk - 1, 3)] : 0;
     const defBlk = counts.def > 0 ? DEF_TABLE[Math.min(counts.def - 1, 3)] : 0;
@@ -766,7 +794,8 @@ function showScalataFloor() {
 
     const totalBlock = defBlk + magBlock;
     const stunned    = counts.mag >= 3;
-    const netHit     = stunned ? 0 : Math.max(0, s.enemyDmg - totalBlock);
+    const baseEnemyDmg = enemyMove === 'double' ? s.enemyDmg * 2 : s.enemyDmg;
+    const netHit     = stunned ? 0 : Math.max(0, baseEnemyDmg - totalBlock);
     const netEl      = document.getElementById('sc-net');
     if (allAssigned) {
       if (stunned) {
@@ -776,7 +805,7 @@ function showScalataFloor() {
         netEl.innerHTML = '🛡️ Blocco totale! Nessun danno subito.';
         netEl.className = 'sc-net safe';
       } else {
-        netEl.innerHTML = `⚡ Danno previsto: <b>${netHit}</b> HP`;
+        netEl.innerHTML = `⚡ Danno previsto: <b>${netHit}</b> HP${enemyMove === 'double' ? ' <span style="opacity:.7">(doppio!)</span>' : ''}`;
         netEl.className = 'sc-net danger';
       }
     } else {
@@ -786,7 +815,7 @@ function showScalataFloor() {
     document.getElementById('sc-confirm').disabled = !allAssigned;
   }
 
-  document.querySelectorAll('.sc-die').forEach(die => {
+  document.querySelectorAll('.sc-die:not(.jolly)').forEach(die => {
     die.addEventListener('click', () => {
       const idx = parseInt(die.dataset.idx);
       diceState[idx] = (diceState[idx] + 1) % 4;
@@ -794,9 +823,17 @@ function showScalataFloor() {
     });
   });
 
+  if (hasJolly) {
+    document.getElementById('sc-die-jolly').addEventListener('click', () => {
+      jollyState = (jollyState % 3) + 1; // cycles 1→2→3→1
+      refreshUI();
+    });
+  }
+
   document.getElementById('sc-confirm').addEventListener('click', () => {
     const counts = { atk: 0, def: 0, mag: 0 };
     diceState.forEach(t => { if (t > 0) counts[TYPES[t]]++; });
+    if (hasJolly) counts[TYPES[jollyState]]++;
 
     const result = RPG.scalataResolveDice(HERO, counts);
     if (!result) return;
@@ -807,14 +844,18 @@ function showScalataFloor() {
     const retreatBtn = document.getElementById('sc-retreat');
 
     let html = '<div class="sc-log-rows">';
+    if (result.poisonDmg > 0)
+      html += `<div class="sc-log-row" style="color:#c060e0">☠ Veleno: <b>−${result.poisonDmg} HP</b> da avvelenamento</div>`;
     if (result.heroDmg > 0)
-      html += `<div class="sc-log-row">⚔️ Attacco: <b>−${result.heroDmg} HP</b> al nemico</div>`;
+      html += `<div class="sc-log-row">⚔️ Attacco: <b>−${result.heroDmg} HP</b> al nemico${result.wasGuarded ? ' <span style="opacity:.6">(guardia −20)</span>' : ''}</div>`;
     if (result.magEffect === 'stun')
       html += `<div class="sc-log-row" style="color:#b09fe8">✨ Stordisci! Il nemico non attacca.</div>`;
     else if (result.magEffect === 'poison')
       html += `<div class="sc-log-row" style="color:#b09fe8">✨ Veleno: <b>−${result.magExtra} HP</b> extra al nemico</div>`;
     else if (result.magEffect === 'weaken')
       html += `<div class="sc-log-row" style="color:#b09fe8">✨ Debolezza: +10 blocco aggiunto</div>`;
+    if (result.wasDouble && result.magEffect !== 'stun')
+      html += `<div class="sc-log-row" style="color:#ff6b5b;font-size:.76rem">⚡ Doppio attacco nemico!</div>`;
     if (result.enemyHit > 0)
       html += `<div class="sc-log-row" style="color:#e87070">🗡️ Nemico: <b>−${result.enemyHit} HP</b> a te</div>`;
     else if (!result.heroDefeated && result.magEffect !== 'stun')
@@ -854,6 +895,7 @@ function showScalataInterlude() {
 
   const nextFloor   = s.floor + 1;
   const isBossNext  = nextFloor % 5 === 0;
+  const isShop      = s.floor % 3 === 0;
   const hHpPct      = Math.max(0, (s.heroHp / s.heroMaxHp) * 100);
   const hpCrit      = s.heroHp / s.heroMaxHp < 0.3;
   const goldPrize   = Math.round(20 + s.floor * 3);
@@ -862,38 +904,45 @@ function showScalataInterlude() {
   const blkDealt    = s.lastBlkDealt || 0;
   const effLabel    = s.lastEffect   || '—';
 
-  modal(`<div class="sc-int">
-    <div class="sc-int-banner">
-      <div class="sc-int-check">✅</div>
-      <div class="sc-int-title">Piano ${s.floor} Superato!</div>
-      <div class="sc-int-next${isBossNext ? ' boss' : ''}">
-        ${isBossNext ? `⭐ Piano ${nextFloor} — BOSS in arrivo!` : `Piano ${nextFloor} ti aspetta.`}
+  const choicesOrShop = isShop ? `
+    <div class="sc-int-choices-label">🏪 NEGOZIO DEL PIANO</div>
+    <div class="sc-shop-gold">Oro: <b id="shop-gold-display">${HERO.gold}🪙</b></div>
+    <div class="sc-shop-items">
+      <div class="sc-shop-item" id="shop-pozione">
+        <span class="sc-shop-item-icon">🧪</span>
+        <div class="sc-shop-item-body">
+          <div class="sc-shop-item-name">Pozione</div>
+          <div class="sc-shop-item-desc">+35 HP istantanei</div>
+        </div>
+        <button class="sc-shop-buy" data-item="pozione" data-cost="20">20🪙</button>
+      </div>
+      <div class="sc-shop-item" id="shop-scudo">
+        <span class="sc-shop-item-icon">🛡️</span>
+        <div class="sc-shop-item-body">
+          <div class="sc-shop-item-name">Scudo Rinforzato</div>
+          <div class="sc-shop-item-desc">+20 blocco al prossimo round</div>
+        </div>
+        <button class="sc-shop-buy" data-item="scudo" data-cost="25">25🪙</button>
+      </div>
+      <div class="sc-shop-item" id="shop-jolly">
+        <span class="sc-shop-item-icon">🎲</span>
+        <div class="sc-shop-item-body">
+          <div class="sc-shop-item-name">Dado Jolly</div>
+          <div class="sc-shop-item-desc">5° dado jolly (ATK/DEF/MAG) per 1 round</div>
+        </div>
+        <button class="sc-shop-buy" data-item="jolly" data-cost="30">30🪙</button>
+      </div>
+      <div class="sc-shop-item" id="shop-elisir">
+        <span class="sc-shop-item-icon">⚗️</span>
+        <div class="sc-shop-item-body">
+          <div class="sc-shop-item-name">Elisir Vitale</div>
+          <div class="sc-shop-item-desc">+20 HP massimi e +20 HP subito</div>
+        </div>
+        <button class="sc-shop-buy" data-item="elisir" data-cost="45">45🪙</button>
       </div>
     </div>
-
-    <div class="sc-int-stats">
-      <div class="sc-int-stat">
-        <div class="sc-int-stat-val">${dmgDealt || '—'}</div>
-        <div class="sc-int-stat-lbl">Danno inflitto</div>
-      </div>
-      <div class="sc-int-stat">
-        <div class="sc-int-stat-val">${blkDealt || '—'}</div>
-        <div class="sc-int-stat-lbl">Blocco</div>
-      </div>
-      <div class="sc-int-stat">
-        <div class="sc-int-stat-val">${effLabel}</div>
-        <div class="sc-int-stat-lbl">Effetto</div>
-      </div>
-    </div>
-
-    <div class="sc-int-hp">
-      <div class="sc-int-hp-row">
-        <span class="sc-int-hp-val${hpCrit ? ' crit' : ''}">❤️ ${s.heroHp} / ${s.heroMaxHp} HP</span>
-        <span class="sc-int-hp-note">${Math.round(hHpPct)}%</span>
-      </div>
-      <div class="sc-int-hpbar"><div class="sc-int-hpfill${hpCrit ? ' crit' : ''}" style="width:${hHpPct}%"></div></div>
-    </div>
-
+    <button class="sc-shop-continue" id="int-continue">▶ Continua al Piano ${nextFloor}</button>
+  ` : `
     <div class="sc-int-choices-label">SCEGLI UN VANTAGGIO</div>
     <div class="sc-int-choices">
       <button class="sc-int-choice heal" id="int-heal">
@@ -921,19 +970,86 @@ function showScalataInterlude() {
         <span class="sc-int-choice-badge">ORO</span>
       </button>
     </div>
+  `;
+
+  modal(`<div class="sc-int">
+    <div class="sc-int-banner">
+      <div class="sc-int-check">${isShop ? '🏪' : '✅'}</div>
+      <div class="sc-int-title">${isShop ? 'Negozio Itinerante!' : `Piano ${s.floor} Superato!`}</div>
+      <div class="sc-int-next${isBossNext ? ' boss' : ''}">
+        ${isBossNext ? `⭐ Piano ${nextFloor} — BOSS in arrivo!` : `Piano ${nextFloor} ti aspetta.`}
+      </div>
+    </div>
+
+    <div class="sc-int-stats">
+      <div class="sc-int-stat">
+        <div class="sc-int-stat-val">${dmgDealt || '—'}</div>
+        <div class="sc-int-stat-lbl">Danno inflitto</div>
+      </div>
+      <div class="sc-int-stat">
+        <div class="sc-int-stat-val">${blkDealt || '—'}</div>
+        <div class="sc-int-stat-lbl">Blocco</div>
+      </div>
+      <div class="sc-int-stat">
+        <div class="sc-int-stat-val">${effLabel}</div>
+        <div class="sc-int-stat-lbl">Effetto</div>
+      </div>
+    </div>
+
+    <div class="sc-int-hp">
+      <div class="sc-int-hp-row">
+        <span class="sc-int-hp-val${hpCrit ? ' crit' : ''}" id="int-hp-val">❤️ ${s.heroHp} / ${s.heroMaxHp} HP</span>
+        <span class="sc-int-hp-note" id="int-hp-pct">${Math.round(hHpPct)}%</span>
+      </div>
+      <div class="sc-int-hpbar"><div class="sc-int-hpfill${hpCrit ? ' crit' : ''}" id="int-hp-fill" style="width:${hHpPct}%"></div></div>
+    </div>
+
+    ${choicesOrShop}
   </div>`);
 
   $('#modal-box').classList.add('scalata-dark-modal');
 
-  function pick(choice) {
-    RPG.scalataAdvanceFloor(HERO, choice);
-    persist();
-    closeModal();
-    showScalataFloor();
+  if (isShop) {
+    function updateShopUI() {
+      document.getElementById('shop-gold-display').textContent = HERO.gold + '🪙';
+      document.querySelectorAll('.sc-shop-buy').forEach(btn => {
+        const cost = parseInt(btn.dataset.cost);
+        btn.disabled = HERO.gold < cost;
+        btn.style.opacity = HERO.gold < cost ? '0.4' : '';
+      });
+      const hpPct = Math.max(0, (s.heroHp / s.heroMaxHp) * 100);
+      document.getElementById('int-hp-val').textContent = `❤️ ${s.heroHp} / ${s.heroMaxHp} HP`;
+      document.getElementById('int-hp-pct').textContent = Math.round(hpPct) + '%';
+      document.getElementById('int-hp-fill').style.width = hpPct + '%';
+    }
+    updateShopUI();
+
+    document.querySelectorAll('.sc-shop-buy').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const err = RPG.scalataShopBuy(HERO, btn.dataset.item);
+        if (err) { toast(err); return; }
+        persist();
+        updateShopUI();
+      });
+    });
+
+    document.getElementById('int-continue').addEventListener('click', () => {
+      RPG.scalataAdvanceFloor(HERO, 'none');
+      persist();
+      closeModal();
+      showScalataFloor();
+    });
+  } else {
+    function pick(choice) {
+      RPG.scalataAdvanceFloor(HERO, choice);
+      persist();
+      closeModal();
+      showScalataFloor();
+    }
+    document.getElementById('int-heal').addEventListener('click',     () => pick('heal'));
+    document.getElementById('int-surprise').addEventListener('click', () => pick('surprise'));
+    document.getElementById('int-gold').addEventListener('click',     () => pick('gold'));
   }
-  document.getElementById('int-heal').addEventListener('click',     () => pick('heal'));
-  document.getElementById('int-surprise').addEventListener('click', () => pick('surprise'));
-  document.getElementById('int-gold').addEventListener('click',     () => pick('gold'));
 }
 
 function showScalataEnd() {

@@ -4436,6 +4436,21 @@ const RPG = (() => {
   const SCALATA_ATK = [18, 38, 60, 85];
   const SCALATA_DEF = [20, 42, 65, 90];
 
+  function generateEnemyMove(floor, isBoss) {
+    const r = Math.random();
+    if (isBoss) {
+      if (r < 0.30) return 'normal';
+      if (r < 0.55) return 'double';
+      if (r < 0.75) return 'rage';
+      if (r < 0.90) return 'guard';
+      return 'poison';
+    }
+    if (r < 0.50) return 'normal';
+    if (r < 0.70) return 'poison';
+    if (r < 0.85) return 'double';
+    return 'guard';
+  }
+
   function scalataEnemyForFloor(floor) {
     const isBoss = floor % 5 === 0;
     const biomeIdx = Math.min(Math.floor((floor - 1) / 5), BIOMES.length - 1);
@@ -4484,8 +4499,11 @@ const RPG = (() => {
       heroHp: 100 + hpBonus, heroMaxHp: 100 + hpBonus,
       enemyId: enemy.id,
       enemyHp: stats.hp, enemyMaxHp: stats.hp, enemyDmg: stats.dmg, isBoss: stats.isBoss,
+      enemyMoveType: generateEnemyMove(floor, stats.isBoss),
       done: false, interlude: false,
       goldEarned: 0, xpEarned: 0, prevBest,
+      heroPoison: 0, kills: 0, jollyDice: 0, nextRoundBlock: 0,
+      lastDmgDealt: 0, lastBlkDealt: 0, lastEffect: '—',
     };
     hero.lastScalata = todayStamp();
     return hero.activeScalata;
@@ -4495,8 +4513,29 @@ const RPG = (() => {
     const s = hero.activeScalata;
     if (!s || s.done || s.interlude) return null;
     const total = (alloc.atk || 0) + (alloc.def || 0) + (alloc.mag || 0);
-    if (total !== 4) return null;
+    if (total !== 4 + (s.jollyDice || 0)) return null;
 
+    // Apply lingering poison before this round's actions
+    const poisonDmg = s.heroPoison || 0;
+    if (poisonDmg > 0) {
+      s.heroHp = Math.max(0, s.heroHp - poisonDmg);
+      s.heroPoison = 0;
+    }
+    if (s.heroHp <= 0) {
+      s.done = true;
+      if (s.floor > hero.scalataRecord.bestFloor) hero.scalataRecord.bestFloor = s.floor;
+      const wc = getWeeklyChallenges(hero);
+      wc.list.forEach(ch => {
+        if (ch.type === 'scalata' && !ch.claimed)
+          ch.progress = Math.min(ch.target, Math.max(ch.progress, s.floor));
+      });
+      return { heroDmg: 0, block: 0, magExtra: 0, magEffect: null, enemyHit: 0,
+               enemyDefeated: false, heroDefeated: true, goldGained: 0, xpGained: 0, poisonDmg };
+    }
+
+    if (s.jollyDice > 0) s.jollyDice = 0;
+
+    const currentMove = s.enemyMoveType || 'normal';
     const atkDice = alloc.atk || 0;
     const defDice = alloc.def || 0;
     const magDice = alloc.mag || 0;
@@ -4507,16 +4546,29 @@ const RPG = (() => {
     let magExtra  = 0;
 
     if (magDice >= 3)      { magEffect = 'stun'; }
-    else if (magDice >= 2) { magEffect = 'poison';  magExtra = 22; }
-    else if (magDice === 1){ magEffect = 'weaken';  block += 10; }
+    else if (magDice >= 2) { magEffect = 'poison'; magExtra = 22; }
+    else if (magDice === 1){ magEffect = 'weaken'; block += 10; }
 
-    const enemyHit = magEffect === 'stun' ? 0 : Math.max(0, s.enemyDmg - block);
+    block += (s.nextRoundBlock || 0);
+    s.nextRoundBlock = 0;
 
-    s.enemyHp = Math.max(0, s.enemyHp - heroDmg - magExtra);
-    s.heroHp  = Math.max(0, s.heroHp  - enemyHit);
-
+    // Guard: enemy blocks 20 of hero's raw attack damage
+    const effectiveHeroDmg = currentMove === 'guard' ? Math.max(0, heroDmg - 20) : heroDmg;
+    s.enemyHp = Math.max(0, s.enemyHp - effectiveHeroDmg - magExtra);
     const enemyDefeated = s.enemyHp <= 0;
-    const heroDefeated  = s.heroHp  <= 0;
+
+    // Double: enemy attacks twice this round
+    const rawEnemyAttack = currentMove === 'double' ? s.enemyDmg * 2 : s.enemyDmg;
+    const enemyHit = magEffect === 'stun' ? 0 : Math.max(0, rawEnemyAttack - block);
+    s.heroHp = Math.max(0, s.heroHp - enemyHit);
+    const heroDefeated = s.heroHp <= 0;
+
+    // Side effects when enemy survives
+    if (!enemyDefeated) {
+      if (currentMove === 'poison') s.heroPoison = 10;
+      if (currentMove === 'rage')   s.enemyDmg += 15;
+      s.enemyMoveType = generateEnemyMove(s.floor, s.isBoss);
+    }
 
     let goldGained = 0, xpGained = 0;
     if (enemyDefeated && !heroDefeated) {
@@ -4526,6 +4578,7 @@ const RPG = (() => {
       applyXp(hero, xpGained);
       s.goldEarned += goldGained;
       s.xpEarned   = (s.xpEarned || 0) + xpGained;
+      s.kills = (s.kills || 0) + 1;
     }
 
     if ((enemyDefeated || heroDefeated) && s.floor > hero.scalataRecord.bestFloor) {
@@ -4543,7 +4596,13 @@ const RPG = (() => {
       s.interlude = true;
     }
 
-    return { heroDmg, block, magExtra, magEffect, enemyHit, enemyDefeated, heroDefeated, goldGained, xpGained };
+    s.lastDmgDealt = effectiveHeroDmg + magExtra;
+    s.lastBlkDealt = block;
+    s.lastEffect = magEffect === 'stun' ? 'Stordito!' : magEffect === 'poison' ? '+22 veleno' : magEffect === 'weaken' ? '+10 blocco' : '—';
+
+    return { heroDmg: effectiveHeroDmg, block, magExtra, magEffect, enemyHit,
+             enemyDefeated, heroDefeated, goldGained, xpGained, poisonDmg,
+             wasGuarded: currentMove === 'guard', wasDouble: currentMove === 'double' };
   }
 
   function scalataAdvanceFloor(hero, choice) {
@@ -4561,9 +4620,11 @@ const RPG = (() => {
     } else if (choice === 'surprise') {
       surpriseDmg = Math.round(20 + s.floor * 2);
     }
+    // 'none' = shop floor, player spent gold on items already
 
     s.floor++;
     s.interlude = false;
+    s.heroPoison = 0; // poison clears between floors
 
     if (s.floor > hero.scalataRecord.bestFloor) hero.scalataRecord.bestFloor = s.floor;
 
@@ -4574,6 +4635,7 @@ const RPG = (() => {
     s.enemyMaxHp = stats.hp;
     s.enemyDmg   = stats.dmg;
     s.isBoss     = stats.isBoss;
+    s.enemyMoveType = generateEnemyMove(s.floor, stats.isBoss);
 
     return { floor: s.floor, healed, goldBonus, surpriseDmg, enemyId: enemy.id };
   }
@@ -4589,6 +4651,26 @@ const RPG = (() => {
         ch.progress = Math.min(ch.target, Math.max(ch.progress, s.floor));
     });
     return { floor: s.floor, goldEarned: s.goldEarned, xpEarned: s.xpEarned || 0 };
+  }
+
+  function scalataShopBuy(hero, item) {
+    const s = hero.activeScalata;
+    if (!s || s.done) return 'Nessuna Scalata in corso.';
+    const SHOP_ITEMS = {
+      pozione: { cost: 20 },
+      jolly:   { cost: 30 },
+      scudo:   { cost: 25 },
+      elisir:  { cost: 45 },
+    };
+    const itm = SHOP_ITEMS[item];
+    if (!itm) return 'Oggetto sconosciuto.';
+    if (hero.gold < itm.cost) return 'Oro insufficiente.';
+    hero.gold -= itm.cost;
+    if (item === 'pozione')     s.heroHp = Math.min(s.heroMaxHp, s.heroHp + 35);
+    else if (item === 'jolly')  s.jollyDice = (s.jollyDice || 0) + 1;
+    else if (item === 'scudo')  s.nextRoundBlock = (s.nextRoundBlock || 0) + 20;
+    else if (item === 'elisir') { s.heroMaxHp += 20; s.heroHp = Math.min(s.heroMaxHp, s.heroHp + 20); }
+    return null;
   }
 
   function applyXp(hero, amount) {
@@ -5481,6 +5563,7 @@ const RPG = (() => {
     TICKET_TYPES, addTicket, getUnscratchedTickets, scratchTicket,
     GUILD_LEVELS, guildLevel, guildBonus,
     canStartScalata, startScalata, scalataResolveDice, scalataAdvanceFloor, scalataGiveUp,
+    scalataShopBuy, generateEnemyMove,
     SCALATA_ATK, SCALATA_DEF,
   };
 })();
