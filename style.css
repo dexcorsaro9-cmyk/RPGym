@@ -306,6 +306,8 @@ body {
   100% { transform: translateX(200%); }
 }
 
+.cantiere-panel { padding-left: 6px; }
+
 .cantiere-section-title {
   font-size: 1rem; font-weight: 700; color: var(--leather);
   margin: 14px 0 8px; padding-bottom: 6px;
