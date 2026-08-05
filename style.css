@@ -7320,6 +7320,21 @@ img.fiche-inline {
 /* Entry panel accent */
 .cartomante-entry-panel { border-left: 3px solid #7c3aed; }
 
+/* Badge fila fiches + giro gratis */
+.cart-badge-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 4px; }
+.cart-fiches-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(124,58,237,.15); border: 1px solid rgba(124,58,237,.35);
+  color: #4c1d95; border-radius: 20px; padding: 4px 12px;
+  font-size: .82rem; font-weight: 700;
+}
+.cart-free-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: rgba(201,147,46,.18); border: 1px solid rgba(201,147,46,.5);
+  color: #78450a; border-radius: 20px; padding: 4px 12px;
+  font-size: .82rem; font-weight: 600;
+}
+
 /* HUD fiches: slightly purple-tinted */
 .res-fiches { color: #c4b5fd; }
 @media (prefers-color-scheme: light) { .res-fiches { color: #7c3aed; } }
