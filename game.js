@@ -4882,7 +4882,7 @@ const RPG = (() => {
     if (hero.gold < itm.cost) return 'Oro insufficiente.';
     hero.gold -= itm.cost;
     if (item === 'pozione')     s.heroHp = Math.min(s.heroMaxHp, s.heroHp + 35);
-    else if (item === 'jolly')  s.jollyDice = (s.jollyDice || 0) + 1;
+    else if (item === 'jolly')  s.jollyDice = Math.min(1, (s.jollyDice || 0) + 1);
     else if (item === 'scudo')  s.nextRoundBlock = (s.nextRoundBlock || 0) + 20;
     else if (item === 'elisir') { s.heroMaxHp += 20; s.heroHp = Math.min(s.heroMaxHp, s.heroHp + 20); }
     addPetVirtue(hero, 'astuzia', 2);
