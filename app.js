@@ -603,8 +603,6 @@ function enterGame() {
   RPG.rolloverTreasureMap(HERO);
   // Assegna retroattivamente i punti abilità per i livelli già guadagnati
   RPG.earnSkillPoints(HERO);
-  // Controlla danno edifici per inattività
-  RPG.checkBuildingDamage(HERO);
   // Mercante Fuggiasco (aggiorna giornalmente)
   RPG.rolloverFugitiveMerchant(HERO);
   // Mappa Infuocata (aggiorna settimanalmente)
