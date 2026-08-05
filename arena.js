@@ -519,6 +519,8 @@ function showDungeonReward(reward) {
   /* Consumabile bonus dal dungeon: 50% raro, 50% epico */
   const consBonus = RPG.dropConsumable(HERO, Math.random() < 0.5 ? 'raro' : 'epico');
   HERO.fiches = (HERO.fiches || 0) + 3;
+  const gotLegTicket = Math.random() < 0.20;
+  if (gotLegTicket) RPG.addTicket(HERO, 'leggendario');
   persist();
   let html = `<div class="dungeon-reward">
     <div class="dungeon-reward-star">⭐</div>
@@ -534,6 +536,12 @@ function showDungeonReward(reward) {
   }
   if (consBonus) {
     html += `<p class="center small" style="margin-top:8px">💰 ${consBonus.icon} <b>${esc(consBonus.name)}</b> aggiunto alla Sacca!</p>`;
+  }
+  if (gotLegTicket) {
+    html += `<div class="panel" style="margin-top:10px;text-align:center;background:rgba(180,140,20,0.08);border:1px solid rgba(200,160,30,0.25)">
+      🎟️ <b>Cristallo dell'Eterno trovato!</b><br>
+      <span class="muted small">Aprilo nel Borgo → Biglietti da Grattare</span>
+    </div>`;
   }
   html += `<button class="btn btn-primary wide" onclick="closeModal(); setTab('train')">Fantastico!</button>
   </div>`;
@@ -1124,6 +1132,7 @@ function showScalataEnd() {
   const defeated  = s.heroHp <= 0;
   const prevBest  = s.prevBest || 0;
   const newRec    = floor > prevBest;
+  if (newRec) { RPG.addTicket(HERO, 'leggendario'); persist(); }
   const lastEnemy = defeated
     ? (RPG.BESTIARY.find(b => b.id === s.enemyId)?.name || 'Nemico Misterioso')
     : null;
@@ -1160,7 +1169,11 @@ function showScalataEnd() {
     </div>
 
     ${newRec
-      ? `<div class="sc-end-record">🏆 Nuovo Record! Piano ${floor}</div>`
+      ? `<div class="sc-end-record">🏆 Nuovo Record! Piano ${floor}</div>
+         <div class="panel" style="margin-top:8px;text-align:center;background:rgba(180,140,20,0.08);border:1px solid rgba(200,160,30,0.25)">
+           🎟️ <b>Cristallo dell'Eterno trovato!</b><br>
+           <span class="muted small">Aprilo nel Borgo → Biglietti da Grattare</span>
+         </div>`
       : `<div class="scalata-record-note">🏆 Record: Piano ${HERO.scalataRecord?.bestFloor || floor}</div>`}
 
     <button class="btn btn-primary wide" onclick="closeModal(); setTab('train')">Fantastico!</button>
