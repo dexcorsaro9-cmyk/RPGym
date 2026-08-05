@@ -7324,15 +7324,15 @@ img.fiche-inline {
 .cart-badge-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 4px; }
 .cart-fiches-badge {
   display: inline-flex; align-items: center; gap: 5px;
-  background: rgba(124,58,237,.15); border: 1px solid rgba(124,58,237,.35);
-  color: #4c1d95; border-radius: 20px; padding: 4px 12px;
-  font-size: .82rem; font-weight: 700;
+  background: rgba(124,58,237,.2); border: 1px solid rgba(124,58,237,.45);
+  color: #2d006e; border-radius: 20px; padding: 4px 12px;
+  font-size: .82rem; font-weight: 800;
 }
 .cart-free-badge {
   display: inline-flex; align-items: center; gap: 4px;
-  background: rgba(201,147,46,.18); border: 1px solid rgba(201,147,46,.5);
-  color: #78450a; border-radius: 20px; padding: 4px 12px;
-  font-size: .82rem; font-weight: 600;
+  background: rgba(201,147,46,.25); border: 1px solid rgba(201,147,46,.6);
+  color: #5c2c00; border-radius: 20px; padding: 4px 12px;
+  font-size: .82rem; font-weight: 800;
 }
 
 /* HUD fiches: slightly purple-tinted */
@@ -7357,16 +7357,6 @@ img.fiche-inline {
 @media (prefers-color-scheme: light) { .cart-balance-bar { color: #4c1d95; background: rgba(124,58,237,.08); } }
 :root[data-theme="light"] .cart-balance-bar { color: #4c1d95; background: rgba(124,58,237,.08); }
 
-/* Badges in entry panel */
-.cart-badge-row { padding: 0 14px 6px; display: flex; flex-wrap: wrap; gap: 6px; }
-.cart-fiches-badge {
-  background: rgba(124,58,237,.18); color: #c4b5fd;
-  border-radius: 20px; padding: 3px 10px; font-size: .78rem; font-weight: 700;
-}
-.cart-free-badge {
-  background: rgba(245,158,11,.18); color: #fbbf24;
-  border-radius: 20px; padding: 3px 10px; font-size: .78rem; font-weight: 700;
-}
 
 /* Station cards inside Cartomante hub */
 .cart-station-card { border-left: 3px solid rgba(124,58,237,.5); }
