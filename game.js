@@ -4373,6 +4373,154 @@ const RPG = (() => {
     return { done:false, won:true, nextEnemyId:d.enemies[d.step], pendingChoice:d.pendingChoice };
   }
 
+  /* ── La Scalata dell'Eroe — motore ────────────────────────────────── */
+
+  const SCALATA_ATK = [18, 38, 60, 85];
+  const SCALATA_DEF = [20, 42, 65, 90];
+
+  function scalataEnemyForFloor(floor) {
+    const isBoss = floor % 5 === 0;
+    const biomeIdx = Math.min(Math.floor((floor - 1) / 5), BIOMES.length - 1);
+    const biome = BIOMES[biomeIdx];
+    const inZone = BESTIARY.filter(b => b.zone === biome.name && !b.final);
+    if (isBoss) {
+      const pool = inZone.filter(b => b.boss).length
+        ? inZone.filter(b => b.boss)
+        : BESTIARY.filter(b => b.boss && !b.final);
+      return pool[Math.floor(Math.random() * pool.length)] || BESTIARY[0];
+    }
+    const pool = inZone.filter(b => !b.boss).length
+      ? inZone.filter(b => !b.boss)
+      : BESTIARY.filter(b => !b.boss && !b.final);
+    return pool[Math.floor(Math.random() * pool.length)] || BESTIARY[0];
+  }
+
+  function scalataEnemyStats(floor) {
+    const isBoss = floor % 5 === 0;
+    const scale = 1 + (floor - 1) * 0.08;
+    return {
+      hp:  isBoss ? Math.round(160 * scale) : Math.round(100 * scale),
+      dmg: isBoss ? Math.round(42  * scale) : Math.round(28  * scale),
+      isBoss,
+    };
+  }
+
+  function canStartScalata(hero) {
+    if (hero.activeScalata && !hero.activeScalata.done) return true;
+    return hero.lastScalata !== todayStamp();
+  }
+
+  function startScalata(hero) {
+    if (hero.activeScalata && !hero.activeScalata.done) return hero.activeScalata;
+    if (hero.lastScalata === todayStamp()) return null;
+    if (!hero.scalataRecord) hero.scalataRecord = { bestFloor: 0, totalRuns: 0 };
+    hero.scalataRecord.totalRuns++;
+    const floor = 1;
+    const stats = scalataEnemyStats(floor);
+    const enemy = scalataEnemyForFloor(floor);
+    const prevBest = hero.scalataRecord.bestFloor;
+    hero.activeScalata = {
+      floor,
+      heroHp: 100, heroMaxHp: 100,
+      enemyId: enemy.id,
+      enemyHp: stats.hp, enemyMaxHp: stats.hp, enemyDmg: stats.dmg, isBoss: stats.isBoss,
+      done: false, interlude: false,
+      goldEarned: 0, xpEarned: 0, prevBest,
+    };
+    hero.lastScalata = todayStamp();
+    return hero.activeScalata;
+  }
+
+  function scalataResolveDice(hero, alloc) {
+    const s = hero.activeScalata;
+    if (!s || s.done || s.interlude) return null;
+    const total = (alloc.atk || 0) + (alloc.def || 0) + (alloc.mag || 0);
+    if (total !== 4) return null;
+
+    const atkDice = alloc.atk || 0;
+    const defDice = alloc.def || 0;
+    const magDice = alloc.mag || 0;
+
+    let heroDmg = atkDice > 0 ? SCALATA_ATK[Math.min(atkDice - 1, 3)] : 0;
+    let block   = defDice > 0 ? SCALATA_DEF[Math.min(defDice - 1, 3)] : 0;
+    let magEffect = null;
+    let magExtra  = 0;
+
+    if (magDice >= 3)      { magEffect = 'stun'; }
+    else if (magDice >= 2) { magEffect = 'poison';  magExtra = 22; }
+    else if (magDice === 1){ magEffect = 'weaken';  block += 10; }
+
+    const enemyHit = magEffect === 'stun' ? 0 : Math.max(0, s.enemyDmg - block);
+
+    s.enemyHp = Math.max(0, s.enemyHp - heroDmg - magExtra);
+    s.heroHp  = Math.max(0, s.heroHp  - enemyHit);
+
+    const enemyDefeated = s.enemyHp <= 0;
+    const heroDefeated  = s.heroHp  <= 0;
+
+    let goldGained = 0, xpGained = 0;
+    if (enemyDefeated && !heroDefeated) {
+      goldGained = Math.round(6 + s.floor * 3 + Math.random() * 8);
+      xpGained   = Math.round(10 + s.floor * 2);
+      hero.gold  += goldGained;
+      applyXp(hero, xpGained);
+      s.goldEarned += goldGained;
+      s.xpEarned   = (s.xpEarned || 0) + xpGained;
+    }
+
+    if ((enemyDefeated || heroDefeated) && s.floor > hero.scalataRecord.bestFloor) {
+      hero.scalataRecord.bestFloor = s.floor;
+    }
+
+    if (heroDefeated) {
+      s.done = true;
+    } else if (enemyDefeated) {
+      s.interlude = true;
+    }
+
+    return { heroDmg, block, magExtra, magEffect, enemyHit, enemyDefeated, heroDefeated, goldGained, xpGained };
+  }
+
+  function scalataAdvanceFloor(hero, choice) {
+    const s = hero.activeScalata;
+    if (!s || s.done || !s.interlude) return null;
+
+    let healed = 0, goldBonus = 0, surpriseDmg = 0;
+    if (choice === 'heal') {
+      healed   = Math.min(30, s.heroMaxHp - s.heroHp);
+      s.heroHp = Math.min(s.heroMaxHp, s.heroHp + 30);
+    } else if (choice === 'gold') {
+      goldBonus    = Math.round(20 + s.floor * 3);
+      hero.gold   += goldBonus;
+      s.goldEarned += goldBonus;
+    } else if (choice === 'surprise') {
+      surpriseDmg = Math.round(20 + s.floor * 2);
+    }
+
+    s.floor++;
+    s.interlude = false;
+
+    if (s.floor > hero.scalataRecord.bestFloor) hero.scalataRecord.bestFloor = s.floor;
+
+    const stats = scalataEnemyStats(s.floor);
+    const enemy = scalataEnemyForFloor(s.floor);
+    s.enemyId    = enemy.id;
+    s.enemyHp    = Math.max(1, stats.hp - surpriseDmg);
+    s.enemyMaxHp = stats.hp;
+    s.enemyDmg   = stats.dmg;
+    s.isBoss     = stats.isBoss;
+
+    return { floor: s.floor, healed, goldBonus, surpriseDmg, enemyId: enemy.id };
+  }
+
+  function scalataGiveUp(hero) {
+    const s = hero.activeScalata;
+    if (!s || s.done) return null;
+    s.done = true;
+    if (s.floor > hero.scalataRecord.bestFloor) hero.scalataRecord.bestFloor = s.floor;
+    return { floor: s.floor, goldEarned: s.goldEarned, xpEarned: s.xpEarned || 0 };
+  }
+
   function applyXp(hero, amount) {
     hero.xp = (hero.xp || 0) + amount;
     const levelsGained = [];
@@ -5262,6 +5410,8 @@ const RPG = (() => {
     addConsumable, useConsumable, sellConsumable, dropConsumable,
     TICKET_TYPES, addTicket, getUnscratchedTickets, scratchTicket,
     GUILD_LEVELS, guildLevel, guildBonus,
+    canStartScalata, startScalata, scalataResolveDice, scalataAdvanceFloor, scalataGiveUp,
+    SCALATA_ATK, SCALATA_DEF,
   };
 })();
 

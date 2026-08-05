@@ -537,3 +537,314 @@ function showDungeonDefeat(reward) {
     <button class="btn btn-primary wide" onclick="closeModal(); setTab('train')">Tornerò più forte!</button>
   </div>`);
 }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   LA SCALATA DELL'EROE
+   ═══════════════════════════════════════════════════════════════ */
+
+function openScalata() {
+  const active = HERO.activeScalata && !HERO.activeScalata.done;
+  const can = RPG.canStartScalata(HERO);
+
+  if (!can && !active) {
+    const best = HERO.scalataRecord?.bestFloor || 0;
+    modal(`<div class="scalata-intro">
+      <div class="scalata-intro-icon">🏔️</div>
+      <h3 class="panel-title center">La Scalata dell'Eroe</h3>
+      <p class="center muted">Hai già affrontato la Scalata oggi.<br>Torna domani per scalare di nuovo.</p>
+      ${best > 0 ? `<div class="scalata-record-note">🏆 Il tuo record: Piano <b>${best}</b></div>` : ''}
+      <button class="btn btn-primary wide" onclick="closeModal()">Ok</button>
+    </div>`);
+    return;
+  }
+
+  if (active) {
+    const s = HERO.activeScalata;
+    if (s.interlude) { showScalataInterlude(); } else { showScalataFloor(); }
+    return;
+  }
+
+  const best = HERO.scalataRecord?.bestFloor || 0;
+  modal(`<div class="scalata-intro">
+    <div class="scalata-intro-icon">🏔️</div>
+    <h3 class="panel-title center">La Scalata dell'Eroe</h3>
+    <p class="center small">Affronta nemici su <b>piani infiniti</b> finché cadi.<br>
+    Ogni round distribuisci <b>4 dadi</b> tra Attacco, Difesa e Magia.<br>
+    I nemici si rafforzano — ogni 5° piano trovi un Boss.</p>
+    <div class="scalata-intro-rules">
+      <div>⚔️ Alloca 4 dadi per ogni round</div>
+      <div>🛡️ I tuoi HP persistono tra un piano e l'altro</div>
+      <div>🏔️ Una Scalata al giorno · conquista il tuo record</div>
+    </div>
+    ${best > 0 ? `<div class="scalata-record-note">🏆 Il tuo record: Piano <b>${best}</b></div>` : ''}
+    <button class="btn btn-primary wide big" id="btn-scalata-start">🏔️ INIZIA LA SCALATA!</button>
+    <button class="btn wide" onclick="closeModal()">Forse dopo…</button>
+  </div>`);
+  document.getElementById('btn-scalata-start').addEventListener('click', () => {
+    RPG.startScalata(HERO);
+    persist();
+    closeModal();
+    showScalataFloor();
+  });
+}
+
+function showScalataFloor() {
+  const s = HERO.activeScalata;
+  if (!s || s.done) return;
+
+  const enemy = RPG.BESTIARY.find(b => b.id === s.enemyId) || { name: 'Nemico Misterioso', id: '_', boss: false };
+  const isBoss = s.isBoss;
+  const eHpPct = Math.max(0, (s.enemyHp / s.enemyMaxHp) * 100);
+  const hHpPct = Math.max(0, (s.heroHp / s.heroMaxHp) * 100);
+  const floorLabel = isBoss ? `🌟 Piano ${s.floor} — BOSS` : `Piano ${s.floor}`;
+  const best = HERO.scalataRecord?.bestFloor || 0;
+
+  modal(`<div class="scalata-wrap">
+    <div class="scalata-top-row">
+      <span class="scalata-floor-badge${isBoss ? ' boss' : ''}">${floorLabel}</span>
+      <span class="scalata-rec-chip">🏆 ${best}</span>
+    </div>
+
+    <div class="scalata-combatants">
+      <div class="scalata-fighter">
+        <div class="scalata-fighter-label">❤️ Eroe</div>
+        <div class="scalata-hpbar-wrap">
+          <div class="scalata-hpfill hero-fill" style="width:${hHpPct}%"></div>
+        </div>
+        <div class="scalata-hp-num">${s.heroHp} / ${s.heroMaxHp}</div>
+      </div>
+      <div class="scalata-vs">VS</div>
+      <div class="scalata-fighter">
+        <div class="scalata-fighter-label">${esc(enemy.name)}${isBoss ? ' <span class="scalata-boss-tag">BOSS</span>' : ''}</div>
+        <img class="scalata-enemy-img" src="assets/bestiario/${enemy.id}.webp" onerror="this.style.display='none'">
+        <div class="scalata-hpbar-wrap">
+          <div class="scalata-hpfill enemy-fill" style="width:${eHpPct}%"></div>
+        </div>
+        <div class="scalata-hp-num">${s.enemyHp} / ${s.enemyMaxHp} · ⚔️ ${s.enemyDmg}/r</div>
+      </div>
+    </div>
+
+    <div class="scalata-result-log hidden" id="scalata-log"></div>
+
+    <div id="scalata-dice-section">
+      <div class="scalata-dice-title">Alloca i 4 Dadi</div>
+      <div class="scalata-dice-grid">
+        <div class="scalata-die-slot" id="slot-atk">
+          <div class="scalata-die-top">⚔️ <b>Attacco</b></div>
+          <div class="scalata-die-hint">1→18 · 2→38 · 3→60 · 4→85</div>
+          <div class="scalata-die-ctrl">
+            <button class="scalata-die-btn" data-t="atk" data-d="-1">−</button>
+            <span class="scalata-die-num" id="cnt-atk">0</span>
+            <button class="scalata-die-btn" data-t="atk" data-d="1">+</button>
+          </div>
+        </div>
+        <div class="scalata-die-slot" id="slot-def">
+          <div class="scalata-die-top">🛡️ <b>Difesa</b></div>
+          <div class="scalata-die-hint">1→20 · 2→42 · 3→65 · 4→90</div>
+          <div class="scalata-die-ctrl">
+            <button class="scalata-die-btn" data-t="def" data-d="-1">−</button>
+            <span class="scalata-die-num" id="cnt-def">0</span>
+            <button class="scalata-die-btn" data-t="def" data-d="1">+</button>
+          </div>
+        </div>
+        <div class="scalata-die-slot" id="slot-mag">
+          <div class="scalata-die-top">✨ <b>Magia</b></div>
+          <div class="scalata-die-hint">1→+10blocc · 2→+22dmg · 3→stordisci</div>
+          <div class="scalata-die-ctrl">
+            <button class="scalata-die-btn" data-t="mag" data-d="-1">−</button>
+            <span class="scalata-die-num" id="cnt-mag">0</span>
+            <button class="scalata-die-btn" data-t="mag" data-d="1">+</button>
+          </div>
+        </div>
+      </div>
+      <div class="scalata-remaining">Dadi rimasti: <b id="dice-left">4</b> / 4</div>
+      <button class="btn btn-primary wide big" id="btn-resolve" disabled>🎲 Risolvi Round</button>
+    </div>
+
+    <button class="btn wide scalata-retreat" id="btn-retreat">🏳️ Ritirati</button>
+  </div>`);
+
+  const state = { atk: 0, def: 0, mag: 0 };
+
+  function refreshDice() {
+    const total = state.atk + state.def + state.mag;
+    const left  = 4 - total;
+    document.getElementById('dice-left').textContent = left;
+    ['atk', 'def', 'mag'].forEach(t => {
+      document.getElementById('cnt-' + t).textContent = state[t];
+      document.getElementById('slot-' + t).classList.toggle('active', state[t] > 0);
+    });
+    const resolveBtn = document.getElementById('btn-resolve');
+    if (resolveBtn) resolveBtn.disabled = total !== 4;
+    document.querySelectorAll('.scalata-die-btn').forEach(btn => {
+      const t = btn.dataset.t;
+      const d = parseInt(btn.dataset.d);
+      btn.disabled = d > 0 ? (left <= 0 || state[t] >= 4) : (state[t] <= 0);
+    });
+  }
+
+  document.querySelectorAll('.scalata-die-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const t = btn.dataset.t;
+      const d = parseInt(btn.dataset.d);
+      const total = state.atk + state.def + state.mag;
+      if (d > 0 && total >= 4) return;
+      if (d < 0 && state[t] <= 0) return;
+      state[t] += d;
+      refreshDice();
+    });
+  });
+  refreshDice();
+
+  document.getElementById('btn-resolve').addEventListener('click', () => {
+    const result = RPG.scalataResolveDice(HERO, state);
+    if (!result) return;
+    persist();
+
+    const logEl = document.getElementById('scalata-log');
+    const diceEl = document.getElementById('scalata-dice-section');
+    const retreatBtn = document.getElementById('btn-retreat');
+
+    let html = '<div class="scalata-log-rows">';
+    if (result.heroDmg > 0)
+      html += `<div class="scalata-log-row hero-row">⚔️ Attacco: <b>−${result.heroDmg} HP</b> al nemico</div>`;
+    if (result.magEffect === 'stun')
+      html += `<div class="scalata-log-row mag-row">✨ Stordisci! Il nemico non attacca.</div>`;
+    else if (result.magEffect === 'poison')
+      html += `<div class="scalata-log-row mag-row">✨ Veleno: <b>−${result.magExtra} HP</b> extra al nemico</div>`;
+    else if (result.magEffect === 'weaken')
+      html += `<div class="scalata-log-row mag-row">✨ Debolezza: +10 blocc aggiunto</div>`;
+    if (result.enemyHit > 0)
+      html += `<div class="scalata-log-row enemy-row">🗡️ Nemico: <b>−${result.enemyHit} HP</b> a te</div>`;
+    else if (!result.heroDefeated && result.magEffect !== 'stun')
+      html += `<div class="scalata-log-row block-row">🛡️ Blocco totale! Nessun danno subito.</div>`;
+    if (result.enemyDefeated && !result.heroDefeated)
+      html += `<div class="scalata-log-row win-row">✅ Piano superato! +${result.goldGained}🪙 +${result.xpGained}⭐</div>`;
+    html += '</div>';
+
+    logEl.innerHTML = html;
+    logEl.classList.remove('hidden');
+    diceEl.classList.add('hidden');
+    if (retreatBtn) retreatBtn.classList.add('hidden');
+
+    if (result.heroDefeated) {
+      logEl.insertAdjacentHTML('beforeend', '<div class="scalata-log-row defeat-row">💀 Sei caduto!</div>');
+      sfx('defeat');
+      setTimeout(() => { closeModal(); showScalataEnd(); }, 2000);
+    } else if (result.enemyDefeated) {
+      sfx('win');
+      setTimeout(() => { closeModal(); showScalataInterlude(); }, 1800);
+    } else {
+      setTimeout(() => { closeModal(); showScalataFloor(); }, 1500);
+    }
+  });
+
+  document.getElementById('btn-retreat').addEventListener('click', () => {
+    RPG.scalataGiveUp(HERO);
+    persist();
+    closeModal();
+    showScalataEnd();
+  });
+}
+
+function showScalataInterlude() {
+  const s = HERO.activeScalata;
+  if (!s || s.done || !s.interlude) return;
+
+  const nextFloor  = s.floor + 1;
+  const isBossNext = nextFloor % 5 === 0;
+  const hHpPct     = Math.max(0, (s.heroHp / s.heroMaxHp) * 100);
+  const goldPrize  = Math.round(20 + s.floor * 3);
+  const surpriseDmg = Math.round(20 + s.floor * 2);
+
+  modal(`<div class="scalata-interlude">
+    <div class="scalata-int-header">
+      <div class="scalata-int-icon">✅</div>
+      <div class="scalata-int-title">Piano ${s.floor} superato!</div>
+      <div class="scalata-int-sub">
+        Piano ${nextFloor} ti aspetta${isBossNext ? ' — <b>BOSS</b>! Preparati.' : '.'}
+      </div>
+    </div>
+
+    <div class="scalata-int-hp">
+      <div class="scalata-int-hp-row">❤️ I tuoi HP: <b>${s.heroHp} / ${s.heroMaxHp}</b></div>
+      <div class="scalata-hpbar-wrap"><div class="scalata-hpfill hero-fill" style="width:${hHpPct}%"></div></div>
+    </div>
+
+    <div class="scalata-int-label">Scegli un vantaggio:</div>
+    <div class="scalata-int-choices">
+      <button class="scalata-int-choice" id="int-heal">
+        <span class="scalata-int-choice-icon">💚</span>
+        <div class="scalata-int-choice-body">
+          <div class="scalata-int-choice-name">Riposa</div>
+          <div class="scalata-int-choice-desc">Recupera fino a +30 HP</div>
+        </div>
+      </button>
+      <button class="scalata-int-choice" id="int-gold">
+        <span class="scalata-int-choice-icon">🪙</span>
+        <div class="scalata-int-choice-body">
+          <div class="scalata-int-choice-name">Saccheggia</div>
+          <div class="scalata-int-choice-desc">+${goldPrize} monete d'oro</div>
+        </div>
+      </button>
+      <button class="scalata-int-choice" id="int-surprise">
+        <span class="scalata-int-choice-icon">🗡️</span>
+        <div class="scalata-int-choice-body">
+          <div class="scalata-int-choice-name">Attacco a sorpresa</div>
+          <div class="scalata-int-choice-desc">Infliggi −${surpriseDmg} HP al prossimo nemico subito</div>
+        </div>
+      </button>
+    </div>
+  </div>`);
+
+  function pick(choice) {
+    RPG.scalataAdvanceFloor(HERO, choice);
+    persist();
+    closeModal();
+    showScalataFloor();
+  }
+  document.getElementById('int-heal').addEventListener('click',     () => pick('heal'));
+  document.getElementById('int-gold').addEventListener('click',     () => pick('gold'));
+  document.getElementById('int-surprise').addEventListener('click', () => pick('surprise'));
+}
+
+function showScalataEnd() {
+  const s = HERO.activeScalata;
+  if (!s) return;
+
+  const floor    = s.floor;
+  const defeated = s.heroHp <= 0;
+  const prevBest = s.prevBest || 0;
+  const newRec   = floor > prevBest;
+
+  modal(`<div class="scalata-end">
+    <div class="scalata-end-icon">${defeated ? '💀' : '🏳️'}</div>
+    <h3 class="panel-title center">${defeated ? 'Sei caduto!' : 'Ritirata strategica'}</h3>
+    <p class="center small muted">${defeated ? 'Hai combattuto con onore.' : 'Saggio ritirarsi per combattere un altro giorno.'}</p>
+
+    <div class="scalata-end-stats">
+      <div class="scalata-end-stat">
+        <span class="scalata-end-ico">🏔️</span>
+        <span class="scalata-end-val">${floor}</span>
+        <span class="scalata-end-lbl">Piano raggiunto</span>
+      </div>
+      <div class="scalata-end-stat">
+        <span class="scalata-end-ico">🪙</span>
+        <span class="scalata-end-val">${s.goldEarned}</span>
+        <span class="scalata-end-lbl">Oro guadagnato</span>
+      </div>
+      <div class="scalata-end-stat">
+        <span class="scalata-end-ico">⭐</span>
+        <span class="scalata-end-val">${s.xpEarned || 0}</span>
+        <span class="scalata-end-lbl">XP guadagnati</span>
+      </div>
+    </div>
+
+    ${newRec
+      ? `<div class="scalata-new-record">🏆 Nuovo Record! Piano ${floor}</div>`
+      : `<div class="scalata-record-note muted small center">🏆 Record: Piano ${HERO.scalataRecord?.bestFloor || floor}</div>`}
+
+    <button class="btn btn-primary wide" onclick="closeModal(); setTab('train')">Fantastico!</button>
+  </div>`);
+}
