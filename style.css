@@ -3336,7 +3336,7 @@ img.fiche-inline {
 [data-virtue="coraggio"] { background: linear-gradient(90deg, #e8604c, #ff9070); }
 [data-virtue="astuzia"]  { background: linear-gradient(90deg, #9b59b6, #c080f0); }
 [data-virtue="lealta"]   { background: linear-gradient(90deg, #27ae60, #55d98a); }
-.pet-virtue-desc { font-size: .7rem; color: rgba(255,255,255,.38); }
+.pet-virtue-desc { font-size: .7rem; color: var(--ink-light); }
 .pet-synergy-info {
   margin-top: 8px; padding: 8px 10px; border-radius: 8px;
   background: rgba(201,147,46,.07); border: 1px solid rgba(201,147,46,.2);
