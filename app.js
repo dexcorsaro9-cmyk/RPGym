@@ -5209,27 +5209,31 @@ function renderCartomanteView(c) {
 
   // 5 station cards
   const stations = [
-    { key: 'ruota',  emoji: '🎡', title: 'Ruota del Fato',         img: 'assets/cartomante/ruota-del-fato.webp',
+    { key: 'ruota',  emoji: '🎡', title: 'Ruota del Fato',         img: 'assets/cartomante/ruota-header.webp',  ico: 'assets/cartomante/ico-ruota.webp',
       desc: `Girala: il primo giro ogni giorno è gratis. I successivi costano 15 ${FICHE_ICO}.`,
       badge: (() => { const s = HERO.cartomante && HERO.cartomante.ruotaSpins || 0; return s === 0 ? '✨ Giro gratis!' : `🎡 ${s} giri oggi`; })() },
-    { key: 'pozzo',  emoji: '🌀', title: 'Pozzo delle Evocazioni',  img: 'assets/cartomante/pozzo-evocazioni.webp',
+    { key: 'pozzo',  emoji: '🌀', title: 'Pozzo delle Evocazioni',  img: 'assets/cartomante/pozzo-header.webp',  ico: 'assets/cartomante/ico-pozzo.webp',
       desc: `Estrai un oggetto casuale dal Pozzo. Costa ${RPG.POZZO_COST} ${FICHE_ICO} a evocazione.`,
       badge: `${FICHE_ICO} ${RPG.POZZO_COST} per pull` },
-    { key: 'catena', emoji: '⛓️', title: 'Catena del Fato',         img: 'assets/cartomante/dado-destino.webp',
+    { key: 'catena', emoji: '⛓️', title: 'Catena del Fato',         img: 'assets/cartomante/catena-header.webp', ico: 'assets/cartomante/ico-catena.webp',
       desc: 'Accumula oro e fiches ad ogni anello. Incassa quando vuoi — o rischia di perdere tutto.',
       badge: (() => { const done = HERO.cartomante && HERO.cartomante.catenaDone; const step = HERO.cartomante && HERO.cartomante.catenaStep || 0; return done ? '✅ Completata oggi' : step > 0 ? `⛓️ Anello ${step}` : '⛓️ Disponibile'; })() },
-    { key: 'casse',  emoji: '📦', title: 'Casse Chiuse',            img: 'assets/cartomante/casse.webp',
+    { key: 'casse',  emoji: '📦', title: 'Casse Chiuse',            img: 'assets/cartomante/casse-header.webp',  ico: 'assets/cartomante/ico-casse.webp',
       desc: `Tre casse con ricompense crescenti. Ogni chiave costa Fiches del Fato.`,
       badge: `${FICHE_ICO} 20 / 40 / 80` },
   ];
 
-  stations.forEach(({ key, emoji, title, img, desc, badge }) => {
+  stations.forEach(({ key, emoji, title, img, ico, desc, badge }) => {
     const card = el('div', 'panel borgo-entry-panel cart-station-card');
     const thumb = document.createElement('img');
     thumb.loading = 'lazy'; thumb.src = img; thumb.alt = '';
     thumb.className = 'borgo-entry-header'; thumb.onerror = () => thumb.remove();
     card.appendChild(thumb);
-    card.appendChild(el('h3', 'panel-title', `${emoji} ${title}`));
+    const icoHtml = ico
+      ? `<img class="station-ico" src="${ico}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'">\
+<span class="station-ico-fallback">${emoji}</span>`
+      : emoji;
+    card.appendChild(el('h3', 'panel-title', `${icoHtml} ${title}`));
     card.appendChild(el('p', 'muted small borgo-entry-quote', desc));
     card.appendChild(el('div', 'cart-station-badge', badge));
     const btn = el('button', 'btn btn-primary wide', `${emoji} Gioca`);
