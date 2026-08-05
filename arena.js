@@ -279,17 +279,30 @@ function endBattle(heroWon) {
       document.getElementById('btn-open-chest').addEventListener('click', openChest);
     }, 1500);
   } else {
-    persist();
+    const shieldChest = (b.v.boss && HERO.consumableBuffs?.bossShield)
+      ? RPG.battleReward(HERO, b.v) : null;
+    persist(); if (shieldChest) renderHUD();
     sfx('defeat');
     if (center) center.innerHTML = `<div class="battle-result-overlay"><div class="battle-result-text lose">SCONFITTA…</div></div>`;
     const hs = document.getElementById('stage-hero');
     if (hs) hs.classList.add('defeated');
     setTimeout(() => {
       closeBattle();
-      modal(`<h3 class="panel-title center">💀 Sconfitta</h3>
-        <p class="center">${esc(b.v.name)} ha avuto la meglio, stavolta.</p>
-        <p class="muted small center">Nessuna vergogna! Equipaggia oggetti migliori, sali di livello e tornerai più forte.</p>
-        <button class="btn btn-primary wide" onclick="closeModal()">Tornerò più forte!</button>`);
+      if (shieldChest) {
+        PENDING_CHEST = { title: 'Sfera Ombra — Drop garantito', chest: shieldChest };
+        modal(`<div class="chest-zone">
+          <p class="center big-news">🌑 La Sfera Ombra ha agito!</p>
+          <p class="muted small center">${esc(b.v.name)} ha vinto, ma il tuo talisman ha garantito il drop.</p>
+          <button class="chest-btn" id="btn-open-chest"><img src="assets/ui/chest.svg" alt="scrigno"></button>
+          <p class="small muted center">Tocca lo scrigno per aprirlo</p>
+        </div>`);
+        document.getElementById('btn-open-chest').addEventListener('click', openChest);
+      } else {
+        modal(`<h3 class="panel-title center">💀 Sconfitta</h3>
+          <p class="center">${esc(b.v.name)} ha avuto la meglio, stavolta.</p>
+          <p class="muted small center">Nessuna vergogna! Equipaggia oggetti migliori, sali di livello e tornerai più forte.</p>
+          <button class="btn btn-primary wide" onclick="closeModal()">Tornerò più forte!</button>`);
+      }
     }, 1500);
   }
 }
@@ -596,7 +609,7 @@ function openScalata() {
   }
 
   const best  = HERO.scalataRecord?.bestFloor || 0;
-  const runs  = HERO.scalataRecord?.runs || 0;
+  const runs  = HERO.scalataRecord?.totalRuns || 0;
   modal(`<div class="sc-open">
     <div class="sc-open-banner">
       <div class="sc-open-tower">🗼</div>
