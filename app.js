@@ -6974,9 +6974,10 @@ const UI_ICONS = {
   hero:   'assets/ui/tab-eroe.webp',
 };
 const RES_ICONS = {
-  gold:  'assets/ui/res-oro.webp',
-  wood:  'assets/ui/res-legna.webp',
-  stone: 'assets/ui/res-pietra.webp',
+  gold:   'assets/ui/res-oro.webp',
+  wood:   'assets/ui/res-legna.webp',
+  stone:  'assets/ui/res-pietra.webp',
+  fiches: 'assets/ui/res-fiches.webp',
 };
 (() => {
   Object.entries(UI_ICONS).forEach(([tab, path]) => {
