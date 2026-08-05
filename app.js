@@ -5343,13 +5343,20 @@ function renderRuotaView(c) {
   fichesBar.innerHTML = `${FICHE_ICO} <b id="ruota-fiches">${HERO.fiches||0}</b> Fiches &nbsp;·&nbsp; ${spins === 0 ? '<span class="cart-free-badge">1° giro gratis!</span>' : `Giri oggi: <b>${spins}</b> · Costo: 15 ${FICHE_ICO}`}`;
   c.appendChild(fichesBar);
 
-  const wheelWrap = el('div', 'ruota-canvas-wrap');
+  const outerWrap = el('div', 'ruota-outer-wrap');
   const pointer   = el('div', 'ruota-pointer');
-  wheelWrap.appendChild(pointer);
+  outerWrap.appendChild(pointer);
+  const wheelWrap = el('div', 'ruota-canvas-wrap');
   const canvas = _makeCanvas(300);
   canvas.className = 'ruota-canvas';
   wheelWrap.appendChild(canvas);
-  c.appendChild(wheelWrap);
+  const frameImg = document.createElement('img');
+  frameImg.src = 'assets/cartomante/ruota-frame.webp';
+  frameImg.className = 'ruota-frame-overlay';
+  frameImg.alt = ''; frameImg.setAttribute('aria-hidden', 'true');
+  wheelWrap.appendChild(frameImg);
+  outerWrap.appendChild(wheelWrap);
+  c.appendChild(outerWrap);
 
   let currentAngle = 0, rafId = null;
   _drawWheel(canvas, currentAngle, -1);
@@ -5492,12 +5499,15 @@ function renderPozzoView(c) {
   bal.innerHTML = `${FICHE_ICO} <b id="pozzo-fiches">${HERO.fiches||0}</b> Fiches &nbsp;·&nbsp; Costo: <b>${RPG.POZZO_COST}</b> ${FICHE_ICO} per evocazione`;
   c.appendChild(bal);
 
-  const pozzoWrap = el('div', 'pozzo-canvas-wrap');
-  const canvas = _makeCanvas(260);
-  canvas.className = 'pozzo-canvas';
-  pozzoWrap.appendChild(canvas);
+  const pozzoWrap = el('div', 'pozzo-wrap');
+  const pozzoImg = document.createElement('img');
+  pozzoImg.src = 'assets/cartomante/pozzo.webp';
+  pozzoImg.className = 'pozzo-bg-img';
+  pozzoImg.alt = 'Pozzo delle Evocazioni';
+  pozzoWrap.appendChild(pozzoImg);
+  const pozzoSymbol = el('div', 'pozzo-center-symbol', '🌀');
+  pozzoWrap.appendChild(pozzoSymbol);
   c.appendChild(pozzoWrap);
-  _drawPozzo(canvas, 'idle', null);
 
   c.appendChild(el('p', 'muted small center',
     'Comune 50% · Non comune 28% · Raro 14% · Epico 6% · Leggendario 2%'));
@@ -5513,23 +5523,26 @@ function renderPozzoView(c) {
 
   pullBtn.addEventListener('click', () => {
     pullBtn.disabled = true;
-    canvas.classList.add('pozzo-canvas--pulling');
-    _drawPozzo(canvas, 'pulling', null);
+    pozzoImg.classList.add('pozzo-bg-img--pulling');
+    pozzoSymbol.style.textShadow = '0 0 24px #3a8fff, 0 0 48px #3a8fff';
+    pozzoSymbol.style.transform = 'translate(-50%, -52%) scale(1.15)';
     resultArea.innerHTML = `<div class="pozzo-pulling">✨ Le energie del Pozzo si raccolgono…</div>`;
 
     setTimeout(() => {
       const res = RPG.pullPozzo(HERO);
       persist(); renderHUD();
-      canvas.classList.remove('pozzo-canvas--pulling');
+      pozzoImg.classList.remove('pozzo-bg-img--pulling');
 
       if (res.error === 'no_fiches') {
-        _drawPozzo(canvas, 'idle', null);
+        pozzoSymbol.style.textShadow = '0 0 18px #1a4aff, 0 0 36px #1a4aff';
+        pozzoSymbol.style.transform = 'translate(-50%, -52%)';
         resultArea.innerHTML = `<div class="pozzo-empty">${FICHE_ICO} Fiches insufficienti! Servono ${res.cost}.</div>`;
         return;
       }
       const { item, rarity } = res;
       const col = rarColor[rarity] || '#8a7a5f';
-      _drawPozzo(canvas, 'done', col);
+      pozzoSymbol.style.textShadow = `0 0 22px ${col}, 0 0 44px ${col}`;
+      pozzoSymbol.style.transform = 'translate(-50%, -52%)';
       resultArea.innerHTML = `
         <div class="pozzo-result-card" style="border-color:${col}">
           <div class="pozzo-rarity-label" style="color:${col}">${rarity.toUpperCase()}</div>
