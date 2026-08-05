@@ -788,24 +788,21 @@ function showScalataFloor() {
     diceEl.classList.add('hidden');
     if (retreatBtn) retreatBtn.classList.add('hidden');
 
-    function cleanupDark() { $('#modal-box').classList.remove('scalata-dark-modal'); }
-
     if (result.heroDefeated) {
       logEl.insertAdjacentHTML('beforeend', '<div class="sf-log-row defeat-row">💀 Sei caduto!</div>');
       sfx('defeat');
-      setTimeout(() => { cleanupDark(); closeModal(); showScalataEnd(); }, 2000);
+      setTimeout(() => { closeModal(); showScalataEnd(); }, 2000);
     } else if (result.enemyDefeated) {
       sfx('win');
-      setTimeout(() => { cleanupDark(); closeModal(); showScalataInterlude(); }, 1800);
+      setTimeout(() => { closeModal(); showScalataInterlude(); }, 1800);
     } else {
-      setTimeout(() => { cleanupDark(); closeModal(); showScalataFloor(); }, 1500);
+      setTimeout(() => { closeModal(); showScalataFloor(); }, 1500);
     }
   });
 
   document.getElementById('sf-retreat').addEventListener('click', () => {
     RPG.scalataGiveUp(HERO);
     persist();
-    $('#modal-box').classList.remove('scalata-dark-modal');
     closeModal();
     showScalataEnd();
   });
@@ -815,51 +812,57 @@ function showScalataInterlude() {
   const s = HERO.activeScalata;
   if (!s || s.done || !s.interlude) return;
 
-  const nextFloor  = s.floor + 1;
-  const isBossNext = nextFloor % 5 === 0;
-  const hHpPct     = Math.max(0, (s.heroHp / s.heroMaxHp) * 100);
-  const goldPrize  = Math.round(20 + s.floor * 3);
+  const nextFloor   = s.floor + 1;
+  const isBossNext  = nextFloor % 5 === 0;
+  const hHpPct      = Math.max(0, (s.heroHp / s.heroMaxHp) * 100);
+  const hpCrit      = s.heroHp / s.heroMaxHp < 0.3;
+  const goldPrize   = Math.round(20 + s.floor * 3);
   const surpriseDmg = Math.round(20 + s.floor * 2);
 
-  modal(`<div class="scalata-interlude">
-    <div class="scalata-int-header">
-      <div class="scalata-int-icon">✅</div>
-      <div class="scalata-int-title">Piano ${s.floor} superato!</div>
-      <div class="scalata-int-sub">
-        Piano ${nextFloor} ti aspetta${isBossNext ? ' — <b>BOSS</b>! Preparati.' : '.'}
+  modal(`<div class="si-wrap">
+    <div class="si-header">
+      <div class="si-check">✅</div>
+      <div class="si-title">Piano ${s.floor} superato!</div>
+      <div class="si-next${isBossNext ? ' boss' : ''}">
+        ${isBossNext ? `⭐ Piano ${nextFloor} — BOSS in arrivo! Preparati.` : `Piano ${nextFloor} ti aspetta.`}
       </div>
     </div>
 
-    <div class="scalata-int-hp">
-      <div class="scalata-int-hp-row">❤️ I tuoi HP: <b>${s.heroHp} / ${s.heroMaxHp}</b></div>
-      <div class="scalata-hpbar-wrap"><div class="scalata-hpfill hero-fill" style="width:${hHpPct}%"></div></div>
+    <div class="si-hp-block">
+      <div class="si-hp-label${hpCrit ? ' crit' : ''}">❤️ ${s.heroHp} / ${s.heroMaxHp} HP</div>
+      <div class="si-hpbar"><div class="si-hpfill${hpCrit ? ' crit' : ''}" style="width:${hHpPct}%"></div></div>
     </div>
 
-    <div class="scalata-int-label">Scegli un vantaggio:</div>
-    <div class="scalata-int-choices">
-      <button class="scalata-int-choice" id="int-heal">
-        <span class="scalata-int-choice-icon">💚</span>
-        <div class="scalata-int-choice-body">
-          <div class="scalata-int-choice-name">Riposa</div>
-          <div class="scalata-int-choice-desc">Recupera fino a +30 HP</div>
+    <div class="si-choices-title">SCEGLI UN VANTAGGIO</div>
+    <div class="si-choices">
+      <button class="si-choice" id="int-heal">
+        <span class="si-choice-icon">💚</span>
+        <div class="si-choice-body">
+          <div class="si-choice-name">Riposa</div>
+          <div class="si-choice-desc">Recupera fino a +30 HP</div>
         </div>
+        <span class="si-choice-arrow">›</span>
       </button>
-      <button class="scalata-int-choice" id="int-gold">
-        <span class="scalata-int-choice-icon">🪙</span>
-        <div class="scalata-int-choice-body">
-          <div class="scalata-int-choice-name">Saccheggia</div>
-          <div class="scalata-int-choice-desc">+${goldPrize} monete d'oro</div>
+      <button class="si-choice" id="int-gold">
+        <span class="si-choice-icon">🪙</span>
+        <div class="si-choice-body">
+          <div class="si-choice-name">Saccheggia</div>
+          <div class="si-choice-desc">+${goldPrize} monete d'oro</div>
         </div>
+        <span class="si-choice-arrow">›</span>
       </button>
-      <button class="scalata-int-choice" id="int-surprise">
-        <span class="scalata-int-choice-icon">🗡️</span>
-        <div class="scalata-int-choice-body">
-          <div class="scalata-int-choice-name">Attacco a sorpresa</div>
-          <div class="scalata-int-choice-desc">Infliggi −${surpriseDmg} HP al prossimo nemico subito</div>
+      <button class="si-choice" id="int-surprise">
+        <span class="si-choice-icon">🗡️</span>
+        <div class="si-choice-body">
+          <div class="si-choice-name">Attacco a sorpresa</div>
+          <div class="si-choice-desc">Infliggi −${surpriseDmg} HP al prossimo nemico subito</div>
         </div>
+        <span class="si-choice-arrow">›</span>
       </button>
     </div>
   </div>`);
+
+  $('#modal-box').classList.add('scalata-dark-modal');
 
   function pick(choice) {
     RPG.scalataAdvanceFloor(HERO, choice);
