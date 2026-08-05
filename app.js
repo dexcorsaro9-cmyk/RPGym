@@ -5243,16 +5243,97 @@ function renderCartomanteView(c) {
   c.appendChild(lr);
 }
 
-/* ── Ruota del Fato ── */
+/* ── Ruota del Fato — Canvas ── */
+function _drawWheel(canvas, angleDeg, landedIdx) {
+  const ctx = canvas.getContext('2d');
+  const dpr = canvas._dpr || 1;
+  const S   = canvas.width / dpr;
+  const cx  = S / 2, cy = S / 2, R = S / 2 - 5;
+  const sectors = RPG.RUOTA_SECTORS;
+  const total   = sectors.reduce((s, x) => s + x.weight, 0);
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Background circle
+  const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, R + 5);
+  bg.addColorStop(0,    '#1e0845');
+  bg.addColorStop(0.75, '#0d0128');
+  bg.addColorStop(1,    '#050010');
+  ctx.beginPath(); ctx.arc(cx, cy, R + 5, 0, Math.PI * 2);
+  ctx.fillStyle = bg; ctx.fill();
+
+  const offsetRad = angleDeg * Math.PI / 180 - Math.PI / 2;
+  let cumRad = offsetRad;
+  const innerR = R - 16;
+
+  sectors.forEach((sector, i) => {
+    const sliceRad = (sector.weight / total) * Math.PI * 2;
+    const endRad   = cumRad + sliceRad;
+    const landed   = i === landedIdx;
+
+    ctx.beginPath(); ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, innerR, cumRad, endRad); ctx.closePath();
+    ctx.fillStyle = sector.color + (landed ? 'ff' : 'cc'); ctx.fill();
+    if (landed) {
+      ctx.beginPath(); ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, innerR, cumRad, endRad); ctx.closePath();
+      ctx.fillStyle = 'rgba(255,255,255,0.2)'; ctx.fill();
+    }
+
+    ctx.beginPath(); ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + innerR * Math.cos(cumRad), cy + innerR * Math.sin(cumRad));
+    ctx.strokeStyle = 'rgba(255,215,80,0.45)'; ctx.lineWidth = 1.2; ctx.stroke();
+
+    const midRad = cumRad + sliceRad / 2;
+    const lr     = innerR * 0.62;
+    ctx.save();
+    ctx.translate(cx + lr * Math.cos(midRad), cy + lr * Math.sin(midRad));
+    ctx.rotate(midRad + Math.PI / 2);
+    ctx.shadowColor = '#000'; ctx.shadowBlur = 4;
+    ctx.fillStyle = landed ? '#fff' : 'rgba(235,220,190,0.92)';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const parts = sector.label.split(' ');
+    ctx.font = '13px serif';
+    ctx.fillText(parts[0], 0, parts[1] ? -8 : 0);
+    if (parts[1]) {
+      ctx.font = 'bold 9px system-ui, sans-serif';
+      ctx.fillText(parts.slice(1).join(' '), 0, 7);
+    }
+    ctx.restore();
+    cumRad = endRad;
+  });
+
+  ctx.beginPath(); ctx.arc(cx, cy, R,       0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(232,182,76,0.92)'; ctx.lineWidth = 5; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx, cy, R - 9,   0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(200,150,50,0.4)';  ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx, cy, innerR,  0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(255,215,80,0.3)';  ctx.lineWidth = 1;   ctx.stroke();
+
+  const hg = ctx.createRadialGradient(cx, cy, 2, cx, cy, 22);
+  hg.addColorStop(0, '#3d1f08'); hg.addColorStop(1, '#150600');
+  ctx.beginPath(); ctx.arc(cx, cy, 22, 0, Math.PI * 2);
+  ctx.fillStyle = hg; ctx.fill();
+  ctx.strokeStyle = 'rgba(232,182,76,0.95)'; ctx.lineWidth = 2.5; ctx.stroke();
+
+  ctx.font = '16px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#f0b030'; ctx.shadowColor = 'rgba(240,176,48,0.8)'; ctx.shadowBlur = 10;
+  ctx.fillText('✦', cx, cy); ctx.shadowBlur = 0;
+}
+
+function _makeCanvas(size) {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const cv  = document.createElement('canvas');
+  cv.width  = size * dpr; cv.height = size * dpr;
+  cv.style.width = size + 'px'; cv.style.height = size + 'px';
+  cv._dpr   = dpr;
+  cv.getContext('2d').scale(dpr, dpr);
+  return cv;
+}
+
 function renderRuotaView(c) {
   RPG.cartReset(HERO);
   c.appendChild(_cartBack('cartomante'));
-
-  const hImg = document.createElement('img');
-  hImg.src = 'assets/cartomante/header-cartomante.jpg';
-  hImg.alt = ''; hImg.className = 'borgo-sub-header'; hImg.onerror = () => hImg.remove();
-  c.appendChild(hImg);
-
   c.appendChild(el('h2', 'section-title', '🎡 Ruota del Fato'));
 
   const spins = HERO.cartomante.ruotaSpins || 0;
@@ -5262,144 +5343,196 @@ function renderRuotaView(c) {
   fichesBar.innerHTML = `${FICHE_ICO} <b id="ruota-fiches">${HERO.fiches||0}</b> Fiches &nbsp;·&nbsp; ${spins === 0 ? '<span class="cart-free-badge">1° giro gratis!</span>' : `Giri oggi: <b>${spins}</b> · Costo: 15 ${FICHE_ICO}`}`;
   c.appendChild(fichesBar);
 
-  // Wheel visual
-  const wheelWrap = el('div', 'ruota-wrap');
-  const wheelImg = document.createElement('img');
-  wheelImg.src = 'assets/cartomante/ruota-del-fato.webp';
-  wheelImg.className = 'ruota-img'; wheelImg.id = 'ruota-img';
-  wheelImg.onerror = () => wheelImg.remove();
-  wheelWrap.appendChild(wheelImg);
-
-  // Sector strip
-  const strip = el('div', 'ruota-strip');
-  RPG.RUOTA_SECTORS.forEach((s, i) => {
-    const chip = el('span', 'ruota-chip', s.label);
-    chip.style.borderColor = s.color;
-    strip.appendChild(chip);
-  });
-  wheelWrap.appendChild(strip);
+  const wheelWrap = el('div', 'ruota-canvas-wrap');
+  const pointer   = el('div', 'ruota-pointer');
+  wheelWrap.appendChild(pointer);
+  const canvas = _makeCanvas(300);
+  canvas.className = 'ruota-canvas';
+  wheelWrap.appendChild(canvas);
   c.appendChild(wheelWrap);
 
-  // Result area
+  let currentAngle = 0, rafId = null;
+  _drawWheel(canvas, currentAngle, -1);
+
   const resultArea = el('div', 'ruota-result-area'); resultArea.id = 'ruota-result';
   c.appendChild(resultArea);
 
-  // Spin button
   const spinBtn = el('button', 'btn btn-primary wide ruota-spin-btn',
-    cost === 0 ? '🎡 Gira la Ruota! (Gratis)' : `🎡 Gira la Ruota! (${cost} 🎴)`);
-  spinBtn.disabled = (cost > 0 && (HERO.fiches||0) < cost);
+    cost === 0 ? '🎡 Gira la Ruota! (Gratis)' : `🎡 Gira la Ruota! (${cost} ${FICHE_ICO})`);
+  spinBtn.disabled = cost > 0 && (HERO.fiches || 0) < cost;
   c.appendChild(spinBtn);
 
+  const sectors = RPG.RUOTA_SECTORS;
+  const total   = sectors.reduce((s, x) => s + x.weight, 0);
+
   spinBtn.addEventListener('click', () => {
-    spinBtn.disabled = true;
-    resultArea.innerHTML = `<div class="ruota-spinning">🎡 La ruota gira…</div>`;
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    const res = RPG.spinRuota(HERO);
+    persist(); renderHUD();
 
-    // Animate wheel rotation
-    const img = document.getElementById('ruota-img');
-    if (img) {
-      const baseRot = 1440 + Math.floor(Math.random() * 360);
-      img.style.transition = 'transform 3.2s cubic-bezier(0.17,0.67,0.12,0.99)';
-      img.style.transform  = `rotate(${baseRot}deg)`;
+    if (res.error === 'no_fiches') {
+      resultArea.innerHTML = `<div class="ruota-result-box ruota-lose">${FICHE_ICO} Fiches insufficienti! Servono ${res.cost}.</div>`;
+      return;
     }
+    spinBtn.disabled = true;
+    resultArea.innerHTML = `<div class="ruota-spinning">✨ La ruota del fato gira…</div>`;
 
-    setTimeout(() => {
-      const res = RPG.spinRuota(HERO);
-      persist(); renderHUD();
+    let cumW = 0;
+    for (let i = 0; i < res.idx; i++) cumW += sectors[i].weight;
+    const targetBase  = (360 - (cumW + sectors[res.idx].weight / 2) / total * 360 + 360) % 360;
+    const currBase    = currentAngle % 360;
+    const spinAmount  = 1440 + (targetBase - currBase + 360) % 360;
+    const startAngle  = currentAngle;
+    const duration    = 3600;
+    const t0          = performance.now();
 
-      if (res.error === 'no_fiches') {
-        resultArea.innerHTML = `<div class="ruota-result-box ruota-lose">🎴 Fiches insufficienti! Servono ${res.cost}.</div>`;
-        spinBtn.disabled = false;
-        return;
-      }
+    function animate(now) {
+      const t      = Math.min((now - t0) / duration, 1);
+      const eased  = 1 - Math.pow(1 - t, 4);
+      currentAngle = startAngle + spinAmount * eased;
+      _drawWheel(canvas, currentAngle, -1);
+      if (t < 1) { rafId = requestAnimationFrame(animate); return; }
+      rafId = null;
+      _drawWheel(canvas, currentAngle, res.idx);
 
-      const sector = res.sector;
-      // Highlight landed chip
-      document.querySelectorAll('.ruota-chip').forEach((chip, i) => {
-        chip.classList.toggle('ruota-chip-active', i === res.idx);
-      });
-
-      let rewardText = '';
       const rw = res.reward;
-      if (rw.jackpot)    rewardText = `<b>⭐ JACKPOT!</b> +${rw.gold} 🪙 +${rw.fiches} 🎴`;
+      let rewardText = '';
+      if (rw.jackpot)    rewardText = `<b>⭐ JACKPOT!</b> +${rw.gold} 🪙 +${rw.fiches} ${FICHE_ICO}`;
       else if (rw.gold)  rewardText = `+${rw.gold} 🪙 Oro`;
-      else if (rw.fiches)rewardText = `+${rw.fiches} 🎴 Fiches`;
+      else if (rw.fiches)rewardText = `+${rw.fiches} ${FICHE_ICO} Fiches`;
       else if (rw.wood)  rewardText = `+${rw.wood} 🪵 Legna`;
       else if (rw.item)  rewardText = `🎁 ${esc(rw.item.name)} (${rw.item.rarity})`;
       else               rewardText = '💨 Il vento ti ha voltato le spalle.';
 
       const isGood = !rw.nothing;
       resultArea.innerHTML = `<div class="ruota-result-box ${isGood ? 'ruota-win' : 'ruota-nothing'}">
-        <div class="ruota-sector-name">${sector.label}</div>
+        <div class="ruota-sector-name">${res.sector.label}</div>
         <div class="ruota-reward-text">${rewardText}</div>
       </div>`;
 
-      if (isGood && !rw.nothing) { sfx('coin'); vibrate([80, 40, 120]); }
+      if (isGood) { sfx('coin'); vibrate([80, 40, 120]); }
       if (rw.jackpot) vibrate([200, 100, 200, 100, 300]);
 
-      // Update fiches display
       const fichesEl = document.getElementById('ruota-fiches');
       if (fichesEl) fichesEl.textContent = HERO.fiches || 0;
 
-      // New spin button
-      const nextCost = 15;
-      const newSpinBtn = el('button', 'btn btn-primary wide ruota-spin-btn',
-        `🎡 Gira ancora (${nextCost} 🎴)`);
-      newSpinBtn.disabled = (HERO.fiches||0) < nextCost;
-      newSpinBtn.addEventListener('click', () => { MARKET_VIEW = 'ruota'; setTab('market'); });
-      c.appendChild(newSpinBtn);
-    }, 3400);
+      const newBtn = el('button', 'btn btn-primary wide ruota-spin-btn', `🎡 Gira ancora (15 ${FICHE_ICO})`);
+      newBtn.disabled = (HERO.fiches || 0) < 15;
+      newBtn.addEventListener('click', () => { MARKET_VIEW = 'ruota'; setTab('market'); });
+      c.appendChild(newBtn);
+    }
+    rafId = requestAnimationFrame(animate);
   });
 }
 
-/* ── Pozzo delle Evocazioni ── */
+/* ── Pozzo delle Evocazioni — Canvas ── */
+function _drawPozzo(canvas, phase, rarColor) {
+  const ctx = canvas.getContext('2d');
+  const dpr = canvas._dpr || 1;
+  const S   = canvas.width / dpr;
+  const cx  = S / 2, cy = S / 2, R = S / 2 - 5;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
+  bg.addColorStop(0,   '#030c1c');
+  bg.addColorStop(0.55,'#01060e');
+  bg.addColorStop(1,   '#000407');
+  ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2);
+  ctx.fillStyle = bg; ctx.fill();
+
+  [R*0.84, R*0.67, R*0.50, R*0.34, R*0.19].forEach((r, i) => {
+    const alpha = 0.38 - i * 0.05;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(${20+i*12},${60+i*18},${180+i*12},${alpha})`;
+    ctx.lineWidth = i === 0 ? 2 : 1.2; ctx.stroke();
+  });
+
+  // Rune markers
+  const runes = ['◈','⊕','◉','⊗','◈','⊕','◉','⊗'];
+  runes.forEach((r, i) => {
+    const a = (i / 8) * Math.PI * 2 - Math.PI / 2;
+    ctx.font = '11px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = 'rgba(50,110,220,0.55)';
+    ctx.fillText(r, cx + R * 0.76 * Math.cos(a), cy + R * 0.76 * Math.sin(a));
+  });
+
+  // Inner glow
+  const gc = rarColor || '#1a4aff';
+  const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 0.46);
+  glow.addColorStop(0, phase === 'done' ? gc + 'aa' : 'rgba(25,65,210,0.55)');
+  glow.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.beginPath(); ctx.arc(cx, cy, R * 0.5, 0, Math.PI * 2);
+  ctx.fillStyle = glow; ctx.fill();
+
+  // Center symbol
+  ctx.font = `${Math.round(R * 0.36)}px serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.shadowColor = phase === 'done' ? gc : '#1a4aff';
+  ctx.shadowBlur = phase === 'pulling' ? 30 : 16;
+  ctx.fillStyle = phase === 'done' ? '#fff' : 'rgba(80,140,255,0.85)';
+  ctx.fillText('🌀', cx, cy + 2);
+  ctx.shadowBlur = 0;
+
+  // Outer rings
+  const og = ctx.createLinearGradient(cx-R, cy-R, cx+R, cy+R);
+  og.addColorStop(0, 'rgba(35,75,200,0.88)'); og.addColorStop(0.5,'rgba(75,45,200,0.88)'); og.addColorStop(1,'rgba(35,75,200,0.88)');
+  ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2);
+  ctx.strokeStyle = og; ctx.lineWidth = 5; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx, cy, R - 9, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(55,95,200,0.35)'; ctx.lineWidth = 1.5; ctx.stroke();
+}
+
 function renderPozzoView(c) {
   RPG.cartReset(HERO);
   c.appendChild(_cartBack('cartomante'));
-
-  const hImg = document.createElement('img');
-  hImg.src = 'assets/cartomante/header-cartomante.jpg';
-  hImg.alt = ''; hImg.className = 'borgo-sub-header'; hImg.onerror = () => hImg.remove();
-  c.appendChild(hImg);
-
   c.appendChild(el('h2', 'section-title', '🌀 Il Pozzo delle Evocazioni'));
 
   const bal = el('div', 'cart-balance-bar');
   bal.innerHTML = `${FICHE_ICO} <b id="pozzo-fiches">${HERO.fiches||0}</b> Fiches &nbsp;·&nbsp; Costo: <b>${RPG.POZZO_COST}</b> ${FICHE_ICO} per evocazione`;
   c.appendChild(bal);
 
-  const wellWrap = el('div', 'pozzo-wrap');
-  const wellImg = document.createElement('img');
-  wellImg.src = 'assets/cartomante/pozzo-evocazioni.webp';
-  wellImg.className = 'pozzo-img'; wellImg.onerror = () => wellImg.remove();
-  wellWrap.appendChild(wellImg);
-  c.appendChild(wellWrap);
+  const pozzoWrap = el('div', 'pozzo-canvas-wrap');
+  const canvas = _makeCanvas(260);
+  canvas.className = 'pozzo-canvas';
+  pozzoWrap.appendChild(canvas);
+  c.appendChild(pozzoWrap);
+  _drawPozzo(canvas, 'idle', null);
 
   c.appendChild(el('p', 'muted small center',
-    'Le probabilità: Comune 50% · Non comune 28% · Raro 14% · Epico 6% · Leggendario 2%'));
+    'Comune 50% · Non comune 28% · Raro 14% · Epico 6% · Leggendario 2%'));
 
   const resultArea = el('div', 'pozzo-result'); resultArea.id = 'pozzo-result';
   c.appendChild(resultArea);
 
-  const pullBtn = el('button', 'btn btn-primary wide',
-    `🌀 Evoca! (${RPG.POZZO_COST} 🎴)`);
-  pullBtn.disabled = (HERO.fiches||0) < RPG.POZZO_COST;
+  const rarColor = { comune: '#8a7a5f', 'non comune': '#2e6fb0', raro: '#2e6fb0', epico: '#7b3fbf', leggendario: '#d9822b' };
+
+  const pullBtn = el('button', 'btn btn-primary wide', `🌀 Evoca! (${RPG.POZZO_COST} ${FICHE_ICO})`);
+  pullBtn.disabled = (HERO.fiches || 0) < RPG.POZZO_COST;
   c.appendChild(pullBtn);
 
   pullBtn.addEventListener('click', () => {
     pullBtn.disabled = true;
+    canvas.classList.add('pozzo-canvas--pulling');
+    _drawPozzo(canvas, 'pulling', null);
     resultArea.innerHTML = `<div class="pozzo-pulling">✨ Le energie del Pozzo si raccolgono…</div>`;
+
     setTimeout(() => {
       const res = RPG.pullPozzo(HERO);
       persist(); renderHUD();
+      canvas.classList.remove('pozzo-canvas--pulling');
+
       if (res.error === 'no_fiches') {
-        resultArea.innerHTML = `<div class="pozzo-empty">🎴 Fiches insufficienti! Servono ${res.cost}.</div>`;
+        _drawPozzo(canvas, 'idle', null);
+        resultArea.innerHTML = `<div class="pozzo-empty">${FICHE_ICO} Fiches insufficienti! Servono ${res.cost}.</div>`;
         return;
       }
       const { item, rarity } = res;
-      const rarColor = { comune: '#8a7a5f', 'non comune': '#2e6fb0', raro: '#2e6fb0', epico: '#7b3fbf', leggendario: '#d9822b' };
+      const col = rarColor[rarity] || '#8a7a5f';
+      _drawPozzo(canvas, 'done', col);
       resultArea.innerHTML = `
-        <div class="pozzo-result-card" style="border-color:${rarColor[rarity]||'#8a7a5f'}">
-          <div class="pozzo-rarity-label" style="color:${rarColor[rarity]||'#8a7a5f'}">${rarity.toUpperCase()}</div>
+        <div class="pozzo-result-card" style="border-color:${col}">
+          <div class="pozzo-rarity-label" style="color:${col}">${rarity.toUpperCase()}</div>
           ${itemHtml(item)}
         </div>`;
       sfx('coin');
@@ -5409,11 +5542,11 @@ function renderPozzoView(c) {
       const fichesEl = document.getElementById('pozzo-fiches');
       if (fichesEl) fichesEl.textContent = HERO.fiches || 0;
 
-      const again = el('button', 'btn btn-primary wide', `🌀 Evoca ancora (${RPG.POZZO_COST} 🎴)`);
-      again.disabled = (HERO.fiches||0) < RPG.POZZO_COST;
+      const again = el('button', 'btn btn-primary wide', `🌀 Evoca ancora (${RPG.POZZO_COST} ${FICHE_ICO})`);
+      again.disabled = (HERO.fiches || 0) < RPG.POZZO_COST;
       again.addEventListener('click', () => { MARKET_VIEW = 'pozzo'; setTab('market'); });
       c.appendChild(again);
-    }, 1600);
+    }, 1800);
   });
 }
 
