@@ -4992,7 +4992,7 @@ function renderMarket(c) {
         card.appendChild(img);
         card.appendChild(el('div', 'ticket-label', cfg.name));
         const btn = el('button', 'btn btn-primary btn-small', '✨ Gratta!');
-        btn.addEventListener('click', () => showScratchCard(ticket));
+        btn.addEventListener('click', () => showScratchCard(ticket), { once: true });
         card.appendChild(btn);
         tGrid.appendChild(card);
       });
@@ -7669,7 +7669,7 @@ function showScratchCard(ticket) {
   // Scratch subito: il risultato è già deciso (seed fisso)
   const result = RPG.scratchTicket(HERO, ticket.id);
   RPG.save({ heroes: STATE.heroes, current: STATE.current, claimedEvents: STATE.claimedEvents });
-  if (result.error) { toast('Biglietto non valido.'); return; }
+  if (result.error) { toast('Biglietto non valido.'); setTab('market'); return; }
 
   const CELL_CFG = {
     comune:      { fill: '#a87010', noiseA: 'rgba(255,200,60,0.15)', noiseB: 'rgba(100,60,0,0.2)',
@@ -7726,7 +7726,7 @@ function showScratchCard(ticket) {
       cell.appendChild(symEl);
 
       const canvas = document.createElement('canvas');
-      canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;';
+      canvas.style.cssText = `position:absolute;inset:0;width:100%;height:100%;background:${cc.fill};`;
       cell.appendChild(canvas);
       cellsEl.appendChild(cell);
 
