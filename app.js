@@ -7095,7 +7095,12 @@ function renderBestiaryView(c) {
 function modal(html) {
   const box = $('#modal-box');
   box.classList.remove('scalata-dark-modal');
-  box.innerHTML = html;
+  if (typeof html === 'string') {
+    box.innerHTML = html;
+  } else {
+    box.innerHTML = '';
+    box.appendChild(html);
+  }
   box.classList.remove('modal-opening');
   $('#modal').classList.remove('hidden');
   requestAnimationFrame(() => requestAnimationFrame(() => box.classList.add('modal-opening')));
