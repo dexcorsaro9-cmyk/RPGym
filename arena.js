@@ -528,7 +528,7 @@ function showDungeonReward(reward) {
     <div class="chest-res-row">
       <div class="chest-res-chip gold">🪙 ${reward.gold}</div>
       <div class="chest-res-chip xp">⭐ ${reward.xp} XP</div>
-      <div class="chest-res-chip" style="color:#c4b5fd">🎴 +3</div>
+      <div class="chest-res-chip" style="color:#c4b5fd"><img class="fiche-inline" src="assets/ui/res-fiches.webp" alt="🎴"> +3</div>
     </div>`;
   if (reward.item) {
     html += `<div class="dungeon-epic-label">Oggetto Epico Garantito</div>
