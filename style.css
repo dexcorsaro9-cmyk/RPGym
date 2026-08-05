@@ -7229,9 +7229,9 @@ img.fiche-inline {
 .lr-kept  { background: rgba(107,114,128,.15); padding: 10px; border-radius: 10px; text-align: center; color: var(--muted); }
 
 /* ── Ruota del Fato — Canvas ── */
-.ruota-canvas-wrap {
+.ruota-outer-wrap {
   display: flex; flex-direction: column; align-items: center;
-  margin: 12px auto 8px; gap: 0; position: relative;
+  margin: 12px auto 8px; gap: 0;
 }
 .ruota-pointer {
   width: 0; height: 0;
@@ -7239,15 +7239,30 @@ img.fiche-inline {
   border-right: 13px solid transparent;
   border-top: 24px solid #e8b64c;
   filter: drop-shadow(0 4px 14px rgba(232,182,76,0.95));
-  position: relative; z-index: 2; margin-bottom: -1px;
+  position: relative; z-index: 3; margin-bottom: -1px;
+}
+.ruota-canvas-wrap {
+  position: relative; width: 300px; height: 300px;
+  display: flex; align-items: center; justify-content: center;
 }
 .ruota-canvas {
   border-radius: 50%; display: block;
+  position: absolute; top: 0; left: 0;
+  z-index: 1;
   box-shadow:
     0 0 0 3px rgba(232,182,76,0.28),
     0 0 32px rgba(120,40,200,0.6),
     0 0 64px rgba(80,20,150,0.28),
     0 6px 28px rgba(0,0,0,0.75);
+}
+.ruota-frame-overlay {
+  position: absolute;
+  width: 440px; height: 440px;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 2;
+  image-rendering: high-quality;
 }
 .ruota-result-area { min-height: 48px; margin: 10px 0; }
 .ruota-spinning { text-align: center; color: #a78bfa; font-style: italic; padding: 12px; animation: wheel-pulse 0.9s infinite alternate; }
@@ -7260,28 +7275,43 @@ img.fiche-inline {
 .ruota-reward-text { font-size: .95rem; }
 .ruota-spin-btn { margin-top: 6px; }
 
-/* ── Pozzo delle Evocazioni — Canvas ── */
-.pozzo-canvas-wrap { display: flex; justify-content: center; margin: 14px auto 10px; }
-.pozzo-canvas {
-  border-radius: 50%; display: block;
-  box-shadow:
-    0 0 0 3px rgba(35,75,200,0.28),
-    0 0 28px rgba(30,60,200,0.55),
-    0 0 56px rgba(20,40,150,0.25),
-    0 6px 24px rgba(0,0,0,0.7);
-  transition: box-shadow 0.4s ease;
+/* ── Pozzo delle Evocazioni — Immagine + overlay ── */
+.pozzo-wrap {
+  position: relative;
+  width: 260px; height: 260px;
+  margin: 14px auto 10px;
+  display: flex; align-items: center; justify-content: center;
 }
-.pozzo-canvas--pulling {
+.pozzo-bg-img {
+  width: 260px; height: 260px;
+  border-radius: 50%; display: block;
+  position: absolute; top: 0; left: 0;
+  object-fit: cover;
   box-shadow:
-    0 0 0 3px rgba(70,120,255,0.5),
-    0 0 50px rgba(60,100,255,0.85),
-    0 0 100px rgba(40,70,200,0.45),
-    0 6px 24px rgba(0,0,0,0.7);
+    0 0 0 4px rgba(35,75,200,0.55),
+    0 0 28px rgba(30,60,200,0.65),
+    0 0 56px rgba(20,40,150,0.3),
+    0 6px 24px rgba(0,0,0,0.75);
+  transition: box-shadow 0.4s ease, filter 0.4s ease;
+}
+.pozzo-bg-img--pulling {
+  filter: brightness(1.25) saturate(1.4);
   animation: pozzo-surge 0.7s ease-in-out infinite alternate;
 }
+.pozzo-center-symbol {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -52%);
+  font-size: 52px;
+  line-height: 1;
+  text-shadow: 0 0 18px #1a4aff, 0 0 36px #1a4aff;
+  transition: text-shadow 0.4s ease;
+  pointer-events: none;
+  z-index: 1;
+}
 @keyframes pozzo-surge {
-  from { box-shadow: 0 0 0 3px rgba(70,120,255,.5), 0 0 40px rgba(60,100,255,.75), 0 0 80px rgba(40,70,200,.4), 0 6px 24px rgba(0,0,0,.7); }
-  to   { box-shadow: 0 0 0 3px rgba(100,160,255,.7), 0 0 70px rgba(80,140,255,.95), 0 0 130px rgba(60,100,220,.6), 0 6px 24px rgba(0,0,0,.7); }
+  from { box-shadow: 0 0 0 4px rgba(70,120,255,.55), 0 0 40px rgba(60,100,255,.80), 0 0 80px rgba(40,70,200,.45), 0 6px 24px rgba(0,0,0,.75); }
+  to   { box-shadow: 0 0 0 5px rgba(110,170,255,.75), 0 0 72px rgba(90,150,255,1.0), 0 0 130px rgba(70,110,230,.65), 0 6px 24px rgba(0,0,0,.75); }
 }
 .pozzo-result { min-height: 48px; margin: 10px 0; }
 .pozzo-pulling { text-align: center; color: #93c5fd; font-style: italic; padding: 12px; animation: wheel-pulse .8s infinite alternate; }
