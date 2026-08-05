@@ -2592,8 +2592,13 @@ const RPG = (() => {
     }
     // Bonus specie famiglio (Volt: +XP eroe; Silvano: +legna)
     const petSb = petSpeciesBonus(hero);
-    if (petSb.heroXpMult) xpMult        += petSb.heroXpMult;
+    if (petSb.heroXpMult) xpMult += petSb.heroXpMult;
     if (petSb.woodMult)   localWoodMult += petSb.woodMult;
+    // Personalità Goloso: +5% XP eroe agli allenamenti
+    if (hero.pet && hero.pet.hatched && !hero.pet.sick) {
+      const petPers = PET_PERSONALITIES[hero.pet.personality];
+      if (petPers && petPers.xpBonus) xpMult += petPers.xpBonus;
+    }
 
     // Dualità: Cittadella dell'Eclissi, +risorse dopo le 18:00
     if (furn.flags.dualityBonus && new Date().getHours() >= 18) {
@@ -2820,7 +2825,7 @@ const RPG = (() => {
       if (evoPet) Object.assign(report, evoPet);
       // Virtù: corsa/cyclette → Coraggio; camminata → Astuzia
       if (type === 'corsa' || type === 'cyclette') {
-        addPetVirtue(hero, 'coraggio', Math.round(km * 0.3 * 10) / 10);
+        addPetVirtue(hero, 'coraggio', Math.round(km * 0.5 * 10) / 10);
       } else if (type === 'camminata') {
         addPetVirtue(hero, 'astuzia', Math.round(km * 0.2 * 10) / 10);
       }
@@ -3270,7 +3275,7 @@ const RPG = (() => {
 
   const PET_VIRTUE_META = {
     coraggio: { name: 'Coraggio', icon: '⚔️', color: '#e8604c',
-      desc: 'Cresce con corsa e cyclette, spedizioni e combattimento in Arena.',
+      desc: 'Cresce con corsa e cyclette, vittorie in Arena e Scalata, spedizioni.',
       synergyDesc: 'Attacca il nemico per danni bonus diretti (solo in Scalata).' },
     astuzia:  { name: 'Astuzia',  icon: '✨', color: '#9b59b6',
       desc: 'Cresce con le camminate e i consumabili strategici.',
@@ -3303,7 +3308,6 @@ const RPG = (() => {
 
   const PHOENIX_POTION_PRICE = 500;
   const EXPEDITION_HOURS = 2; // legacy fallback
-  const WISH_WINDOW_MINUTES = 60;
 
   function clamp01to100(n) { return Math.max(0, Math.min(100, n)); }
 
@@ -3469,8 +3473,8 @@ const RPG = (() => {
       p.restedBonusActive = wasGoodSleep;
       p.sleptToday = false;
       p.energyDate = today;
-      // Lealtà giornaliera per accesso
-      addPetVirtue(hero, 'lealta', 5);
+      // Lealtà giornaliera per accesso (piccolo bonus — la crescita principale è dai workout)
+      addPetVirtue(hero, 'lealta', 2);
     }
     if (p.sickCheckedDate !== today) {
       p.sickCheckedDate = today;

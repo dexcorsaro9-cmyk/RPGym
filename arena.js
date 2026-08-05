@@ -262,6 +262,7 @@ function endBattle(heroWon) {
   if (heroWon) {
     const chest = RPG.battleReward(HERO, b.v);
     RPG.updateChallengeProgress(HERO, 'arena', 1);
+    RPG.addPetVirtue(HERO, 'coraggio', b.v.boss ? 3 : 1);
     persist(); renderHUD();
     sfx('level');
     if (center) center.innerHTML = `<div class="battle-result-overlay"><div class="battle-result-text win">VITTORIA!</div></div>`;
