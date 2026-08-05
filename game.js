@@ -2242,13 +2242,18 @@ const RPG = (() => {
     monday.setHours(0, 0, 0, 0);
     return `${monday.getFullYear()}-${String(monday.getMonth()+1).padStart(2,'0')}-${String(monday.getDate()).padStart(2,'0')}`;
   }
-  function todayStamp() {
-    // Usa la data locale, non UTC, per allineare il reset alla mezzanotte percepita dall'utente
+  function gameDate() {
+    // La giornata di gioco inizia alle 04:00 — prima delle 4 si considera ancora il giorno precedente
     const d = new Date();
+    d.setHours(d.getHours() - 4);
+    return d;
+  }
+  function todayStamp() {
+    const d = gameDate();
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   }
   function yesterdayStamp() {
-    const d = new Date(); d.setDate(d.getDate() - 1);
+    const d = gameDate(); d.setDate(d.getDate() - 1);
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   }
 
