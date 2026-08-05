@@ -7228,39 +7228,63 @@ img.fiche-inline {
 .lr-lose  { background: rgba(239,68,68,.12);  border: 1px solid rgba(239,68,68,.35); color: #f87171;  padding: 12px; border-radius: 10px; text-align: center; font-weight: 700; }
 .lr-kept  { background: rgba(107,114,128,.15); padding: 10px; border-radius: 10px; text-align: center; color: var(--muted); }
 
-/* ── Ruota del Fato ── */
-.ruota-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; margin: 12px 0; }
-.ruota-img  { width: 200px; height: 200px; object-fit: contain; transition: transform 0.1s; }
-.ruota-strip { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
-.ruota-chip {
-  border: 2px solid #6b7280; border-radius: 14px; padding: 3px 10px;
-  font-size: .75rem; font-weight: 600; color: var(--text); background: rgba(0,0,0,.08);
-  transition: background .3s, border-color .3s;
+/* ── Ruota del Fato — Canvas ── */
+.ruota-canvas-wrap {
+  display: flex; flex-direction: column; align-items: center;
+  margin: 12px auto 8px; gap: 0; position: relative;
 }
-.ruota-chip-active {
-  background: rgba(124,58,237,.25) !important;
-  border-color: #7c3aed !important;
-  color: #c4b5fd !important;
-  transform: scale(1.08);
+.ruota-pointer {
+  width: 0; height: 0;
+  border-left: 13px solid transparent;
+  border-right: 13px solid transparent;
+  border-top: 24px solid #e8b64c;
+  filter: drop-shadow(0 4px 14px rgba(232,182,76,0.95));
+  position: relative; z-index: 2; margin-bottom: -1px;
 }
-.ruota-result-area { min-height: 48px; margin: 8px 0; }
-.ruota-spinning { text-align: center; color: #a78bfa; font-style: italic; padding: 12px; animation: ruota-pulse 0.8s infinite alternate; }
-@keyframes ruota-pulse { from { opacity:.6; } to { opacity:1; } }
-.ruota-result-box {
-  border-radius: 12px; padding: 14px; text-align: center; font-weight: 700;
+.ruota-canvas {
+  border-radius: 50%; display: block;
+  box-shadow:
+    0 0 0 3px rgba(232,182,76,0.28),
+    0 0 32px rgba(120,40,200,0.6),
+    0 0 64px rgba(80,20,150,0.28),
+    0 6px 28px rgba(0,0,0,0.75);
 }
+.ruota-result-area { min-height: 48px; margin: 10px 0; }
+.ruota-spinning { text-align: center; color: #a78bfa; font-style: italic; padding: 12px; animation: wheel-pulse 0.9s infinite alternate; }
+@keyframes wheel-pulse { from { opacity:.55; } to { opacity:1; } }
+.ruota-result-box { border-radius: 12px; padding: 14px; text-align: center; font-weight: 700; }
 .ruota-win     { background: rgba(34,197,94,.12);   border: 1px solid rgba(34,197,94,.35); color: #4ade80; }
 .ruota-nothing { background: rgba(107,114,128,.12); border: 1px solid rgba(107,114,128,.3); color: var(--muted); }
 .ruota-lose    { background: rgba(239,68,68,.12);   border: 1px solid rgba(239,68,68,.35); color: #f87171; }
 .ruota-sector-name { font-size: 1.1rem; margin-bottom: 4px; }
 .ruota-reward-text { font-size: .95rem; }
-.ruota-spin-btn { margin-top: 4px; }
+.ruota-spin-btn { margin-top: 6px; }
 
-/* ── Pozzo delle Evocazioni ── */
-.pozzo-wrap { display: flex; justify-content: center; margin: 12px 0; }
-.pozzo-img  { width: 160px; height: 160px; object-fit: contain; }
+/* ── Pozzo delle Evocazioni — Canvas ── */
+.pozzo-canvas-wrap { display: flex; justify-content: center; margin: 14px auto 10px; }
+.pozzo-canvas {
+  border-radius: 50%; display: block;
+  box-shadow:
+    0 0 0 3px rgba(35,75,200,0.28),
+    0 0 28px rgba(30,60,200,0.55),
+    0 0 56px rgba(20,40,150,0.25),
+    0 6px 24px rgba(0,0,0,0.7);
+  transition: box-shadow 0.4s ease;
+}
+.pozzo-canvas--pulling {
+  box-shadow:
+    0 0 0 3px rgba(70,120,255,0.5),
+    0 0 50px rgba(60,100,255,0.85),
+    0 0 100px rgba(40,70,200,0.45),
+    0 6px 24px rgba(0,0,0,0.7);
+  animation: pozzo-surge 0.7s ease-in-out infinite alternate;
+}
+@keyframes pozzo-surge {
+  from { box-shadow: 0 0 0 3px rgba(70,120,255,.5), 0 0 40px rgba(60,100,255,.75), 0 0 80px rgba(40,70,200,.4), 0 6px 24px rgba(0,0,0,.7); }
+  to   { box-shadow: 0 0 0 3px rgba(100,160,255,.7), 0 0 70px rgba(80,140,255,.95), 0 0 130px rgba(60,100,220,.6), 0 6px 24px rgba(0,0,0,.7); }
+}
 .pozzo-result { min-height: 48px; margin: 10px 0; }
-.pozzo-pulling { text-align: center; color: #a78bfa; font-style: italic; padding: 12px; animation: ruota-pulse .8s infinite alternate; }
+.pozzo-pulling { text-align: center; color: #93c5fd; font-style: italic; padding: 12px; animation: wheel-pulse .8s infinite alternate; }
 .pozzo-empty   { text-align: center; color: #f87171; padding: 12px; }
 .pozzo-result-card {
   border: 2px solid #8a7a5f; border-radius: 12px; padding: 12px; margin: 6px 0;
