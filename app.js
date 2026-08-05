@@ -5329,20 +5329,17 @@ function renderHero(c) {
 
   // Sottomenù
   const sub = el('div', 'hero-submenu');
-  const unlocked = HERO.loreUnlocked || [];
   [
     ['story',    'storia',          '📜', 'La tua Storia'],
     ['cards',    'carte',           '🎴', 'Carte & Imprese'],
     ['bestiary', 'bestiario',       '🐉', 'Bestiario'],
     ['diary',    'imprese_stivale', '📊', 'Diario'],
-    ['cronache', null,              '📖', 'Cronache'],
   ].forEach(([k, file, emoji, label]) => {
     const b = el('button', 'btn submenu-btn');
-    const badge = (k === 'cronache' && unlocked.length > 0) ? ` <span class="submenu-lore-badge">${unlocked.length}</span>` : '';
-    b.innerHTML = `<span class="submenu-emoji">${emoji}</span><span>${label}${badge}</span>`;
+    b.innerHTML = `<span class="submenu-emoji">${emoji}</span><span>${label}</span>`;
     if (file) {
       const img = new Image();
-      img.onload = () => { b.innerHTML = `<img class="submenu-icon" src="assets/ui/eroe/${file}.webp"><span>${label}${badge}</span>`; };
+      img.onload = () => { b.innerHTML = `<img class="submenu-icon" src="assets/ui/eroe/${file}.webp"><span>${label}</span>`; };
       img.src = `assets/ui/eroe/${file}.webp`;
     }
     b.addEventListener('click', () => { HERO_VIEW = k; setTab('hero'); });
