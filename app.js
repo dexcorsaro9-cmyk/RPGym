@@ -5266,6 +5266,10 @@ function _drawWheel(canvas, angleDeg, landedIdx) {
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // Clip everything to a circle so no transparent pixels leak outside
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx, cy, R + 2, 0, Math.PI * 2); ctx.clip();
+
   // Background circle
   const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, R + 5);
   bg.addColorStop(0,    '#1e0845');
@@ -5331,6 +5335,8 @@ function _drawWheel(canvas, angleDeg, landedIdx) {
   ctx.font = '16px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillStyle = '#f0b030'; ctx.shadowColor = 'rgba(240,176,48,0.8)'; ctx.shadowBlur = 10;
   ctx.fillText('✦', cx, cy); ctx.shadowBlur = 0;
+
+  ctx.restore(); // end circular clip
 }
 
 function _makeCanvas(size) {

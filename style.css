@@ -7264,6 +7264,7 @@ img.fiche-inline {
 .ruota-outer-wrap {
   display: flex; flex-direction: column; align-items: center;
   margin: 12px auto 8px; gap: 0;
+  padding-bottom: 76px; /* frame overlay (440px) straborda di 70px sotto il canvas (300px) */
 }
 .ruota-pointer {
   width: 0; height: 0;
@@ -7296,7 +7297,7 @@ img.fiche-inline {
   z-index: 2;
   image-rendering: high-quality;
 }
-.ruota-result-area { min-height: 48px; margin: 10px 0; }
+.ruota-result-area { min-height: 48px; margin: 10px 0; position: relative; z-index: 3; }
 .ruota-spinning { text-align: center; color: #a78bfa; font-style: italic; padding: 12px; animation: wheel-pulse 0.9s infinite alternate; }
 @keyframes wheel-pulse { from { opacity:.55; } to { opacity:1; } }
 .ruota-result-box { border-radius: 12px; padding: 14px; text-align: center; font-weight: 700; }
@@ -7305,7 +7306,7 @@ img.fiche-inline {
 .ruota-lose    { background: rgba(239,68,68,.12);   border: 1px solid rgba(239,68,68,.35); color: #f87171; }
 .ruota-sector-name { font-size: 1.1rem; margin-bottom: 4px; }
 .ruota-reward-text { font-size: .95rem; }
-.ruota-spin-btn { margin-top: 6px; }
+.ruota-spin-btn { margin-top: 6px; position: relative; z-index: 3; }
 
 /* ── Pozzo delle Evocazioni — Immagine + overlay ── */
 .pozzo-wrap {
