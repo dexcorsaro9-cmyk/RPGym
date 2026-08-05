@@ -512,6 +512,13 @@ const RPG = (() => {
     { id:'piccone_viola',     name:'Piccone Viola',          cat:'materiali', rarity:'epico',      icon:'⛏️', desc:'+50 pietra istantanea',                       baseValue:45,  effect:{ type:'instant_res',      stone:50 } },
     { id:'polvere_pietra',    name:'Polvere di Pietra',      cat:'materiali', rarity:'comune',     icon:'💠', desc:'+10 pietra istantanea',                       baseValue:10,  effect:{ type:'instant_res',      stone:10 } },
     { id:'sacca_cosmica',     name:'Sacca Cosmica',          cat:'materiali', rarity:'raro',       icon:'🎒', desc:'Risorse casuali: 20-50 legno o pietra',       baseValue:30,  effect:{ type:'random_res' } },
+    // ── Famigli v2 ────────────────────────────────────────────
+    { id:'trofeo_di_caccia',  name:'Trofeo di Caccia',       cat:'famiglio',  rarity:'raro',       icon:'🏆', desc:'Famiglio: +5 Coraggio istantaneo',            baseValue:40,  effect:{ type:'pet_virtue', virtue:'coraggio', amount:5 } },
+    { id:'grimorio_antico',   name:'Grimorio Antico',        cat:'famiglio',  rarity:'raro',       icon:'📖', desc:'Famiglio: +5 Astuzia istantanea',             baseValue:40,  effect:{ type:'pet_virtue', virtue:'astuzia',  amount:5 } },
+    { id:'medaglione_familiare',name:'Medaglione Familiare', cat:'famiglio',  rarity:'raro',       icon:'💚', desc:'Famiglio: +5 Lealtà istantanea',              baseValue:40,  effect:{ type:'pet_virtue', virtue:'lealta',   amount:5 } },
+    { id:'fischio_del_ranger', name:'Fischio del Ranger',    cat:'famiglio',  rarity:'raro',       icon:'🎵', desc:'Richiama il famiglio: spedizione attiva -2h', baseValue:45,  effect:{ type:'expedition_time_reduce', hours:2 } },
+    { id:'kit_esplorazione',  name:'Kit Esplorazione',       cat:'famiglio',  rarity:'comune',     icon:'🎒', desc:'Prossima spedizione: rischio dimezzato',      baseValue:18,  effect:{ type:'expedition_risk_reduce', mult:0.5 } },
+    { id:'pergamena_incantata',name:'Pergamena Incantata',   cat:'utility',   rarity:'raro',       icon:'📜', desc:'Prossima Scalata: +1 dado MAG bonus',         baseValue:50,  effect:{ type:'scalata_mag_bonus', value:1 } },
   ];
 
   function consumableById(id) { return CONSUMABLES.find(c => c.id === id); }
@@ -568,6 +575,12 @@ const RPG = (() => {
     pozione_amore:      "sigillo della promessa",
     codice_reale:       "sigillo reale di indulgenza",
     torcia_lunare:      "torcia nella notte",
+    trofeo_di_caccia:   "trofeo di caccia",
+    grimorio_antico:    "grimorio antico",
+    medaglione_familiare:"medaglione familiare",
+    fischio_del_ranger: "fischio del ranger",
+    kit_esplorazione:   "kit esplorazione",
+    pergamena_incantata:"pergamena incantata",
   };
 
   function sellValueConsumable(id) {
@@ -759,6 +772,21 @@ const RPG = (() => {
           if (eff.hunger !== undefined) hero.pet.hunger = Math.min(100, (hero.pet.hunger || 0) + eff.hunger);
           if (eff.mood   !== undefined) hero.pet.mood   = Math.min(100, (hero.pet.mood   || 0) + eff.mood);
         }
+        break;
+      case 'pet_virtue':
+        if (!hero.pet || !hero.pet.hatched) return 'Il tuo famiglio non è ancora schiuso.';
+        addPetVirtue(hero, eff.virtue, eff.amount || 5);
+        break;
+      case 'expedition_time_reduce': {
+        if (!hero.pet || !hero.pet.expedition) return 'Nessuna spedizione in corso.';
+        hero.pet.expedition.startedAt -= (eff.hours || 2) * 3600000;
+        break;
+      }
+      case 'expedition_risk_reduce':
+        b.expeditionRiskMult = (b.expeditionRiskMult !== undefined) ? Math.min(b.expeditionRiskMult, eff.mult || 0.5) : (eff.mult || 0.5);
+        break;
+      case 'scalata_mag_bonus':
+        b.scalataMagBonus = (b.scalataMagBonus || 0) + (eff.value || 1);
         break;
       case 'multi':
         (eff.effects || []).forEach(e => _applyConsumableEffect(hero, e));
@@ -3631,9 +3659,11 @@ const RPG = (() => {
     const kmDuring = Math.max(0, hero.totalKm - exp.kmAtStart);
     hero.pet.expedition = null;
 
-    // Risk modified by pet mood
+    // Risk modified by pet mood and consumable buff
     const moodFactor = (hero.pet.mood || 0) < 50 ? 1.5 : 1;
-    if (Math.random() < zone.risk * moodFactor) {
+    const riskMult = hero.consumableBuffs?.expeditionRiskMult ?? 1;
+    if (hero.consumableBuffs?.expeditionRiskMult !== undefined) delete hero.consumableBuffs.expeditionRiskMult;
+    if (Math.random() < zone.risk * moodFactor * riskMult) {
       addPetMemory(hero, `ho esplorato ${zone.name.toLowerCase()} ma sono tornato a mani vuote...`);
       return { failed: true, zone: exp.zone };
     }
@@ -4656,8 +4686,13 @@ const RPG = (() => {
   function scalataResolveDice(hero, alloc) {
     const s = hero.activeScalata;
     if (!s || s.done || s.interlude) return null;
+    const magBonus = hero.consumableBuffs?.scalataMagBonus || 0;
     const total = (alloc.atk || 0) + (alloc.def || 0) + (alloc.mag || 0);
     if (total !== 4 + (s.jollyDice || 0)) return null;
+    if (magBonus > 0) {
+      alloc = { ...alloc, mag: (alloc.mag || 0) + magBonus };
+      delete hero.consumableBuffs.scalataMagBonus;
+    }
 
     // Apply lingering poison before this round's actions
     const poisonDmg = s.heroPoison || 0;
