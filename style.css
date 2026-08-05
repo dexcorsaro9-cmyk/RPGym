@@ -4029,20 +4029,20 @@ img.fiche-inline {
   text-align: center; transition: transform .15s;
 }
 .artifact-cell.artifact-unlocked {
-  background: linear-gradient(160deg, var(--surface-2, #2a2520) 0%, rgba(184,148,74,.12) 100%);
-  border: 1px solid rgba(184,148,74,.3);
+  background: linear-gradient(160deg, rgba(201,147,46,.12) 0%, rgba(201,147,46,.06) 100%);
+  border: 1px solid rgba(201,147,46,.4);
   cursor: default;
 }
 .artifact-cell.artifact-locked {
-  background: rgba(255,255,255,.04);
-  border: 1px solid rgba(255,255,255,.07);
+  background: rgba(0,0,0,.05);
+  border: 1px solid rgba(0,0,0,.1);
   opacity: .5;
 }
 .artifact-icon { font-size: 1.6rem; line-height: 1; }
-.artifact-unknown { font-size: 1.4rem; color: var(--text-muted, #888); }
-.artifact-name { font-size: .65rem; font-weight: 600; color: var(--text, #e8d8b0); line-height: 1.2; }
+.artifact-unknown { font-size: 1.4rem; color: var(--ink-light); }
+.artifact-name { font-size: .65rem; font-weight: 600; color: var(--ink); line-height: 1.2; }
 .artifact-flavor {
-  font-size: .6rem; color: var(--text-muted, #888); font-style: italic; line-height: 1.4;
+  font-size: .6rem; color: var(--ink-light); font-style: italic; line-height: 1.4;
   display: none;
 }
 .artifact-cell.artifact-unlocked:hover .artifact-flavor { display: block; }
