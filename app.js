@@ -1035,7 +1035,7 @@ function setTab(tab, dir) {
   document.querySelectorAll('#tabbar .tab').forEach(t =>
     t.classList.toggle('active', t.dataset.tab === tab));
   c.classList.remove('bg-parchment', 'bg-rifugio', 'bg-map', 'bg-train', 'bg-market');
-  if (tab === 'hero')   c.classList.add('bg-parchment');
+  if (tab === 'hero' && HERO_VIEW === 'main') c.classList.add('bg-parchment');
   if (tab === 'camp')   c.classList.add('bg-parchment');
   if (tab === 'map')    c.classList.add('bg-map');
   if (tab === 'train')  c.classList.add('bg-train');
@@ -7128,7 +7128,7 @@ let PARCHMENT_OK = false;
   const probe = new Image();
   probe.onload = () => {
     PARCHMENT_OK = true;
-    if (CURRENT_TAB === 'hero') $('#tab-content').classList.add('bg-parchment');
+    if (CURRENT_TAB === 'hero' && HERO_VIEW === 'main') $('#tab-content').classList.add('bg-parchment');
   };
   probe.src = 'assets/backgrounds/pergamena.webp';
 })();
