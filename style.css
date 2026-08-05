@@ -7284,3 +7284,191 @@ img.camp-layer {
 .casse-result-wrap { background: rgba(124,58,237,.08); border: 1px solid rgba(124,58,237,.25); border-radius: 12px; padding: 14px; }
 .casse-result-title { font-weight: 700; margin-bottom: 8px; color: #c4b5fd; }
 .casse-reward-text  { font-size: 1.1rem; font-weight: 700; text-align: center; padding: 12px; }
+
+/* ═══════════════ Arena v2 ═══════════════ */
+.arena-v2 {
+  margin: 0 0 1rem;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #130b04;
+  border: 1px solid #4a2d12;
+  box-shadow: 0 4px 20px rgba(0,0,0,.45);
+}
+
+/* Banner */
+.arena-banner {
+  position: relative;
+  width: 100%;
+  min-height: 140px;
+  background: linear-gradient(160deg, #0c0818 0%, #1e0f05 55%, #3d1f08 100%);
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+}
+.arena-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 55% 70% at 15% 65%, rgba(249,115,22,.45) 0%, transparent 100%),
+    radial-gradient(ellipse 55% 70% at 85% 65%, rgba(249,115,22,.45) 0%, transparent 100%),
+    radial-gradient(ellipse 40% 50% at 50% 50%, rgba(251,191,36,.18) 0%, transparent 100%);
+  pointer-events: none;
+}
+.arena-banner-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+.arena-banner-overlay {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 36px 16px 12px;
+  background: linear-gradient(transparent, rgba(0,0,0,.78));
+  text-align: center;
+}
+.arena-banner-title {
+  font-family: 'Cinzel', serif;
+  font-size: 1.22rem;
+  font-weight: 900;
+  color: #e8c870;
+  text-shadow: 0 2px 8px rgba(0,0,0,.9), 0 0 20px rgba(200,168,64,.4);
+  letter-spacing: .04em;
+  line-height: 1.2;
+}
+.arena-banner-sub {
+  font-size: .68rem;
+  color: #c49a5a;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  margin-top: 4px;
+  opacity: .8;
+}
+
+/* Pip spade */
+.arena-pips-row {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 18px;
+  padding: 14px 16px 6px;
+}
+.arena-pip { transition: transform .15s; }
+.arena-pip.active {
+  filter: drop-shadow(0 0 5px rgba(200,168,64,.65));
+}
+.arena-pip.used { opacity: .28; }
+
+/* Azione */
+.arena-action-wrap { padding: 6px 16px 16px; }
+.arena-avail-label {
+  text-align: center;
+  font-size: .75rem;
+  color: #c49a5a;
+  letter-spacing: .05em;
+  margin-bottom: 8px;
+}
+.arena-enter-btn {
+  background: linear-gradient(135deg, #b8620a 0%, #d4890e 60%, #e8a020 100%) !important;
+  border: 1px solid #f0b840 !important;
+  color: #fff !important;
+  letter-spacing: .08em;
+  text-shadow: 0 1px 3px rgba(0,0,0,.5);
+  box-shadow: 0 2px 12px rgba(232,160,32,.35) !important;
+}
+.arena-enter-btn:active { transform: scale(.97); }
+.arena-exhausted {
+  text-align: center;
+  color: #5a3e20;
+  font-size: .85rem;
+  font-style: italic;
+  padding: 8px 0 4px;
+}
+
+/* Dungeon cards */
+.dungeon-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 12px 10px;
+  padding: 13px 12px 13px 18px;
+  border-radius: 10px;
+  background: #0f0904;
+  border: 1px solid #2e1a08;
+  position: relative;
+  overflow: hidden;
+}
+.dungeon-card:last-child { margin-bottom: 14px; }
+.dc-accent {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+}
+.dc-covo    .dc-accent { background: linear-gradient(180deg, #c0392b, #7a1210); }
+.dc-scalata .dc-accent { background: linear-gradient(180deg, #4a9fd4, #1a5a8a); }
+.dc-done    .dc-accent { background: #2a1a08; }
+.dc-icon {
+  font-size: 1.9rem;
+  flex-shrink: 0;
+  line-height: 1;
+  width: 38px;
+  text-align: center;
+}
+.dc-body { flex: 1; min-width: 0; }
+.dc-title {
+  font-family: 'Cinzel', serif;
+  font-size: .8rem;
+  font-weight: 700;
+  color: #e0c890;
+  margin-bottom: 3px;
+  line-height: 1.3;
+}
+.dc-done .dc-title { color: #5a4020; }
+.dc-sub {
+  font-size: .71rem;
+  color: #8b6840;
+  line-height: 1.4;
+}
+.dc-done .dc-sub { color: #3a2810; }
+.dc-btn {
+  flex-shrink: 0;
+  background: #1e1008;
+  border: 1px solid #3a2010;
+  color: #5a4020;
+  border-radius: 8px;
+  padding: 9px 14px;
+  font-size: .78rem;
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+  cursor: default;
+  white-space: nowrap;
+}
+.dc-btn-go {
+  background: linear-gradient(135deg, #2a1208, #4a2210);
+  border-color: #9a6030;
+  color: #e0b860;
+  cursor: pointer;
+}
+.dc-btn-go:hover  { background: linear-gradient(135deg, #3a1a0a, #6a3014); border-color: #c08040; }
+.dc-btn-go:active { transform: scale(.96); }
+
+@media (prefers-color-scheme: light) {
+  .arena-v2 { border-color: #c8a060; box-shadow: 0 4px 16px rgba(0,0,0,.2); }
+  .dungeon-card { background: #f5e8d0; border-color: #c8a060; }
+  .dc-done { background: #ede0c8; }
+  .dc-title { color: #3b2a1a; }
+  .dc-done .dc-title { color: #9a7040; }
+  .dc-sub { color: #7a5a30; }
+  .dc-btn { background: #e8d4b0; border-color: #c8a060; color: #9a7040; }
+  .dc-btn-go { background: linear-gradient(135deg,#8b4010,#b05010); border-color: #d07020; color: #fff; }
+}
+:root[data-theme="light"] .arena-v2 { border-color: #c8a060; }
+:root[data-theme="light"] .dungeon-card { background: #f5e8d0; border-color: #c8a060; }
+:root[data-theme="light"] .dc-title { color: #3b2a1a; }
+:root[data-theme="light"] .dc-sub { color: #7a5a30; }
+:root[data-theme="light"] .dc-btn { background: #e8d4b0; border-color: #c8a060; color: #9a7040; }
+:root[data-theme="light"] .dc-btn-go { background: linear-gradient(135deg,#8b4010,#b05010); border-color: #d07020; color:#fff; }
