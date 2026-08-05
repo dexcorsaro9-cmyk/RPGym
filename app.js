@@ -5210,17 +5210,17 @@ function renderCartomanteView(c) {
   // 5 station cards
   const stations = [
     { key: 'ruota',  emoji: '🎡', title: 'Ruota del Fato',         img: 'assets/cartomante/ruota-del-fato.webp',
-      desc: 'Girala: il primo giro ogni giorno è gratis. I successivi costano 15 🎴.',
+      desc: `Girala: il primo giro ogni giorno è gratis. I successivi costano 15 ${FICHE_ICO}.`,
       badge: (() => { const s = HERO.cartomante && HERO.cartomante.ruotaSpins || 0; return s === 0 ? '✨ Giro gratis!' : `🎡 ${s} giri oggi`; })() },
     { key: 'pozzo',  emoji: '🌀', title: 'Pozzo delle Evocazioni',  img: 'assets/cartomante/pozzo-evocazioni.webp',
-      desc: `Estrai un oggetto casuale dal Pozzo. Costa ${RPG.POZZO_COST} 🎴 a evocazione.`,
-      badge: `🎴 ${RPG.POZZO_COST} per pull` },
+      desc: `Estrai un oggetto casuale dal Pozzo. Costa ${RPG.POZZO_COST} ${FICHE_ICO} a evocazione.`,
+      badge: `${FICHE_ICO} ${RPG.POZZO_COST} per pull` },
     { key: 'catena', emoji: '⛓️', title: 'Catena del Fato',         img: 'assets/cartomante/dado-destino.webp',
       desc: 'Accumula oro e fiches ad ogni anello. Incassa quando vuoi — o rischia di perdere tutto.',
       badge: (() => { const done = HERO.cartomante && HERO.cartomante.catenaDone; const step = HERO.cartomante && HERO.cartomante.catenaStep || 0; return done ? '✅ Completata oggi' : step > 0 ? `⛓️ Anello ${step}` : '⛓️ Disponibile'; })() },
     { key: 'casse',  emoji: '📦', title: 'Casse Chiuse',            img: 'assets/cartomante/casse.webp',
-      desc: 'Tre casse con ricompense crescenti. Ogni chiave costa Fiches del Fato.',
-      badge: '📦 20 / 40 / 80 🎴' },
+      desc: `Tre casse con ricompense crescenti. Ogni chiave costa Fiches del Fato.`,
+      badge: `${FICHE_ICO} 20 / 40 / 80` },
   ];
 
   stations.forEach(({ key, emoji, title, img, desc, badge }) => {
