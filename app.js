@@ -1916,41 +1916,122 @@ function renderSantuarioView(c) {
   actionsPanel.appendChild(grid);
   c.appendChild(actionsPanel);
 
+  // ── Virtù del Famiglio ───────────────────────────────────────
+  const virtuePanel = el('div', 'panel');
+  virtuePanel.appendChild(el('h3', 'panel-title', '🌟 Virtù del Famiglio'));
+  const c_ = pet.coraggio || 0, a_ = pet.astuzia || 0, l_ = pet.lealta || 0;
+  const virtTotal = c_ + a_ + l_;
+  const dominantV = RPG.petDominantVirtue(HERO);
+  const virtMeta = RPG.PET_VIRTUE_META;
+
+  const virtGrid = el('div', 'pet-virtue-grid');
+  [['coraggio', c_], ['astuzia', a_], ['lealta', l_]].forEach(([vk, vv]) => {
+    const vm = virtMeta[vk];
+    const pct = virtTotal > 0 ? Math.round(vv / virtTotal * 100) : 0;
+    const isDom = vk === dominantV;
+    const row = el('div', 'pet-virtue-row' + (isDom ? ' dominant' : ''));
+    row.innerHTML = `
+      <div class="pet-virtue-head">
+        <span class="pet-virtue-icon">${vm.icon}</span>
+        <span class="pet-virtue-name">${vm.name}</span>
+        <span class="pet-virtue-val">${Math.round(vv)}</span>
+        ${isDom ? '<span class="pet-virtue-dom">★</span>' : ''}
+      </div>
+      <div class="pet-virtue-bar"><div class="pet-virtue-fill" data-virtue="${vk}" style="width:${pct}%"></div></div>
+      <div class="pet-virtue-desc">${vm.desc}</div>`;
+    virtGrid.appendChild(row);
+  });
+  virtuePanel.appendChild(virtGrid);
+
+  const todayV = new Date().toISOString().slice(0, 10);
+  const synergyAvailSanct = dominantV && pet.lastSynergyDate !== todayV && !pet.sick && (pet.hunger || 0) >= 20 && (pet.mood || 0) >= 20;
+  if (dominantV) {
+    const vm = virtMeta[dominantV];
+    const synergyInfo = el('div', 'pet-synergy-info');
+    synergyInfo.innerHTML = `<b>${vm.icon} Sinergia · ${vm.name}:</b> ${vm.synergyDesc}`;
+    if (!synergyAvailSanct) {
+      synergyInfo.innerHTML += `<br><span class="muted small">${pet.lastSynergyDate === todayV ? '✓ Usata oggi' : pet.sick ? '🤒 Malato' : 'HP/umore bassi'}</span>`;
+    }
+    virtuePanel.appendChild(synergyInfo);
+  } else {
+    virtuePanel.appendChild(el('p', 'muted small', 'Gioca, combatti e prenditi cura del tuo famiglio per sviluppare una virtù dominante.'));
+  }
+  c.appendChild(virtuePanel);
+
+  // ── Spedizioni ───────────────────────────────────────────────
   const expStatus = RPG.expeditionStatus(HERO);
   const expPanel = el('div', 'panel');
-  expPanel.appendChild(el('h3', 'panel-title', '🎒 Spedizione di Foraggiamento'));
+  expPanel.appendChild(el('h3', 'panel-title', '🎒 Spedizione di Esplorazione'));
   if (!unlocks.expedition) {
     expPanel.appendChild(el('p', 'muted small center', `🔒 Si sblocca allo Stadio 2 (livello 5). Ancora ${5 - pet.level} livello/i mancanti.`));
   } else if (!pet.expedition) {
-    expPanel.appendChild(el('p', 'muted small', `Invia ${esc(pet.name)} in esplorazione per ${RPG.EXPEDITION_HOURS} ore. Più km percorri nel frattempo, più ricco sarà il bottino al ritorno!`));
-    const startBtn = el('button', 'btn btn-primary wide', '🚀 Invia in spedizione');
-    startBtn.disabled = !!pet.sick;
-    startBtn.addEventListener('click', () => {
-      const r = RPG.startExpedition(HERO);
-      persist();
-      if (r && r.ok) toast('🎒 Spedizione iniziata!'); else toast(r);
-      setTab('camp');
+    const needFull = (pet.hunger || 0) < 30 || (pet.mood || 0) < 30;
+    if (needFull) {
+      expPanel.appendChild(el('p', 'muted small center', `⚠️ ${esc(pet.name)} ha bisogno di almeno 30% sazietà e umore per partire.`));
+    }
+    expPanel.appendChild(el('p', 'muted small', 'Scegli una zona. Più km percorri durante la spedizione, più ricco sarà il bottino!'));
+
+    const zoneGrid = el('div', 'pet-zone-grid');
+    Object.entries(RPG.PET_EXPEDITION_ZONES).forEach(([zoneKey, zd]) => {
+      const btn = el('button', 'pet-zone-btn');
+      btn.innerHTML = `<span class="pet-zone-icon">${zd.icon}</span>
+        <div class="pet-zone-body">
+          <div class="pet-zone-name">${zd.name}</div>
+          <div class="pet-zone-desc">${zd.desc}</div>
+        </div>`;
+      btn.disabled = !!pet.sick || needFull;
+      btn.addEventListener('click', () => {
+        const r = RPG.startExpedition(HERO, zoneKey);
+        persist();
+        if (r && r.ok) { toast(`🎒 ${esc(pet.name)} è partito per ${zd.name}!`); sfx('coin'); }
+        else toast(r);
+        setTab('camp');
+      });
+      zoneGrid.appendChild(btn);
     });
-    expPanel.appendChild(startBtn);
+    expPanel.appendChild(zoneGrid);
   } else if (expStatus.ready) {
-    expPanel.appendChild(el('p', 'center', '📦 Il bottino è pronto!'));
-    const collectBtn = el('button', 'btn btn-primary wide', 'Riscuoti');
+    expPanel.appendChild(el('p', 'center', `📦 ${esc(pet.name)} è tornato da ${esc(expStatus.zoneName)}!`));
+    const collectBtn = el('button', 'btn btn-primary wide', 'Riscuoti il bottino');
     collectBtn.addEventListener('click', () => {
       const r = RPG.collectExpedition(HERO);
       persist();
       if (r) {
         checkPetEvolution(r);
-        toast(r.epic ? `🌟 Bottino epico! 🪙${r.gold} 🪵${r.wood} 🪨${r.stone}` : `🎒 Bottino: 🪵${r.wood} 🪨${r.stone}`);
-        sfx('chest');
+        if (r.failed) {
+          toast(`😔 ${esc(pet.name)} è tornato a mani vuote...`);
+        } else {
+          toast(r.epic ? `🌟 Bottino eccellente! 🪙${r.gold} 🪵${r.wood} 🪨${r.stone}` : `🎒 Bottino: 🪙${r.gold} 🪵${r.wood} 🪨${r.stone}`);
+          sfx('chest');
+        }
       }
       renderHUD(); setTab('camp');
     });
     expPanel.appendChild(collectBtn);
   } else {
-    expPanel.appendChild(el('div', 'membar slim', `<div class="membar-fill gold" style="width:${expStatus.pctDone}%"></div><span>${expStatus.pctDone}%</span>`));
-    expPanel.appendChild(el('p', 'muted small center', 'In esplorazione... torna più tardi!'));
+    const z = RPG.PET_EXPEDITION_ZONES[expStatus.zone] || {};
+    expPanel.appendChild(el('p', 'muted small center', `${z.icon || '🎒'} ${esc(pet.name)} sta esplorando ${esc(expStatus.zoneName || '')}…`));
+    const barWrap = el('div', 'membar slim');
+    barWrap.innerHTML = `<div class="membar-fill gold" style="width:${expStatus.pctDone}%"></div>`;
+    expPanel.appendChild(barWrap);
+    expPanel.appendChild(el('p', 'muted small center', `${expStatus.pctDone}% — torna più tardi!`));
   }
   c.appendChild(expPanel);
+
+  // ── Memorie ──────────────────────────────────────────────────
+  if (pet.memories && pet.memories.length) {
+    const memPanel = el('div', 'panel');
+    memPanel.appendChild(el('h3', 'panel-title', `💭 Ricordi di ${esc(pet.name)}`));
+    const memList = el('div', 'pet-memories');
+    const mems = [...pet.memories].reverse(); // più recente prima
+    mems.forEach(m => {
+      const row = el('div', 'pet-memory-row');
+      row.innerHTML = `<span class="pet-memory-date">${m.date}</span> <span class="pet-memory-text">«${esc(m.text)}»</span>`;
+      memList.appendChild(row);
+    });
+    memPanel.appendChild(memList);
+    c.appendChild(memPanel);
+  }
 
   const shop = el('div', 'panel');
   shop.appendChild(el('h3', 'panel-title', '🛍️ Bottega degli Accessori'));

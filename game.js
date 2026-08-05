@@ -2112,6 +2112,13 @@ const RPG = (() => {
       if (!h.pet.name || h.pet.name === 'Ignis') h.pet.name = PET_SPECIES[h.pet.species].name;
     }
     if (h.pet && h.pet.hatched === undefined) h.pet.hatched = true;
+    if (h.pet) {
+      h.pet.coraggio      = h.pet.coraggio      ?? 0;
+      h.pet.astuzia       = h.pet.astuzia        ?? 0;
+      h.pet.lealta        = h.pet.lealta         ?? 0;
+      h.pet.lastSynergyDate = h.pet.lastSynergyDate ?? null;
+      h.pet.memories      = h.pet.memories       ?? [];
+    }
 
     // ── v3: statistiche e log allenamenti ────────────────────
     h.log            = h.log            || [];
@@ -3218,11 +3225,122 @@ const RPG = (() => {
     occhiali: { name: 'Occhiali Steampunk', icon: '🥽', price: 100 },
   };
 
+  const PET_VIRTUE_META = {
+    coraggio: { name: 'Coraggio', icon: '⚔️', color: '#e8604c',
+      desc: 'Cresce combattendo — Scalata ATK-pesante, Arena, vittorie.',
+      synergyDesc: 'Attacca il nemico per danni bonus diretti.' },
+    astuzia:  { name: 'Astuzia',  icon: '✨', color: '#9b59b6',
+      desc: 'Cresce con la strategia — Magia, negozio, consumabili.',
+      synergyDesc: 'Forza il nemico a muoversi in modo normale questo round.' },
+    lealta:   { name: 'Lealtà',   icon: '💚', color: '#27ae60',
+      desc: 'Cresce con la cura — nutrimento, gioco, pulizia, accessi giornalieri.',
+      synergyDesc: 'Ti cura per il 25% degli HP massimi.' },
+  };
+
+  const PET_EXPEDITION_ZONES = {
+    vicino: {
+      name: 'Foresta Vicina', icon: '🌲', hours: 1,
+      risk: 0.05, xp: 6,
+      loot: { wood: [3, 8], stone: [1, 4], gold: [5, 15] },
+      desc: '1h · Basso rischio · Bottino modesto',
+    },
+    medio: {
+      name: 'Le Rovine Antiche', icon: '🏛️', hours: 4,
+      risk: 0.15, xp: 10,
+      loot: { wood: [8, 20], stone: [5, 14], gold: [15, 40] },
+      desc: '4h · Rischio medio · Buon bottino',
+    },
+    lontano: {
+      name: 'Il Picco Oscuro', icon: '🏔️', hours: 8,
+      risk: 0.25, xp: 16,
+      loot: { wood: [18, 38], stone: [12, 28], gold: [35, 75] },
+      desc: '8h · Alto rischio · Bottino ricco',
+    },
+  };
+
   const PHOENIX_POTION_PRICE = 500;
-  const EXPEDITION_HOURS = 2;
+  const EXPEDITION_HOURS = 2; // legacy fallback
   const WISH_WINDOW_MINUTES = 60;
 
   function clamp01to100(n) { return Math.max(0, Math.min(100, n)); }
+
+  function addPetVirtue(hero, type, amount) {
+    const p = hero.pet;
+    if (!p || !p.hatched || p.sick) return;
+    p[type] = Math.round(((p[type] || 0) + amount) * 10) / 10;
+  }
+
+  function petDominantVirtue(hero) {
+    const p = hero.pet;
+    if (!p || !p.hatched) return null;
+    const c = p.coraggio || 0, a = p.astuzia || 0, l = p.lealta || 0;
+    if (c === 0 && a === 0 && l === 0) return null;
+    if (c >= a && c >= l) return 'coraggio';
+    if (a >= c && a >= l) return 'astuzia';
+    return 'lealta';
+  }
+
+  function addPetMemory(hero, text) {
+    const p = hero.pet;
+    if (!p || !p.hatched) return;
+    const today = todayStamp();
+    p.memories = p.memories || [];
+    const last = p.memories[p.memories.length - 1];
+    if (last && last.date === today && last.text === text) return;
+    p.memories.push({ text, date: today });
+    if (p.memories.length > 8) p.memories.shift();
+  }
+
+  function usePetSynergy(hero, context) {
+    const p = hero.pet;
+    if (!p || !p.hatched || p.sick) return 'Il tuo famiglio non può aiutarti ora.';
+    if ((p.hunger || 0) < 20) return `${p.name} ha troppa fame — nutrilo prima!`;
+    if ((p.mood || 0) < 20)   return `${p.name} è di cattivo umore — giocaci prima!`;
+    const today = todayStamp();
+    if (p.lastSynergyDate === today) return `${p.name} ha già usato la sua sinergia oggi.`;
+    const virtue = petDominantVirtue(hero);
+    if (!virtue) return `${p.name} non ha ancora una virtù dominante — crescila giocando!`;
+    p.lastSynergyDate = today;
+
+    if (virtue === 'coraggio') {
+      if (context === 'scalata') {
+        const s = hero.activeScalata;
+        if (!s || s.done || s.interlude) { p.lastSynergyDate = null; return 'Nessun combattimento in corso.'; }
+        const dmg = 20 + Math.round(s.floor * 2.5);
+        s.enemyHp = Math.max(0, s.enemyHp - dmg);
+        const enemyDefeated = s.enemyHp <= 0;
+        if (enemyDefeated) { s.interlude = true; }
+        addPetMemory(hero, `ho attaccato il nemico al piano ${s.floor} della Scalata!`);
+        return { ok: true, virtue, effect: 'attack', dmg, enemyDefeated };
+      }
+      return { ok: true, virtue, effect: 'attack', dmg: 20 };
+    }
+
+    if (virtue === 'astuzia') {
+      if (context === 'scalata') {
+        const s = hero.activeScalata;
+        if (!s || s.done || s.interlude) { p.lastSynergyDate = null; return 'Nessun combattimento in corso.'; }
+        s.enemyMoveType = 'normal'; // forza mossa normale questo round
+        addPetMemory(hero, `ho studiato il nemico e l'ho reso prevedibile al piano ${s.floor}!`);
+        return { ok: true, virtue, effect: 'neutralize' };
+      }
+      return { ok: true, virtue, effect: 'neutralize' };
+    }
+
+    if (virtue === 'lealta') {
+      if (context === 'scalata') {
+        const s = hero.activeScalata;
+        if (!s || s.done) { p.lastSynergyDate = null; return 'Nessun combattimento in corso.'; }
+        const heal = Math.round((s.heroMaxHp || 100) * 0.25);
+        s.heroHp = Math.min(s.heroMaxHp, (s.heroHp || 0) + heal);
+        addPetMemory(hero, `ti ho curato in un momento critico al piano ${s.floor}!`);
+        return { ok: true, virtue, effect: 'heal', heal };
+      }
+      return { ok: true, virtue, effect: 'heal', heal: 25 };
+    }
+
+    return null;
+  }
 
   const EGG_KM_NEEDED = 30;
 
@@ -3246,6 +3364,9 @@ const RPG = (() => {
       wish: null, wishCooldownUntil: now + 3 * 3600000,
       accessory: null, accessoriesOwned: [],
       expedition: null,
+      coraggio: 0, astuzia: 0, lealta: 0,
+      lastSynergyDate: null,
+      memories: [],
     };
   }
 
@@ -3303,6 +3424,8 @@ const RPG = (() => {
       p.restedBonusActive = wasGoodSleep;
       p.sleptToday = false;
       p.energyDate = today;
+      // Lealtà giornaliera per accesso
+      addPetVirtue(hero, 'lealta', 5);
     }
     if (p.sickCheckedDate !== today) {
       p.sickCheckedDate = today;
@@ -3375,6 +3498,7 @@ const RPG = (() => {
       hero.pet.wish = null;
       wishFulfilled = true;
     }
+    addPetVirtue(hero, 'lealta', 2);
     const evoFeed = addPetXp(hero, 5);
     return { ok: true, wishFulfilled, ...(evoFeed || {}) };
   }
@@ -3386,6 +3510,7 @@ const RPG = (() => {
     tickPet(hero);
     hero.stamina -= STAMINA_COST;
     hero.pet.mood = clamp01to100(hero.pet.mood + 25);
+    addPetVirtue(hero, 'lealta', 3);
     const evoPlay = addPetXp(hero, 8);
     return { ok: true, ...(evoPlay || {}) };
   }
@@ -3470,46 +3595,65 @@ const RPG = (() => {
     return null;
   }
 
-  function startExpedition(hero) {
+  function startExpedition(hero, zone) {
     if (!hero.pet || !hero.pet.hatched) return 'Il tuo famiglio è ancora un uovo: aspetta la schiusa!';
     if (!petStageUnlocks(petStage(hero.pet.level)).expedition) return `Le spedizioni si sbloccano allo Stadio 2 (livello 5). Ora sei al livello ${hero.pet.level}.`;
     if (hero.pet.expedition) return 'Il tuo famiglio è già in spedizione.';
     if (hero.pet.sick) return 'Il tuo famiglio è malato: deve prima guarire.';
-    hero.pet.expedition = { startedAt: Date.now(), kmAtStart: hero.totalKm };
-    return { ok: true };
+    if ((hero.pet.hunger || 0) < 30) return `${hero.pet.name} ha troppa fame per partire — nutrilo prima!`;
+    if ((hero.pet.mood || 0) < 30)   return `${hero.pet.name} è di cattivo umore — giocaci prima!`;
+    const z = PET_EXPEDITION_ZONES[zone] || PET_EXPEDITION_ZONES.vicino;
+    hero.pet.expedition = { startedAt: Date.now(), kmAtStart: hero.totalKm, zone: zone || 'vicino', durationH: z.hours };
+    return { ok: true, zone: zone || 'vicino' };
   }
 
   function expeditionStatus(hero) {
     if (!hero.pet || !hero.pet.expedition) return null;
-    const elapsedH = (Date.now() - hero.pet.expedition.startedAt) / 3600000;
-    return { ready: elapsedH >= EXPEDITION_HOURS, pctDone: Math.min(100, Math.round(elapsedH / EXPEDITION_HOURS * 100)) };
+    const exp = hero.pet.expedition;
+    const durationH = exp.durationH || EXPEDITION_HOURS;
+    const elapsedH = (Date.now() - exp.startedAt) / 3600000;
+    const zone = PET_EXPEDITION_ZONES[exp.zone] || PET_EXPEDITION_ZONES.vicino;
+    return {
+      ready: elapsedH >= durationH,
+      pctDone: Math.min(100, Math.round(elapsedH / durationH * 100)),
+      zone: exp.zone || 'vicino',
+      zoneName: zone.name,
+      durationH,
+    };
   }
 
   function collectExpedition(hero) {
     if (!hero.pet || !hero.pet.expedition) return null;
     const status = expeditionStatus(hero);
     if (!status.ready) return null;
-    const kmDuring = Math.max(0, hero.totalKm - hero.pet.expedition.kmAtStart);
+    const exp = hero.pet.expedition;
+    const zone = PET_EXPEDITION_ZONES[exp.zone] || PET_EXPEDITION_ZONES.vicino;
+    const kmDuring = Math.max(0, hero.totalKm - exp.kmAtStart);
     hero.pet.expedition = null;
-    // Più km durante la spedizione -> più probabile un bottino epico
-    const chance = Math.min(0.85, 0.10 + kmDuring * 0.12);
-    const result = { wood: 0, stone: 0, gold: 0, epic: false };
-    if (Math.random() < chance) {
-      result.epic = true;
-      result.wood = 20 + Math.round(Math.random() * 20);
-      result.stone = 20 + Math.round(Math.random() * 20);
-      result.gold = 30 + Math.round(Math.random() * 30);
-    } else {
-      result.wood = 3 + Math.round(Math.random() * 5);
-      result.stone = 1 + Math.round(Math.random() * 3);
+
+    // Risk modified by pet mood
+    const moodFactor = (hero.pet.mood || 0) < 50 ? 1.5 : 1;
+    if (Math.random() < zone.risk * moodFactor) {
+      addPetMemory(hero, `ho esplorato ${zone.name.toLowerCase()} ma sono tornato a mani vuote...`);
+      return { failed: true, zone: exp.zone };
     }
+
+    const kmBonus = Math.min(2.5, 1 + kmDuring * 0.07);
     const sb = petSpeciesBonus(hero);
-    const expMult = sb.expeditionMult || 1;
-    result.wood  = Math.round(result.wood  * expMult);
-    result.stone = Math.round(result.stone * expMult);
-    result.gold  = Math.round(result.gold  * expMult);
+    const mult = (sb.expeditionMult || 1) * kmBonus;
+
+    const rng = (min, max) => min + Math.round(Math.random() * (max - min));
+    const result = {
+      wood:  Math.round(rng(...zone.loot.wood)  * mult),
+      stone: Math.round(rng(...zone.loot.stone) * mult),
+      gold:  Math.round(rng(...zone.loot.gold)  * mult),
+      zone: exp.zone,
+      epic: kmDuring >= 5,
+    };
     hero.wood += result.wood; hero.stone += result.stone; hero.gold += result.gold;
-    const evoExp = addPetXp(hero, 10);
+    addPetVirtue(hero, 'coraggio', 2);
+    addPetMemory(hero, `ho esplorato ${zone.name.toLowerCase()} e ho portato del bottino!`);
+    const evoExp = addPetXp(hero, zone.xp);
     return { ...result, ...(evoExp || {}) };
   }
 
@@ -4600,6 +4744,11 @@ const RPG = (() => {
     s.lastBlkDealt = block;
     s.lastEffect = magEffect === 'stun' ? 'Stordito!' : magEffect === 'poison' ? '+22 veleno' : magEffect === 'weaken' ? '+10 blocco' : '—';
 
+    // Virtù famiglio
+    if (atkDice >= 3) addPetVirtue(hero, 'coraggio', 1);
+    if (magDice >= 2) addPetVirtue(hero, 'astuzia', 1);
+    if (enemyDefeated) addPetVirtue(hero, 'coraggio', 2);
+
     return { heroDmg: effectiveHeroDmg, block, magExtra, magEffect, enemyHit,
              enemyDefeated, heroDefeated, goldGained, xpGained, poisonDmg,
              wasGuarded: currentMove === 'guard', wasDouble: currentMove === 'double' };
@@ -4670,6 +4819,7 @@ const RPG = (() => {
     else if (item === 'jolly')  s.jollyDice = (s.jollyDice || 0) + 1;
     else if (item === 'scudo')  s.nextRoundBlock = (s.nextRoundBlock || 0) + 20;
     else if (item === 'elisir') { s.heroMaxHp += 20; s.heroHp = Math.min(s.heroMaxHp, s.heroHp + 20); }
+    addPetVirtue(hero, 'astuzia', 2);
     return null;
   }
 
@@ -5530,11 +5680,13 @@ const RPG = (() => {
     rolloverFugitiveMerchant, getFugitiveMerchant, todayKm, buyFromFugitiveMerchant,
     PET_PERSONALITIES, PET_FOODS, PET_ACCESSORIES, PET_SPECIES, PET_STAGE_REWARDS,
     PET_LEGENDARY_HERO_LV, PET_MAX_LEVEL_BEFORE_LEGENDARY,
+    PET_VIRTUE_META, PET_EXPEDITION_ZONES,
     PHOENIX_POTION_PRICE, EXPEDITION_HOURS, WISH_WINDOW_MINUTES,
     createPet, petXpForLevel, petStage, petStageUnlocks, petSpeciesBonus, tickPet, petArenaBonus, classArenaBonus,
     EGG_KM_NEEDED, eggProgress, hatchPet,
     feedPet, playWithPet, cleanPet, sleepPet, curePet,
     buyAccessory, addPetXp,
+    addPetVirtue, petDominantVirtue, addPetMemory, usePetSynergy,
     startExpedition, expeditionStatus, collectExpedition,
     packAuraActive,
     FURNITURE_SETS, furnitureSetById, furnitureSetOwnedCount, furnitureSetComplete,
