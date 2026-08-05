@@ -1661,7 +1661,8 @@ function showAllyBase(o) {
 
 function petImageSrc(pet) {
   const stage = RPG.petStage(pet.level);
-  return `assets/pet/${pet.species}/${stage}.webp`;
+  const displayStage = pet.hatched ? Math.max(stage, 2) : stage;
+  return `assets/pet/${pet.species}/${displayStage}.webp`;
 }
 
 function renderEggView(c) {
