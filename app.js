@@ -4939,10 +4939,11 @@ function revealChest(title, chest) {
   });
   html += `</div>`;
   if (chest.ticket) {
+    RPG.addTicket(HERO, chest.ticket);
     const tCfg = RPG.TICKET_TYPES[chest.ticket];
     html += `<div class="panel" style="margin-top:10px;text-align:center;background:rgba(180,140,20,0.08);border:1px solid rgba(200,160,30,0.25)">
       🎟️ <b>Biglietto ${esc(tCfg.name)} trovato!</b><br>
-      <span class="muted small">Aprilo dalla tua Sacca → Biglietti</span>
+      <span class="muted small">Aprilo nel Borgo → Biglietti da Grattare</span>
     </div>`;
   }
   html += `<p class="small muted center" style="margin-top:12px">Gli oggetti sono nel tuo zaino: equipaggiali dal menu Eroe o vendili al Mercato.</p>
