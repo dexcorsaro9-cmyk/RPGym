@@ -6590,32 +6590,6 @@ function renderSettingsView(c) {
   c.appendChild(_settingsFullscreenPanel());
   c.appendChild(_settingsPvpPanel());
   c.appendChild(_settingsDangerPanel());
-  c.appendChild(_settingsDevPanel());
-}
-
-function _settingsDevPanel() {
-  const p = el('div', 'panel shortcut-panel');
-  p.appendChild(el('h3', 'panel-title', '🛠️ Dev Tools'));
-
-  const types = [
-    { type: 'comune',      label: '📜 Pergameno (Comune)' },
-    { type: 'raro',        label: '⭐ Lastra delle Stelle (Raro)' },
-    { type: 'leggendario', label: '💎 Cristallo dell\'Eterno (Leggendario)' },
-  ];
-  types.forEach(({ type, label }) => {
-    const btn = el('button', 'btn btn-secondary wide', `🎟️ Dai ${label} a tutti`);
-    btn.style.marginBottom = '8px';
-    btn.addEventListener('click', () => {
-      STATE.heroes.forEach(h => RPG.addTicket(h, type));
-      persist();
-      toast(`🎟️ Biglietto ${label} dato a ${STATE.heroes.length} eroe/i!`);
-      HERO_VIEW = 'main';
-      setTab('market');
-    });
-    p.appendChild(btn);
-  });
-
-  return p;
 }
 
 function _settingsPvpPanel() {
