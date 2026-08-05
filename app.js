@@ -5336,7 +5336,7 @@ function renderCartomanteView(c) {
 }
 
 /* ── Ruota del Fato — Canvas ── */
-function _drawWheel(canvas, angleDeg, landedIdx) {
+function _drawWheel(canvas, angleDeg, landedIdx, frameImg) {
   const ctx = canvas.getContext('2d');
   const dpr = canvas._dpr || 1;
   const S   = canvas.width / dpr;
@@ -5421,6 +5421,13 @@ function _drawWheel(canvas, angleDeg, landedIdx) {
   ctx.fillText('✦', cx, cy); ctx.shadowBlur = 0;
 
   ctx.restore(); // end circular clip
+
+  /* Sovrapponi il frame decorativo direttamente sul canvas (evita il checkerboard
+     che appare quando pixel trasparenti del WebP mostrano lo sfondo della pagina) */
+  if (frameImg) {
+    const fw = 440, fOff = (fw - S) / 2;
+    ctx.drawImage(frameImg, -fOff, -fOff, fw, fw);
+  }
 }
 
 function _makeCanvas(size) {
@@ -5452,16 +5459,21 @@ function renderRuotaView(c) {
   const canvas = _makeCanvas(300);
   canvas.className = 'ruota-canvas';
   wheelWrap.appendChild(canvas);
-  const frameImg = document.createElement('img');
-  frameImg.src = 'assets/cartomante/ruota-frame.webp';
-  frameImg.className = 'ruota-frame-overlay';
-  frameImg.alt = ''; frameImg.setAttribute('aria-hidden', 'true');
-  wheelWrap.appendChild(frameImg);
   outerWrap.appendChild(wheelWrap);
   c.appendChild(outerWrap);
 
+  /* Carica il frame sul canvas invece che come overlay DOM,
+     per evitare che pixel trasparenti del WebP mostrino lo sfondo della pagina */
+  let _wheelFrame = null;
+  const _fi = new Image();
+  _fi.onload = () => {
+    _wheelFrame = _fi;
+    if (!rafId) _drawWheel(canvas, currentAngle, -1, _wheelFrame);
+  };
+  _fi.src = 'assets/cartomante/ruota-frame.webp';
+
   let currentAngle = 0, rafId = null;
-  _drawWheel(canvas, currentAngle, -1);
+  _drawWheel(canvas, currentAngle, -1, null);
 
   const resultArea = el('div', 'ruota-result-area'); resultArea.id = 'ruota-result';
   c.appendChild(resultArea);
@@ -5499,10 +5511,10 @@ function renderRuotaView(c) {
       const t      = Math.min((now - t0) / duration, 1);
       const eased  = 1 - Math.pow(1 - t, 4);
       currentAngle = startAngle + spinAmount * eased;
-      _drawWheel(canvas, currentAngle, -1);
+      _drawWheel(canvas, currentAngle, -1, _wheelFrame);
       if (t < 1) { rafId = requestAnimationFrame(animate); return; }
       rafId = null;
-      _drawWheel(canvas, currentAngle, res.idx);
+      _drawWheel(canvas, currentAngle, res.idx, _wheelFrame);
 
       const rw = res.reward;
       let rewardText = '';
