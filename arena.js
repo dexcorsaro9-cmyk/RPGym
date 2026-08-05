@@ -560,19 +560,30 @@ function openScalata() {
     const best = HERO.scalataRecord?.bestFloor || 0;
     const hasKey = (HERO.consumables?.chiave_scalata || 0) > 0;
     const keyBtn = hasKey
-      ? `<button class="btn btn-secondary wide" style="margin-top:6px" onclick="
+      ? `<button class="btn btn-secondary wide" style="margin-top:4px" onclick="
           const err = RPG.useConsumable(HERO, 'chiave_scalata');
           if (err) { toast(err); return; }
           persist(); closeModal(); openScalata();
         ">🗝️ Usa Chiave della Scalata</button>`
       : `<p class="center muted small" style="margin-top:4px">🗝️ Con una <b>Chiave della Scalata</b> potresti ritentare oggi.</p>`;
-    modal(`<div class="scalata-intro">
-      <div class="scalata-intro-icon">🏔️</div>
-      <h3 class="panel-title center">La Scalata dell'Eroe</h3>
-      <p class="center muted">Hai già affrontato la Scalata oggi.<br>Torna domani per scalare di nuovo.</p>
-      ${best > 0 ? `<div class="scalata-record-note">🏆 Il tuo record: Piano <b>${best}</b></div>` : ''}
+    modal(`<div class="sc-open">
+      <div class="sc-open-banner">
+        <div class="sc-open-tower">🗼</div>
+        <div class="sc-open-title">LA SCALATA DELL'EROE</div>
+        <div class="sc-open-sub">Hai già affrontato la Scalata oggi.<br>Torna domani per scalare di nuovo.</div>
+      </div>
+      ${best > 0 ? `<div class="sc-open-records">
+        <div class="sc-open-rec">
+          <div class="sc-open-rec-val">${best}</div>
+          <div class="sc-open-rec-lbl">Record piano</div>
+        </div>
+        <div class="sc-open-rec">
+          <div class="sc-open-rec-val">—</div>
+          <div class="sc-open-rec-lbl">Torna domani</div>
+        </div>
+      </div>` : ''}
       ${keyBtn}
-      <button class="btn btn-primary wide" style="margin-top:8px" onclick="closeModal()">Ok</button>
+      <button class="btn btn-primary wide" onclick="closeModal()">Ok</button>
     </div>`);
     return;
   }
@@ -583,20 +594,30 @@ function openScalata() {
     return;
   }
 
-  const best = HERO.scalataRecord?.bestFloor || 0;
-  modal(`<div class="scalata-intro">
-    <div class="scalata-intro-icon">🏔️</div>
-    <h3 class="panel-title center">La Scalata dell'Eroe</h3>
-    <p class="center small">Affronta nemici su <b>piani infiniti</b> finché cadi.<br>
-    Ogni round distribuisci <b>4 dadi</b> tra Attacco, Difesa e Magia.<br>
-    I nemici si rafforzano — ogni 5° piano trovi un Boss.</p>
-    <div class="scalata-intro-rules">
-      <div>⚔️ Alloca 4 dadi per ogni round</div>
-      <div>🛡️ I tuoi HP persistono tra un piano e l'altro</div>
-      <div>🏔️ Una Scalata al giorno · conquista il tuo record</div>
+  const best  = HERO.scalataRecord?.bestFloor || 0;
+  const runs  = HERO.scalataRecord?.runs || 0;
+  modal(`<div class="sc-open">
+    <div class="sc-open-banner">
+      <div class="sc-open-tower">🗼</div>
+      <div class="sc-open-title">LA SCALATA DELL'EROE</div>
+      <div class="sc-open-sub">Scala piani infiniti finché cadi. Una chance al giorno.</div>
     </div>
-    ${best > 0 ? `<div class="scalata-record-note">🏆 Il tuo record: Piano <b>${best}</b></div>` : ''}
-    <button class="btn btn-primary wide big" id="btn-scalata-start">🏔️ INIZIA LA SCALATA!</button>
+    <div class="sc-open-records">
+      <div class="sc-open-rec">
+        <div class="sc-open-rec-val">${best || '—'}</div>
+        <div class="sc-open-rec-lbl">Piano massimo</div>
+      </div>
+      <div class="sc-open-rec">
+        <div class="sc-open-rec-val">${runs || '—'}</div>
+        <div class="sc-open-rec-lbl">Run totali</div>
+      </div>
+    </div>
+    <div class="sc-open-rules">
+      <div class="sc-open-rule">⚔️ Alloca 4 dadi ogni round tra Attacco, Difesa e Magia</div>
+      <div class="sc-open-rule">🛡️ Gli HP persistono tra un piano e l'altro</div>
+      <div class="sc-open-rule">⭐ Ogni 5° piano incontra un Boss potente</div>
+    </div>
+    <button class="sc-enter-btn" id="btn-scalata-start">🗼 INIZIA LA SCALATA</button>
     <button class="btn wide" onclick="closeModal()">Forse dopo…</button>
   </div>`);
   document.getElementById('btn-scalata-start').addEventListener('click', () => {
@@ -617,80 +638,102 @@ function showScalataFloor() {
   const eHpPct = Math.max(0, (s.enemyHp / s.enemyMaxHp) * 100);
   const hHpPct = Math.max(0, (s.heroHp / s.heroMaxHp) * 100);
   const hpCrit = s.heroHp / s.heroMaxHp < 0.3;
+  const floorLbl = isBoss ? `⭐ BOSS · Piano ${s.floor}` : `Piano ${s.floor}`;
 
-  modal(`<div class="sf-wrap">
-    <div class="sf-header">
-      <div class="sf-title-block">
-        <span class="sf-tower-icon">🗼</span>
-        <div>
-          <div class="sf-main-title">TORRE INFINITA</div>
-          <div class="sf-floor-label${isBoss ? ' boss' : ''}">${isBoss ? '⭐ BOSS · ' : ''}Piano ${s.floor}</div>
+  modal(`<div class="sc-floor">
+    <div class="sc-floor-hdr">
+      <div class="sc-floor-info">
+        <div class="sc-floor-label${isBoss ? ' boss' : ''}">🗼 ${floorLbl}</div>
+        <div class="sc-floor-round">ROUND ${s.roundNum}</div>
+      </div>
+      <div class="sc-hero-hp">
+        <div class="sc-hero-hp-text${hpCrit ? ' crit' : ''}">❤️ ${s.heroHp}/${s.heroMaxHp}</div>
+        <div class="sc-hero-hpbar"><div class="sc-hero-hpfill${hpCrit ? ' crit' : ''}" style="width:${hHpPct}%"></div></div>
+      </div>
+    </div>
+
+    <div class="sc-enemy${isBoss ? ' boss' : ''}">
+      <div class="sc-enemy-top">
+        <div class="sc-enemy-emoji" id="sc-enem-ico">
+          <img src="assets/bestiario/${esc(enemy.id)}.webp"
+            style="height:50px;max-width:56px;object-fit:contain;"
+            onerror="this.parentNode.textContent='${isBoss ? '👹' : '👺'}'">
+        </div>
+        <div class="sc-enemy-info">
+          <div class="sc-enemy-name">${esc(enemy.name)}${isBoss ? `<span class="sc-boss-tag">BOSS</span>` : ''}</div>
+          <div class="sc-enemy-zone">Piano ${s.floor}${isBoss ? ' · Boss' : ''}</div>
+          <div class="sc-enemy-hprow">
+            <div class="sc-enemy-hpbar"><div class="sc-enemy-hpfill" style="width:${eHpPct}%"></div></div>
+            <div class="sc-enemy-hpnum">${s.enemyHp} / ${s.enemyMaxHp} PF</div>
+          </div>
         </div>
       </div>
-      <div class="sf-hero-hp">
-        <div class="sf-hero-hp-text${hpCrit ? ' crit' : ''}">❤️ ${s.heroHp}/${s.heroMaxHp}</div>
-        <div class="sf-hero-hpbar"><div class="sf-hero-hpfill${hpCrit ? ' crit' : ''}" style="width:${hHpPct}%"></div></div>
+      <div class="sc-enemy-tells">
+        <div class="sc-enemy-tells-lbl">⚠ PROSSIMA MOSSA</div>
+        Attacca per <b>${s.enemyDmg}</b> danni!
       </div>
     </div>
 
-    <div class="sf-enemy-card${isBoss ? ' boss' : ''}">
-      <img class="sf-enemy-img" src="assets/bestiario/${enemy.id}.webp" onerror="this.style.display='none'">
-      <div class="sf-enemy-body">
-        <div class="sf-enemy-name">${esc(enemy.name)}${isBoss ? ' <span class="sf-boss-tag">BOSS</span>' : ''}</div>
-        <div class="sf-enemy-hpbar"><div class="sf-enemy-hpfill" style="width:${eHpPct}%"></div></div>
-        <div class="sf-enemy-hp-text">${s.enemyHp} / ${s.enemyMaxHp} PF</div>
-      </div>
-    </div>
+    <div class="sc-log hidden" id="sc-log"></div>
 
-    <div class="sf-move-warn">
-      <div class="sf-move-warn-title">⚠️ PROSSIMA MOSSA</div>
-      <div class="sf-move-warn-desc">Attacca per <b>${s.enemyDmg}</b> danni!</div>
-    </div>
-
-    <div class="sf-log hidden" id="sf-log"></div>
-
-    <div id="sf-dice-section">
-      <div class="sf-section-title">ALLOCA I DADI · Round <b>${s.roundNum}</b></div>
-      <div class="sf-dice-grid">
+    <div id="sc-dice-section" class="sc-dice-section">
+      <div class="sc-dice-label">ALLOCA I DADI · ROUND ${s.roundNum}</div>
+      <div class="sc-dice-row">
         ${[0,1,2,3].map(i => `
-        <div class="sf-die-card sf-die-libero" data-idx="${i}" id="sf-die-${i}">
-          <div class="sf-die-face-wrap" id="sf-die-face-${i}"><div class="die-face df-libero"><span class="df-icon">?</span></div></div>
-          <div class="sf-die-type-label" id="sf-die-lbl-${i}">LIBERO</div>
-        </div>`).join('')}
+          <div class="sc-die libero" data-idx="${i}" id="sc-die-${i}">
+            <span class="sc-die-emoji" id="sc-die-em-${i}">?</span>
+            <span class="sc-die-assign" id="sc-die-lbl-${i}">LIBERO</span>
+          </div>`).join('')}
       </div>
 
-      <div class="sf-preview">
-        <div class="sf-pb atk">
-          <div class="sf-pb-icon">⚔️</div>
-          <div class="sf-pb-val" id="prev-atk-val">—</div>
-          <div class="sf-pb-label">DANNO</div>
+      <div class="sc-buckets">
+        <div class="sc-bucket atk">
+          <div class="sc-bucket-icon">⚔️</div>
+          <div class="sc-bucket-val" id="bkt-atk">—</div>
+          <div class="sc-bucket-lbl">DANNO</div>
         </div>
-        <div class="sf-pb def">
-          <div class="sf-pb-icon">🛡️</div>
-          <div class="sf-pb-val" id="prev-def-val">—</div>
-          <div class="sf-pb-label">BLOCCO</div>
+        <div class="sc-bucket def">
+          <div class="sc-bucket-icon">🛡️</div>
+          <div class="sc-bucket-val" id="bkt-def">—</div>
+          <div class="sc-bucket-lbl">BLOCCO</div>
         </div>
-        <div class="sf-pb mag">
-          <div class="sf-pb-icon">✨</div>
-          <div class="sf-pb-val" id="prev-mag-val">—</div>
-          <div class="sf-pb-label">MAGIA</div>
+        <div class="sc-bucket mag">
+          <div class="sc-bucket-icon">✨</div>
+          <div class="sc-bucket-val" id="bkt-mag">—</div>
+          <div class="sc-bucket-lbl">EFFETTO</div>
         </div>
       </div>
 
-      <div class="sf-net" id="sf-net">Danno previsto: <b>—</b></div>
-      <button class="sf-confirm-btn" id="sf-confirm" disabled>🎲 CONFERMA ALLOCAZIONE</button>
+      <div class="sc-preview">
+        <div class="sc-prev-item">
+          <div class="sc-prev-label">Danno</div>
+          <div class="sc-prev-val" id="prev-dmg">—</div>
+        </div>
+        <div class="sc-prev-item">
+          <div class="sc-prev-label">Blocco</div>
+          <div class="sc-prev-val" id="prev-blk">—</div>
+        </div>
+        <div class="sc-prev-item">
+          <div class="sc-prev-label">Effetto</div>
+          <div class="sc-prev-val" id="prev-eff">—</div>
+        </div>
+      </div>
+
+      <div class="sc-net" id="sc-net">Assegna tutti i dadi per confermare</div>
+      <button class="sc-confirm" id="sc-confirm" disabled>🎲 CONFERMA ALLOCAZIONE</button>
     </div>
 
-    <button class="sf-retreat-btn" id="sf-retreat">🏳️ Ritirati</button>
+    <button class="sc-retreat" id="sc-retreat">🏳️ Ritirati</button>
   </div>`);
 
   $('#modal-box').classList.add('scalata-dark-modal');
 
-  const TYPES      = ['libero', 'atk', 'def', 'mag'];
+  const TYPES       = ['libero', 'atk', 'def', 'mag'];
+  const TYPE_EMOJIS = { libero: '?', atk: '⚔️', def: '🛡️', mag: '✨' };
   const TYPE_LABELS = { libero: 'LIBERO', atk: 'ATTACCO', def: 'DIFESA', mag: 'MAGIA' };
-  const ATK_TABLE  = RPG.SCALATA_ATK || [18, 38, 60, 85];
-  const DEF_TABLE  = RPG.SCALATA_DEF || [20, 42, 65, 90];
-  const diceState  = [0, 0, 0, 0];
+  const ATK_TABLE   = RPG.SCALATA_ATK || [18, 38, 60, 85];
+  const DEF_TABLE   = RPG.SCALATA_DEF || [20, 42, 65, 90];
+  const diceState   = [0, 0, 0, 0];
 
   function refreshUI() {
     const counts = { atk: 0, def: 0, mag: 0 };
@@ -698,19 +741,13 @@ function showScalataFloor() {
     const allAssigned = diceState.every(t => t > 0);
 
     diceState.forEach((t, i) => {
-      const card    = document.getElementById('sf-die-' + i);
-      const faceWrap = document.getElementById('sf-die-face-' + i);
-      const lbl     = document.getElementById('sf-die-lbl-' + i);
+      const die  = document.getElementById('sc-die-' + i);
+      const em   = document.getElementById('sc-die-em-' + i);
+      const lbl  = document.getElementById('sc-die-lbl-' + i);
       const typeName = TYPES[t];
-      card.className = 'sf-die-card sf-die-' + typeName;
+      die.className = 'sc-die ' + typeName;
+      em.textContent = TYPE_EMOJIS[typeName];
       lbl.textContent = TYPE_LABELS[typeName];
-      if (t === 0) {
-        faceWrap.innerHTML = '<div class="die-face df-libero"><span class="df-icon">?</span></div>';
-      } else {
-        faceWrap.innerHTML = _dieFaceHTML(1, typeName);
-        const face = faceWrap.querySelector('.die-face');
-        if (face) { face.classList.add('df-bounce'); setTimeout(() => face.classList.remove('df-bounce'), 260); }
-      }
     });
 
     const atkDmg = counts.atk > 0 ? ATK_TABLE[Math.min(counts.atk - 1, 3)] : 0;
@@ -720,41 +757,44 @@ function showScalataFloor() {
     else if (counts.mag >= 2)  { magText = '+22 veleno'; }
     else if (counts.mag === 1) { magText = '+10 blocco'; magBlock = 10; }
 
-    document.getElementById('prev-atk-val').textContent = counts.atk ? atkDmg + ' HP' : '—';
-    document.getElementById('prev-def-val').textContent = counts.def ? defBlk + ' HP' : '—';
-    document.getElementById('prev-mag-val').textContent = magText;
+    document.getElementById('bkt-atk').textContent = counts.atk ? atkDmg + ' HP' : '—';
+    document.getElementById('bkt-def').textContent = counts.def ? defBlk + ' HP' : '—';
+    document.getElementById('bkt-mag').textContent = counts.mag ? magText : '—';
+    document.getElementById('prev-dmg').textContent = counts.atk ? atkDmg : '—';
+    document.getElementById('prev-blk').textContent = (counts.def || counts.mag === 1) ? (defBlk + magBlock) : '—';
+    document.getElementById('prev-eff').textContent = counts.mag > 1 ? magText : '—';
 
     const totalBlock = defBlk + magBlock;
     const stunned    = counts.mag >= 3;
     const netHit     = stunned ? 0 : Math.max(0, s.enemyDmg - totalBlock);
-    const netEl      = document.getElementById('sf-net');
+    const netEl      = document.getElementById('sc-net');
     if (allAssigned) {
       if (stunned) {
         netEl.innerHTML = '✨ Nemico stordito — nessun danno subito!';
-        netEl.className = 'sf-net safe';
+        netEl.className = 'sc-net safe';
       } else if (netHit === 0) {
         netEl.innerHTML = '🛡️ Blocco totale! Nessun danno subito.';
-        netEl.className = 'sf-net safe';
+        netEl.className = 'sc-net safe';
       } else {
         netEl.innerHTML = `⚡ Danno previsto: <b>${netHit}</b> HP`;
-        netEl.className = 'sf-net danger';
+        netEl.className = 'sc-net danger';
       }
     } else {
-      netEl.innerHTML = 'Danno previsto: <b>—</b>';
-      netEl.className = 'sf-net';
+      netEl.innerHTML = 'Assegna tutti i dadi per confermare';
+      netEl.className = 'sc-net';
     }
-    document.getElementById('sf-confirm').disabled = !allAssigned;
+    document.getElementById('sc-confirm').disabled = !allAssigned;
   }
 
-  document.querySelectorAll('.sf-die-card').forEach(card => {
-    card.addEventListener('click', () => {
-      const idx = parseInt(card.dataset.idx);
+  document.querySelectorAll('.sc-die').forEach(die => {
+    die.addEventListener('click', () => {
+      const idx = parseInt(die.dataset.idx);
       diceState[idx] = (diceState[idx] + 1) % 4;
       refreshUI();
     });
   });
 
-  document.getElementById('sf-confirm').addEventListener('click', () => {
+  document.getElementById('sc-confirm').addEventListener('click', () => {
     const counts = { atk: 0, def: 0, mag: 0 };
     diceState.forEach(t => { if (t > 0) counts[TYPES[t]]++; });
 
@@ -762,25 +802,25 @@ function showScalataFloor() {
     if (!result) return;
     persist();
 
-    const logEl    = document.getElementById('sf-log');
-    const diceEl   = document.getElementById('sf-dice-section');
-    const retreatBtn = document.getElementById('sf-retreat');
+    const logEl     = document.getElementById('sc-log');
+    const diceEl    = document.getElementById('sc-dice-section');
+    const retreatBtn = document.getElementById('sc-retreat');
 
-    let html = '<div class="sf-log-rows">';
+    let html = '<div class="sc-log-rows">';
     if (result.heroDmg > 0)
-      html += `<div class="sf-log-row hero-row">⚔️ Attacco: <b>−${result.heroDmg} HP</b> al nemico</div>`;
+      html += `<div class="sc-log-row">⚔️ Attacco: <b>−${result.heroDmg} HP</b> al nemico</div>`;
     if (result.magEffect === 'stun')
-      html += `<div class="sf-log-row mag-row">✨ Stordisci! Il nemico non attacca.</div>`;
+      html += `<div class="sc-log-row" style="color:#b09fe8">✨ Stordisci! Il nemico non attacca.</div>`;
     else if (result.magEffect === 'poison')
-      html += `<div class="sf-log-row mag-row">✨ Veleno: <b>−${result.magExtra} HP</b> extra al nemico</div>`;
+      html += `<div class="sc-log-row" style="color:#b09fe8">✨ Veleno: <b>−${result.magExtra} HP</b> extra al nemico</div>`;
     else if (result.magEffect === 'weaken')
-      html += `<div class="sf-log-row mag-row">✨ Debolezza: +10 blocco aggiunto</div>`;
+      html += `<div class="sc-log-row" style="color:#b09fe8">✨ Debolezza: +10 blocco aggiunto</div>`;
     if (result.enemyHit > 0)
-      html += `<div class="sf-log-row enemy-row">🗡️ Nemico: <b>−${result.enemyHit} HP</b> a te</div>`;
+      html += `<div class="sc-log-row" style="color:#e87070">🗡️ Nemico: <b>−${result.enemyHit} HP</b> a te</div>`;
     else if (!result.heroDefeated && result.magEffect !== 'stun')
-      html += `<div class="sf-log-row block-row">🛡️ Blocco totale! Nessun danno subito.</div>`;
+      html += `<div class="sc-log-row" style="color:#6bb8d4">🛡️ Blocco totale! Nessun danno subito.</div>`;
     if (result.enemyDefeated && !result.heroDefeated)
-      html += `<div class="sf-log-row win-row">✅ Piano superato! +${result.goldGained}🪙 +${result.xpGained}⭐</div>`;
+      html += `<div class="sc-log-row" style="color:#e8b64c;font-weight:700">✅ Piano superato! +${result.goldGained}🪙 +${result.xpGained}⭐</div>`;
     html += '</div>';
 
     logEl.innerHTML = html;
@@ -789,7 +829,7 @@ function showScalataFloor() {
     if (retreatBtn) retreatBtn.classList.add('hidden');
 
     if (result.heroDefeated) {
-      logEl.insertAdjacentHTML('beforeend', '<div class="sf-log-row defeat-row">💀 Sei caduto!</div>');
+      logEl.insertAdjacentHTML('beforeend', '<div class="sc-log-row" style="color:#e84545;font-weight:700;text-align:center">💀 Sei caduto!</div>');
       sfx('defeat');
       setTimeout(() => { closeModal(); showScalataEnd(); }, 2000);
     } else if (result.enemyDefeated) {
@@ -800,7 +840,7 @@ function showScalataFloor() {
     }
   });
 
-  document.getElementById('sf-retreat').addEventListener('click', () => {
+  document.getElementById('sc-retreat').addEventListener('click', () => {
     RPG.scalataGiveUp(HERO);
     persist();
     closeModal();
@@ -818,46 +858,67 @@ function showScalataInterlude() {
   const hpCrit      = s.heroHp / s.heroMaxHp < 0.3;
   const goldPrize   = Math.round(20 + s.floor * 3);
   const surpriseDmg = Math.round(20 + s.floor * 2);
+  const dmgDealt    = s.lastDmgDealt || 0;
+  const blkDealt    = s.lastBlkDealt || 0;
+  const effLabel    = s.lastEffect   || '—';
 
-  modal(`<div class="si-wrap">
-    <div class="si-header">
-      <div class="si-check">✅</div>
-      <div class="si-title">Piano ${s.floor} superato!</div>
-      <div class="si-next${isBossNext ? ' boss' : ''}">
-        ${isBossNext ? `⭐ Piano ${nextFloor} — BOSS in arrivo! Preparati.` : `Piano ${nextFloor} ti aspetta.`}
+  modal(`<div class="sc-int">
+    <div class="sc-int-banner">
+      <div class="sc-int-check">✅</div>
+      <div class="sc-int-title">Piano ${s.floor} Superato!</div>
+      <div class="sc-int-next${isBossNext ? ' boss' : ''}">
+        ${isBossNext ? `⭐ Piano ${nextFloor} — BOSS in arrivo!` : `Piano ${nextFloor} ti aspetta.`}
       </div>
     </div>
 
-    <div class="si-hp-block">
-      <div class="si-hp-label${hpCrit ? ' crit' : ''}">❤️ ${s.heroHp} / ${s.heroMaxHp} HP</div>
-      <div class="si-hpbar"><div class="si-hpfill${hpCrit ? ' crit' : ''}" style="width:${hHpPct}%"></div></div>
+    <div class="sc-int-stats">
+      <div class="sc-int-stat">
+        <div class="sc-int-stat-val">${dmgDealt || '—'}</div>
+        <div class="sc-int-stat-lbl">Danno inflitto</div>
+      </div>
+      <div class="sc-int-stat">
+        <div class="sc-int-stat-val">${blkDealt || '—'}</div>
+        <div class="sc-int-stat-lbl">Blocco</div>
+      </div>
+      <div class="sc-int-stat">
+        <div class="sc-int-stat-val">${effLabel}</div>
+        <div class="sc-int-stat-lbl">Effetto</div>
+      </div>
     </div>
 
-    <div class="si-choices-title">SCEGLI UN VANTAGGIO</div>
-    <div class="si-choices">
-      <button class="si-choice" id="int-heal">
-        <span class="si-choice-icon">💚</span>
-        <div class="si-choice-body">
-          <div class="si-choice-name">Riposa</div>
-          <div class="si-choice-desc">Recupera fino a +30 HP</div>
+    <div class="sc-int-hp">
+      <div class="sc-int-hp-row">
+        <span class="sc-int-hp-val${hpCrit ? ' crit' : ''}">❤️ ${s.heroHp} / ${s.heroMaxHp} HP</span>
+        <span class="sc-int-hp-note">${Math.round(hHpPct)}%</span>
+      </div>
+      <div class="sc-int-hpbar"><div class="sc-int-hpfill${hpCrit ? ' crit' : ''}" style="width:${hHpPct}%"></div></div>
+    </div>
+
+    <div class="sc-int-choices-label">SCEGLI UN VANTAGGIO</div>
+    <div class="sc-int-choices">
+      <button class="sc-int-choice heal" id="int-heal">
+        <span class="sc-int-choice-icon">💚</span>
+        <div class="sc-int-choice-body">
+          <div class="sc-int-choice-name">Riposa</div>
+          <div class="sc-int-choice-desc">Recupera fino a +30 HP</div>
         </div>
-        <span class="si-choice-arrow">›</span>
+        <span class="sc-int-choice-badge">CURA</span>
       </button>
-      <button class="si-choice" id="int-gold">
-        <span class="si-choice-icon">🪙</span>
-        <div class="si-choice-body">
-          <div class="si-choice-name">Saccheggia</div>
-          <div class="si-choice-desc">+${goldPrize} monete d'oro</div>
+      <button class="sc-int-choice attack" id="int-surprise">
+        <span class="sc-int-choice-icon">🗡️</span>
+        <div class="sc-int-choice-body">
+          <div class="sc-int-choice-name">Attacco a sorpresa</div>
+          <div class="sc-int-choice-desc">Infliggi −${surpriseDmg} HP al prossimo nemico</div>
         </div>
-        <span class="si-choice-arrow">›</span>
+        <span class="sc-int-choice-badge">ATTACCA</span>
       </button>
-      <button class="si-choice" id="int-surprise">
-        <span class="si-choice-icon">🗡️</span>
-        <div class="si-choice-body">
-          <div class="si-choice-name">Attacco a sorpresa</div>
-          <div class="si-choice-desc">Infliggi −${surpriseDmg} HP al prossimo nemico subito</div>
+      <button class="sc-int-choice scout" id="int-gold">
+        <span class="sc-int-choice-icon">🪙</span>
+        <div class="sc-int-choice-body">
+          <div class="sc-int-choice-name">Saccheggia</div>
+          <div class="sc-int-choice-desc">+${goldPrize} monete d'oro</div>
         </div>
-        <span class="si-choice-arrow">›</span>
+        <span class="sc-int-choice-badge">ORO</span>
       </button>
     </div>
   </div>`);
@@ -871,45 +932,56 @@ function showScalataInterlude() {
     showScalataFloor();
   }
   document.getElementById('int-heal').addEventListener('click',     () => pick('heal'));
-  document.getElementById('int-gold').addEventListener('click',     () => pick('gold'));
   document.getElementById('int-surprise').addEventListener('click', () => pick('surprise'));
+  document.getElementById('int-gold').addEventListener('click',     () => pick('gold'));
 }
 
 function showScalataEnd() {
   const s = HERO.activeScalata;
   if (!s) return;
 
-  const floor    = s.floor;
-  const defeated = s.heroHp <= 0;
-  const prevBest = s.prevBest || 0;
-  const newRec   = floor > prevBest;
+  const floor     = s.floor;
+  const defeated  = s.heroHp <= 0;
+  const prevBest  = s.prevBest || 0;
+  const newRec    = floor > prevBest;
+  const lastEnemy = defeated
+    ? (RPG.BESTIARY.find(b => b.id === s.enemyId)?.name || 'Nemico Misterioso')
+    : null;
 
-  modal(`<div class="scalata-end">
-    <div class="scalata-end-icon">${defeated ? '💀' : '🏳️'}</div>
-    <h3 class="panel-title center">${defeated ? 'Sei caduto!' : 'Ritirata strategica'}</h3>
-    <p class="center small muted">${defeated ? 'Hai combattuto con onore.' : 'Saggio ritirarsi per combattere un altro giorno.'}</p>
+  modal(`<div class="sc-end">
+    <div class="sc-end-banner">
+      <div class="sc-end-icon">${defeated ? '💀' : '🏳️'}</div>
+      <div class="sc-end-floor-num">${floor}</div>
+      <div class="sc-end-floor-lbl">Piano raggiunto</div>
+      <div class="sc-end-defeated-by">${lastEnemy ? `Sconfitto da <b>${esc(lastEnemy)}</b>` : 'Ritirata strategica'}</div>
+    </div>
 
-    <div class="scalata-end-stats">
-      <div class="scalata-end-stat">
-        <span class="scalata-end-ico">🏔️</span>
-        <span class="scalata-end-val">${floor}</span>
-        <span class="scalata-end-lbl">Piano raggiunto</span>
+    <div class="sc-end-grid">
+      <div class="sc-end-stat">
+        <div class="sc-end-stat-ico">🏔️</div>
+        <div class="sc-end-stat-val">${floor}</div>
+        <div class="sc-end-stat-lbl">Piano raggiunto</div>
       </div>
-      <div class="scalata-end-stat">
-        <span class="scalata-end-ico">🪙</span>
-        <span class="scalata-end-val">${s.goldEarned}</span>
-        <span class="scalata-end-lbl">Oro guadagnato</span>
+      <div class="sc-end-stat">
+        <div class="sc-end-stat-ico">🪙</div>
+        <div class="sc-end-stat-val">${s.goldEarned || 0}</div>
+        <div class="sc-end-stat-lbl">Oro guadagnato</div>
       </div>
-      <div class="scalata-end-stat">
-        <span class="scalata-end-ico">⭐</span>
-        <span class="scalata-end-val">${s.xpEarned || 0}</span>
-        <span class="scalata-end-lbl">XP guadagnati</span>
+      <div class="sc-end-stat">
+        <div class="sc-end-stat-ico">⭐</div>
+        <div class="sc-end-stat-val">${s.xpEarned || 0}</div>
+        <div class="sc-end-stat-lbl">XP guadagnati</div>
+      </div>
+      <div class="sc-end-stat">
+        <div class="sc-end-stat-ico">⚔️</div>
+        <div class="sc-end-stat-val">${s.kills || 0}</div>
+        <div class="sc-end-stat-lbl">Nemici sconfitti</div>
       </div>
     </div>
 
     ${newRec
-      ? `<div class="scalata-new-record">🏆 Nuovo Record! Piano ${floor}</div>`
-      : `<div class="scalata-record-note muted small center">🏆 Record: Piano ${HERO.scalataRecord?.bestFloor || floor}</div>`}
+      ? `<div class="sc-end-record">🏆 Nuovo Record! Piano ${floor}</div>`
+      : `<div class="scalata-record-note">🏆 Record: Piano ${HERO.scalataRecord?.bestFloor || floor}</div>`}
 
     <button class="btn btn-primary wide" onclick="closeModal(); setTab('train')">Fantastico!</button>
   </div>`);
