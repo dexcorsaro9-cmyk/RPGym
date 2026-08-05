@@ -706,74 +706,104 @@ function enterGame() {
 /* ══════════════ Tutorial ══════════════ */
 const TUTORIAL_SLIDES = [
   {
-    icon: '🌟',
     title: 'Benvenuto ad Oakhaven',
-    text: 'Hero\'s Pace trasforma ogni km che percorri nella vita reale in XP, oro e avventure. Più ti alleni, più il tuo eroe diventa leggendario.',
-    art: `<div class="tut-art tut-art-world">🏔️🌲🗺️</div>`,
+    text: 'Hero\'s Pace trasforma ogni km che percorri nella vita reale in <b>XP, oro e avventure</b>. Più ti alleni, più il tuo eroe diventa leggendario.',
+    scene: 'world',
   },
   {
-    icon: '🏃',
-    title: 'Allenati. Cresci. Conquista.',
-    text: 'Registra camminata, corsa o cyclette nella scheda <b>Allenati</b>. Ogni sessione porta XP, oro, risorse e oggetti rari.',
-    art: `<div class="tut-art tut-art-tabs"><span class="tut-tab">🏕️</span><span class="tut-tab">🗺️</span><span class="tut-tab tut-tab-active">⚔️</span><span class="tut-tab">🏘️</span><span class="tut-tab">👤</span></div>`,
+    title: 'Allenati. Sali di livello.',
+    text: 'Registra camminata, corsa o bici in <b>Allenati</b>. Ogni sessione porta XP, oro e oggetti rari — il tuo eroe cresce con te.',
+    scene: 'train',
   },
   {
-    icon: '🏕️',
-    title: 'Il tuo Rifugio',
-    text: 'Il Rifugio è la tua base. Costruisci strutture che danno bonus permanenti, alleva un <b>Famiglio</b> e gestisci la tua <b>Serra</b>.',
-    art: `<div class="tut-art tut-art-camp">🏕️<div class="tut-art-sparkles">✨</div></div>`,
+    title: 'Tre mondi da esplorare',
+    text: 'Costruisci il <b>Rifugio</b>, fai shopping nel <b>Borgo</b>, combatti nell\'<b>Arena</b>. Tutto si sblocca allenandosi.',
+    scene: 'hubs',
   },
   {
-    icon: '⚔️',
-    title: 'L\'Arena & la Mappa',
-    text: 'Sfida i villain nell\'<b>Arena</b> ogni giorno per oro e bottino. Percorri km sulla <b>Mappa</b> per sbloccare boss e forzieri del tesoro.',
-    art: `<div class="tut-art tut-art-arena">⚔️ vs 👹</div>`,
-  },
-  {
-    icon: '💊',
-    title: 'Consumabili & Sacca',
-    text: 'Trova consumabili nell\'Arena, nei forzieri e dal <b>Bazar</b> nel Borgo. Usali prima di allenarti per moltiplicare le ricompense.',
-    art: `<div class="tut-art tut-art-items">⚗️🌿🔮🎒</div>`,
-  },
-  {
-    icon: '🔥',
-    title: 'Inizia il tuo viaggio!',
-    text: 'Il primo passo è registrare il tuo primo allenamento. Vai nella scheda <b>Allenati</b>, inserisci tipo e km — e che la leggenda abbia inizio!',
-    art: `<div class="tut-art tut-art-start"><span class="tut-start-pulse">⚔️</span></div>`,
+    title: 'Inizia adesso!',
+    text: 'Vai in <b>Allenati</b> e registra il tuo primo km. Il Rifugio ti aspetta — e la leggenda ha già inizio.',
+    scene: 'start',
   },
 ];
 
+function _buildTutScene(scene) {
+  const d = document.createElement('div');
+  d.className = `tut-art-scene tut-scene-${scene}`;
+  if (scene === 'world') {
+    d.innerHTML = `<div class="tut-scene-inner tut-world-inner">⛰️ 🗺️ 🌲</div>`;
+  } else if (scene === 'train') {
+    d.innerHTML = `<div class="tut-scene-inner tut-train-inner">
+      <div class="tut-train-row">🏃 → ⭐ 🪙 📦</div>
+      <div class="tut-xpbar"><div class="tut-xpbar-fill"></div></div>
+    </div>`;
+  } else if (scene === 'hubs') {
+    d.innerHTML = `
+      <div class="tut-hub-item">🏕️<span class="tut-hub-label">Rifugio</span></div>
+      <div class="tut-hub-item">🏘️<span class="tut-hub-label">Borgo</span></div>
+      <div class="tut-hub-item">⚔️<span class="tut-hub-label">Arena</span></div>`;
+  } else if (scene === 'start') {
+    d.innerHTML = `<div class="tut-scene-inner"><span class="tut-start-icon">⚔️</span></div>`;
+  }
+  return d;
+}
+
 function showTutorial() {
   let idx = 0;
+  let touchStartX = 0;
+  const n = TUTORIAL_SLIDES.length;
+
   const overlay = document.createElement('div');
   overlay.className = 'tutorial-overlay';
+  overlay.innerHTML = `
+    <div class="tutorial-card">
+      <button class="tutorial-skip" aria-label="Salta">✕</button>
+      <div class="tut-viewport"></div>
+      <div class="tutorial-dots"></div>
+      <button class="btn btn-primary tutorial-btn"></button>
+    </div>`;
 
-  function render() {
-    const s = TUTORIAL_SLIDES[idx];
-    const isLast = idx === TUTORIAL_SLIDES.length - 1;
-    const dots = TUTORIAL_SLIDES.map((_, i) =>
+  const viewport = overlay.querySelector('.tut-viewport');
+  const dotsEl   = overlay.querySelector('.tutorial-dots');
+  const btn       = overlay.querySelector('.tutorial-btn');
+
+  // Build carousel track with all slides upfront
+  const track = document.createElement('div');
+  track.className = 'tut-track';
+  track.style.width = `${n * 100}%`;
+  TUTORIAL_SLIDES.forEach(s => {
+    const slide = document.createElement('div');
+    slide.className = 'tut-slide';
+    slide.style.width = `${100 / n}%`;
+    slide.appendChild(_buildTutScene(s.scene));
+    const title = document.createElement('div');
+    title.className = 'tutorial-title';
+    title.textContent = s.title;
+    const text = document.createElement('div');
+    text.className = 'tutorial-text';
+    text.innerHTML = s.text;
+    slide.appendChild(title);
+    slide.appendChild(text);
+    track.appendChild(slide);
+  });
+  viewport.appendChild(track);
+
+  function updateUI() {
+    track.style.transform = `translateX(-${idx * (100 / n)}%)`;
+    dotsEl.innerHTML = Array.from({ length: n }, (_, i) =>
       `<span class="tutorial-dot${i === idx ? ' active' : ''}"></span>`
     ).join('');
-    overlay.innerHTML = `
-      <div class="tutorial-card">
-        <button class="tutorial-skip" aria-label="Salta">✕</button>
-        ${s.art || `<div class="tutorial-icon">${s.icon}</div>`}
-        <div class="tutorial-title">${s.title}</div>
-        <div class="tutorial-text">${s.text}</div>
-        <div class="tutorial-dots">${dots}</div>
-        <button class="btn btn-primary tutorial-btn">
-          ${isLast ? '🔥 Inizia l\'avventura!' : 'Avanti →'}
-        </button>
-      </div>`;
-    overlay.querySelector('.tutorial-skip').addEventListener('click', close);
-    overlay.querySelector('.tutorial-btn').addEventListener('click', () => {
-      if (isLast) close(); else { idx++; render(); }
-    });
+    btn.innerHTML = idx === n - 1 ? '⚔️ Inizia l\'avventura!' : 'Avanti →';
+  }
+
+  function go(newIdx) {
+    idx = Math.max(0, Math.min(n - 1, newIdx));
+    updateUI();
   }
 
   function close() {
     overlay.classList.add('tutorial-out');
-    setTimeout(() => { overlay.remove(); }, 300);
+    setTimeout(() => overlay.remove(), 300);
     HERO.tutorialDone = true;
     if (HERO.onboardingStep < 1) HERO.onboardingStep = 1;
     persist();
@@ -782,7 +812,17 @@ function showTutorial() {
     setTab('train');
   }
 
-  render();
+  btn.addEventListener('click', () => { if (idx === n - 1) close(); else go(idx + 1); });
+  overlay.querySelector('.tutorial-skip').addEventListener('click', close);
+
+  // Swipe support
+  overlay.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  overlay.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) go(idx + (dx < 0 ? 1 : -1));
+  }, { passive: true });
+
+  updateUI();
   document.body.appendChild(overlay);
   requestAnimationFrame(() => overlay.classList.add('tutorial-in'));
 }
