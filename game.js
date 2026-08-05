@@ -4110,17 +4110,23 @@ const RPG = (() => {
 
   /* ── Sfide Settimanali ──────────────────────────────────── */
   const WEEKLY_CHALLENGES_POOL = [
-    { type:'km',       icon:'🥾', target:15, label:'Percorri 15 km questa settimana',      reward:{gold:180, xp:300} },
-    { type:'km',       icon:'🥾', target:25, label:'Percorri 25 km questa settimana',      reward:{gold:280, xp:450} },
-    { type:'arena',    icon:'⚔️',  target:5,  label:"Vinci 5 battaglie nell'Arena",         reward:{gold:150, xp:250} },
-    { type:'arena',    icon:'⚔️',  target:10, label:"Vinci 10 battaglie nell'Arena",        reward:{gold:250, xp:400} },
-    { type:'sell',     icon:'💰', target:5,  label:'Vendi 5 oggetti al Contrabbando',      reward:{gold:120, xp:150} },
-    { type:'sell',     icon:'💰', target:10, label:'Vendi 10 oggetti al Contrabbando',     reward:{gold:200, xp:220} },
-    { type:'chest',    icon:'📦', target:3,  label:'Apri 3 scrigni di bottino',            reward:{gold:100, xp:200} },
-    { type:'chest',    icon:'📦', target:6,  label:'Apri 6 scrigni di bottino',            reward:{gold:180, xp:350} },
-    { type:'minigame', icon:'🎲', target:8,  label:'Gioca 8 partite alla Taverna',         reward:{gold:110, xp:200} },
-    { type:'minigame', icon:'🎲', target:15, label:'Gioca 15 partite alla Taverna',        reward:{gold:180, xp:320} },
-    { type:'dungeon',  icon:'🗡️', target:1,  label:'Assalta il Covo dell\'Orda',             reward:{gold:200, xp:400} },
+    { type:'km',       icon:'🥾', target:15, label:'Percorri 15 km questa settimana',          reward:{gold:180, xp:300} },
+    { type:'km',       icon:'🥾', target:25, label:'Percorri 25 km questa settimana',          reward:{gold:280, xp:450} },
+    { type:'arena',    icon:'⚔️',  target:5,  label:"Vinci 5 battaglie nell'Arena",             reward:{gold:150, xp:250} },
+    { type:'arena',    icon:'⚔️',  target:10, label:"Vinci 10 battaglie nell'Arena",            reward:{gold:250, xp:400} },
+    { type:'sell',     icon:'💰', target:5,  label:'Vendi 5 oggetti al Contrabbando',          reward:{gold:120, xp:150} },
+    { type:'sell',     icon:'💰', target:10, label:'Vendi 10 oggetti al Contrabbando',         reward:{gold:200, xp:220} },
+    { type:'chest',    icon:'📦', target:3,  label:'Apri 3 scrigni di bottino',                reward:{gold:100, xp:200} },
+    { type:'chest',    icon:'📦', target:6,  label:'Apri 6 scrigni di bottino',                reward:{gold:180, xp:350} },
+    { type:'minigame', icon:'🎲', target:8,  label:'Gioca 8 partite alla Taverna',             reward:{gold:110, xp:200} },
+    { type:'minigame', icon:'🎲', target:15, label:'Gioca 15 partite alla Taverna',            reward:{gold:180, xp:320} },
+    { type:'dungeon',  icon:'🗡️', target:1,  label:"Assalta il Covo dell'Orda",               reward:{gold:200, xp:400} },
+    { type:'dungeon',  icon:'🗡️', target:3,  label:"Assalta il Covo dell'Orda 3 volte",       reward:{gold:350, xp:600} },
+    { type:'bisca',    icon:'🎰', target:3,  label:'Gioca 3 partite alla Bisca Oscura',        reward:{gold:100, xp:160} },
+    { type:'bisca',    icon:'🎰', target:5,  label:'Gioca 5 partite alla Bisca Oscura',        reward:{gold:160, xp:260} },
+    { type:'scalata',  icon:'🏔️', target:3,  label:"Raggiungi il Piano 3 nella Scalata",      reward:{gold:150, xp:260} },
+    { type:'scalata',  icon:'🏔️', target:5,  label:"Raggiungi il Piano 5 nella Scalata",      reward:{gold:240, xp:400} },
+    { type:'scalata',  icon:'🏔️', target:8,  label:"Raggiungi il Piano 8 nella Scalata",      reward:{gold:350, xp:580} },
   ];
   const WEEKLY_CHALLENGES_BONUS = { gold: 300, xp: 600 };
 
@@ -4131,22 +4137,26 @@ const RPG = (() => {
     for (let i = 0; i < key.length; i++) seed = (seed * 31 + key.charCodeAt(i)) | 0;
     const pick = arr => { seed = (seed * 1664525 + 1013904223) | 0; return arr[Math.abs(seed) % arr.length]; };
     const mk = t => ({ type:t.type, icon:t.icon, target:t.target, label:t.label, reward:{...t.reward}, progress:0, claimed:false });
-    const kmPool    = WEEKLY_CHALLENGES_POOL.filter(c => c.type === 'km');
-    const arenaPool = WEEKLY_CHALLENGES_POOL.filter(c => c.type === 'arena');
-    const sellPool  = WEEKLY_CHALLENGES_POOL.filter(c => c.type === 'sell');
-    const chestPool = WEEKLY_CHALLENGES_POOL.filter(c => c.type === 'chest');
-    const mgPool    = WEEKLY_CHALLENGES_POOL.filter(c => c.type === 'minigame');
-    const dgPool    = WEEKLY_CHALLENGES_POOL.filter(c => c.type === 'dungeon');
+    const kmPool      = WEEKLY_CHALLENGES_POOL.filter(c => c.type === 'km');
+    const arenaPool   = WEEKLY_CHALLENGES_POOL.filter(c => c.type === 'arena');
+    const sellPool    = WEEKLY_CHALLENGES_POOL.filter(c => c.type === 'sell');
+    const chestPool   = WEEKLY_CHALLENGES_POOL.filter(c => c.type === 'chest');
+    const mgPool      = WEEKLY_CHALLENGES_POOL.filter(c => c.type === 'minigame');
+    const dgPool      = WEEKLY_CHALLENGES_POOL.filter(c => c.type === 'dungeon');
+    const biscaPool   = WEEKLY_CHALLENGES_POOL.filter(c => c.type === 'bisca');
+    const scalataPool = WEEKLY_CHALLENGES_POOL.filter(c => c.type === 'scalata');
     const tierKm    = lv <= 15 ? [0] : [1];
     const tierArena = lv <= 15 ? [0] : [1];
-    const extraPool = lv >= 10 ? [...sellPool, ...chestPool] : chestPool;
+    const baseExtra = lv >= 10 ? [...sellPool, ...chestPool, ...biscaPool] : [...chestPool, ...biscaPool];
+    const extraPool = lv >= 5  ? baseExtra : chestPool;
+    const slot4Pool = lv >= 15 ? [...dgPool, ...scalataPool] : lv >= 10 ? [...dgPool, ...mgPool] : mgPool;
     return {
       week,
       list: [
         mk(kmPool[pick(tierKm)]),
         mk(arenaPool[pick(tierArena)]),
         mk(pick(extraPool)),
-        mk(lv >= 15 ? dgPool[0] : pick(mgPool)),
+        mk(pick(slot4Pool)),
       ],
       bonusClaimed: false,
     };
@@ -4474,6 +4484,11 @@ const RPG = (() => {
 
     if (heroDefeated) {
       s.done = true;
+      const wc = getWeeklyChallenges(hero);
+      wc.list.forEach(ch => {
+        if (ch.type === 'scalata' && !ch.claimed)
+          ch.progress = Math.min(ch.target, Math.max(ch.progress, s.floor));
+      });
     } else if (enemyDefeated) {
       s.interlude = true;
     }
@@ -4518,6 +4533,11 @@ const RPG = (() => {
     if (!s || s.done) return null;
     s.done = true;
     if (s.floor > hero.scalataRecord.bestFloor) hero.scalataRecord.bestFloor = s.floor;
+    const wc = getWeeklyChallenges(hero);
+    wc.list.forEach(ch => {
+      if (ch.type === 'scalata' && !ch.claimed)
+        ch.progress = Math.min(ch.target, Math.max(ch.progress, s.floor));
+    });
     return { floor: s.floor, goldEarned: s.goldEarned, xpEarned: s.xpEarned || 0 };
   }
 

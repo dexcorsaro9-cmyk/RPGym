@@ -2809,6 +2809,7 @@ function renderBiscaView(c) {
     await new Promise(r => setTimeout(r, 750));
 
     const res = RPG.biscaBet(HERO, pick, a.id, b.id, selectedAmount);
+    if (!res.error) RPG.updateWeeklyProgress(HERO, 'bisca', 1);
     persist(); renderHUD();
 
     if (res.error === 'no_gold') {
