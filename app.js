@@ -6998,13 +6998,12 @@ const RES_ICONS = {
     probe.onload = () => {
       const span = document.getElementById('res-' + res);
       if (!span || !span.parentElement) return;
-      const box = span.parentElement;
+      const ico = span.parentElement.querySelector('.res-ico');
+      if (!ico) return;
       const img = el('img', 'res-icon');
       img.src = path;
-      box.innerHTML = '';
-      box.appendChild(img);
-      box.appendChild(document.createTextNode(' '));
-      box.appendChild(span);
+      ico.textContent = '';
+      ico.appendChild(img);
     };
     probe.src = path;
   });
