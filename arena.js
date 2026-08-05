@@ -1107,8 +1107,16 @@ function showScalataInterlude() {
       document.getElementById('shop-gold-display').textContent = HERO.gold + '🪙';
       document.querySelectorAll('.sc-shop-buy').forEach(btn => {
         const cost = parseInt(btn.dataset.cost);
-        btn.disabled = HERO.gold < cost;
-        btn.style.opacity = HERO.gold < cost ? '0.4' : '';
+        const isJolly = btn.dataset.item === 'jolly';
+        if (isJolly && s.jollyDice >= 1) {
+          btn.disabled = true;
+          btn.textContent = '✓ Attivo';
+          btn.style.opacity = '0.5';
+        } else {
+          btn.disabled = HERO.gold < cost;
+          btn.style.opacity = HERO.gold < cost ? '0.4' : '';
+          if (isJolly) btn.textContent = '30🪙';
+        }
       });
       const hpPct = Math.max(0, (s.heroHp / s.heroMaxHp) * 100);
       document.getElementById('int-hp-val').textContent = `❤️ ${s.heroHp} / ${s.heroMaxHp} HP`;

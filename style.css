@@ -7063,6 +7063,25 @@ img.fiche-inline {
 .ticket-raro        { border-color: rgba(77,217,232,0.4); }
 .ticket-leggendario { border-color: rgba(240,192,64,0.5); box-shadow: 0 0 12px rgba(240,192,64,0.2); }
 
+/* ── Storico biglietti ── */
+.ticket-hist-panel { padding: 10px 14px 12px; }
+.ticket-hist-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  font-size: .8rem;
+}
+.ticket-hist-row:last-child { border-bottom: none; }
+.ticket-hist-name { color: var(--text-muted); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ticket-hist-syms { font-size: .9rem; letter-spacing: 2px; }
+.ticket-hist-prize { font-weight: 600; white-space: nowrap; }
+.ticket-hist-prize.win  { color: #f5c842; }
+.ticket-hist-prize.loss { color: var(--text-muted); font-weight: 400; }
+.ticket-hist-date { color: var(--text-muted); font-size: .72rem; white-space: nowrap; }
+
 /* ── Gilda ──────────────────────────────────────────────────── */
 .guild-panel { }
 .guild-join-row {

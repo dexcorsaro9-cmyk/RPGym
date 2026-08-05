@@ -5670,6 +5670,9 @@ const RPG = (() => {
       }
     }
 
+    // Salva il risultato nel ticket per lo storico
+    ticket.result = { symbols, isWin, label: prize ? prize.label : null };
+
     // Mantieni solo gli ultimi 20 biglietti già grattati (pulizia storico)
     const scratched = hero.tickets.filter(t => t.scratchedAt).sort((a, b) => b.scratchedAt - a.scratchedAt);
     if (scratched.length > 20) {
