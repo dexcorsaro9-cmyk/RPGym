@@ -5173,6 +5173,23 @@ const RPG = (() => {
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
   }
 
+  function getWeeklyRecap(hero) {
+    const now = new Date();
+    const dow = (now.getDay() + 6) % 7;
+    const thisMon = new Date(now); thisMon.setHours(0,0,0,0); thisMon.setDate(now.getDate() - dow);
+    const lastMon = new Date(thisMon); lastMon.setDate(thisMon.getDate() - 7);
+    const logs = hero.log.filter(l => {
+      const d = new Date(l.date); d.setHours(0,0,0,0);
+      return d >= lastMon && d < thisMon;
+    });
+    if (!logs.length) return null;
+    return {
+      km: +logs.reduce((s, l) => s + l.km, 0).toFixed(1),
+      sessions: logs.length,
+      xp: logs.reduce((s, l) => s + (l.xp || 0), 0),
+    };
+  }
+
   function claimWeeklyBoss(hero) {
     const st = weeklyBossStatus(hero);
     if (!st || !st.done || st.claimed) return null;
@@ -5931,7 +5948,7 @@ const RPG = (() => {
     WEEKLY_BOSSES, rolloverWeeklyBoss, weeklyBossStatus, claimWeeklyBoss,
     getDailyWeather, WEATHER_TYPES,
     TREASURE_MAP_TIERS, rolloverTreasureMap, treasureMapStatus, claimTreasureTier,
-    canPrestige, prestige, getMonthlyRecap, monthStamp,
+    canPrestige, prestige, getMonthlyRecap, monthStamp, getWeeklyRecap, weekStamp,
     isMerchantWeekend, getTravelingMerchant, buyFromMerchant, merchantEffectivePrice,
     SKILL_TREE, skillById, learnSkill, skillBonus, earnSkillPoints,
     LORE_FRAGMENTS, checkLoreUnlock,

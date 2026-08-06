@@ -4025,6 +4025,62 @@ img.fiche-inline {
 @keyframes lup-slidein { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 @keyframes lup-pop { from { opacity: 0; transform: scale(.35); } to { opacity: 1; transform: scale(1); } }
 
+/* Level-up milestone extra */
+.lup-overlay.lup-milestone .lup-badge { color: #fbbf24; font-size: .8rem; }
+.lup-overlay.lup-big-milestone .lup-badge {
+  color: #fff; font-size: .9rem; letter-spacing: .22em;
+  text-shadow: 0 0 12px #fbbf24, 0 0 30px rgba(251,191,36,.6);
+  animation: lup-slidein .5s .12s both, lup-milestone-pulse 1.2s .7s ease-in-out infinite alternate;
+}
+.lup-overlay.lup-big-milestone .lup-level { font-size: 7rem; }
+@keyframes lup-milestone-pulse {
+  from { text-shadow: 0 0 12px #fbbf24, 0 0 30px rgba(251,191,36,.5); }
+  to   { text-shadow: 0 0 24px #fff,    0 0 60px rgba(251,191,36,.9); }
+}
+
+/* Sparkline */
+.sparkline-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:.5rem; }
+.sparkline-title { font-size:.82rem; font-weight:700; }
+.sparkline-labels { display:flex; justify-content:space-between; margin-bottom:.15rem; }
+.spk-lbl { font-size:.55rem; color:var(--ink-light); flex:1; text-align:center; }
+.sparkline-svg { display:block; width:100%; height:44px; overflow:visible; }
+
+/* Achievement toast */
+.achievement-toast {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 5.5rem);
+  left: 50%; transform: translateX(-50%) translateY(140%);
+  z-index: 9990;
+  background: linear-gradient(135deg, #1a0e04 0%, #2d1a06 100%);
+  border: 1.5px solid var(--gold);
+  border-radius: 16px;
+  padding: .75rem 1.1rem;
+  display: flex; align-items: center; gap: .75rem;
+  min-width: 260px; max-width: 340px;
+  box-shadow: 0 4px 32px rgba(0,0,0,.7), 0 0 20px rgba(196,154,42,.35);
+  transition: transform .38s cubic-bezier(.22,1,.36,1), opacity .3s;
+  cursor: pointer;
+}
+.achievement-toast.ach-toast-in  { transform: translateX(-50%) translateY(0); }
+.achievement-toast.ach-toast-out { transform: translateX(-50%) translateY(20px); opacity: 0; }
+.ach-toast-icon { font-size: 2.1rem; flex-shrink: 0; }
+.ach-toast-body { display: flex; flex-direction: column; gap: 2px; }
+.ach-toast-label { font-size: .62rem; color: var(--gold); letter-spacing: .12em; text-transform: uppercase; }
+.ach-toast-name  { font-size: .88rem; font-weight: 700; color: #f4e7cd; }
+.ach-toast-reward { font-size: .72rem; color: rgba(255,255,255,.65); }
+
+/* Bacheca camp chip */
+.board-camp-chip { margin: .4rem 0; }
+.bcc-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:.5rem; }
+.bcc-title { font-size:.85rem; font-weight:700; }
+.bcc-badge { background:var(--gold); color:#1a0e04; font-size:.63rem; font-weight:800; padding:2px 8px; border-radius:10px; white-space:nowrap; }
+.bcc-done  { font-size:.72rem; color:#86efac; }
+.bcc-quests { display:flex; flex-direction:column; gap:4px; margin-bottom:.6rem; }
+.bcc-quest { font-size:.78rem; padding:4px 7px; border-radius:6px; background:rgba(255,255,255,.05); }
+.bcc-quest-done   { color:#86efac; }
+.bcc-quest-ready  { color:#fbbf24; }
+.bcc-quest-locked { color:rgba(255,255,255,.4); }
+
 /* ── Pergamena Bioma ───────────────────────────────────────── */
 .biome-parchment-overlay {
   position: fixed; inset: 0; z-index: 9998;

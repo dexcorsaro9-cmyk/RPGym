@@ -682,6 +682,14 @@ function enterGame() {
     persist();
     if (recap) OPEN_QUEUE.push(() => showMonthlyRecap(recap));
   }
+  // Recap settimanale (primo accesso della nuova settimana, solo con storico)
+  const curWeek = RPG.weekStamp();
+  if (HERO.lastRecapWeek !== curWeek && (HERO.log || []).length > 0) {
+    const wrecap = RPG.getWeeklyRecap(HERO);
+    HERO.lastRecapWeek = curWeek;
+    persist();
+    if (wrecap) OPEN_QUEUE.push(() => showWeeklyRecap(wrecap));
+  }
   // Riepilogo "cosa ti aspetta oggi" (una volta al giorno, non al primo accesso)
   if (HERO.summarySeen !== todayISO() && (HERO.totalKm || 0) > 0) {
     HERO.summarySeen = todayISO();
@@ -1644,6 +1652,34 @@ function renderCamp(c) {
     goBtn.addEventListener('click', () => setTab('train'));
     fp.appendChild(goBtn);
     c.appendChild(fp);
+  }
+
+  // Bacheca del Viandante — chip di accesso rapido (solo dopo prima sessione)
+  if ((HERO.totalKm || 0) > 0) {
+    const prevBoard = HERO.board;
+    const bd = RPG.generateDailyBoard(HERO);
+    if (bd !== prevBoard) persist();
+    const todayKmCamp = RPG.todayKm(HERO);
+    const campClaimed = bd.claimed.length;
+    const campClaimable = bd.quests.filter(q => todayKmCamp >= q.km && !bd.claimed.includes(q.id)).length;
+    const chip = el('div', 'panel board-camp-chip');
+    chip.innerHTML = `
+      <div class="bcc-header">
+        <span class="bcc-title">📜 Bacheca del Viandante</span>
+        ${campClaimable > 0 ? `<span class="bcc-badge">${campClaimable} da riscuotere!</span>` : campClaimed === bd.quests.length ? '<span class="bcc-done">✅ Tutto completato</span>' : ''}
+      </div>
+      <div class="bcc-quests">
+        ${bd.quests.map(q => {
+          const isClaimed = bd.claimed.includes(q.id);
+          const kmOk = todayKmCamp >= q.km;
+          const state = isClaimed ? 'done' : kmOk ? 'ready' : 'locked';
+          const icon = isClaimed ? '✅' : kmOk ? '⚡' : '🔒';
+          return `<div class="bcc-quest bcc-quest-${state}">${icon} ${esc(q.npc.name)} — ${q.km} km</div>`;
+        }).join('')}
+      </div>
+      <button class="btn btn-small wide bcc-btn">Vai alla Bacheca →</button>`;
+    chip.querySelector('.bcc-btn').addEventListener('click', () => setTab('train'));
+    c.appendChild(chip);
   }
 
   // Santuario dei Famigli
@@ -4942,28 +4978,32 @@ function itemHtml(it) {
 }
 
 function showLevelUp(newLevel) {
-  vibrate([100, 50, 100]);
+  const isMilestone = newLevel % 5 === 0;
+  const isBigMilestone = newLevel % 10 === 0 || newLevel === 50 || newLevel === 100;
+  vibrate(isBigMilestone ? [150, 60, 150, 60, 200] : [100, 50, 100]);
   const col = AVATAR_COLORS[HERO.storyId] || { glow: '#c9932e' };
   const glowColor = col.glow;
   const talent = RPG.talentOf(HERO);
 
   const ov = document.createElement('div');
-  ov.className = 'lup-overlay';
+  ov.className = 'lup-overlay' + (isBigMilestone ? ' lup-big-milestone' : isMilestone ? ' lup-milestone' : '');
   ov.style.setProperty('--lup-glow', glowColor);
 
-  // Rings with class color
-  for (let i = 0; i < 3; i++) {
+  // Rings — more for milestones
+  const ringCount = isBigMilestone ? 5 : isMilestone ? 4 : 3;
+  for (let i = 0; i < ringCount; i++) {
     const r = document.createElement('div');
     r.className = 'lup-ring';
     ov.appendChild(r);
   }
 
-  // Particles — più numerose e con colore classe
-  Array.from({ length: 28 }, (_, i) => i * (360 / 28)).forEach((deg, i) => {
+  // Particles — more numerous for milestones
+  const pCount = isBigMilestone ? 52 : isMilestone ? 38 : 28;
+  Array.from({ length: pCount }, (_, i) => i * (360 / pCount)).forEach((deg, i) => {
     const p = document.createElement('div');
     p.className = 'lup-particle';
     const rad = deg * Math.PI / 180;
-    const dist = 110 + Math.random() * 130;
+    const dist = 110 + Math.random() * (isBigMilestone ? 180 : 130);
     p.style.setProperty('--tx', Math.cos(rad) * dist + 'px');
     p.style.setProperty('--ty', Math.sin(rad) * dist + 'px');
     p.style.setProperty('--dur', (.8 + Math.random() * .7) + 's');
@@ -4983,7 +5023,8 @@ function showLevelUp(newLevel) {
     ov.appendChild(avWrap);
   }
 
-  ov.appendChild(Object.assign(document.createElement('div'), { className: 'lup-badge', textContent: '✦ Livello raggiunto ✦' }));
+  const badgeText = isBigMilestone ? '⚡ PIETRA MILIARE ⚡' : isMilestone ? '✦ Traguardo ✦' : '✦ Livello raggiunto ✦';
+  ov.appendChild(Object.assign(document.createElement('div'), { className: 'lup-badge', textContent: badgeText }));
   ov.appendChild(Object.assign(document.createElement('div'), { className: 'lup-level', textContent: newLevel }));
   ov.appendChild(Object.assign(document.createElement('div'), { className: 'lup-title-text', textContent: RPG.heroTitle(newLevel) }));
   if (talent) {
@@ -6952,13 +6993,50 @@ function renderDiaryView(c) {
     }
   }
 
-  // Calendario mensile + Heatmap
+  // Heatmap GitHub-style — ultime 12 settimane
   if (HERO.log.length) {
     const kmByDay = {};
     HERO.log.forEach(l => {
       const key = localDate(new Date(l.date));
       kmByDay[key] = (kmByDay[key] || 0) + l.km;
     });
+
+    // Sparkline — ultime 10 sessioni (km)
+    if (HERO.log.length >= 2) {
+      const last10 = HERO.log.slice(-10);
+      const vals = last10.map(l => l.km);
+      const maxV = Math.max(...vals, 0.1);
+      const W = 200, H = 44;
+      const pts = vals.map((v, i) => {
+        const x = (i / Math.max(vals.length - 1, 1)) * W;
+        const y = H - (v / maxV) * (H - 6) - 3;
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      }).join(' ');
+      const dotsSvg = vals.map((v, i) => {
+        const x = (i / Math.max(vals.length - 1, 1)) * W;
+        const y = H - (v / maxV) * (H - 6) - 3;
+        return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="var(--gold)"/>`;
+      }).join('');
+      const spkPanel = el('div', 'panel');
+      spkPanel.innerHTML = `
+        <div class="sparkline-header">
+          <span class="sparkline-title">📈 Ultime ${last10.length} sessioni</span>
+          <span class="sparkline-peak muted small">${maxV.toFixed(1)} km max</span>
+        </div>
+        <div class="sparkline-labels">
+          ${last10.map(l => `<span class="spk-lbl">${l.km.toFixed(1)}</span>`).join('')}
+        </div>
+        <svg class="sparkline-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
+          <defs><linearGradient id="spk-grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--gold)" stop-opacity=".35"/>
+            <stop offset="100%" stop-color="var(--gold)" stop-opacity="0"/>
+          </linearGradient></defs>
+          <polygon points="${pts} ${W},${H} 0,${H}" fill="url(#spk-grad)"/>
+          <polyline points="${pts}" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          ${dotsSvg}
+        </svg>`;
+      c.appendChild(spkPanel);
+    }
 
     // Calendario mese corrente
     const now = new Date();
@@ -7553,7 +7631,7 @@ function renderCardsView(c) {
         btn.addEventListener('click', () => {
           const r = RPG.claimAchievement(HERO, a.id);
           persist(); renderHUD();
-          if (r && r.ok) { toast(`${a.icon} Impresa riscossa! +${r.reward.gold} 🪙 +${r.reward.xp} XP`); sfx('coin'); }
+          if (r && r.ok) { toastAchievement(a, r.reward); sfx('coin'); }
           else toast(r);
           setTab('hero');
         });
@@ -7679,6 +7757,29 @@ function toast(msg) {
   requestAnimationFrame(() => t.classList.add('show'));
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+function toastAchievement(achievement, reward) {
+  const existing = document.querySelector('.achievement-toast');
+  if (existing) existing.remove();
+  const card = document.createElement('div');
+  card.className = 'achievement-toast';
+  card.innerHTML = `
+    <div class="ach-toast-icon">${esc(achievement.icon)}</div>
+    <div class="ach-toast-body">
+      <div class="ach-toast-label">✦ Impresa sbloccata! ✦</div>
+      <div class="ach-toast-name">${esc(achievement.name)}</div>
+      <div class="ach-toast-reward">+${reward.gold} 🪙 &nbsp;+${reward.xp} XP</div>
+    </div>`;
+  document.body.appendChild(card);
+  requestAnimationFrame(() => card.classList.add('ach-toast-in'));
+  const dismiss = () => {
+    card.classList.add('ach-toast-out');
+    setTimeout(() => card.remove(), 400);
+  };
+  const tid = setTimeout(dismiss, 3400);
+  card.addEventListener('click', () => { clearTimeout(tid); dismiss(); });
+  vibrate([80, 40, 80]);
 }
 
 /* ── Sfondo pergamena ── */
@@ -8169,6 +8270,26 @@ function showMonthlyRecap(recap) {
   `);
 }
 
+function showWeeklyRecap(recap) {
+  const stars = recap.sessions >= 5 ? '⭐⭐⭐' : recap.sessions >= 3 ? '⭐⭐' : '⭐';
+  const msg = recap.sessions >= 5
+    ? 'Settimana leggendaria! Il Viandante è fiero di te.'
+    : recap.sessions >= 3
+    ? 'Buona costanza — continua su questa strada!'
+    : 'Ogni passo conta. Questa settimana punta a di più!';
+  modal(`
+    <h3 class="panel-title center">📅 Settimana scorsa</h3>
+    <div class="monthly-recap-grid">
+      <div class="recap-cell"><span class="recap-val">${recap.km}</span><span class="recap-lbl">km percorsi</span></div>
+      <div class="recap-cell"><span class="recap-val">${recap.sessions}</span><span class="recap-lbl">sessioni</span></div>
+      <div class="recap-cell"><span class="recap-val">${recap.xp.toLocaleString('it-IT')}</span><span class="recap-lbl">XP guadagnati</span></div>
+    </div>
+    <p class="center" style="font-size:1.6rem;margin:.5rem 0">${stars}</p>
+    <p class="muted small center">${msg}</p>
+    <button class="btn btn-primary wide" onclick="nextOpening()">Avanti!</button>
+  `);
+}
+
 function showDailySummary() {
   let rows = '';
   if (HERO.incursion && !HERO.incursion.done) {
@@ -8546,7 +8667,7 @@ function renderZainoView(c) {
             const r = RPG.claimAchievement(HERO, a.id);
             if (typeof r === 'string') { toast(r); return; }
             persist(); renderHUD();
-            toast(`🏅 ${a.name} riscattato! +${a.reward.gold}🪙 +${a.reward.xp}⭐`);
+            toastAchievement(a, r.reward); sfx('coin');
             setTab('hero');
           });
           row.appendChild(btn);
