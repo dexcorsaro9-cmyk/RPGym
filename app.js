@@ -1552,7 +1552,7 @@ function renderCamp(c) {
       /* Completa la missione una sola volta */
       HERO.firstQuestComplete = true;
       HERO.gold = (HERO.gold || 0) + 150;
-      HERO.xp   = (HERO.xp   || 0) + 100;
+      RPG.applyXp(HERO, 100);
       persist();
       toast('🏅 Missione completata! +150 🪙 +100 XP');
     } else {
@@ -4373,6 +4373,7 @@ function _openBachecaDetail(q, todayKm, claimed, done, tm) {
   const { reward } = q;
   const rr = el('div', 'bv-reward-row');
   if (reward.gold)  rr.appendChild(el('span', 'bv-rchip gold',  `🪙 ${reward.gold}`));
+  if (reward.xp)    rr.appendChild(el('span', 'bv-rchip xp',    `⭐ ${reward.xp} XP`));
   if (reward.wood)  rr.appendChild(el('span', 'bv-rchip wood',  `🪵 ${reward.wood}`));
   if (reward.stone) rr.appendChild(el('span', 'bv-rchip stone', `🪨 ${reward.stone}`));
   if (reward.consumable) {
@@ -4390,6 +4391,7 @@ function _openBachecaDetail(q, todayKm, claimed, done, tm) {
       persist(); renderHUD();
       const parts = [];
       if (reward.gold)  parts.push(`🪙 +${reward.gold}`);
+      if (reward.xp)    parts.push(`⭐ +${reward.xp} XP`);
       if (reward.wood)  parts.push(`🪵 +${reward.wood}`);
       if (reward.stone) parts.push(`🪨 +${reward.stone}`);
       if (reward.consumable) { const ci = RPG.consumableById(reward.consumable); if (ci) parts.push(`${ci.icon} ${ci.name}`); }

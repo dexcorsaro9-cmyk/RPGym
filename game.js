@@ -450,15 +450,15 @@ const RPG = (() => {
   ];
 
   const BOARD_QUEST_POOL = [
-    { tier:'commissione', km:1,   text:(n,r)=>`${n.name} ti ferma: "${r}" Non è lontano — 1 km circa.`,                              reward:{ gold:35 } },
-    { tier:'commissione', km:1.5, text:(n,r)=>`"${r}" chiede ${n.name}. Sono poco più di un km. Vai.`,                               reward:{ gold:42 } },
-    { tier:'commissione', km:2,   text:(n,r)=>`${n.name} (${n.role}) ti aspetta. "${r}" 2 km, andata e ritorno.`,                     reward:{ gold:55 } },
-    { tier:'incarico',    km:3,   text:(n,r)=>`${n.name} si avvicina con aria seria. "${r}" Ci vuole mezza mattina — 3 km circa.`,    reward:{ gold:72,  wood:3 } },
-    { tier:'incarico',    km:4,   text:(n,r)=>`"${r}" dice ${n.name}. "Porta un po' di fiato." 4 km, niente di più.`,                reward:{ gold:85,  wood:4 } },
-    { tier:'incarico',    km:5,   text:(n,r)=>`${n.name} stringe la mano. "${r}" Vale la pena. 5 km di cammino.`,                    reward:{ gold:100, wood:5 } },
-    { tier:'missione',    km:6,   text:(n,r)=>`${n.name} parla a bassa voce. "${r}" È un incarico serio. 6 km, almeno.`,             reward:{ gold:115, wood:4, stone:3 } },
-    { tier:'missione',    km:8,   text:(n,r)=>`"${r}" dice ${n.name} allungandoti qualcosa. "Fidati di me." 8 km ti aspettano.`,     reward:{ gold:132, wood:6, stone:4 } },
-    { tier:'missione',    km:10,  text:(n,r)=>`${n.name} ti guarda negli occhi. "${r}" L'incarico è grande — 10 km. Ce la fai?`,     reward:{ gold:150, wood:8, stone:5 } },
+    { tier:'commissione', km:1,   text:(n,r)=>`${n.name} ti ferma: "${r}" Non è lontano — 1 km circa.`,                              reward:{ gold:35,  xp:40  } },
+    { tier:'commissione', km:1.5, text:(n,r)=>`"${r}" chiede ${n.name}. Sono poco più di un km. Vai.`,                               reward:{ gold:42,  xp:50  } },
+    { tier:'commissione', km:2,   text:(n,r)=>`${n.name} (${n.role}) ti aspetta. "${r}" 2 km, andata e ritorno.`,                     reward:{ gold:55,  xp:65  } },
+    { tier:'incarico',    km:3,   text:(n,r)=>`${n.name} si avvicina con aria seria. "${r}" Ci vuole mezza mattina — 3 km circa.`,    reward:{ gold:72,  xp:85,  wood:3 } },
+    { tier:'incarico',    km:4,   text:(n,r)=>`"${r}" dice ${n.name}. "Porta un po' di fiato." 4 km, niente di più.`,                reward:{ gold:85,  xp:100, wood:4 } },
+    { tier:'incarico',    km:5,   text:(n,r)=>`${n.name} stringe la mano. "${r}" Vale la pena. 5 km di cammino.`,                    reward:{ gold:100, xp:120, wood:5 } },
+    { tier:'missione',    km:6,   text:(n,r)=>`${n.name} parla a bassa voce. "${r}" È un incarico serio. 6 km, almeno.`,             reward:{ gold:115, xp:140, wood:4, stone:3 } },
+    { tier:'missione',    km:8,   text:(n,r)=>`"${r}" dice ${n.name} allungandoti qualcosa. "Fidati di me." 8 km ti aspettano.`,     reward:{ gold:132, xp:170, wood:6, stone:4 } },
+    { tier:'missione',    km:10,  text:(n,r)=>`${n.name} ti guarda negli occhi. "${r}" L'incarico è grande — 10 km. Ce la fai?`,     reward:{ gold:150, xp:200, wood:8, stone:5 } },
   ];
 
   const _BOARD_CONS_DROP = {
@@ -513,6 +513,7 @@ const RPG = (() => {
     if (board.claimed.includes(questId)) return 'Già riscattata.';
     board.claimed.push(questId);
     if (q.reward.gold)  hero.gold += q.reward.gold;
+    if (q.reward.xp)    applyXp(hero, q.reward.xp);
     if (q.reward.wood)  hero.resources.wood  = (hero.resources.wood  || 0) + q.reward.wood;
     if (q.reward.stone) hero.resources.stone = (hero.resources.stone || 0) + q.reward.stone;
     if (q.reward.consumable) addConsumable(hero, q.reward.consumable);
