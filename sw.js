@@ -5,7 +5,7 @@
 
 
 
-const CACHE = "heropace-v440";
+const CACHE = "heropace-v441";
 const NOTIF_CACHE = 'heropace-notif-v1'; // stato notifiche (non cancellare mai)
 
 /* File locali per fallback offline */
@@ -178,7 +178,16 @@ async function doSmartNotifCheck() {
     );
   }
 
-  /* ④ Famiglio — fame o umore bassi */
+  /* ④ Bacheca del Viandante — missioni claimable in scadenza (dopo le 21:00) */
+  if (hour >= 21 && state.boardClaimable > 0) {
+    await showNotifSW(
+      '📜 Missioni Bacheca in scadenza!',
+      `Hai ${state.boardClaimable} missione${state.boardClaimable > 1 ? 'i' : ''} completata${state.boardClaimable > 1 ? 'e' : ''} da riscuotere — reset a mezzanotte!`,
+      'board_claimable_' + today
+    );
+  }
+
+  /* ⑤ Famiglio — fame o umore bassi */
   if (state.petName && state.petHunger !== null && state.petHunger < 30) {
     await showNotifSW(
       `🍖 ${state.petName} ha fame!`,
