@@ -8789,14 +8789,32 @@ img.fiche-inline {
 
 /* Header banner */
 .antro-header-banner {
+  position: relative;
   background: linear-gradient(135deg, #0a0814 0%, #1a1030 45%, #0d0a1a 100%);
   border-bottom: 1px solid rgba(196,168,42,.25);
-  padding: 1.5rem 1rem 1.1rem;
+  overflow: hidden;
   text-align: center;
 }
 .antro-unlocked .antro-header-banner {
   background: linear-gradient(135deg, #0a0814 0%, #1e1545 40%, #2a1a55 60%, #0a0814 100%);
   border-bottom-color: rgba(196,168,42,.45);
+}
+.antro-header-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  opacity: .35;
+  pointer-events: none;
+}
+.antro-unlocked .antro-header-img { opacity: .55; }
+.antro-header-overlay {
+  position: relative;
+  z-index: 1;
+  padding: 1.5rem 1rem 1.1rem;
+  background: linear-gradient(to bottom, rgba(10,8,20,.45) 0%, rgba(10,8,20,.1) 60%, rgba(10,8,20,.7) 100%);
 }
 .antro-header-ornament {
   font-size: .65rem;
@@ -8918,6 +8936,19 @@ img.fiche-inline {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.antro-row-next .antro-row-desc {
+  white-space: normal;
+  color: rgba(251,191,36,.55);
+}
+.antro-row-quote {
+  display: block;
+  font-size: .63rem;
+  font-style: italic;
+  color: rgba(196,168,42,.6);
+  margin-top: 2px;
+  white-space: normal;
+  line-height: 1.3;
 }
 .antro-row-badge {
   font-size: .6rem;
