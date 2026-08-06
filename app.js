@@ -8526,6 +8526,9 @@ function sfx(kind) {
    funzionalità come l'Arena rotte per tutta la sessione. */
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
+  /* Quando un nuovo SW prende il controllo (skipWaiting + clients.claim)
+     ricarica la pagina per caricare il codice aggiornato. */
+  navigator.serviceWorker.addEventListener('controllerchange', () => location.reload());
 }
 
 function runSplash(done) {
