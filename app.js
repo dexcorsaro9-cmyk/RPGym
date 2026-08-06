@@ -5334,109 +5334,109 @@ function renderCartomanteView(c) {
   c.appendChild(lr);
 }
 
-/* ── Ruota del Fato — Canvas ── */
-function _drawWheel(canvas, angleDeg, landedIdx, frameImg) {
-  const ctx = canvas.getContext('2d');
-  const dpr = canvas._dpr || 1;
-  const S   = canvas.width / dpr;
-  const cx  = S / 2, cy = S / 2, R = S / 2 - 5;
-  const sectors = RPG.RUOTA_SECTORS;
-  const total   = sectors.reduce((s, x) => s + x.weight, 0);
-
-  ctx.globalAlpha = 1;
-  ctx.globalCompositeOperation = 'source-over';
-  ctx.clearRect(0, 0, S, S);
-  ctx.fillStyle = '#050010';
-  ctx.fillRect(0, 0, S, S);
-
-  // Clip tutto al cerchio
-  ctx.save();
-  ctx.beginPath(); ctx.arc(cx, cy, R + 2, 0, Math.PI * 2); ctx.clip();
-
-  // Background radiale
-  const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, R + 5);
-  bg.addColorStop(0,    '#1e0845');
-  bg.addColorStop(0.75, '#0d0128');
-  bg.addColorStop(1,    '#050010');
-  ctx.beginPath(); ctx.arc(cx, cy, R + 5, 0, Math.PI * 2);
-  ctx.fillStyle = bg; ctx.fill();
-
-  const offsetRad = angleDeg * Math.PI / 180 - Math.PI / 2;
-  let cumRad = offsetRad;
-  const innerR = R - 16;
-
-  sectors.forEach((sector, i) => {
-    const sliceRad = (sector.weight / total) * Math.PI * 2;
-    const endRad   = cumRad + sliceRad;
-    const landed   = i === landedIdx;
-
-    ctx.beginPath(); ctx.moveTo(cx, cy);
-    ctx.arc(cx, cy, innerR, cumRad, endRad); ctx.closePath();
-    ctx.fillStyle = sector.color; ctx.fill();
-    if (landed) {
-      ctx.beginPath(); ctx.moveTo(cx, cy);
-      ctx.arc(cx, cy, innerR, cumRad, endRad); ctx.closePath();
-      ctx.fillStyle = 'rgba(255,255,255,0.2)'; ctx.fill();
-    }
-
-    ctx.beginPath(); ctx.moveTo(cx, cy);
-    ctx.lineTo(cx + innerR * Math.cos(cumRad), cy + innerR * Math.sin(cumRad));
-    ctx.strokeStyle = 'rgba(255,215,80,0.45)'; ctx.lineWidth = 1.2; ctx.stroke();
-
-    const midRad = cumRad + sliceRad / 2;
-    const lr     = innerR * 0.62;
-    ctx.save();
-    ctx.translate(cx + lr * Math.cos(midRad), cy + lr * Math.sin(midRad));
-    ctx.rotate(midRad + Math.PI / 2);
-    ctx.shadowColor = '#000'; ctx.shadowBlur = 4;
-    ctx.fillStyle = landed ? '#fff' : 'rgba(235,220,190,0.92)';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    const parts = sector.label.split(' ');
-    ctx.font = '13px serif';
-    ctx.fillText(parts[0], 0, parts[1] ? -8 : 0);
-    if (parts[1]) {
-      ctx.font = 'bold 9px system-ui, sans-serif';
-      ctx.fillText(parts.slice(1).join(' '), 0, 7);
-    }
-    ctx.restore();
-    cumRad = endRad;
-  });
-
-  ctx.beginPath(); ctx.arc(cx, cy, R,       0, Math.PI * 2);
-  ctx.strokeStyle = 'rgba(232,182,76,0.92)'; ctx.lineWidth = 5; ctx.stroke();
-  ctx.beginPath(); ctx.arc(cx, cy, R - 9,   0, Math.PI * 2);
-  ctx.strokeStyle = 'rgba(200,150,50,0.4)';  ctx.lineWidth = 1.5; ctx.stroke();
-  ctx.beginPath(); ctx.arc(cx, cy, innerR,  0, Math.PI * 2);
-  ctx.strokeStyle = 'rgba(255,215,80,0.3)';  ctx.lineWidth = 1;   ctx.stroke();
-
-  const hg = ctx.createRadialGradient(cx, cy, 2, cx, cy, 22);
-  hg.addColorStop(0, '#3d1f08'); hg.addColorStop(1, '#150600');
-  ctx.beginPath(); ctx.arc(cx, cy, 22, 0, Math.PI * 2);
-  ctx.fillStyle = hg; ctx.fill();
-  ctx.strokeStyle = 'rgba(232,182,76,0.95)'; ctx.lineWidth = 2.5; ctx.stroke();
-
-  ctx.font = '16px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#f0b030'; ctx.shadowColor = 'rgba(240,176,48,0.8)'; ctx.shadowBlur = 10;
-  ctx.fillText('✦', cx, cy); ctx.shadowBlur = 0;
-
-  ctx.restore(); // end circular clip
-
-  /* Sovrapponi il frame decorativo direttamente sul canvas (evita il checkerboard
-     che appare quando pixel trasparenti del WebP mostrano lo sfondo della pagina) */
-  if (frameImg) {
-    const fw = 440, fOff = (fw - S) / 2;
-    ctx.drawImage(frameImg, -fOff, -fOff, fw, fw);
-  }
+/* ── Ruota del Fato — SVG (nessun canvas, nessun checkerboard su iOS Safari) ── */
+function _makeSectorPath(cx, cy, r, startDeg, endDeg) {
+  const s = startDeg * Math.PI / 180, e = endDeg * Math.PI / 180;
+  const x1 = cx + r * Math.cos(s), y1 = cy + r * Math.sin(s);
+  const x2 = cx + r * Math.cos(e), y2 = cy + r * Math.sin(e);
+  return `M${cx},${cy}L${x1},${y1}A${r},${r},0,${(endDeg - startDeg) > 180 ? 1 : 0},1,${x2},${y2}Z`;
 }
 
-function _makeCanvas(size) {
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  const cv  = document.createElement('canvas');
-  cv.width  = size * dpr; cv.height = size * dpr;
-  cv.style.width = size + 'px'; cv.style.height = size + 'px';
-  cv._dpr   = dpr;
-  cv.getContext('2d', { alpha: false }).scale(dpr, dpr);
-  return cv;
+function _buildWheelSVG(size) {
+  const NS = 'http://www.w3.org/2000/svg';
+  const cx = size / 2, cy = size / 2;
+  const R = cx - 5, innerR = R - 16;
+  const sectors = RPG.RUOTA_SECTORS;
+  const total = sectors.reduce((s, x) => s + x.weight, 0);
+
+  function svgEl(tag, attrs) {
+    const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    return e;
+  }
+
+  const svg = svgEl('svg', { viewBox: `0 0 ${size} ${size}`, width: size, height: size });
+  svg.classList.add('ruota-svg');
+
+  const defs = svgEl('defs', {});
+  const bgG = svgEl('radialGradient', { id: 'rwbg' });
+  [['0%','#1e0845'],['75%','#0d0128'],['100%','#050010']].forEach(([o,c]) => {
+    bgG.appendChild(svgEl('stop', { offset: o, 'stop-color': c }));
+  });
+  defs.appendChild(bgG);
+  const hubG = svgEl('radialGradient', { id: 'rwhub' });
+  [['0%','#3d1f08'],['100%','#150600']].forEach(([o,c]) => {
+    hubG.appendChild(svgEl('stop', { offset: o, 'stop-color': c }));
+  });
+  defs.appendChild(hubG);
+  svg.appendChild(defs);
+
+  svg.appendChild(svgEl('circle', { cx, cy, r: R + 2, fill: 'url(#rwbg)' }));
+
+  const g = svgEl('g', { id: 'rwg', transform: `rotate(0,${cx},${cy})` });
+  svg.appendChild(g);
+
+  let cumAngle = -90;
+  sectors.forEach((sector, i) => {
+    const sliceDeg = (sector.weight / total) * 360;
+    const endAngle = cumAngle + sliceDeg;
+    g.appendChild(svgEl('path', {
+      d: _makeSectorPath(cx, cy, innerR, cumAngle, endAngle),
+      fill: sector.color, 'data-idx': i
+    }));
+    const lrad = cumAngle * Math.PI / 180;
+    g.appendChild(svgEl('line', {
+      x1: cx, y1: cy,
+      x2: cx + innerR * Math.cos(lrad), y2: cy + innerR * Math.sin(lrad),
+      stroke: 'rgba(255,215,80,0.45)', 'stroke-width': '1.2'
+    }));
+    const midAngle = cumAngle + sliceDeg / 2;
+    const mrad = midAngle * Math.PI / 180;
+    const tg = svgEl('g', {
+      transform: `translate(${cx + innerR * 0.62 * Math.cos(mrad)},${cy + innerR * 0.62 * Math.sin(mrad)}) rotate(${midAngle + 90})`
+    });
+    const parts = sector.label.split(' ');
+    const t1 = svgEl('text', { 'text-anchor': 'middle', 'dominant-baseline': 'middle', 'font-family': 'serif', 'font-size': '13', fill: 'rgba(235,220,190,0.92)', y: parts[1] ? '-8' : '0' });
+    t1.textContent = parts[0];
+    tg.appendChild(t1);
+    if (parts[1]) {
+      const t2 = svgEl('text', { 'text-anchor': 'middle', 'dominant-baseline': 'middle', 'font-family': 'system-ui,sans-serif', 'font-weight': 'bold', 'font-size': '9', fill: 'rgba(235,220,190,0.92)', y: '7' });
+      t2.textContent = parts.slice(1).join(' ');
+      tg.appendChild(t2);
+    }
+    g.appendChild(tg);
+    cumAngle = endAngle;
+  });
+
+  const hl = svgEl('path', { fill: 'rgba(255,255,255,0.2)', display: 'none' });
+  g.appendChild(hl);
+
+  [[R,'rgba(232,182,76,0.92)','5'],[R-9,'rgba(200,150,50,0.4)','1.5'],[innerR,'rgba(255,215,80,0.3)','1']]
+    .forEach(([r,stroke,sw]) => svg.appendChild(svgEl('circle', { cx, cy, r, fill: 'none', stroke, 'stroke-width': sw })));
+
+  svg.appendChild(svgEl('circle', { cx, cy, r: 22, fill: 'url(#rwhub)', stroke: 'rgba(232,182,76,0.95)', 'stroke-width': '2.5' }));
+  const ht = svgEl('text', { x: cx, y: cy, 'text-anchor': 'middle', 'dominant-baseline': 'middle', 'font-family': 'serif', 'font-size': '16', fill: '#f0b030' });
+  ht.textContent = '✦';
+  svg.appendChild(ht);
+
+  svg._sg = g; svg._hl = hl;
+  svg._cx = cx; svg._cy = cy; svg._innerR = innerR;
+  return svg;
+}
+
+function _setWheelAngle(svg, angleDeg, landedIdx) {
+  svg._sg.setAttribute('transform', `rotate(${angleDeg},${svg._cx},${svg._cy})`);
+  if (landedIdx >= 0) {
+    const sectors = RPG.RUOTA_SECTORS;
+    const total = sectors.reduce((s, x) => s + x.weight, 0);
+    let a = -90;
+    for (let i = 0; i < landedIdx; i++) a += (sectors[i].weight / total) * 360;
+    const slice = (sectors[landedIdx].weight / total) * 360;
+    svg._hl.setAttribute('d', _makeSectorPath(svg._cx, svg._cy, svg._innerR, a, a + slice));
+    svg._hl.removeAttribute('display');
+  } else {
+    svg._hl.setAttribute('display', 'none');
+  }
 }
 
 function renderRuotaView(c) {
@@ -5455,24 +5455,17 @@ function renderRuotaView(c) {
   const pointer   = el('div', 'ruota-pointer');
   outerWrap.appendChild(pointer);
   const wheelWrap = el('div', 'ruota-canvas-wrap');
-  const canvas = _makeCanvas(300);
-  canvas.className = 'ruota-canvas';
-  wheelWrap.appendChild(canvas);
+  const wsvg = _buildWheelSVG(300);
+  wheelWrap.appendChild(wsvg);
+  const frameOverlay = el('img', 'ruota-frame-overlay');
+  frameOverlay.src = 'assets/cartomante/ruota-frame.webp';
+  frameOverlay.alt = '';
+  wheelWrap.appendChild(frameOverlay);
   outerWrap.appendChild(wheelWrap);
   c.appendChild(outerWrap);
 
-  /* Carica il frame sul canvas invece che come overlay DOM,
-     per evitare che pixel trasparenti del WebP mostrino lo sfondo della pagina */
-  let _wheelFrame = null;
-  const _fi = new Image();
-  _fi.onload = () => {
-    _wheelFrame = _fi;
-    if (!rafId) _drawWheel(canvas, currentAngle, -1, _wheelFrame);
-  };
-  _fi.src = 'assets/cartomante/ruota-frame.webp';
-
   let currentAngle = 0, rafId = null;
-  _drawWheel(canvas, currentAngle, -1, null);
+  _setWheelAngle(wsvg, currentAngle, -1);
 
   const resultArea = el('div', 'ruota-result-area'); resultArea.id = 'ruota-result';
   c.appendChild(resultArea);
@@ -5510,10 +5503,10 @@ function renderRuotaView(c) {
       const t      = Math.min((now - t0) / duration, 1);
       const eased  = 1 - Math.pow(1 - t, 4);
       currentAngle = startAngle + spinAmount * eased;
-      _drawWheel(canvas, currentAngle, -1, _wheelFrame);
+      _setWheelAngle(wsvg, currentAngle, -1);
       if (t < 1) { rafId = requestAnimationFrame(animate); return; }
       rafId = null;
-      _drawWheel(canvas, currentAngle, res.idx, _wheelFrame);
+      _setWheelAngle(wsvg, currentAngle, res.idx);
 
       const rw = res.reward;
       let rewardText = '';
