@@ -5315,7 +5315,7 @@ img.fiche-inline {
 }
 
 /* ── Classifica ──────────────────────────────── */
-.lb-list { display: flex; flex-direction: column; gap: .25rem; }
+.lb-list { display: flex; flex-direction: column; gap: .25rem; max-height: 420px; overflow-y: auto; padding-right: 2px; }
 .lb-loading {
   text-align: center;
   font-size: .85rem;
