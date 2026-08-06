@@ -2655,9 +2655,8 @@ function renderMap(c) {
       btn.addEventListener('click', () => {
         const err = RPG.claimDailyPotion(HERO);
         if (err) { toast(err); return; }
-        persist(); renderHUD();
+        persist(); render();
         vibrate([60, 30, 100]);
-        setTab('camp');
       });
       pp.appendChild(btn);
     }
