@@ -8181,9 +8181,10 @@ img.fiche-inline {
 .bv-board-title {
   text-align: center;
   font-family: 'Cinzel', serif;
-  font-size: .9rem;
+  font-size: .75rem;
   font-weight: 700;
-  letter-spacing: .2em;
+  letter-spacing: .1em;
+  white-space: nowrap;
   color: #c8922a;
   text-shadow: 0 0 24px rgba(200,146,42,.5), 0 1px 4px rgba(0,0,0,.9);
 }
@@ -8348,6 +8349,7 @@ img.fiche-inline {
   color: #221008;
   background-image: url('assets/npcs/ritratti.webp');
   background-size: 700% 400%;
+  background-repeat: no-repeat;
   background-position: calc(var(--sc, 0) * 100% / 6) calc(var(--sr, 0) * 100% / 3);
 }
 .bv-npc-name {

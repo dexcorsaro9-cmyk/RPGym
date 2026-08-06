@@ -4075,12 +4075,12 @@ const _TIER_META = {
   incarico: {
     label:'Incarico', color:'#5888c8', glow:'rgba(88,136,200,.45)',
     parch:'linear-gradient(168deg,#e8c878 0%,#d8ae58 22%,#c49038 58%,#c8a040 100%)',
-    ink:'#1e3870', seal:'radial-gradient(circle at 38% 35%,#3060b0,#0e1e50)', sealIcon:'⚔',
+    ink:'#0e2250', seal:'radial-gradient(circle at 38% 35%,#3060b0,#0e1e50)', sealIcon:'⚔',
   },
   missione: {
     label:'Missione', color:'#8858c8', glow:'rgba(136,88,200,.45)',
     parch:'linear-gradient(155deg,#d4a858 0%,#c09038 22%,#a87828 58%,#aa8028 100%)',
-    ink:'#420f68', seal:'radial-gradient(circle at 38% 35%,#8830c0,#2a0848)', sealIcon:'✦',
+    ink:'#2a0848', seal:'radial-gradient(circle at 38% 35%,#8830c0,#2a0848)', sealIcon:'✦',
   },
 };
 
