@@ -2,7 +2,8 @@
   "type": "module",
   "scripts": {
     "build": "node build.js",
-    "dev": "python3 -m http.server 7890"
+    "dev": "python3 -m http.server 7890",
+    "test": "node tests/run.cjs"
   },
   "dependencies": {
     "playwright": "^1.62.1"
