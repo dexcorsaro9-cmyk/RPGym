@@ -4067,53 +4067,138 @@ function renderDailyChallenges(c) {
 
 /* ── Bacheca del Viandante ── */
 const _TIER_META = {
-  commissione: { label:'Commissione', color:'#a07840', glow:'rgba(160,120,64,.45)' },
-  incarico:    { label:'Incarico',    color:'#5888c8', glow:'rgba(88,136,200,.45)' },
-  missione:    { label:'Missione',    color:'#8858c8', glow:'rgba(136,88,200,.45)' },
+  commissione: {
+    label:'Commissione', color:'#a07840', glow:'rgba(160,120,64,.45)',
+    parch:'linear-gradient(162deg,#f2e096 0%,#e8c870 22%,#d4a850 58%,#d4a848 100%)',
+    ink:'#6e3e0a', seal:'radial-gradient(circle at 38% 35%,#c07820,#6a3a0a)', sealIcon:'⚜',
+  },
+  incarico: {
+    label:'Incarico', color:'#5888c8', glow:'rgba(88,136,200,.45)',
+    parch:'linear-gradient(168deg,#e8c878 0%,#d8ae58 22%,#c49038 58%,#c8a040 100%)',
+    ink:'#1e3870', seal:'radial-gradient(circle at 38% 35%,#3060b0,#0e1e50)', sealIcon:'⚔',
+  },
+  missione: {
+    label:'Missione', color:'#8858c8', glow:'rgba(136,88,200,.45)',
+    parch:'linear-gradient(155deg,#d4a858 0%,#c09038 22%,#a87828 58%,#aa8028 100%)',
+    ink:'#420f68', seal:'radial-gradient(circle at 38% 35%,#8830c0,#2a0848)', sealIcon:'✦',
+  },
 };
+
+/* ── Wood grain canvas for board ── */
+function _bachecaRng(seed) {
+  let s = Math.abs(seed) || 1;
+  return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
+}
+function _drawBachecaWood(cvs) {
+  const w = cvs.width, h = cvs.height;
+  const ctx = cvs.getContext('2d');
+  const rng = _bachecaRng(8317);
+  const base = ctx.createLinearGradient(0, 0, w, h);
+  base.addColorStop(0,'#2e1508'); base.addColorStop(.35,'#241005');
+  base.addColorStop(.65,'#261206'); base.addColorStop(1,'#301508');
+  ctx.fillStyle = base; ctx.fillRect(0, 0, w, h);
+  for (let i = 0; i < 10; i++) {
+    const y0 = rng() * h, bh = 15 + rng() * 50;
+    const bg = ctx.createLinearGradient(0, y0 - bh/2, 0, y0 + bh/2);
+    const lum = 0.02 + rng() * 0.05;
+    bg.addColorStop(0,'rgba(0,0,0,0)');
+    bg.addColorStop(.5,`rgba(${Math.round(55+rng()*40)},${Math.round(25+rng()*18)},6,${lum})`);
+    bg.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle = bg; ctx.fillRect(0, y0 - bh/2, w, bh);
+  }
+  for (let y = 0; y < h; y += 1.2) {
+    const isLight = rng() > .45, a = .012 + rng() * .048;
+    ctx.strokeStyle = isLight ? `rgba(95,52,12,${a})` : `rgba(4,1,0,${a*.8})`;
+    ctx.lineWidth = .5 + rng() * 1.2; ctx.beginPath();
+    let x = 0, cy = y + (rng()-.5)*2; ctx.moveTo(0, cy);
+    while (x < w) { const dx = 25+rng()*55, dy=(rng()-.5)*3; ctx.quadraticCurveTo(x+dx*.45,cy+dy,x+dx,cy+(rng()-.5)*2); x+=dx; }
+    ctx.stroke();
+  }
+  for (let i = 0; i < 25; i++) {
+    const y = rng() * h;
+    ctx.strokeStyle = `rgba(6,2,0,${.1+rng()*.22})`; ctx.lineWidth = .8 + rng() * 3;
+    ctx.beginPath(); ctx.moveTo(0, y);
+    let x = 0, cy = y;
+    while (x < w) { const dx=35+rng()*75,dy=(rng()-.5)*5; ctx.quadraticCurveTo(x+dx*.4,cy+dy,x+dx,cy+(rng()-.5)*3); x+=dx; }
+    ctx.stroke();
+  }
+  for (let i = 1; i <= 3; i++) {
+    const y = Math.round(h * i / 4);
+    ctx.strokeStyle='rgba(0,0,0,.28)'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke();
+  }
+  const _kn = (kx, ky, r, a) => {
+    const g = ctx.createRadialGradient(kx-r*.25,ky-r*.2,r*.08,kx,ky,r);
+    g.addColorStop(0,`rgba(6,2,0,${a})`); g.addColorStop(.55,`rgba(12,4,0,${a*.55})`); g.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.ellipse(kx,ky,r,r*.68,.18,0,Math.PI*2); ctx.fill();
+  };
+  _kn(w*.77, h*.67, 20, .18); _kn(w*.09, h*.3, 11, .13);
+  const vg = ctx.createRadialGradient(w/2,h/2,Math.min(w,h)*.3,w/2,h/2,Math.max(w,h)*.75);
+  vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,.55)');
+  ctx.fillStyle=vg; ctx.fillRect(0,0,w,h);
+  const tg = ctx.createRadialGradient(w*.5,h*(-.1),0,w*.5,h*.4,w*.65);
+  tg.addColorStop(0,'rgba(200,105,20,.09)'); tg.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=tg; ctx.fillRect(0,0,w,h);
+}
 
 function renderBacheca(c, todayKm) {
   RPG.generateDailyBoard(HERO);
   const board = HERO.board;
   if (!board) return;
 
-  const panel = el('div', 'panel bacheca-panel');
-  const hRow = el('div', 'bacheca-header-row');
-  hRow.innerHTML = `<h3 class="panel-title bacheca-title">📋 Bacheca del Viandante</h3>
-    <span class="bacheca-reset muted small">Reset a mezzanotte</span>`;
-  panel.appendChild(hRow);
+  const wrap = el('div', 'bacheca-wrap');
 
+  // Canvas — wood grain background
+  const cvs = document.createElement('canvas');
+  cvs.className = 'bacheca-wood';
+  wrap.appendChild(cvs);
+
+  // Top beam
+  const beam = el('div', 'bacheca-beam');
+  beam.innerHTML = `
+    <div class="bacheca-beam-bolt"></div>
+    <div class="bacheca-beam-center">
+      <div class="bacheca-beam-title">📋 Bacheca del Viandante</div>
+      <div class="bacheca-beam-sub">✦ Oakhaven ✦</div>
+    </div>
+    <div class="bacheca-beam-bolt"></div>`;
+  wrap.appendChild(beam);
+
+  // Parchment scrolls
+  const scrollsEl = el('div', 'bacheca-scrolls');
   board.quests.forEach(q => {
     const claimed = board.claimed.includes(q.id);
     const progress = Math.min(1, todayKm / q.km);
     const done = todayKm >= q.km;
     const tm = _TIER_META[q.tier];
 
-    const card = el('div', `bacheca-card${claimed ? ' bq-claimed' : done ? ' bq-done' : ''}`);
-    card.style.setProperty('--bq-color', tm.color);
-    card.style.setProperty('--bq-glow', tm.glow);
+    const scroll = el('div', `bacheca-scroll${claimed ? ' bq-claimed' : done ? ' bq-done' : ''}`);
+    scroll.style.setProperty('--parch', tm.parch);
+    scroll.style.setProperty('--bq-ink', tm.ink);
+    scroll.style.setProperty('--bq-color', tm.color);
+    scroll.style.setProperty('--bq-glow', tm.glow);
 
-    // NPC header
+    scroll.appendChild(el('div', 'bq-nail'));
+    scroll.appendChild(el('span', 'bq-tier-badge', tm.label.toUpperCase()));
+
     const npcRow = el('div', 'bq-npc-row');
-    npcRow.innerHTML = `<span class="bq-npc-icon">${q.npc.icon}</span>
-      <span class="bq-npc-name">${esc(q.npc.name)}</span>
-      <span class="bq-tier-chip">${tm.label}</span>`;
-    card.appendChild(npcRow);
+    npcRow.innerHTML = `<span class="bq-npc-icon">${q.npc.icon}</span><span class="bq-npc-name">${esc(q.npc.name)}</span>`;
+    scroll.appendChild(npcRow);
 
-    // Quest text
-    card.appendChild(el('p', 'bq-text', q.text));
+    const rule = document.createElement('hr');
+    rule.className = 'bq-rule';
+    scroll.appendChild(rule);
 
-    // Progress bar
+    scroll.appendChild(el('p', 'bq-text', q.text));
+
     const barWrap = el('div', 'bq-bar-wrap');
     const barFill = el('div', 'bq-bar-fill');
     barFill.style.width = `${Math.round(progress * 100)}%`;
     barWrap.appendChild(barFill);
-    const barLabel = el('span', 'bq-bar-label',
-      claimed ? '✓ Completata' : `${Math.min(todayKm, q.km).toFixed(1)} / ${q.km} km`);
-    card.appendChild(barWrap);
-    card.appendChild(barLabel);
+    scroll.appendChild(barWrap);
+    scroll.appendChild(el('span', 'bq-bar-label',
+      claimed ? '✓ Completata' : `${Math.min(todayKm, q.km).toFixed(1)} / ${q.km} km`));
 
-    // Reward row
     const rr = el('div', 'bq-reward-row');
     const { reward } = q;
     if (reward.gold)  rr.appendChild(el('span', 'bq-reward-chip gold',  `🪙 ${reward.gold}`));
@@ -4123,11 +4208,10 @@ function renderBacheca(c, todayKm) {
       const ci = RPG.consumableById(reward.consumable);
       if (ci) rr.appendChild(el('span', 'bq-reward-chip item', `${ci.icon} ${esc(ci.name)}`));
     }
-    card.appendChild(rr);
+    scroll.appendChild(rr);
 
-    // Claim button
     if (done && !claimed) {
-      const btn = el('button', 'btn btn-primary bq-claim-btn', '⚔️ Riscuoti ricompensa');
+      const btn = el('button', 'btn btn-primary bq-claim-btn', '⚔️ Riscuoti');
       btn.addEventListener('click', () => {
         const err = RPG.claimBoardReward(HERO, q.id);
         if (err) { toast(err); return; }
@@ -4136,21 +4220,35 @@ function renderBacheca(c, todayKm) {
         if (reward.gold)  parts.push(`🪙 +${reward.gold}`);
         if (reward.wood)  parts.push(`🪵 +${reward.wood}`);
         if (reward.stone) parts.push(`🪨 +${reward.stone}`);
-        if (reward.consumable) {
-          const ci = RPG.consumableById(reward.consumable);
-          if (ci) parts.push(`${ci.icon} ${ci.name}`);
-        }
+        if (reward.consumable) { const ci = RPG.consumableById(reward.consumable); if (ci) parts.push(`${ci.icon} ${ci.name}`); }
         toast(`${q.npc.icon} Missione di ${q.npc.name} completata! ${parts.join(' · ')}`);
         vibrate([60, 40, 100]);
         setTab('train');
       });
-      card.appendChild(btn);
+      scroll.appendChild(btn);
     }
 
-    panel.appendChild(card);
-  });
+    const seal = el('div', 'bq-wax-seal', tm.sealIcon);
+    seal.style.background = tm.seal;
+    scroll.appendChild(seal);
 
-  c.appendChild(panel);
+    scrollsEl.appendChild(scroll);
+  });
+  wrap.appendChild(scrollsEl);
+
+  // Bottom plank
+  const plank = el('div', 'bacheca-plank');
+  plank.innerHTML = '<span>✦ &ensp; Le missioni si rinnovano ogni notte &ensp; ✦</span>';
+  wrap.appendChild(plank);
+
+  c.appendChild(wrap);
+
+  // Draw wood grain after layout is in DOM
+  requestAnimationFrame(() => {
+    cvs.width = wrap.offsetWidth;
+    cvs.height = wrap.offsetHeight;
+    if (cvs.width > 0 && cvs.height > 0) _drawBachecaWood(cvs);
+  });
 }
 
 function renderTrain(c) {
