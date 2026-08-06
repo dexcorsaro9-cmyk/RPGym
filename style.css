@@ -7426,6 +7426,7 @@ img.fiche-inline {
   position: absolute; top: 0; left: 0;
   z-index: 1;
   background: #050010;
+  will-change: transform;
   box-shadow:
     0 0 0 3px rgba(232,182,76,0.28),
     0 0 32px rgba(120,40,200,0.6),
