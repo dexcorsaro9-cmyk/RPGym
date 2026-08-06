@@ -4141,6 +4141,36 @@ function _drawBachecaWood(cvs) {
   ctx.fillStyle=tg; ctx.fillRect(0,0,w,h);
 }
 
+// sprite sheet: 7 cols × 4 rows (ritratti.webp), [col, row] per NPC
+const NPC_SPRITE = {
+  'Miro il Mercante':         [0,0],
+  'Syl l\'Archivista':        [1,0],
+  'Gareth la Guardia':        [2,0],
+  'Netta la Droghiera':       [3,0],
+  'Bram il Fabbro':           [4,0],
+  'Rowan l\'Esploratore':     [6,0],
+  'Lira la Guaritrice':       [0,1],
+  'Odo il Taverniere':        [1,1],
+  'Finn il Pescatore':        [2,1],
+  'Tara la Tessitrice':       [3,1],
+  'Dax il Contrabbandiere':   [4,1],
+  'Orn il Botanico':          [6,1],
+  'Petra la Contadina':       [0,2],
+  'Sig il Giocoliere':        [1,2],
+  'Vex lo Stregone':          [2,2],
+  'Dane il Cacciatore':       [3,2],
+  'Clem il Cursore':          [4,2],
+  'Kira l\'Addestratrice':    [5,2],
+  'Zia Marta':                [6,2],
+  'Il Fantasma del Crocevia': [0,3],
+  'Mab la Strega':            [1,3],
+  'Hob il Goblin':            [2,3],
+  'Baldo il Minatore':        [3,3],
+  'Ylla la Cantora':          [4,3],
+  'Il Biscazziere':           [5,3],
+  'Ria la Cartografa':        [6,3],
+};
+
 function renderBacheca(c, todayKm) {
   RPG.generateDailyBoard(HERO);
   const board = HERO.board;
@@ -4189,15 +4219,11 @@ function renderBacheca(c, todayKm) {
     body.appendChild(el('span', 'bv-tier-badge', q.tier.toUpperCase()));
 
     const npcRow = el('div', 'bv-npc-row');
-    const avatar = el('div', 'bv-npc-avatar');
-    if (q.npc.img) {
-      const img = document.createElement('img');
-      img.src = `assets/npcs/${q.npc.img}.webp`;
-      img.alt = q.npc.name;
-      img.onerror = () => { img.remove(); avatar.textContent = q.npc.icon; };
-      avatar.appendChild(img);
-    } else {
-      avatar.textContent = q.npc.icon;
+    const sp = NPC_SPRITE[q.npc.name];
+    const avatar = el('div', 'bv-npc-avatar', sp ? '' : q.npc.icon);
+    if (sp) {
+      avatar.style.setProperty('--sc', sp[0]);
+      avatar.style.setProperty('--sr', sp[1]);
     }
     npcRow.appendChild(avatar);
     npcRow.appendChild(el('span', 'bv-npc-name', esc(q.npc.name)));
