@@ -292,9 +292,10 @@ function openArcheryGame() {
         _mgRAF = requestAnimationFrame(tick);
       } else {
         const gold = Math.round(totalScore * MG_B.archery.goldPerPt);
-        mgGiveReward({ gold });
+        const xp = Math.round(totalScore * 0.6);
+        mgGiveReward({ gold, xp });
         mgRecord('archery');
-        resEl.innerHTML = mgRewardHTML({ gold }, `Punteggio: ${totalScore} / 90`, totalScore >= 70 ? '🏆 Leggendario!' : totalScore >= 40 ? '⭐ Buona mira!' : 'Continua ad allenarti');
+        resEl.innerHTML = mgRewardHTML({ gold, xp }, `Punteggio: ${totalScore} / 90`, totalScore >= 70 ? '🏆 Leggendario!' : totalScore >= 40 ? '⭐ Buona mira!' : 'Continua ad allenarti');
         resEl.classList.add('mg-res-in'); closeBtn.classList.remove('hidden');
         hint.style.display = 'none';
       }

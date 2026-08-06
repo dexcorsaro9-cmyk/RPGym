@@ -277,7 +277,7 @@ function endBattle(heroWon) {
         <button class="chest-btn" id="btn-open-chest"><img src="assets/ui/chest.svg" alt="scrigno"></button>
         <p class="small muted center">Tocca lo scrigno per aprirlo</p>
       </div>`);
-      document.getElementById('btn-open-chest').addEventListener('click', openChest);
+      document.getElementById('btn-open-chest')?.addEventListener('click', openChest);
     }, 1500);
   } else {
     const shieldChest = (b.v.boss && HERO.consumableBuffs?.bossShield)
@@ -297,7 +297,7 @@ function endBattle(heroWon) {
           <button class="chest-btn" id="btn-open-chest"><img src="assets/ui/chest.svg" alt="scrigno"></button>
           <p class="small muted center">Tocca lo scrigno per aprirlo</p>
         </div>`);
-        document.getElementById('btn-open-chest').addEventListener('click', openChest);
+        document.getElementById('btn-open-chest')?.addEventListener('click', openChest);
       } else {
         modal(`<h3 class="panel-title center">💀 Sconfitta</h3>
           <p class="center">${esc(b.v.name)} ha avuto la meglio, stavolta.</p>
@@ -361,7 +361,7 @@ function showDungeonEncounter() {
   const scenario = RPG.dungeonGetScenario(HERO);
   const fig = enemy.id === 'cavaliere-drago'
     ? '<div class="denc-enemy-emoji">🐉</div>'
-    : `<img class="denc-enemy-img" src="assets/bestiario/${enemy.id}.png" onerror="this.style.display='none'">`;
+    : `<img class="denc-enemy-img" src="assets/bestiario/${enemy.id}.webp" onerror="this.style.display='none'">`;
   const weakLine = d.buffs.revealWeak
     ? `<div class="denc-weak">🔍 Debolezza: <b>${esc(enemy.weakness)}</b></div>` : '';
   const buffs = [];

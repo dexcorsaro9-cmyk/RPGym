@@ -5,7 +5,7 @@
 
 
 
-const CACHE = "heropace-v435";
+const CACHE = "heropace-v436";
 const NOTIF_CACHE = 'heropace-notif-v1'; // stato notifiche (non cancellare mai)
 
 /* File locali per fallback offline */
@@ -26,12 +26,18 @@ const FIREBASE_CDN = [
   'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js',
 ];
 
+/* Google Fonts — pre-cachati per garantire UI corretta offline */
+const FONT_CDN = [
+  'https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=Uncial+Antiqua&display=swap',
+];
+
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE).then(c =>
       Promise.all([
         c.addAll(OFFLINE_ASSETS).catch(() => {}),
         c.addAll(FIREBASE_CDN).catch(() => {}),
+        c.addAll(FONT_CDN).catch(() => {}),
       ])
     )
   );
