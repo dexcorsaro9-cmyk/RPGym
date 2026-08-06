@@ -4464,7 +4464,7 @@ function renderTrain(c) {
       if (HERO.guild && report.km > 0) FB.contributeToGuild(HERO, report.km).catch(() => {});
       showHealthSyncResult(report);
       if (isFirst) OPEN_QUEUE.push(showFirstWorkoutCelebration);
-      checkMapNotify(); maybeSyncChallenge();
+      checkMapNotify(); checkBoardNotify(); maybeSyncChallenge();
       updateTabOnboardingPulse();
     }
     else toast('Attività già sincronizzata per oggi.');
@@ -7838,6 +7838,7 @@ async function setupNotifications() {
   updateNotifState().catch(() => {});
   checkAndNotify();
   checkMapNotify();
+  checkBoardNotify();
   checkPvpNotify();
   checkPetNotify();
   scheduleSmartNotifications();
@@ -7848,7 +7849,7 @@ async function setupNotifications() {
     setTimeout(async () => {
       const perm = await Notification.requestPermission();
       HERO.notifAsked = true; persist();
-      if (perm === 'granted') { checkAndNotify(); checkMapNotify(); checkPvpNotify(); scheduleSmartNotifications(); }
+      if (perm === 'granted') { checkAndNotify(); checkMapNotify(); checkBoardNotify(); checkPvpNotify(); scheduleSmartNotifications(); }
     }, 4000);
   }
 }
@@ -7919,6 +7920,25 @@ function checkMapNotify() {
     'map_close_' + Math.floor(progressKm * 10));
 }
 
+/* ④ Bacheca del Viandante — missioni riscattabili in scadenza (dopo 21:00) */
+function checkBoardNotify() {
+  if (Notification.permission !== 'granted' || !HERO) return;
+  const hour = new Date().getHours();
+  if (hour < 21) return;
+  const today = todayISO();
+  const board = HERO.board && HERO.board.date === today ? HERO.board : null;
+  if (!board) return;
+  const claimable = board.quests.filter(q =>
+    (board.kmLogged || 0) >= q.km && !board.claimed.includes(q.id)
+  );
+  if (!claimable.length) return;
+  showNotif(
+    '📜 Missioni Bacheca in scadenza!',
+    `Hai ${claimable.length} missione${claimable.length > 1 ? '' : ''} completata${claimable.length > 1 ? 'e' : ''} da riscuotere — reset a mezzanotte!`,
+    'board_claimable_' + today
+  );
+}
+
 /* ── Periodic Background Sync ── */
 
 /* Scrive uno snapshot dello stato rilevante per le notifiche nella Cache API.
@@ -7942,6 +7962,10 @@ async function updateNotifState() {
     (bff.allBoost && bff.allBoost.expiresAt > now) ||
     bff.streakShield || bff.extraBoss || bff.dropBoost
   );
+  const board = HERO.board && HERO.board.date === today ? HERO.board : null;
+  const boardClaimable = board
+    ? board.quests.filter(q => (board.kmLogged || 0) >= q.km && !board.claimed.includes(q.id)).length
+    : 0;
   const state = {
     date: today,
     potionClaimed: !!(HERO.dailyPotion && HERO.dailyPotion.claimedDate === today),
@@ -7952,6 +7976,7 @@ async function updateNotifState() {
     petHunger: pet ? pet.hunger : null,
     petMood: pet ? pet.mood : null,
     hasActiveBuff,
+    boardClaimable,
   };
   const cache = await caches.open('heropace-notif-v1');
   await cache.put('/_notif-state', new Response(JSON.stringify(state),
