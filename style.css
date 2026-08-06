@@ -8608,6 +8608,7 @@ img.fiche-inline {
   border: 1px solid;
 }
 .bv-rchip.gold  { color:#6e3e0a; border-color:rgba(110,62,10,.45); background:rgba(200,145,25,.14); }
+.bv-rchip.xp    { color:#3a1a6e; border-color:rgba(90,40,180,.4);  background:rgba(110,60,210,.1); }
 .bv-rchip.wood  { color:#2d4812; border-color:rgba(45,72,18,.4);   background:rgba(70,115,30,.1); }
 .bv-rchip.stone { color:#384055; border-color:rgba(56,64,85,.4);   background:rgba(90,100,125,.1); }
 .bv-rchip.item  { color:#420f68; border-color:rgba(66,15,104,.4);  background:rgba(110,40,170,.1); }
