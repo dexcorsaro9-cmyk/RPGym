@@ -8138,3 +8138,121 @@ img.fiche-inline {
 }
 .ms-pb.done .ms-pb-num { color: var(--ms-border, #e8b64c); opacity: .85; }
 .ms-pb.near .ms-pb-num { color: rgba(255,255,255,.6); }
+
+/* ── Bacheca del Viandante ── */
+.bacheca-panel { padding: 14px 14px 16px; }
+
+.bacheca-header-row {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 8px; flex-wrap: wrap;
+}
+.bacheca-title { margin: 0; flex: 1; }
+.bacheca-reset { font-size: .68rem; opacity: .6; white-space: nowrap; }
+
+.bacheca-card {
+  position: relative;
+  background: rgba(0,0,0,.28);
+  border: 1.5px solid rgba(255,255,255,.1);
+  border-left: 3px solid var(--bq-color, #a07840);
+  border-radius: 10px;
+  padding: 11px 13px 12px;
+  margin-top: 10px;
+  transition: box-shadow .2s;
+}
+.bacheca-card.bq-done {
+  border-color: var(--bq-color, #a07840);
+  box-shadow: 0 0 14px var(--bq-glow, rgba(160,120,64,.35));
+  background: linear-gradient(135deg, rgba(255,255,255,.04), rgba(0,0,0,.3));
+}
+.bacheca-card.bq-claimed {
+  opacity: .52;
+  filter: grayscale(.4);
+}
+
+.bq-npc-row {
+  display: flex; align-items: center; gap: 7px;
+  margin-bottom: 7px;
+}
+.bq-npc-icon { font-size: 1.25rem; line-height: 1; }
+.bq-npc-name {
+  font-family: 'Cinzel', serif;
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--bq-color, #c8a840);
+  flex: 1;
+}
+.bq-tier-chip {
+  font-family: 'Cinzel', serif;
+  font-size: .58rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+  color: var(--bq-color, #a07840);
+  border: 1px solid var(--bq-color, #a07840);
+  border-radius: 20px;
+  padding: 2px 8px;
+  opacity: .8;
+  white-space: nowrap;
+}
+
+.bq-text {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: .9rem;
+  font-style: italic;
+  color: #c8b890;
+  line-height: 1.5;
+  margin: 0 0 10px;
+}
+
+.bq-bar-wrap {
+  height: 5px;
+  background: rgba(255,255,255,.1);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 5px;
+}
+.bq-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--bq-color, #a07840), color-mix(in srgb, var(--bq-color, #a07840) 60%, #fff));
+  border-radius: 3px;
+  transition: width .4s ease;
+}
+.bacheca-card.bq-claimed .bq-bar-fill { width: 100% !important; }
+.bacheca-card.bq-claimed .bq-bar-wrap { opacity: .4; }
+
+.bq-bar-label {
+  font-size: .7rem;
+  color: rgba(200,180,140,.7);
+  letter-spacing: .03em;
+}
+.bacheca-card.bq-done .bq-bar-label,
+.bacheca-card.bq-claimed .bq-bar-label {
+  color: var(--bq-color, #c8a840);
+  font-weight: 600;
+}
+
+.bq-reward-row {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-top: 8px;
+}
+.bq-reward-chip {
+  font-size: .72rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 20px;
+  border: 1px solid;
+}
+.bq-reward-chip.gold  { color:#f0c050; border-color:rgba(240,192,80,.5); background:rgba(240,192,80,.1); }
+.bq-reward-chip.wood  { color:#a0c870; border-color:rgba(160,200,112,.4); background:rgba(160,200,112,.08); }
+.bq-reward-chip.stone { color:#b0b8c8; border-color:rgba(176,184,200,.4); background:rgba(176,184,200,.08); }
+.bq-reward-chip.item  { color:#c4a0f0; border-color:rgba(196,160,240,.45); background:rgba(196,160,240,.1); }
+
+.bq-claim-btn {
+  width: 100%;
+  margin-top: 10px;
+  font-size: .9rem;
+  animation: bqClaimPulse 2.4s ease-in-out infinite;
+}
+@keyframes bqClaimPulse {
+  0%,100% { box-shadow: 0 0 0 0 var(--bq-glow, rgba(160,120,64,.4)); }
+  50%      { box-shadow: 0 0 0 6px transparent; }
+}

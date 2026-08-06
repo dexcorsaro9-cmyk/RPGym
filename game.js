@@ -419,6 +419,105 @@ const RPG = (() => {
     return MILESTONES.filter(m => sessions >= m.session && !reached.includes(m.id));
   }
 
+  /* ── Bacheca del Viandante ── */
+  const BOARD_NPCS = [
+    { name:'Miro il Mercante',        role:'Mercante',        icon:'🧑‍💼', requests:['Ha un pacco urgente che nessuno vuole toccare.','Il mulo se n\'è andato e lui non può muoversi.','Un cliente speciale aspetta da stamane.'] },
+    { name:'Syl l\'Archivista',       role:'Archivista',      icon:'📚',  requests:['Cerca un tomo perduto oltre le mura.','Vuole misurare una distanza per un\'antica mappa.','Ha dimenticato qualcosa al Convento del Silenzio.'] },
+    { name:'Gareth la Guardia',       role:'Guardia',         icon:'🗡️',  requests:['Chiede un giro di perlustrazione al confine nord.','Vuole che qualcuno controlli il vecchio posto di guardia.','Ha perso il casco in pattuglia e preferisce non dirlo al capitano.'] },
+    { name:'Netta la Droghiera',      role:'Erborista',       icon:'🌿',  requests:['Ha bisogno di erbe del Bosco Cupo — fresche.','Cerca la radice della Vigna Bianca prima che appassisca.','Manda a prendere una scorta di funghi prima della pioggia.'] },
+    { name:'Bram il Fabbro',          role:'Fabbro',          icon:'⚒️',  requests:['Ha del carbone da ritirare al magazzino nord.','Attende una spedizione di lingotti che nessuno ha portato.','Vuole che qualcuno provi le scarpe ferrate appena forgiate.'] },
+    { name:'Lira la Guaritrice',      role:'Guaritrice',      icon:'⚕️',  requests:['Porta medicine a chi non può camminare.','Un paziente lontano aspetta una pozione.','Deve sapere se il passo nord è praticabile prima di uscire.'] },
+    { name:'Odo il Taverniere',       role:'Taverniere',      icon:'🍺',  requests:['Ha una botte vuota da restituire al fornitore.','Un cliente speciale aspetta una consegna a domicilio.','Cerca un messaggero per recapitare l\'ordine di birra.'] },
+    { name:'Finn il Pescatore',       role:'Pescatore',       icon:'🎣',  requests:['Il pesce deve arrivare al mercato mentre è ancora fresco.','Ha una rete da recuperare a riva prima che affondi.','Vuole sapere com\'è il fiume a monte — senza andarci lui.'] },
+    { name:'Tara la Tessitrice',      role:'Tessitrice',      icon:'🧵',  requests:['Manda a prendere lana grezza oltre il colle.','Ha un rotolo di tessuto da consegnare alla sartoria.','Cerca un tipo speciale di canna per i telai — cresce lontano.'] },
+    { name:'Rowan l\'Esploratore',    role:'Esploratore',     icon:'🗺️',  requests:['Chiede un sopralluogo al bivio meridionale.','Vuole conferma che il sentiero è ancora aperto.','Ha bisogno di un report sulla strada di pietra — a piedi, non a cavallo.'] },
+    { name:'Petra la Contadina',      role:'Contadina',       icon:'🌾',  requests:['Il grano deve arrivare al mulino entro sera.','Ha bisogno che qualcuno porti le uova in città senza romperle.','Un vecchio agricoltore aspetta la sua parte di raccolto.'] },
+    { name:'Sig il Giocoliere',       role:'Artista',         icon:'🎭',  requests:['Ha dimenticato i birilli a metà strada.','Cerca un assistente per portare i bagagli allo spettacolo.','Vuole qualcuno che misuri il piazzale a piedi — per ragioni artistiche.'] },
+    { name:'Vex lo Stregone',         role:'Stregone',        icon:'🔮',  requests:['Ha bisogno di ingredienti freschi dalla foresta — non stantii.','Chiede di raccogliere rugiada al mattino, in un posto distante.','Vuole che qualcuno testi un amuleto camminando. Non chiede altro.'] },
+    { name:'Dane il Cacciatore',      role:'Cacciatore',      icon:'🏹',  requests:['Chiede un giro di perlustrazione nella radura est.','Ha una trappola da controllare oltre il bosco — senza disturbarla.','Vuole sapere se ci sono tracce fresche a nord.'] },
+    { name:'Clem il Cursore',         role:'Corriere',        icon:'📜',  requests:['Ha documenti urgenti per il Notaio — ieri.','Un sigillo deve arrivare al Consiglio prima del tramonto.','Porta questo rotolo al Convento. Non aprirlo. Per nessuna ragione.'] },
+    { name:'Kira l\'Addestratrice',   role:'Addestratrice',   icon:'🐕',  requests:['Il cane deve fare la sua corsetta — lei ha i piedi a pezzi.','Ha un cucciolo da portare al suo nuovo padrone.','Chiede una scorta per il suo mastino durante la passeggiata serale.'] },
+    { name:'Orn il Botanico',         role:'Botanico',        icon:'🌱',  requests:['Raccoglie campioni di lichene a nord — urgente, stagione breve.','Vuole misurare dove crescono le piante del bordo strada.','Ha bisogno di qualcuno che scandagli il prato con pazienza.'] },
+    { name:'Hob il Goblin',           role:'Goblin',          icon:'👺',  requests:['Ha scommesso che qualcuno poteva fare quel percorso. Perde se non trovi nessuno.','Vuole vincere una gara: tu corri, lui prende metà scommessa.','Dice che nessuno riesce a farcela. Dimostraglielo.'] },
+    { name:'Zia Marta',               role:'Anziana',         icon:'👵',  requests:['Il nipote aspetta la torta — e il villaggio è lontano.','Vuole che qualcuno visiti il cimitero per lei. «Diglielo tu.»','Ha lasciato le chiavi da qualche parte. Vai a cercarle.'] },
+    { name:'Il Fantasma del Crocevia',role:'Spirito',         icon:'👻',  requests:['Non spiega perché. Vuole solo che qualcuno cammini per lui.','Indica una direzione e svanisce. Seguila.','Sussurra una distanza. Percorrila.'] },
+    { name:'Mab la Strega',           role:'Strega',          icon:'🧙‍♀️', requests:['Un incantesimo richiede che qualcuno cammini in cerchio — grande.','Ha bisogno di passi, non di magia. I suoi finiscono.','Ogni km percorso alimenta un suo calderone lontano.'] },
+    { name:'Baldo il Minatore',       role:'Minatore',        icon:'⛏️',  requests:['Vuole un sopralluogo alle cave del nord — il piccone non basta.','Ha un sacco di carbone da portare al fondovalle, ma la schiena non regge.','Chiede di controllare lo stato del sentiero delle cave dopo il crollo.'] },
+    { name:'Ylla la Cantora',         role:'Barda',           icon:'🎵',  requests:['Porta questo messaggio cantato — non in forma scritta.','Ha perso la voce ma non il messaggio. Portalo tu.','Deve arrivare una melodia a tre destinatari sparsi per la città.'] },
+    { name:'Dax il Contrabbandiere',  role:'Contrabbandiere', icon:'🥷',  requests:['Muoviti come se non stessi portando niente di importante.','Ha bisogno di qualcuno che faccia da diversivo mentre lui si sposta.','Cammina da questo lato — e fai finta di non conoscerlo.'] },
+    { name:'Ria la Cartografa',       role:'Cartografa',      icon:'🗺️',  requests:['Misura questa strada a piedi — non si fida delle stime a cavallo.','Vuole la distanza esatta fino al bordo della foresta.','Ha bisogno di un secondo parere su una mappa. Cammina e conta.'] },
+  ];
+
+  const BOARD_QUEST_POOL = [
+    { tier:'commissione', km:1,   text:(n,r)=>`${n.name} ti ferma: "${r}" Non è lontano — 1 km circa.`,                              reward:{ gold:35 } },
+    { tier:'commissione', km:1.5, text:(n,r)=>`"${r}" chiede ${n.name}. Sono poco più di un km. Vai.`,                               reward:{ gold:42 } },
+    { tier:'commissione', km:2,   text:(n,r)=>`${n.name} (${n.role}) ti aspetta. "${r}" 2 km, andata e ritorno.`,                     reward:{ gold:55 } },
+    { tier:'incarico',    km:3,   text:(n,r)=>`${n.name} si avvicina con aria seria. "${r}" Ci vuole mezza mattina — 3 km circa.`,    reward:{ gold:72,  wood:3 } },
+    { tier:'incarico',    km:4,   text:(n,r)=>`"${r}" dice ${n.name}. "Porta un po' di fiato." 4 km, niente di più.`,                reward:{ gold:85,  wood:4 } },
+    { tier:'incarico',    km:5,   text:(n,r)=>`${n.name} stringe la mano. "${r}" Vale la pena. 5 km di cammino.`,                    reward:{ gold:100, wood:5 } },
+    { tier:'missione',    km:6,   text:(n,r)=>`${n.name} parla a bassa voce. "${r}" È un incarico serio. 6 km, almeno.`,             reward:{ gold:115, wood:4, stone:3 } },
+    { tier:'missione',    km:8,   text:(n,r)=>`"${r}" dice ${n.name} allungandoti qualcosa. "Fidati di me." 8 km ti aspettano.`,     reward:{ gold:132, wood:6, stone:4 } },
+    { tier:'missione',    km:10,  text:(n,r)=>`${n.name} ti guarda negli occhi. "${r}" L'incarico è grande — 10 km. Ce la fai?`,     reward:{ gold:150, wood:8, stone:5 } },
+  ];
+
+  const _BOARD_CONS_DROP = {
+    commissione: { chance:0.15, rarities:['comune'] },
+    incarico:    { chance:0.20, rarities:['comune','non_comune'] },
+    missione:    { chance:0.25, rarities:['comune','non_comune','raro'] },
+  };
+
+  function _boardRng(seed) {
+    let s = Math.abs(seed % 2147483647) || 1;
+    return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
+  }
+
+  function generateDailyBoard(hero) {
+    const today = new Date().toISOString().slice(0, 10);
+    if (hero.board && hero.board.date === today) return hero.board;
+    const seedNum = parseInt(today.replace(/-/g, ''), 10) + (hero.totalSessions || 1) * 7;
+    const rng = _boardRng(seedNum);
+    const tiers = ['commissione', 'incarico', 'missione'];
+    const usedNpcs = [];
+    const quests = tiers.map(tier => {
+      const pool = BOARD_QUEST_POOL.filter(q => q.tier === tier);
+      const tpl = pool[Math.floor(rng() * pool.length)];
+      let npcIdx;
+      do { npcIdx = Math.floor(rng() * BOARD_NPCS.length); } while (usedNpcs.includes(npcIdx));
+      usedNpcs.push(npcIdx);
+      const npc = BOARD_NPCS[npcIdx];
+      const req = npc.requests[Math.floor(rng() * npc.requests.length)];
+      const drop = _BOARD_CONS_DROP[tier];
+      let cons = null;
+      if (rng() < drop.chance) {
+        const eligible = CONSUMABLES.filter(c => drop.rarities.includes(c.rarity));
+        if (eligible.length) cons = eligible[Math.floor(rng() * eligible.length)].id;
+      }
+      return {
+        id: `bq_${today}_${tier}`,
+        tier, km: tpl.km,
+        npc: { name: npc.name, icon: npc.icon, role: npc.role },
+        text: tpl.text(npc, req),
+        reward: { ...tpl.reward, consumable: cons },
+      };
+    });
+    hero.board = { date: today, quests, claimed: [] };
+    return hero.board;
+  }
+
+  function claimBoardReward(hero, questId) {
+    const board = hero.board;
+    if (!board) return 'Nessuna bacheca attiva.';
+    const q = board.quests.find(x => x.id === questId);
+    if (!q) return 'Missione non trovata.';
+    if (board.claimed.includes(questId)) return 'Già riscattata.';
+    board.claimed.push(questId);
+    if (q.reward.gold)  hero.gold += q.reward.gold;
+    if (q.reward.wood)  hero.resources.wood  = (hero.resources.wood  || 0) + q.reward.wood;
+    if (q.reward.stone) hero.resources.stone = (hero.resources.stone || 0) + q.reward.stone;
+    if (q.reward.consumable) addConsumable(hero, q.reward.consumable);
+    return null;
+  }
+
   /* ── Camp Evolution ──
    * Panorama 2:1 (width:height). Coordinate: left%, bottom%, width% relativi al contenitore.
    * Background PNG: assets/rifugio/scene/bg_stage{0-4}.webp  (2000×1000px consigliato)
@@ -5884,6 +5983,7 @@ const RPG = (() => {
     SEASONS, currentSeason, initSeasonalChallenge, claimSeasonalChallenge,
     BIOME_LORE, BIOME_ARTIFACTS, WORLD_LETTERS, checkPendingLetters,
     MILESTONES, checkPendingMilestones,
+    BOARD_NPCS, BOARD_QUEST_POOL, generateDailyBoard, claimBoardReward,
     CAMP_STAGES, CAMP_LAYERS, CAMP_NIGHT_LAYERS, campStageForLevel, campUnlockedLayers,
     CAMP_LAYER_SHOP, campLayerShopItem, buyCampLayer,
     CONSUMABLES, CONSUMABLE_IMG, consumableById, sellValueConsumable, buyPriceConsumable,

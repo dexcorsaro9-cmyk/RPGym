@@ -4065,6 +4065,94 @@ function renderDailyChallenges(c) {
   c.appendChild(panel);
 }
 
+/* ── Bacheca del Viandante ── */
+const _TIER_META = {
+  commissione: { label:'Commissione', color:'#a07840', glow:'rgba(160,120,64,.45)' },
+  incarico:    { label:'Incarico',    color:'#5888c8', glow:'rgba(88,136,200,.45)' },
+  missione:    { label:'Missione',    color:'#8858c8', glow:'rgba(136,88,200,.45)' },
+};
+
+function renderBacheca(c, todayKm) {
+  RPG.generateDailyBoard(HERO);
+  const board = HERO.board;
+  if (!board) return;
+
+  const panel = el('div', 'panel bacheca-panel');
+  const hRow = el('div', 'bacheca-header-row');
+  hRow.innerHTML = `<h3 class="panel-title bacheca-title">📋 Bacheca del Viandante</h3>
+    <span class="bacheca-reset muted small">Reset a mezzanotte</span>`;
+  panel.appendChild(hRow);
+
+  board.quests.forEach(q => {
+    const claimed = board.claimed.includes(q.id);
+    const progress = Math.min(1, todayKm / q.km);
+    const done = todayKm >= q.km;
+    const tm = _TIER_META[q.tier];
+
+    const card = el('div', `bacheca-card${claimed ? ' bq-claimed' : done ? ' bq-done' : ''}`);
+    card.style.setProperty('--bq-color', tm.color);
+    card.style.setProperty('--bq-glow', tm.glow);
+
+    // NPC header
+    const npcRow = el('div', 'bq-npc-row');
+    npcRow.innerHTML = `<span class="bq-npc-icon">${q.npc.icon}</span>
+      <span class="bq-npc-name">${esc(q.npc.name)}</span>
+      <span class="bq-tier-chip">${tm.label}</span>`;
+    card.appendChild(npcRow);
+
+    // Quest text
+    card.appendChild(el('p', 'bq-text', q.text));
+
+    // Progress bar
+    const barWrap = el('div', 'bq-bar-wrap');
+    const barFill = el('div', 'bq-bar-fill');
+    barFill.style.width = `${Math.round(progress * 100)}%`;
+    barWrap.appendChild(barFill);
+    const barLabel = el('span', 'bq-bar-label',
+      claimed ? '✓ Completata' : `${Math.min(todayKm, q.km).toFixed(1)} / ${q.km} km`);
+    card.appendChild(barWrap);
+    card.appendChild(barLabel);
+
+    // Reward row
+    const rr = el('div', 'bq-reward-row');
+    const { reward } = q;
+    if (reward.gold)  rr.appendChild(el('span', 'bq-reward-chip gold',  `🪙 ${reward.gold}`));
+    if (reward.wood)  rr.appendChild(el('span', 'bq-reward-chip wood',  `🪵 ${reward.wood}`));
+    if (reward.stone) rr.appendChild(el('span', 'bq-reward-chip stone', `🪨 ${reward.stone}`));
+    if (reward.consumable) {
+      const ci = RPG.consumableById(reward.consumable);
+      if (ci) rr.appendChild(el('span', 'bq-reward-chip item', `${ci.icon} ${esc(ci.name)}`));
+    }
+    card.appendChild(rr);
+
+    // Claim button
+    if (done && !claimed) {
+      const btn = el('button', 'btn btn-primary bq-claim-btn', '⚔️ Riscuoti ricompensa');
+      btn.addEventListener('click', () => {
+        const err = RPG.claimBoardReward(HERO, q.id);
+        if (err) { toast(err); return; }
+        persist(); renderHUD();
+        const parts = [];
+        if (reward.gold)  parts.push(`🪙 +${reward.gold}`);
+        if (reward.wood)  parts.push(`🪵 +${reward.wood}`);
+        if (reward.stone) parts.push(`🪨 +${reward.stone}`);
+        if (reward.consumable) {
+          const ci = RPG.consumableById(reward.consumable);
+          if (ci) parts.push(`${ci.icon} ${ci.name}`);
+        }
+        toast(`${q.npc.icon} Missione di ${q.npc.name} completata! ${parts.join(' · ')}`);
+        vibrate([60, 40, 100]);
+        setTab('train');
+      });
+      card.appendChild(btn);
+    }
+
+    panel.appendChild(card);
+  });
+
+  c.appendChild(panel);
+}
+
 function renderTrain(c) {
   let chosen = 'camminata';
 
@@ -4237,6 +4325,9 @@ function renderTrain(c) {
   goalEl.innerHTML = `<div class="train-goal-label">🎯 Obiettivo di oggi: <b>${todayKm.toFixed(1)} / ${goalKm} km</b>${HERO.restBonus ? ' · ✨ <b style="color:var(--gold-bright)">x2 Riposo attivo!</b>' : ''}</div>
     <div class="train-goal-bar"><div class="train-goal-fill" style="width:${goalPct}%"></div></div>`;
   c.appendChild(goalEl);
+
+  // ── Bacheca del Viandante ──
+  renderBacheca(c, todayKm);
 
   const form = el('div', 'panel');
   form.appendChild(el('label', 'field-label', 'Tipo di attività'));
@@ -7845,7 +7936,12 @@ function updateBadges() {
     !id && (HERO.items || []).some(i => i.slot === s)));
   const dc = RPG.getDailyChallenges(HERO);
   const wc = RPG.getWeeklyChallenges(HERO);
-  set('train', dc.list.some(ch => ch.progress >= ch.target && !ch.claimed)
+  const todayKmBadge = RPG.todayKm(HERO);
+  const boardBadge = HERO.board && HERO.board.date === new Date().toISOString().slice(0,10)
+    ? HERO.board.quests.some(q => todayKmBadge >= q.km && !HERO.board.claimed.includes(q.id))
+    : false;
+  set('train', boardBadge
+    || dc.list.some(ch => ch.progress >= ch.target && !ch.claimed)
     || wc.list.some(ch => ch.progress >= ch.target && !ch.claimed));
   set('camp', false);
 }
