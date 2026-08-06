@@ -4356,7 +4356,7 @@ function renderTrain(c) {
   syncStrip.innerHTML = `<span class="sss-label">⚡ Passi da Salute</span>
     <input class="sss-input" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="${sssPlaceholder}">`;
   const sssInput = syncStrip.querySelector('.sss-input');
-  if (isAndroid) sssInput.readOnly = true;
+  // readOnly rimosso: bloccava l'incolla su Android
 
   const applySssSteps = steps => {
     if (!(steps > 0)) return;
@@ -4383,15 +4383,13 @@ function renderTrain(c) {
     const steps = parseInt(text.replace(/[^0-9]/g, ''), 10);
     applySssSteps(steps);
   });
-  if (!isAndroid) {
-    sssInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter') applySssSteps(parseInt(sssInput.value, 10));
-    });
-    sssInput.addEventListener('input', () => {
-      const steps = parseInt(sssInput.value, 10);
-      if (steps > 0 && sssInput.value.length >= 4) setTimeout(() => applySssSteps(steps), 500);
-    });
-  }
+  sssInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') applySssSteps(parseInt(sssInput.value, 10));
+  });
+  sssInput.addEventListener('input', () => {
+    const steps = parseInt(sssInput.value, 10);
+    if (steps > 0 && sssInput.value.length >= 4) setTimeout(() => applySssSteps(steps), 500);
+  });
   c.appendChild(syncStrip);
 
   // Banner primo accesso — spiega come inserire i dati
