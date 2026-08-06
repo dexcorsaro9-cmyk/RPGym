@@ -2421,7 +2421,7 @@ img.fiche-inline {
   font-family: 'Cinzel', serif; font-size: 1.4rem; font-weight: 700;
   color: #e8b64c; font-variant-numeric: tabular-nums;
 }
-.sc-open-rec-lbl { font-size: .6rem; color: rgba(255,255,255,.32); letter-spacing: .08em; text-transform: uppercase; }
+.sc-open-rec-lbl { font-size: .6rem; color: rgba(255,255,255,.7); letter-spacing: .08em; text-transform: uppercase; }
 .sc-open-first {
   display: flex; align-items: center; gap: 10px;
   background: rgba(201,147,46,.07); border: 1px solid rgba(201,147,46,.22);

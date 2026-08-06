@@ -5425,29 +5425,6 @@ function renderMarket(c) {
       c.appendChild(tp);
     }
 
-    // Storico biglietti già grattati (ultimi 5 con risultato salvato)
-    const recentScratched = (HERO.tickets || [])
-      .filter(t => t.scratchedAt && t.result)
-      .sort((a, b) => b.scratchedAt - a.scratchedAt)
-      .slice(0, 5);
-    if (recentScratched.length > 0) {
-      const histPanel = el('div', 'panel ticket-hist-panel');
-      histPanel.appendChild(el('h3', 'panel-title small-title', '🕐 Biglietti Recenti'));
-      recentScratched.forEach(t => {
-        const cfg = RPG.TICKET_TYPES[t.type];
-        const d = new Date(t.scratchedAt);
-        const dateStr = d.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });
-        const row = el('div', 'ticket-hist-row');
-        row.innerHTML = `
-          <span class="ticket-hist-name">${cfg ? cfg.name : t.type}</span>
-          <span class="ticket-hist-syms">${t.result.symbols.join(' ')}</span>
-          <span class="ticket-hist-prize ${t.result.isWin ? 'win' : 'loss'}">${t.result.isWin ? t.result.label : 'Nessun premio'}</span>
-          <span class="ticket-hist-date">${dateStr}</span>
-        `;
-        histPanel.appendChild(row);
-      });
-      c.appendChild(histPanel);
-    }
   }
 
   // ── Mercante Fuggiasco ──
