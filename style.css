@@ -3176,6 +3176,15 @@ img.fiche-inline {
 }
 .sss-input:focus { border-color: var(--gold-bright); background: rgba(255,255,255,.12); }
 .sss-input::placeholder { color: rgba(196,149,106,.55); font-size: .78rem; }
+.sss-input.tut-entry-pulse {
+  animation: tut-entry-glow 2.2s ease-out;
+}
+@keyframes tut-entry-glow {
+  0%   { border-color: rgba(201,147,46,.3); box-shadow: none; }
+  20%  { border-color: var(--gold-bright); box-shadow: 0 0 0 3px rgba(196,154,42,.35); }
+  80%  { border-color: var(--gold-bright); box-shadow: 0 0 0 3px rgba(196,154,42,.35); }
+  100% { border-color: rgba(201,147,46,.3); box-shadow: none; }
+}
 
 /* ── Atlas: pannello di ingresso e subview ── */
 .atlas-entry-panel { padding: 10px 14px; }
@@ -4940,6 +4949,47 @@ img.fiche-inline {
 }
 .tut-guide-arrow-up {
   font-size: .65rem; color: rgba(255,255,255,.65); letter-spacing: .01em;
+}
+
+/* Scene: streak */
+.tut-scene-streak {
+  background: linear-gradient(135deg, #1a0c05 0%, #2d1408 55%, #1a0c05 100%);
+}
+.tut-streak-inner {
+  display: flex; align-items: center; justify-content: center;
+  gap: 18px; width: 100%; padding: 0 12px;
+}
+.tut-streak-left {
+  display: flex; flex-direction: column; align-items: center; gap: 0;
+}
+.tut-streak-fire {
+  font-size: 1.8rem;
+  animation: tut-fire-pulse 1.2s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 8px rgba(255,140,0,.6));
+}
+.tut-streak-num {
+  font-size: 2rem; font-weight: 800; color: #fbbf24; line-height: 1;
+  animation: tut-fire-pulse 1.2s ease-in-out infinite alternate;
+}
+.tut-streak-label {
+  font-size: .55rem; color: rgba(255,200,100,.7); letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.tut-streak-checks {
+  display: flex; flex-direction: column; gap: 5px; flex: 1;
+}
+.tut-scheck {
+  font-size: .72rem; color: rgba(255,255,255,.55); padding: 4px 8px;
+  border-radius: 6px; background: rgba(255,255,255,.06);
+}
+.tut-scheck-done {
+  color: #86efac; background: rgba(134,239,172,.1);
+  transition: color .3s, background .3s;
+}
+.tut-scheck-pending { color: rgba(255,255,255,.45); }
+@keyframes tut-fire-pulse {
+  from { filter: drop-shadow(0 0 4px rgba(255,140,0,.4)); }
+  to   { filter: drop-shadow(0 0 14px rgba(255,180,0,.85)); }
 }
 
 /* Scene: start */
