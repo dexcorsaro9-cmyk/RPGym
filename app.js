@@ -692,6 +692,8 @@ function enterGame() {
   if (!HERO.tutorialDone) OPEN_QUEUE.unshift(showTutorial);
   // Lettere dal mondo (milestone di livello, km, streak)
   RPG.checkPendingLetters(HERO).forEach(letter => OPEN_QUEUE.push(() => showWorldLetter(letter)));
+  // Tappe della Via (milestone di sessioni)
+  RPG.checkPendingMilestones(HERO).forEach(m => OPEN_QUEUE.push(() => showMilestone(m)));
   nextOpening();
 
   // Inviti PvP in arrivo da Firestore
@@ -4943,9 +4945,95 @@ function checkAndQueueLetters() {
   pending.forEach(letter => {
     OPEN_QUEUE.push(() => showWorldLetter(letter));
   });
-  if (pending.length && document.getElementById('modal').classList.contains('hidden')) {
+  const milestones = RPG.checkPendingMilestones(HERO);
+  milestones.forEach(m => {
+    OPEN_QUEUE.push(() => showMilestone(m));
+  });
+  if ((pending.length || milestones.length) && document.getElementById('modal').classList.contains('hidden')) {
     nextOpening();
   }
+}
+
+/* ── Milestone overlay ── */
+const MILESTONE_TIER_COLOR = {
+  bronzo:     { border:'#cd7f32', glow:'rgba(205,127,50,.55)', label:'BRONZO' },
+  argento:    { border:'#c0c0c0', glow:'rgba(192,192,192,.5)', label:'ARGENTO' },
+  oro:        { border:'#ffd700', glow:'rgba(255,215,0,.65)',  label:'ORO' },
+  leggendario:{ border:'#e8b64c', glow:'rgba(232,182,76,.8)', label:'LEGGENDARIO' },
+};
+
+function showMilestone(m) {
+  if (!m) return;
+  HERO.milestonesReached = HERO.milestonesReached || [];
+  if (HERO.milestonesReached.includes(m.id)) return;
+
+  const tc = MILESTONE_TIER_COLOR[m.tier] || MILESTONE_TIER_COLOR.bronzo;
+  const cons = m.reward.consumable ? RPG.consumableById(m.reward.consumable) : null;
+  const sceneHtml = esc(m.scene).replace(/\n/g, '<br>');
+
+  const rewardHtml = `
+    <div class="ms-reward-row">
+      ${m.reward.gold ? `<div class="ms-reward-chip gold">🪙 +${m.reward.gold}</div>` : ''}
+      ${cons ? `<div class="ms-reward-chip item">${cons.icon} ${esc(cons.name)}</div>` : ''}
+    </div>`;
+
+  const ov = document.createElement('div');
+  ov.className = 'milestone-overlay';
+  ov.innerHTML = `
+    <div class="milestone-card" style="--ms-border:${tc.border};--ms-glow:${tc.glow}">
+      <div class="ms-tier-badge">${tc.label}</div>
+      <div class="ms-icon">${m.icon}</div>
+      <div class="ms-session-label">Sessione ${m.session}</div>
+      <h3 class="ms-title">${esc(m.title)}</h3>
+      <p class="ms-scene">${sceneHtml}</p>
+      <div class="ms-divider"></div>
+      ${rewardHtml}
+      <button class="btn btn-primary ms-btn">⚔️ Riscuoti</button>
+    </div>`;
+
+  document.body.appendChild(ov);
+  sfx('item');
+  requestAnimationFrame(() => ov.classList.add('milestone-visible'));
+
+  // Particles for oro/leggendario
+  if (m.tier === 'oro' || m.tier === 'leggendario') {
+    const cvs = document.createElement('canvas');
+    cvs.className = 'ms-particles';
+    cvs.width = window.innerWidth; cvs.height = window.innerHeight;
+    ov.insertBefore(cvs, ov.firstChild);
+    const ctx = cvs.getContext('2d');
+    const PAL = m.tier === 'leggendario'
+      ? ['#e8b64c','#fff3a0','#f0c050','#ffe080','#fff']
+      : ['#ffd700','#fff','#ffe66d','#e8c533'];
+    const parts = Array.from({ length: m.tier === 'leggendario' ? 80 : 50 }, () => ({
+      x: Math.random() * cvs.width, y: cvs.height * (.3 + Math.random() * .5),
+      vx: (Math.random() - .5) * 2.2, vy: -2 - Math.random() * 3,
+      r: 2 + Math.random() * 3, a: 1, col: PAL[Math.floor(Math.random() * PAL.length)],
+    }));
+    let raf;
+    const tick = () => {
+      ctx.clearRect(0, 0, cvs.width, cvs.height);
+      parts.forEach(p => {
+        p.x += p.vx; p.y += p.vy; p.vy += .04; p.a -= .012;
+        ctx.globalAlpha = Math.max(0, p.a);
+        ctx.fillStyle = p.col;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+      });
+      if (parts.some(p => p.a > 0)) raf = requestAnimationFrame(tick);
+    };
+    setTimeout(() => { raf = requestAnimationFrame(tick); }, 200);
+    ov.addEventListener('click', () => cancelAnimationFrame(raf), { once: true });
+  }
+
+  ov.querySelector('.ms-btn').addEventListener('click', () => {
+    HERO.milestonesReached.push(m.id);
+    if (m.reward.gold) { HERO.gold += m.reward.gold; }
+    if (cons) { RPG.addConsumable(HERO, cons.id); }
+    persist(); renderHUD();
+    toast(`${m.icon} Tappa ${m.session} completata!`);
+    ov.classList.add('milestone-exit');
+    setTimeout(() => ov.remove(), 400);
+  });
 }
 
 function openChest() {
@@ -6310,6 +6398,31 @@ function renderHero(c) {
     });
     sp2.appendChild(grid);
     c.appendChild(sp2);
+  }
+
+  // ── Tappe della Via — badge dei milestone completati ──
+  {
+    const reached = HERO.milestonesReached || [];
+    const totalSessions = HERO.totalSessions || 0;
+    if (totalSessions >= 1 || reached.length > 0) {
+      const msp = el('div', 'panel ms-profile-panel');
+      const msHead = el('h3', 'panel-title', `🏅 Tappe della Via · ${reached.length}/20`);
+      msp.appendChild(msHead);
+      const grid = el('div', 'ms-profile-grid');
+      RPG.MILESTONES.forEach(m => {
+        const done = reached.includes(m.id);
+        const near = !done && totalSessions >= m.session - 2 && totalSessions < m.session;
+        const tc = MILESTONE_TIER_COLOR[m.tier] || MILESTONE_TIER_COLOR.bronzo;
+        const badge = el('div', `ms-pb${done ? ' done' : near ? ' near' : ''}`);
+        if (done) { badge.style.setProperty('--ms-border', tc.border); badge.style.setProperty('--ms-glow', tc.glow); }
+        badge.innerHTML = `<span class="ms-pb-icon">${done ? m.icon : near ? '…' : '·'}</span><span class="ms-pb-num">${m.session}</span>`;
+        badge.title = done ? m.title : near ? `Sessione ${m.session} — ci sei quasi!` : `Sessione ${m.session}`;
+        if (done) badge.addEventListener('click', () => toast(`${m.icon} ${m.title}`));
+        grid.appendChild(badge);
+      });
+      msp.appendChild(grid);
+      c.appendChild(msp);
+    }
   }
 
   // Cronache di Oakhaven — rimanda alla scheda dedicata
