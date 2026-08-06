@@ -7435,8 +7435,7 @@ img.fiche-inline {
 .ruota-frame-overlay {
   position: absolute;
   width: 440px; height: 440px;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
+  top: -70px; left: -70px;
   pointer-events: none;
   z-index: 2;
   image-rendering: high-quality;
