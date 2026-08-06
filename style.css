@@ -7007,11 +7007,18 @@ img.fiche-inline {
   position: relative;
 }
 .erborista-offer-price {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 4px; margin-top: 6px; font-size: .8rem;
+  display: flex; align-items: center; justify-content: center;
+  gap: 6px; margin-top: 8px; font-size: .85rem;
+  color: #e0c878;
+}
+.erborista-offer-price s {
+  color: #7a6a4a; font-size: .75rem;
+}
+.erborista-offer-price b {
+  color: #f5e090; font-size: .92rem; font-weight: 800;
 }
 .erborista-offer-price .original-price {
-  text-decoration: line-through; opacity: .55; font-size: .75rem;
+  text-decoration: line-through; opacity: .55; font-size: .75rem; color: #9a8a68;
 }
 .erborista-offer-price .discount-badge {
   background: #27ae60; color: #fff;
