@@ -7685,6 +7685,7 @@ const FICHE_ICO = '<img class="fiche-inline" src="assets/ui/res-fiches.webp" alt
       btn.textContent = '';
       const img = el('img', 'tab-icon');
       img.src = path;
+      img.alt = '';
       btn.appendChild(img);
       if (label) btn.appendChild(label);
     };
@@ -7699,6 +7700,7 @@ const FICHE_ICO = '<img class="fiche-inline" src="assets/ui/res-fiches.webp" alt
       if (!ico) return;
       const img = el('img', 'res-icon');
       img.src = path;
+      img.alt = '';
       ico.textContent = '';
       ico.appendChild(img);
     };
