@@ -5344,16 +5344,11 @@ function _drawWheel(canvas, angleDeg, landedIdx, frameImg) {
   const sectors = RPG.RUOTA_SECTORS;
   const total   = sectors.reduce((s, x) => s + x.weight, 0);
 
-  // Reset stato canvas, poi fill in coordinate FISICHE (setTransform identity)
-  // per garantire copertura totale indipendentemente dal DPR (fix iOS Safari)
   ctx.globalAlpha = 1;
   ctx.globalCompositeOperation = 'source-over';
-  ctx.save();
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, S, S);
   ctx.fillStyle = '#050010';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.restore();
+  ctx.fillRect(0, 0, S, S);
 
   // Clip tutto al cerchio
   ctx.save();
