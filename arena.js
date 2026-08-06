@@ -182,7 +182,7 @@ function chooseMove(move) {
     let msg;
     if (result === 'win') {
       let dealt = b.dmg + (pb.dmgBonus || 0) + (fb.dmgBonus || 0);
-      const critChance = (pb.critMult > 1 ? 0.25 : 0) + fb.critChance;
+      const critChance = Math.min(0.75, (pb.critMult > 1 ? 0.25 : 0) + fb.critChance);
       const critMult = (pb.critMult > 1 ? pb.critMult : 1) * fb.critDmgMult;
       let isCrit = critMult > 1 && Math.random() < critChance;
       if (isCrit) dealt = Math.round(dealt * critMult);
@@ -369,12 +369,12 @@ function showDungeonEncounter() {
   if (d.buffs.buffDmgPct > 0) buffs.push(`💪 +${Math.round(d.buffs.buffDmgPct * 100)}% danni`);
   const buffsHtml = buffs.length
     ? `<div class="denc-buffs">${buffs.join(' · ')}</div>` : '';
-  const choicesHtml = scenario.choices.map((ch, i) =>
+  const choicesHtml = (scenario.choices || []).map((ch, i) =>
     `<button class="denc-choice" data-idx="${i}">
        <span class="denc-ch-icon">${ch.icon}</span>
        <span class="denc-ch-label">${esc(ch.label)}</span>
      </button>`
-  ).join('');
+  ).join('') || '<p class="muted small center">Nessuna azione disponibile.</p>';
   modal(`<div class="denc-wrap">
     <div class="denc-header">
       <span class="denc-step-badge${isBoss ? ' boss' : ''}">${stepLabel}</span>
@@ -458,7 +458,7 @@ function dungeonDoAction(choiceIdx) {
       const choicesEl = document.querySelector('.denc-choices');
       if (scenEl) scenEl.textContent = scenario.text;
       if (choicesEl) {
-        choicesEl.innerHTML = scenario.choices.map((ch, i) =>
+        choicesEl.innerHTML = (scenario.choices || []).map((ch, i) =>
           `<button class="denc-choice" data-idx="${i}">
              <span class="denc-ch-icon">${ch.icon}</span>
              <span class="denc-ch-label">${esc(ch.label)}</span>

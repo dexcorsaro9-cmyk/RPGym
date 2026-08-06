@@ -205,7 +205,7 @@ function openCardsGame() {
         mgRecord('cards');
         persist(); renderHUD();
         resEl.innerHTML = mgRewardHTML(
-          card.trap ? {} : card.reward,
+          card.reward,
           card.trap ? '☠️ Maledizione del Mercante' : `✨ ${card.title}`,
           card.trap ? 'Hai perso 10 Oro!' : ''
         );

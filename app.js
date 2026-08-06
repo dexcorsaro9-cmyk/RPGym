@@ -5626,7 +5626,12 @@ function renderMarket(c) {
 
   } catch (err) {
     console.error('[renderMarket]', err);
-    c.appendChild(el('div', 'panel muted center', '⚠️ Errore nel caricamento del Borgo. Riprova toccando la tab.'));
+    const errPanel = el('div', 'panel center');
+    errPanel.innerHTML = `<p style="margin-bottom:12px">⚠️ Errore nel caricamento del Borgo.</p>`;
+    const retryBtn = el('button', 'btn btn-primary', '↺ Riprova');
+    retryBtn.addEventListener('click', () => setTab('market'));
+    errPanel.appendChild(retryBtn);
+    c.appendChild(errPanel);
   }
 }
 
