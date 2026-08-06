@@ -8374,30 +8374,47 @@ img.fiche-inline {
   inset: 0;
   z-index: 9000;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
-  background: rgba(0,0,0,.6);
-  animation: bvOverlayIn .2s ease;
+  padding: 20px 16px;
+  background: rgba(0,0,0,.72);
+  animation: bvOverlayIn .18s ease;
 }
 @keyframes bvOverlayIn {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
 .bv-detail-sheet {
-  width: 100%;
-  max-width: 440px;
-  background: linear-gradient(162deg,#f2e096 0%,#e8c870 12%,#d4a850 35%,#ddb85a 55%,#c9a040 75%,#d4a848 100%);
-  border-radius: 18px 18px 0 0;
-  padding: 24px 20px 36px;
-  box-shadow: 0 -8px 32px rgba(0,0,0,.5);
-  animation: bvSheetIn .28s cubic-bezier(.22,1,.36,1);
   position: relative;
-  max-height: 85vh;
+  width: 100%;
+  max-width: 360px;
+  background: linear-gradient(162deg,#f2e096 0%,#e8c870 12%,#d4a850 35%,#ddb85a 55%,#c9a040 75%,#d4a848 100%);
+  clip-path: polygon(
+    2% 3%,5% 0.5%,9% 2%,14% 0%,50% 1%,
+    86% 0.5%,92% 2%,96% 0%,98% 3%,
+    99.5% 20%,100% 55%,99% 97%,
+    97% 99%,94% 100%,90% 98.5%,85% 100%,
+    15% 99.5%,10% 98%,6% 100%,3% 98.5%,1% 97%,
+    0.5% 55%,0% 20%
+  );
+  padding: 32px 24px 44px;
+  animation: bvParchIn .28s cubic-bezier(.22,1,.36,1);
+  max-height: calc(100vh - 48px);
   overflow-y: auto;
+  filter: drop-shadow(0 16px 40px rgba(0,0,0,.8)) drop-shadow(0 4px 12px rgba(0,0,0,.6));
 }
-@keyframes bvSheetIn {
-  from { transform: translateY(100%); }
-  to   { transform: translateY(0); }
+.bv-detail-sheet::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 50% 25% at 80% 88%, rgba(90,50,10,.12) 0%, transparent 70%),
+    radial-gradient(ellipse 35% 30% at 15% 15%, rgba(60,35,8,.1) 0%, transparent 60%);
+  pointer-events: none;
+}
+@keyframes bvParchIn {
+  from { transform: scale(.88); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
 }
 .bv-detail-sheet.incarico {
   background: linear-gradient(168deg,#e8c878 0%,#d8ae58 15%,#c49038 40%,#ceaa48 60%,#ba9030 80%,#c8a040 100%);
@@ -8405,18 +8422,60 @@ img.fiche-inline {
 .bv-detail-sheet.missione {
   background: linear-gradient(155deg,#d4a858 0%,#c09038 18%,#a87828 40%,#b88828 60%,#9e7020 80%,#aa8028 100%);
 }
+.bv-detail-nail {
+  position: absolute;
+  top: 8px; left: 50%;
+  transform: translateX(-50%);
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 37% 33%, #a08058, #2e1608 68%);
+  box-shadow: 0 3px 10px rgba(0,0,0,.8), 0 1px 2px rgba(255,255,255,.14);
+  z-index: 10;
+}
+.bv-detail-nail::after {
+  content: '';
+  position: absolute;
+  top: 4px; left: 4px;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.3);
+}
 .bv-detail-close {
   position: absolute;
-  top: 12px; right: 14px;
-  background: rgba(80,45,10,.2);
-  border: none;
+  top: 14px; right: 20px;
+  background: rgba(80,45,10,.25);
+  border: 1px solid rgba(80,45,10,.2);
   border-radius: 50%;
-  width: 28px; height: 28px;
-  font-size: 1rem;
+  width: 30px; height: 30px;
+  font-size: .9rem;
   color: #3a1a06;
   cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   line-height: 1;
+  z-index: 5;
+}
+.bv-detail-avatar {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem;
+  color: #221008;
+  background-image: url('assets/npcs/ritratti.webp');
+  background-size: 700% 400%;
+  background-position: calc(var(--sc, 0) * 100% / 6) calc(var(--sr, 0) * 100% / 3);
+  border: 2.5px solid rgba(80,40,10,.3);
+  box-shadow: 0 3px 10px rgba(0,0,0,.45);
+}
+.bv-detail-npc-name {
+  font-family: 'Cinzel', serif;
+  font-size: .85rem;
+  font-weight: 700;
+  font-style: italic;
+  color: #1e0e04;
+  line-height: 1.2;
+  flex: 1;
 }
 .bv-parch-rule {
   border: none;
@@ -8425,11 +8484,11 @@ img.fiche-inline {
 }
 .bv-quest-text {
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: .72rem;
+  font-size: .95rem;
   font-style: italic;
-  color: #221008;
-  line-height: 1.58;
-  margin-bottom: 9px;
+  color: #1a0c04;
+  line-height: 1.6;
+  margin-bottom: 12px;
 }
 
 /* KM dots */

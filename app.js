@@ -4268,6 +4268,11 @@ function _openBachecaDetail(q, todayKm, claimed, done, tm) {
   const overlay = el('div', 'bv-detail-overlay');
   const sheet = el('div', `bv-detail-sheet ${q.tier}`);
 
+  // Chiodo in cima
+  const nail = el('div', 'bv-detail-nail');
+  nail.appendChild(el('span', ''));
+  sheet.appendChild(nail);
+
   const closeBtn = el('button', 'bv-detail-close', '✕');
   closeBtn.addEventListener('click', () => overlay.remove());
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
@@ -4276,13 +4281,13 @@ function _openBachecaDetail(q, todayKm, claimed, done, tm) {
   // Badge
   sheet.appendChild(el('span', 'bv-tier-badge', q.tier.toUpperCase()));
 
-  // NPC row
+  // NPC row — avatar grande per il detail
   const npcRow = el('div', 'bv-npc-row');
   const sp = NPC_SPRITE[q.npc.name];
-  const av = el('div', 'bv-npc-avatar', sp ? '' : q.npc.icon);
+  const av = el('div', 'bv-detail-avatar', sp ? '' : q.npc.icon);
   if (sp) { av.style.setProperty('--sc', sp[0]); av.style.setProperty('--sr', sp[1]); }
   npcRow.appendChild(av);
-  npcRow.appendChild(el('span', 'bv-npc-name', esc(q.npc.name)));
+  npcRow.appendChild(el('span', 'bv-detail-npc-name', esc(q.npc.name)));
   sheet.appendChild(npcRow);
 
   const rule = document.createElement('hr');
