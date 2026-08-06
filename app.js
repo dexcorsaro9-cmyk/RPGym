@@ -5435,7 +5435,7 @@ function _makeCanvas(size) {
   cv.width  = size * dpr; cv.height = size * dpr;
   cv.style.width = size + 'px'; cv.style.height = size + 'px';
   cv._dpr   = dpr;
-  cv.getContext('2d').scale(dpr, dpr);
+  cv.getContext('2d', { alpha: false }).scale(dpr, dpr);
   return cv;
 }
 
