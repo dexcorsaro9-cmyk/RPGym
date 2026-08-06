@@ -4229,56 +4229,17 @@ function renderBacheca(c, todayKm) {
     npcRow.appendChild(el('span', 'bv-npc-name', esc(q.npc.name)));
     body.appendChild(npcRow);
 
-    const rule = document.createElement('hr');
-    rule.className = 'bv-parch-rule';
-    body.appendChild(rule);
-
-    body.appendChild(el('p', 'bv-quest-text', q.text));
-
-    // KM dots
-    const kmTarget = el('div', 'bv-km-target');
-    const dotRow = el('div', 'bv-km-dot-row');
-    const filledCount = claimed ? q.km : Math.round(Math.min(1, todayKm / q.km) * q.km);
-    for (let i = 0; i < q.km; i++) {
-      dotRow.appendChild(el('div', `bv-km-dot${i < filledCount ? ' filled' : ''}`));
-    }
-    kmTarget.appendChild(dotRow);
-    kmTarget.appendChild(el('span', 'bv-km-text',
-      claimed ? `✓ ${q.km} km` : `${Math.min(todayKm, q.km).toFixed(1)} / ${q.km} km`));
-    body.appendChild(kmTarget);
-
-    // Rewards
-    const rr = el('div', 'bv-reward-row');
-    const { reward } = q;
-    if (reward.gold)  rr.appendChild(el('span', 'bv-rchip gold',  `🪙 ${reward.gold}`));
-    if (reward.wood)  rr.appendChild(el('span', 'bv-rchip wood',  `🪵 ${reward.wood}`));
-    if (reward.stone) rr.appendChild(el('span', 'bv-rchip stone', `🪨 ${reward.stone}`));
-    if (reward.consumable) {
-      const ci = RPG.consumableById(reward.consumable);
-      if (ci) rr.appendChild(el('span', 'bv-rchip item', `${ci.icon} ${esc(ci.name)}`));
-    }
-    body.appendChild(rr);
-
-    if (done && !claimed) {
-      const btn = el('button', 'btn btn-primary bv-claim-btn', '⚔️ Riscuoti');
-      btn.style.setProperty('--bq-glow', tm.glow);
-      btn.addEventListener('click', () => {
-        const err = RPG.claimBoardReward(HERO, q.id);
-        if (err) { toast(err); return; }
-        persist(); renderHUD();
-        const parts = [];
-        if (reward.gold)  parts.push(`🪙 +${reward.gold}`);
-        if (reward.wood)  parts.push(`🪵 +${reward.wood}`);
-        if (reward.stone) parts.push(`🪨 +${reward.stone}`);
-        if (reward.consumable) { const ci = RPG.consumableById(reward.consumable); if (ci) parts.push(`${ci.icon} ${ci.name}`); }
-        toast(`${q.npc.icon} Missione di ${q.npc.name} completata! ${parts.join(' · ')}`);
-        vibrate([60, 40, 100]);
-        setTab('train');
-      });
-      body.appendChild(btn);
-    }
+    // Mini km bar
+    const barWrap = el('div', 'bv-km-bar-wrap');
+    const barFill = el('div', 'bv-km-bar-fill');
+    barFill.style.width = claimed ? '100%' : `${Math.min(100, (todayKm / q.km) * 100).toFixed(1)}%`;
+    barWrap.appendChild(barFill);
+    body.appendChild(barWrap);
 
     scroll.appendChild(body);
+
+    // Click → detail sheet
+    scroll.addEventListener('click', () => _openBachecaDetail(q, todayKm, claimed, done, tm));
 
     const seal = el('div', 'bv-wax-seal', tm.sealIcon);
     seal.style.background = tm.seal;
@@ -4301,6 +4262,83 @@ function renderBacheca(c, todayKm) {
     cvs.height = surface.offsetHeight;
     if (cvs.width > 0 && cvs.height > 0) _drawBachecaWood(cvs);
   });
+}
+
+function _openBachecaDetail(q, todayKm, claimed, done, tm) {
+  const overlay = el('div', 'bv-detail-overlay');
+  const sheet = el('div', `bv-detail-sheet ${q.tier}`);
+
+  const closeBtn = el('button', 'bv-detail-close', '✕');
+  closeBtn.addEventListener('click', () => overlay.remove());
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  sheet.appendChild(closeBtn);
+
+  // Badge
+  sheet.appendChild(el('span', 'bv-tier-badge', q.tier.toUpperCase()));
+
+  // NPC row
+  const npcRow = el('div', 'bv-npc-row');
+  const sp = NPC_SPRITE[q.npc.name];
+  const av = el('div', 'bv-npc-avatar', sp ? '' : q.npc.icon);
+  if (sp) { av.style.setProperty('--sc', sp[0]); av.style.setProperty('--sr', sp[1]); }
+  npcRow.appendChild(av);
+  npcRow.appendChild(el('span', 'bv-npc-name', esc(q.npc.name)));
+  sheet.appendChild(npcRow);
+
+  const rule = document.createElement('hr');
+  rule.className = 'bv-parch-rule';
+  sheet.appendChild(rule);
+
+  sheet.appendChild(el('p', 'bv-quest-text', q.text));
+
+  // KM dots
+  const kmTarget = el('div', 'bv-km-target');
+  const dotRow = el('div', 'bv-km-dot-row');
+  const filledCount = claimed ? q.km : Math.round(Math.min(1, todayKm / q.km) * q.km);
+  for (let i = 0; i < q.km; i++) {
+    dotRow.appendChild(el('div', `bv-km-dot${i < filledCount ? ' filled' : ''}`));
+  }
+  kmTarget.appendChild(dotRow);
+  kmTarget.appendChild(el('span', 'bv-km-text',
+    claimed ? `✓ ${q.km} km` : `${Math.min(todayKm, q.km).toFixed(1)} / ${q.km} km`));
+  sheet.appendChild(kmTarget);
+
+  // Rewards
+  const { reward } = q;
+  const rr = el('div', 'bv-reward-row');
+  if (reward.gold)  rr.appendChild(el('span', 'bv-rchip gold',  `🪙 ${reward.gold}`));
+  if (reward.wood)  rr.appendChild(el('span', 'bv-rchip wood',  `🪵 ${reward.wood}`));
+  if (reward.stone) rr.appendChild(el('span', 'bv-rchip stone', `🪨 ${reward.stone}`));
+  if (reward.consumable) {
+    const ci = RPG.consumableById(reward.consumable);
+    if (ci) rr.appendChild(el('span', 'bv-rchip item', `${ci.icon} ${esc(ci.name)}`));
+  }
+  sheet.appendChild(rr);
+
+  if (done && !claimed) {
+    const btn = el('button', 'btn btn-primary bv-claim-btn', '⚔️ Riscuoti');
+    btn.style.setProperty('--bq-glow', tm.glow);
+    btn.addEventListener('click', () => {
+      const err = RPG.claimBoardReward(HERO, q.id);
+      if (err) { toast(err); overlay.remove(); return; }
+      persist(); renderHUD();
+      const parts = [];
+      if (reward.gold)  parts.push(`🪙 +${reward.gold}`);
+      if (reward.wood)  parts.push(`🪵 +${reward.wood}`);
+      if (reward.stone) parts.push(`🪨 +${reward.stone}`);
+      if (reward.consumable) { const ci = RPG.consumableById(reward.consumable); if (ci) parts.push(`${ci.icon} ${ci.name}`); }
+      toast(`${q.npc.icon} Missione di ${q.npc.name} completata! ${parts.join(' · ')}`);
+      vibrate([60, 40, 100]);
+      overlay.remove();
+      setTab('train');
+    });
+    sheet.appendChild(btn);
+  } else if (claimed) {
+    sheet.appendChild(el('p', 'bv-km-text', '✓ Missione già riscattata'));
+  }
+
+  overlay.appendChild(sheet);
+  document.body.appendChild(overlay);
 }
 
 function renderTrain(c) {
