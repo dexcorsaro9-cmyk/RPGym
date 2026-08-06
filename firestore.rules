@@ -1,0 +1,103 @@
+rules_version = '2';
+// Hero's Pace — Firestore Security Rules
+// NOTA: l'app usa UUID locali, non Firebase Auth. Le regole validano
+// la struttura dei dati ma non possono verificare la proprietà del doc.
+// Per protezione completa aggiungere Firebase Anonymous Authentication.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── heroes/{heroId} ──────────────────────────────────────────────
+    // Lettura pubblica (classifica, ricerca sfide, inviti).
+    // Scrittura: validazione struttura e valori ammissibili.
+    match /heroes/{heroId} {
+      allow read: if true;
+
+      allow write: if
+        // Campi ammessi nel documento
+        request.resource.data.keys().hasOnly([
+          'name', 'storyId', 'level', 'totalKm', 'streak', 'prestige',
+          'updatedAt', 'challengeCode', 'challengeData', 'pendingInvites'
+        ])
+        // name: stringa 1-30 caratteri
+        && (!('name' in request.resource.data) || (
+              request.resource.data.name is string &&
+              request.resource.data.name.size() >= 1 &&
+              request.resource.data.name.size() <= 30
+            ))
+        // level: intero 1-200
+        && (!('level' in request.resource.data) || (
+              request.resource.data.level is int &&
+              request.resource.data.level >= 1 &&
+              request.resource.data.level <= 200
+            ))
+        // totalKm: numero non negativo (tetto anti-cheat: 1 M km)
+        && (!('totalKm' in request.resource.data) || (
+              request.resource.data.totalKm is number &&
+              request.resource.data.totalKm >= 0 &&
+              request.resource.data.totalKm <= 1000000
+            ))
+        // streak: intero ≥ 0
+        && (!('streak' in request.resource.data) || (
+              request.resource.data.streak is int &&
+              request.resource.data.streak >= 0
+            ))
+        // prestige: intero ≥ 0
+        && (!('prestige' in request.resource.data) || (
+              request.resource.data.prestige is int &&
+              request.resource.data.prestige >= 0
+            ))
+        // storyId: stringa
+        && (!('storyId' in request.resource.data) ||
+              request.resource.data.storyId is string)
+        // pendingInvites: lista (max 50 inviti pendenti)
+        && (!('pendingInvites' in request.resource.data) || (
+              request.resource.data.pendingInvites is list &&
+              request.resource.data.pendingInvites.size() <= 50
+            ));
+    }
+
+    // ── guilds/{guildId} ─────────────────────────────────────────────
+    // Lettura pubblica (ricerca gilde, join).
+    match /guilds/{guildId} {
+      allow read: if true;
+
+      allow write: if
+        request.resource.data.keys().hasOnly([
+          'name', 'tag', 'emblem', 'description',
+          'founderHeroId', 'founderName',
+          'level', 'totalKm', 'weeklyKm', 'weekStart',
+          'memberCount', 'maxMembers', 'inviteCode', 'isPublic', 'createdAt'
+        ])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 2
+        && request.resource.data.name.size() <= 50
+        && request.resource.data.tag is string
+        && request.resource.data.tag.size() >= 2
+        && request.resource.data.tag.size() <= 6
+        && request.resource.data.memberCount is int
+        && request.resource.data.memberCount >= 0
+        && request.resource.data.memberCount <= 100;
+
+      // members sub-collection
+      match /members/{memberId} {
+        allow read: if true;
+
+        allow write: if
+          request.resource.data.keys().hasOnly([
+            'heroId', 'heroName', 'storyId', 'level', 'role',
+            'weeklyKm', 'totalKm', 'weekStart', 'lastActive'
+          ])
+          && request.resource.data.heroId is string
+          && request.resource.data.heroName is string
+          && request.resource.data.role in ['founder', 'officer', 'member'];
+      }
+
+      allow delete: if true;
+    }
+
+    // ── Blocca tutto il resto ─────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
