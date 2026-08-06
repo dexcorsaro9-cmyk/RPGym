@@ -8338,12 +8338,13 @@ img.fiche-inline {
   overflow: hidden;
   display: flex; align-items: center; justify-content: center;
   font-size: .9rem;
-  /* emoji visibile di default come fallback */
   color: #221008;
-  /* quando sheet.webp esiste, copre l'emoji */
-  background-image: url('assets/npcs/sheet.webp');
-  background-size: 500% 500%;
-  background-position: calc(var(--col, 0) * 25%) calc(var(--row, 0) * 25%);
+  background: rgba(255,245,220,.6);
+}
+.bv-npc-avatar img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: center top;
 }
 .bv-npc-name {
   font-family: 'Cinzel', serif;

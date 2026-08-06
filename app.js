@@ -4189,12 +4189,15 @@ function renderBacheca(c, todayKm) {
     body.appendChild(el('span', 'bv-tier-badge', q.tier.toUpperCase()));
 
     const npcRow = el('div', 'bv-npc-row');
-    const npcIdx = RPG.BOARD_NPCS ? RPG.BOARD_NPCS.findIndex(n => n.name === q.npc.name) : -1;
-    const avatar = el('div', 'bv-npc-avatar', npcIdx < 0 ? q.npc.icon : '');
-    if (npcIdx >= 0) {
-      avatar.style.setProperty('--col', npcIdx % 5);
-      avatar.style.setProperty('--row', Math.floor(npcIdx / 5));
-      avatar.textContent = q.npc.icon; // emoji fallback se il file non esiste
+    const avatar = el('div', 'bv-npc-avatar');
+    if (q.npc.img) {
+      const img = document.createElement('img');
+      img.src = `assets/npcs/${q.npc.img}.webp`;
+      img.alt = q.npc.name;
+      img.onerror = () => { img.remove(); avatar.textContent = q.npc.icon; };
+      avatar.appendChild(img);
+    } else {
+      avatar.textContent = q.npc.icon;
     }
     npcRow.appendChild(avatar);
     npcRow.appendChild(el('span', 'bv-npc-name', esc(q.npc.name)));
