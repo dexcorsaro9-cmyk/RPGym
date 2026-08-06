@@ -158,11 +158,11 @@ assert(`archery goldPerPt ≤ 1.0 (ora ${goldPerPt})`, goldPerPt <= 1.0, `valore
 
 // Altri giochi usano costanti hardcoded — verifica che non superino i cap
 // tap/arena: const gold = 30
-const tapGold = parseFloat((mgSrc.match(/const gold = (\d+), xp = 50/) || [])[1]);
+const tapGold = parseFloat((mgSrc.match(/const gold = (\d+), xp = 25/) || [])[1]);
 assert(`tap/arena gold per partita ≤ 40 (ora ${tapGold})`, tapGold <= 40, `valore: ${tapGold}`);
 
 // fishing: const gold = 40
-const fishGold = parseFloat((mgSrc.match(/const gold = (\d+), xp = 60/) || [])[1]);
+const fishGold = parseFloat((mgSrc.match(/const gold = (\d+), xp = 30/) || [])[1]);
 assert(`fishing gold per cattura ≤ 50 (ora ${fishGold})`, fishGold <= 50, `valore: ${fishGold}`);
 
 // Ceiling giornaliero worst-case (3 partite ciascuna):

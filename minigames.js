@@ -158,8 +158,8 @@ function openCardsGame() {
   if (!mgCanPlay('cards')) return;
   const POOL = [
     { title:'Premio Piccolo',  reward:{ gold:10 },          trap:false },
-    { title:'Premio Grande',   reward:{ gold:30, xp:20 },   trap:false },
-    { title:'Bonus Mistico',   reward:{ xp:50 },            trap:false },
+    { title:'Premio Grande',   reward:{ gold:30, xp:10 },   trap:false },
+    { title:'Bonus Mistico',   reward:{ xp:25 },            trap:false },
     { title:'Dono del Bosco',  reward:{ wood:20, stone:20 },trap:false },
     { title:'Maledizione!',    reward:{ gold:-10 },         trap:true  },
   ];
@@ -292,7 +292,7 @@ function openArcheryGame() {
         _mgRAF = requestAnimationFrame(tick);
       } else {
         const gold = Math.round(totalScore * MG_B.archery.goldPerPt);
-        const xp = Math.round(totalScore * 0.6);
+        const xp = Math.round(totalScore * 0.28);
         mgGiveReward({ gold, xp });
         mgRecord('archery');
         resEl.innerHTML = mgRewardHTML({ gold, xp }, `Punteggio: ${totalScore} / 90`, totalScore >= 70 ? '🏆 Leggendario!' : totalScore >= 40 ? '⭐ Buona mira!' : 'Continua ad allenarti');
@@ -413,7 +413,7 @@ function openBoccaleGame() {
     state = 'END';
     cleanup();
     mgRecord('boccale');
-    const gold = 30, xp = 50;
+    const gold = 30, xp = 25;
     if (won) {
       mgGiveReward({ gold, xp });
       resEl.innerHTML = mgRewardHTML({ gold, xp }, msg, '');
@@ -695,7 +695,7 @@ function openDadiGame() {
 
     mgRecord('dadi');
     if (playerWins) {
-      const gold = 30, xp = 50;
+      const gold = 30, xp = 25;
       mgGiveReward({ gold, xp });
       vibrate([80, 40, 160]); sfx('coin');
       resEl.innerHTML = mgRewardHTML({ gold, xp }, '🎉 Hai vinto!', `${resultLine} ${verdictLine}`);
@@ -845,7 +845,7 @@ function openPescaGame() {
     zoneEl.classList.remove('mgp-zone-active');
     mgRecord('pesca');
     if (won) {
-      const gold = 40, xp = 60;
+      const gold = 40, xp = 30;
       mgGiveReward({ gold, xp });
       vibrate([80, 40, 160]); sfx('coin');
       resEl.innerHTML = mgRewardHTML({ gold, xp }, '🎣 Catturato!', 'Creatura eccezionale!');
@@ -952,7 +952,7 @@ function openBraccioGame() {
     wrap.classList.remove('mgbf-shake');
     mgRecord('braccio');
     if (won) {
-      const gold = 30, xp = 50;
+      const gold = 30, xp = 25;
       mgGiveReward({ gold, xp });
       vibrate([100, 50, 200]); sfx('coin');
       resEl.innerHTML = mgRewardHTML({ gold, xp }, '💪 Vittoria!', 'Che muscoli da guerriero!');
@@ -1102,7 +1102,7 @@ function openColtelloGame() {
     state = 'END';
     mgRecord('coltello');
     if (won) {
-      const gold = 50, xp = 80;
+      const gold = 50, xp = 40;
       mgGiveReward({ gold, xp });
       vibrate([80, 40, 200]); sfx('coin');
       resEl.innerHTML = mgRewardHTML({ gold, xp }, '🎯 Infallibile!', 'Tutti e 5 nel segno!');
