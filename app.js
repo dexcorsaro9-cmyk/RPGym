@@ -4146,72 +4146,85 @@ function renderBacheca(c, todayKm) {
   const board = HERO.board;
   if (!board) return;
 
-  const wrap = el('div', 'bacheca-wrap');
+  const TIER_ROT = {
+    commissione: { rot: '-3.8deg', shift: '0px'  },
+    incarico:    { rot:  '1.4deg', shift: '-12px' },
+    missione:    { rot: '-2.1deg', shift:  '8px'  },
+  };
 
-  // Canvas — wood grain background
-  const cvs = document.createElement('canvas');
-  cvs.className = 'bacheca-wood';
-  wrap.appendChild(cvs);
+  const outer = el('div', 'bv-board-outer');
 
   // Top beam
-  const beam = el('div', 'bacheca-beam');
+  const beam = el('div', 'bv-board-beam');
   beam.innerHTML = `
-    <div class="bacheca-beam-bolt"></div>
-    <div class="bacheca-beam-center">
-      <div class="bacheca-beam-title">📋 Bacheca del Viandante</div>
-      <div class="bacheca-beam-sub">✦ Oakhaven ✦</div>
-    </div>
-    <div class="bacheca-beam-bolt"></div>`;
-  wrap.appendChild(beam);
+    <div class="bv-board-title">📋 &ensp; Bacheca del Viandante &ensp; 📋</div>
+    <span class="bv-board-title-deco">✦ &ensp; Oakhaven &ensp; ✦</span>`;
+  outer.appendChild(beam);
 
-  // Parchment scrolls
-  const scrollsEl = el('div', 'bacheca-scrolls');
+  // Wood surface
+  const surface = el('div', 'bv-board-surface');
+  const cvs = document.createElement('canvas');
+  cvs.className = 'bv-wood-canvas';
+  surface.appendChild(cvs);
+
+  // Parchments
+  const parchEl = el('div', 'bv-parchments');
+
   board.quests.forEach(q => {
     const claimed = board.claimed.includes(q.id);
-    const progress = Math.min(1, todayKm / q.km);
     const done = todayKm >= q.km;
     const tm = _TIER_META[q.tier];
+    const tr = TIER_ROT[q.tier] || TIER_ROT.commissione;
 
-    const scroll = el('div', `bacheca-scroll${claimed ? ' bq-claimed' : done ? ' bq-done' : ''}`);
-    scroll.style.setProperty('--parch', tm.parch);
-    scroll.style.setProperty('--bq-ink', tm.ink);
-    scroll.style.setProperty('--bq-color', tm.color);
+    const scroll = el('div', `bv-parchment ${q.tier}${claimed ? ' bv-claimed' : done ? ' bv-done' : ''}`);
+    scroll.style.setProperty('--rot', tr.rot);
+    scroll.style.setProperty('--shift', tr.shift);
     scroll.style.setProperty('--bq-glow', tm.glow);
 
-    scroll.appendChild(el('div', 'bq-nail'));
-    scroll.appendChild(el('span', 'bq-tier-badge', tm.label.toUpperCase()));
+    scroll.appendChild(el('div', 'bv-nail'));
 
-    const npcRow = el('div', 'bq-npc-row');
-    npcRow.innerHTML = `<span class="bq-npc-icon">${q.npc.icon}</span><span class="bq-npc-name">${esc(q.npc.name)}</span>`;
-    scroll.appendChild(npcRow);
+    const body = el('div', 'bv-parchment-body');
+    body.style.setProperty('--bq-ink', tm.ink);
+
+    body.appendChild(el('span', 'bv-tier-badge', q.tier.toUpperCase()));
+
+    const npcRow = el('div', 'bv-npc-row');
+    npcRow.innerHTML = `<span class="bv-npc-icon">${q.npc.icon}</span><span class="bv-npc-name">${esc(q.npc.name)}</span>`;
+    body.appendChild(npcRow);
 
     const rule = document.createElement('hr');
-    rule.className = 'bq-rule';
-    scroll.appendChild(rule);
+    rule.className = 'bv-parch-rule';
+    body.appendChild(rule);
 
-    scroll.appendChild(el('p', 'bq-text', q.text));
+    body.appendChild(el('p', 'bv-quest-text', q.text));
 
-    const barWrap = el('div', 'bq-bar-wrap');
-    const barFill = el('div', 'bq-bar-fill');
-    barFill.style.width = `${Math.round(progress * 100)}%`;
-    barWrap.appendChild(barFill);
-    scroll.appendChild(barWrap);
-    scroll.appendChild(el('span', 'bq-bar-label',
-      claimed ? '✓ Completata' : `${Math.min(todayKm, q.km).toFixed(1)} / ${q.km} km`));
+    // KM dots
+    const kmTarget = el('div', 'bv-km-target');
+    const dotRow = el('div', 'bv-km-dot-row');
+    const filledCount = claimed ? q.km : Math.round(Math.min(1, todayKm / q.km) * q.km);
+    for (let i = 0; i < q.km; i++) {
+      dotRow.appendChild(el('div', `bv-km-dot${i < filledCount ? ' filled' : ''}`));
+    }
+    kmTarget.appendChild(dotRow);
+    kmTarget.appendChild(el('span', 'bv-km-text',
+      claimed ? `✓ ${q.km} km` : `${Math.min(todayKm, q.km).toFixed(1)} / ${q.km} km`));
+    body.appendChild(kmTarget);
 
-    const rr = el('div', 'bq-reward-row');
+    // Rewards
+    const rr = el('div', 'bv-reward-row');
     const { reward } = q;
-    if (reward.gold)  rr.appendChild(el('span', 'bq-reward-chip gold',  `🪙 ${reward.gold}`));
-    if (reward.wood)  rr.appendChild(el('span', 'bq-reward-chip wood',  `🪵 ${reward.wood}`));
-    if (reward.stone) rr.appendChild(el('span', 'bq-reward-chip stone', `🪨 ${reward.stone}`));
+    if (reward.gold)  rr.appendChild(el('span', 'bv-rchip gold',  `🪙 ${reward.gold}`));
+    if (reward.wood)  rr.appendChild(el('span', 'bv-rchip wood',  `🪵 ${reward.wood}`));
+    if (reward.stone) rr.appendChild(el('span', 'bv-rchip stone', `🪨 ${reward.stone}`));
     if (reward.consumable) {
       const ci = RPG.consumableById(reward.consumable);
-      if (ci) rr.appendChild(el('span', 'bq-reward-chip item', `${ci.icon} ${esc(ci.name)}`));
+      if (ci) rr.appendChild(el('span', 'bv-rchip item', `${ci.icon} ${esc(ci.name)}`));
     }
-    scroll.appendChild(rr);
+    body.appendChild(rr);
 
     if (done && !claimed) {
-      const btn = el('button', 'btn btn-primary bq-claim-btn', '⚔️ Riscuoti');
+      const btn = el('button', 'btn btn-primary bv-claim-btn', '⚔️ Riscuoti');
+      btn.style.setProperty('--bq-glow', tm.glow);
       btn.addEventListener('click', () => {
         const err = RPG.claimBoardReward(HERO, q.id);
         if (err) { toast(err); return; }
@@ -4225,28 +4238,30 @@ function renderBacheca(c, todayKm) {
         vibrate([60, 40, 100]);
         setTab('train');
       });
-      scroll.appendChild(btn);
+      body.appendChild(btn);
     }
 
-    const seal = el('div', 'bq-wax-seal', tm.sealIcon);
+    scroll.appendChild(body);
+
+    const seal = el('div', 'bv-wax-seal', tm.sealIcon);
     seal.style.background = tm.seal;
     scroll.appendChild(seal);
 
-    scrollsEl.appendChild(scroll);
+    parchEl.appendChild(scroll);
   });
-  wrap.appendChild(scrollsEl);
 
-  // Bottom plank
-  const plank = el('div', 'bacheca-plank');
-  plank.innerHTML = '<span>✦ &ensp; Le missioni si rinnovano ogni notte &ensp; ✦</span>';
-  wrap.appendChild(plank);
+  surface.appendChild(parchEl);
+  outer.appendChild(surface);
 
-  c.appendChild(wrap);
+  const plank = el('div', 'bv-board-plank');
+  plank.innerHTML = '<span class="bv-footer-text">✦ &ensp; Le missioni si rinnovano ogni notte &ensp; ✦</span>';
+  outer.appendChild(plank);
 
-  // Draw wood grain after layout is in DOM
+  c.appendChild(outer);
+
   requestAnimationFrame(() => {
-    cvs.width = wrap.offsetWidth;
-    cvs.height = wrap.offsetHeight;
+    cvs.width = surface.offsetWidth;
+    cvs.height = surface.offsetHeight;
     if (cvs.width > 0 && cvs.height > 0) _drawBachecaWood(cvs);
   });
 }
@@ -4424,9 +4439,6 @@ function renderTrain(c) {
     <div class="train-goal-bar"><div class="train-goal-fill" style="width:${goalPct}%"></div></div>`;
   c.appendChild(goalEl);
 
-  // ── Bacheca del Viandante ──
-  renderBacheca(c, todayKm);
-
   const form = el('div', 'panel');
   form.appendChild(el('label', 'field-label', 'Tipo di attività'));
   const actRow = el('div', 'act-row');
@@ -4579,6 +4591,9 @@ function renderTrain(c) {
   c.appendChild(ap);
 
   renderDailyChallenges(c);
+
+  // ── Bacheca del Viandante — in fondo ──
+  renderBacheca(c, todayKm);
 }
 
 
