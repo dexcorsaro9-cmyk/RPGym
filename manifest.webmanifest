@@ -13,5 +13,42 @@
     { "src": "assets/icons/Icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
     { "src": "assets/icons/Icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
     { "src": "assets/icons/Icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "screenshots": [
+    {
+      "src": "assets/screenshots/screen-splash.webp",
+      "sizes": "1284x2298",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "Hero's Pace — Schermata di caricamento"
+    },
+    {
+      "src": "assets/screenshots/screen-arena.webp",
+      "sizes": "1284x2592",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "L'Arena dei Guerrieri — Sfide e Scalata"
+    },
+    {
+      "src": "assets/screenshots/screen-eroe.webp",
+      "sizes": "1284x2489",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "Equipaggiamento — Personalizza il tuo eroe"
+    },
+    {
+      "src": "assets/screenshots/screen-rifugio.webp",
+      "sizes": "1284x2581",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "Il Santuario dei Famigli — Il tuo compagno"
+    },
+    {
+      "src": "assets/screenshots/screen-borgo.webp",
+      "sizes": "1284x2614",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "Il Borgo — Bisca, Cartomante e molto altro"
+    }
   ]
 }
