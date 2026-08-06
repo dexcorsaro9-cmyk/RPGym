@@ -456,12 +456,54 @@ body {
   font-family: 'Cinzel', serif; font-weight: 700; text-align: center;
   color: var(--magic); margin: 10px 0; font-size: 1.05rem;
 }
-.loot-list { display: flex; flex-direction: column; gap: 5px; margin: 6px 0; }
-.loot { padding: 6px 10px; border-radius: 8px; background: rgba(255,255,255,.45); border-left: 4px solid; font-size: .9rem; }
-.loot.rar-comune { border-color: var(--rar-comune); }
-.loot.rar-raro { border-color: var(--rar-raro); }
-.loot.rar-epico { border-color: var(--rar-epico); }
-.loot.rar-leggendario { border-color: var(--rar-leggendario); background: rgba(217,130,43,.2); }
+.loot-list { display: flex; flex-direction: column; gap: 7px; margin: 6px 0; }
+.loot {
+  padding: 9px 12px;
+  border-radius: 10px;
+  background:
+    linear-gradient(160deg, rgba(255,255,255,.22) 0%, rgba(255,255,255,.1) 100%),
+    linear-gradient(160deg, var(--parchment-dark), #c8ad82);
+  border: 1.5px solid rgba(90,61,36,.35);
+  border-left: 4px solid;
+  font-size: .9rem;
+  box-shadow:
+    0 2px 8px rgba(0,0,0,.3),
+    inset 0 1px 0 rgba(255,255,255,.55),
+    inset 0 -1px 0 rgba(90,61,36,.15);
+  position: relative;
+  overflow: hidden;
+  transition: transform .1s, box-shadow .1s;
+}
+.loot.rar-comune {
+  border-left-color: var(--rar-comune);
+}
+.loot.rar-raro {
+  border-left-color: var(--rar-raro);
+  box-shadow:
+    0 2px 10px rgba(0,0,0,.35),
+    -2px 0 12px rgba(46,111,176,.3),
+    inset 0 1px 0 rgba(255,255,255,.55),
+    inset 0 -1px 0 rgba(90,61,36,.15);
+}
+.loot.rar-epico {
+  border-left-color: var(--rar-epico);
+  box-shadow:
+    0 2px 10px rgba(0,0,0,.35),
+    -2px 0 14px rgba(123,63,191,.4),
+    inset 0 1px 0 rgba(255,255,255,.55),
+    inset 0 -1px 0 rgba(90,61,36,.15);
+}
+.loot.rar-leggendario {
+  border-left-color: var(--rar-leggendario);
+  background:
+    linear-gradient(160deg, rgba(255,220,120,.22) 0%, rgba(217,130,43,.12) 100%),
+    linear-gradient(160deg, #d4b87a, #b89050);
+  box-shadow:
+    0 3px 14px rgba(0,0,0,.4),
+    -2px 0 18px rgba(217,130,43,.45),
+    inset 0 1px 0 rgba(255,255,200,.6),
+    inset 0 -1px 0 rgba(120,70,10,.25);
+}
 
 /* ── Carte ── */
 .card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
@@ -1593,12 +1635,27 @@ img.fiche-inline {
 /* ── Loot con descrizione ── */
 .loot { display: flex; flex-direction: column; gap: 3px; }
 .loot-head { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.loot.rar-non_comune { border-color: #4a9948; }
-.loot.rar-divino { border-color: #e8d44c; background: rgba(232,212,76,.15); box-shadow: 0 0 10px rgba(232,212,76,.3); }
-.loot.rar-oscuro { border-color: #7a1fa0; background: rgba(60,10,80,.15); box-shadow: 0 0 10px rgba(122,31,160,.4); }
+.loot.rar-non_comune {
+  border-left-color: #4a9948;
+  box-shadow: 0 2px 10px rgba(0,0,0,.35), -2px 0 12px rgba(74,153,72,.3), inset 0 1px 0 rgba(255,255,255,.55), inset 0 -1px 0 rgba(90,61,36,.15);
+}
+.loot.rar-divino {
+  border-left-color: #e8d44c;
+  background: linear-gradient(160deg, rgba(255,245,150,.25) 0%, rgba(232,212,76,.12) 100%), linear-gradient(160deg, #d4c870, #b8a840);
+  box-shadow: 0 3px 14px rgba(0,0,0,.4), -2px 0 20px rgba(232,212,76,.45), inset 0 1px 0 rgba(255,255,200,.65), inset 0 -1px 0 rgba(120,100,10,.25);
+}
+.loot.rar-oscuro {
+  border-left-color: #7a1fa0;
+  background: linear-gradient(160deg, rgba(180,80,255,.14) 0%, rgba(60,10,80,.1) 100%), linear-gradient(160deg, #b08890, #907080);
+  box-shadow: 0 3px 14px rgba(0,0,0,.4), -2px 0 18px rgba(122,31,160,.5), inset 0 1px 0 rgba(200,150,255,.35), inset 0 -1px 0 rgba(60,10,80,.25);
+}
 .loot.pickable { cursor: pointer; }
-.loot.pickable:active { transform: scale(.98); }
-.loot.equipped { outline: 2px solid var(--gold); }
+.loot.pickable:active { transform: scale(.975) translateX(3px); }
+.loot.equipped {
+  outline: 2px solid var(--gold-bright);
+  outline-offset: -2px;
+  box-shadow: 0 0 14px rgba(232,182,76,.5), inset 0 1px 0 rgba(255,240,150,.55);
+}
 
 /* ── Mercato ── */
 .mount-row {
@@ -2963,7 +3020,7 @@ img.fiche-inline {
 
 /* Il Santuario dei Famigli */
 .pet-portrait { font-size: 4rem; text-align: center; filter: drop-shadow(0 4px 8px rgba(0,0,0,.5)); }
-.loot.equipped { border-color: var(--gold-bright); box-shadow: 0 0 8px rgba(232,182,76,.5); }
+.loot.equipped { border-left-color: var(--gold-bright); box-shadow: 0 0 16px rgba(232,182,76,.55), inset 0 1px 0 rgba(255,240,150,.55); }
 .pet-portrait-wrap { position: relative; display: flex; justify-content: center; margin: 4px 0 6px; }
 .pet-portrait-img { max-width: 65%; max-height: 180px; object-fit: contain; filter: drop-shadow(0 6px 10px rgba(0,0,0,.4)); }
 .pet-accessory-badge {
@@ -7733,3 +7790,168 @@ img.fiche-inline {
 :root[data-theme="light"] .dc-sub { color: #7a5a30; }
 :root[data-theme="light"] .dc-btn { background: #e8d4b0; border-color: #c8a060; color: #9a7040; }
 :root[data-theme="light"] .dc-btn-go { background: linear-gradient(135deg,#8b4010,#b05010); border-color: #d07020; color:#fff; }
+
+/* ═══════════════ Grafica v10/10 — Visual Overhaul ═══════════════ */
+
+/* ── Legendary loot shimmer ── */
+.loot.rar-leggendario::after,
+.loot.rar-divino::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(
+    108deg,
+    transparent 32%,
+    rgba(255,220,80,.14) 46%,
+    rgba(255,180,40,.18) 50%,
+    rgba(255,220,80,.14) 54%,
+    transparent 68%
+  );
+  animation: lootShimmer 4.2s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes lootShimmer {
+  0%, 100% { transform: translateX(-80%); opacity: 0; }
+  35% { opacity: 1; }
+  65% { opacity: 1; }
+  90% { transform: translateX(80%); opacity: 0; }
+}
+
+/* ── Consumable cards: dark lacquered mini-tiles ── */
+.consumable-card {
+  background:
+    linear-gradient(160deg, rgba(40,28,12,.88) 0%, rgba(20,14,6,.94) 100%);
+  border: 1.5px solid rgba(90,61,36,.4);
+  box-shadow:
+    0 3px 14px rgba(0,0,0,.55),
+    inset 0 1px 0 rgba(255,255,255,.08),
+    inset 0 -1px 0 rgba(0,0,0,.4);
+  position: relative;
+  overflow: hidden;
+}
+.consumable-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent);
+  pointer-events: none;
+}
+.consumable-card.rarity-comune {
+  border-color: rgba(138,122,95,.5);
+}
+.consumable-card.rarity-raro {
+  border-color: rgba(46,111,176,.65);
+  box-shadow:
+    0 3px 14px rgba(0,0,0,.55),
+    0 0 16px rgba(46,111,176,.22),
+    inset 0 1px 0 rgba(100,160,255,.1),
+    inset 0 -1px 0 rgba(0,0,0,.4);
+}
+.consumable-card.rarity-epico {
+  border-color: rgba(123,63,191,.72);
+  box-shadow:
+    0 3px 14px rgba(0,0,0,.55),
+    0 0 20px rgba(123,63,191,.28),
+    inset 0 1px 0 rgba(180,120,255,.1),
+    inset 0 -1px 0 rgba(0,0,0,.4);
+}
+.consumable-card.rarity-leggendario {
+  border-color: rgba(217,130,43,.8);
+  background:
+    linear-gradient(160deg, rgba(55,30,5,.9) 0%, rgba(25,12,3,.95) 100%);
+  box-shadow:
+    0 3px 16px rgba(0,0,0,.6),
+    0 0 26px rgba(217,130,43,.3),
+    inset 0 1px 0 rgba(255,200,80,.14),
+    inset 0 -1px 0 rgba(0,0,0,.5);
+  animation: consLegGlow 3.4s ease-in-out infinite;
+}
+@keyframes consLegGlow {
+  0%, 100% { box-shadow: 0 3px 16px rgba(0,0,0,.6), 0 0 26px rgba(217,130,43,.3), inset 0 1px 0 rgba(255,200,80,.14), inset 0 -1px 0 rgba(0,0,0,.5); }
+  50%       { box-shadow: 0 3px 16px rgba(0,0,0,.6), 0 0 40px rgba(217,130,43,.55), inset 0 1px 0 rgba(255,200,80,.2),  inset 0 -1px 0 rgba(0,0,0,.5); }
+}
+
+.consumable-name {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: .76rem;
+  color: #e0d0a8;
+  text-shadow: 0 1px 4px rgba(0,0,0,.8);
+}
+.consumable-desc { color: #8a7a60; }
+.consumable-qty {
+  background: rgba(0,0,0,.55);
+  border: 1px solid rgba(201,147,46,.45);
+  color: var(--gold-bright);
+  font-family: 'Cinzel', serif;
+  font-weight: 800;
+  font-size: .7rem;
+}
+
+/* ── Quick consumable strip: match card aesthetic ── */
+.quick-cons-btn {
+  background: linear-gradient(160deg, rgba(35,24,8,.85) 0%, rgba(18,12,4,.92) 100%);
+  border: 2px solid rgba(90,61,36,.38);
+  box-shadow: 0 2px 8px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
+}
+.quick-cons-btn.rarity-raro {
+  border-color: rgba(46,111,176,.62);
+  box-shadow: 0 2px 10px rgba(0,0,0,.45), 0 0 12px rgba(46,111,176,.25), inset 0 1px 0 rgba(100,160,255,.09);
+}
+.quick-cons-btn.rarity-epico {
+  border-color: rgba(123,63,191,.68);
+  box-shadow: 0 2px 10px rgba(0,0,0,.45), 0 0 15px rgba(123,63,191,.3), inset 0 1px 0 rgba(180,120,255,.09);
+}
+.quick-cons-btn.rarity-leggendario {
+  border-color: rgba(217,130,43,.78);
+  box-shadow: 0 2px 10px rgba(0,0,0,.45), 0 0 18px rgba(217,130,43,.35), inset 0 1px 0 rgba(255,200,80,.1);
+}
+.quick-cons-name { color: #c4b08a; }
+.quick-cons-badge {
+  background: rgba(201,147,46,.9);
+  border: 1.5px solid rgba(255,220,100,.4);
+  color: #1a0e04;
+}
+
+/* ── Panel title: elegant gold accent rule ── */
+.panel-title {
+  padding-bottom: 8px;
+  margin-bottom: 6px;
+  background:
+    linear-gradient(90deg, transparent, rgba(201,147,46,.45) 30%, rgba(201,147,46,.45) 70%, transparent)
+    left bottom / 100% 1px no-repeat;
+  text-shadow: 0 1px 2px rgba(255,255,255,.4);
+}
+
+/* ── btn-small: sharper depth ── */
+.btn-small {
+  padding: 7px 14px;
+  font-size: .78rem;
+  border-radius: 8px;
+  letter-spacing: .02em;
+}
+
+/* ── Category filter buttons: more depth when inactive ── */
+.coll-btn {
+  box-shadow: inset 0 2px 6px rgba(0,0,0,.35), inset 0 -1px 0 rgba(255,255,255,.06);
+  transition: transform .1s, box-shadow .1s, background .15s;
+}
+.coll-btn:active { transform: scale(.96); }
+.coll-btn.active {
+  box-shadow: 0 0 16px rgba(232,182,76,.38), inset 0 1px 0 rgba(255,255,200,.35);
+}
+
+/* ── Crafting panel: refined dividers ── */
+.crafting-row {
+  border-bottom-color: rgba(90,61,36,.22);
+}
+
+/* ── Buff chips: Cinzel for consistency ── */
+.buff-chip { font-family: 'Cinzel', serif; font-size: .67rem; letter-spacing: .03em; }
+
+/* ── Reward tile: richer dark glass on parchment ── */
+.reward {
+  background:
+    linear-gradient(160deg, rgba(40,28,12,.85) 0%, rgba(20,14,6,.92) 100%);
+  border-color: rgba(201,147,46,.4);
+  color: #e0d0a8;
+  text-shadow: 0 1px 3px rgba(0,0,0,.6);
+}
