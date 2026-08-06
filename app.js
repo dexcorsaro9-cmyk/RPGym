@@ -854,6 +854,41 @@ function updateTabOnboardingPulse() {
   trainTab.classList.toggle('tab-onboarding-pulse', showPulse);
 }
 
+const TAB_TOOLTIP_TEXT = {
+  camp:   { icon: '🏕️', title: 'Rifugio',   body: 'La tua base. Costruisci strutture per ottenere bonus permanenti al tuo eroe.' },
+  map:    { icon: '🗺️', title: 'Mappa',     body: 'Ogni km che cammini o corri avanza il tuo viaggio. Esplora nuove regioni!' },
+  train:  { icon: '🥾', title: 'Allenati',  body: 'Incolla o digita i tuoi passi e convertili in XP e oro per il tuo eroe.' },
+  market: { icon: '🏘️', title: 'Borgo',     body: 'Commercia con gli NPC, compra consumabili e sfida i rivali dell\'Arena.' },
+  hero:   { icon: '🧑‍🦯', title: 'Eroe',      body: 'Equipaggiamento, statistiche e tutto ciò che riguarda il tuo personaggio.' },
+};
+
+function showTabTooltip(tab) {
+  if (!HERO) return;
+  if (!HERO.seenTabs) HERO.seenTabs = [];
+  if (HERO.seenTabs.includes(tab)) return;
+  HERO.seenTabs.push(tab);
+  persist();
+
+  const info = TAB_TOOLTIP_TEXT[tab];
+  if (!info) return;
+
+  const old = document.querySelector('.tab-tooltip');
+  if (old) old.remove();
+
+  const tip = document.createElement('div');
+  tip.className = 'tab-tooltip';
+  tip.innerHTML = `<span class="tab-tooltip-icon">${info.icon}</span><div class="tab-tooltip-text"><b>${info.title}</b><br>${info.body}</div><button class="tab-tooltip-close" aria-label="Chiudi">✕</button>`;
+  document.body.appendChild(tip);
+  requestAnimationFrame(() => tip.classList.add('tab-tooltip-in'));
+
+  const dismiss = () => {
+    tip.classList.remove('tab-tooltip-in');
+    setTimeout(() => tip.remove(), 300);
+  };
+  tip.querySelector('.tab-tooltip-close').addEventListener('click', dismiss);
+  setTimeout(dismiss, 6000);
+}
+
 function showFirstWorkoutCelebration() {
   const ov = document.createElement('div');
   ov.className = 'first-workout-overlay';
@@ -1127,7 +1162,10 @@ function setTab(tab, dir) {
     else                      c.classList.add('tab-in');
   });
   updateBadges();
-  if (HERO) updateTabOnboardingPulse();
+  if (HERO) {
+    updateTabOnboardingPulse();
+    showTabTooltip(tab);
+  }
 }
 
 /* ── TAB: Rifugio ── */
@@ -1497,22 +1535,45 @@ function renderCamp(c) {
 
   c.appendChild(panorama);
 
-  /* ── Banner onboarding (solo primi passi) ── */
-  const obStep = HERO.onboardingStep || 0;
-  if (obStep === 1) {
-    const ob = el('div', 'panel onboarding-banner');
-    ob.innerHTML = `<div class="ob-row"><span class="ob-icon">⚔️</span><div><b>Prima missione!</b><br><span class="small">Vai nella scheda <b>Allenati</b> e registra il tuo primo allenamento. Il tuo eroe ti aspetta.</span></div></div>
-      <button class="btn btn-primary ob-btn">Vai ad allenarmi →</button>`;
-    ob.querySelector('.ob-btn').addEventListener('click', () => setTab('train'));
-    c.appendChild(ob);
-  } else if (obStep === 2) {
-    const ob = el('div', 'panel onboarding-banner');
-    ob.innerHTML = `<div class="ob-row"><span class="ob-icon">⚔️</span><div><b>Sfida l\'Arena!</b><br><span class="small">Hai ${RPG.battlesLeft(HERO)} sfide disponibili oggi. Combatti nella scheda <b>Allenati</b> per guadagnare oro e oggetti rari.</span></div></div>
-      <button class="btn ob-btn-dismiss" id="ob-dismiss-2">Capito ✓</button>`;
-    ob.querySelector('#ob-dismiss-2').addEventListener('click', () => {
-      HERO.onboardingStep = 3; persist(); setTab('camp');
-    });
-    c.appendChild(ob);
+  /* ── Missione guidata "Il Primo Passo" ── */
+  if (!HERO.firstQuestComplete) {
+    const seenTabs = HERO.seenTabs || [];
+    const hasLog = HERO.log && HERO.log.length > 0;
+    const seenMap = seenTabs.includes('map');
+    const seenMarket = seenTabs.includes('market');
+    const steps = [
+      { done: true,      icon: '🎮', label: 'Entra nel gioco' },
+      { done: hasLog,    icon: '🥾', label: 'Registra il primo allenamento', action: () => setTab('train') },
+      { done: seenMap,   icon: '🗺️', label: 'Esplora la Mappa',             action: () => setTab('map') },
+      { done: seenMarket,icon: '🏘️', label: 'Visita il Borgo',              action: () => setTab('market') },
+    ];
+    const allDone = steps.every(s => s.done);
+    if (allDone) {
+      /* Completa la missione una sola volta */
+      HERO.firstQuestComplete = true;
+      HERO.gold = (HERO.gold || 0) + 150;
+      HERO.xp   = (HERO.xp   || 0) + 100;
+      persist();
+      toast('🏅 Missione completata! +150 🪙 +100 XP');
+    } else {
+      const ob = el('div', 'panel first-quest-panel');
+      const stepsHtml = steps.map((s, i) => `
+        <div class="fq-step ${s.done ? 'fq-done' : ''}" data-step="${i}">
+          <span class="fq-step-icon">${s.done ? '✅' : s.icon}</span>
+          <span class="fq-step-label">${s.label}</span>
+          ${!s.done && s.action ? '<span class="fq-step-arrow">›</span>' : ''}
+        </div>`).join('');
+      ob.innerHTML = `
+        <div class="fq-header"><span class="fq-badge">Missione guidata</span><span class="fq-title">Il Primo Passo</span></div>
+        <div class="fq-steps">${stepsHtml}</div>
+        <div class="fq-reward">🏅 Ricompensa: 150 🪙 + 100 XP</div>`;
+      steps.forEach((s, i) => {
+        if (!s.done && s.action) {
+          ob.querySelector(`[data-step="${i}"]`).addEventListener('click', s.action);
+        }
+      });
+      c.appendChild(ob);
+    }
   }
 
   // Hint drag + reset layout
