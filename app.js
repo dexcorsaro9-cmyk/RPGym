@@ -5514,6 +5514,15 @@ function revealChest(title, chest) {
 let MARKET_VIEW = 'hub';
 let NERO_FILTER = 'all';
 
+const ANTRO_SECTIONS = [
+  { lv: 50,  key: 'antro_contratti', icon: '⚔️', name: 'Contratti del Campione', desc: 'Sfide settimanali per i più tenaci.' },
+  { lv: 60,  key: 'antro_bestia',    icon: '🐉', name: 'Bestia Ancestrale',       desc: 'Un boss mensile per i soli degni.' },
+  { lv: 70,  key: 'antro_trofei',    icon: '🏆', name: 'Sala dei Trofei',         desc: 'I tuoi record incisi nella pietra.' },
+  { lv: 80,  key: 'antro_forgia',    icon: '🔥', name: 'Forgia del Campione',     desc: 'Forgia equipaggiamento leggendario.' },
+  { lv: 90,  key: 'antro_dungeon',   icon: '🌀', name: 'Dungeon Infinito',        desc: 'Profondità senza fondo, gloria senza fine.' },
+  { lv: 100, key: 'antro_leggenda',  icon: '👑', name: 'Sala della Leggenda',     desc: 'Il tuo nome tra i Grandi del Reame.' },
+];
+
 function renderMarket(c) {
   try {
   if (MARKET_VIEW === 'taverna')     { renderTavernaView(c);     return; }
@@ -5527,6 +5536,7 @@ function renderMarket(c) {
   if (MARKET_VIEW === 'pozzo')       { renderPozzoView(c);       return; }
   if (MARKET_VIEW === 'catena')      { renderCatenaView(c);      return; }
   if (MARKET_VIEW === 'casse')       { renderCasseView(c);       return; }
+  if (MARKET_VIEW === 'antro' || MARKET_VIEW.startsWith('antro_')) { renderAntroView(c); return; }
 
   const marketTitle = el('h2', 'section-title', '🏘️ Il Borgo');
   c.appendChild(marketTitle);
@@ -5697,6 +5707,88 @@ function renderMarket(c) {
     c.appendChild(panel);
   });
 
+  // ── Antro del Campione (entry card, sempre in fondo al Borgo) ──
+  {
+    const heroLv = HERO.level || 1;
+    const isUnlocked = heroLv >= 50;
+    const unlockedCount = ANTRO_SECTIONS.filter(s => heroLv >= s.lv).length;
+    const nextSection = ANTRO_SECTIONS.find(s => heroLv < s.lv);
+
+    const antroCard = el('div', `panel borgo-entry-panel antro-card${isUnlocked ? ' antro-unlocked' : ''}`);
+
+    // Header banner (CSS puro, nessuna dipendenza da immagini)
+    const banner = el('div', 'antro-header-banner');
+    banner.innerHTML = `
+      <div class="antro-header-ornament">✦ &nbsp; ✦ &nbsp; ✦</div>
+      <div class="antro-header-title">Antro del Campione</div>
+      <div class="antro-header-subtitle">${isUnlocked ? `${unlockedCount} di 6 sezioni sbloccate` : 'Si svela al Livello 50'}</div>
+      ${!isUnlocked ? '<div class="antro-lock-glyph">🔒</div>' : ''}
+    `;
+    antroCard.appendChild(banner);
+
+    // Barra progresso milestone
+    const milestones = [50, 60, 70, 80, 90, 100];
+    const progressWrap = el('div', 'antro-progress-wrap');
+    const trackEl = el('div', 'antro-track');
+    const fillPct = Math.min(100, Math.max(0, ((heroLv - 1) / 99) * 100));
+    const fillEl = el('div', 'antro-track-fill');
+    fillEl.style.width = `${fillPct}%`;
+    trackEl.appendChild(fillEl);
+    progressWrap.appendChild(trackEl);
+    const dotsEl = el('div', 'antro-milestone-dots');
+    milestones.forEach(lv => {
+      const dot = el('div', `antro-dot${heroLv >= lv ? ' antro-dot-done' : ''}`);
+      dot.innerHTML = `<span class="antro-dot-lv">${lv}</span>`;
+      dotsEl.appendChild(dot);
+    });
+    progressWrap.appendChild(dotsEl);
+    antroCard.appendChild(progressWrap);
+
+    // Lista sezioni
+    const sectionList = el('div', 'antro-section-list');
+    ANTRO_SECTIONS.forEach(s => {
+      const done = heroLv >= s.lv;
+      const isNext = nextSection && s.lv === nextSection.lv;
+      const row = el('div', `antro-section-row${done ? ' antro-row-done' : isNext ? ' antro-row-next' : ' antro-row-sealed'}`);
+      row.innerHTML = `
+        <span class="antro-row-icon">${done ? s.icon : isNext ? '🔓' : '🔒'}</span>
+        <div class="antro-row-body">
+          <span class="antro-row-name">${done || isNext ? s.name : '???'}</span>
+          <span class="antro-row-desc">${done ? s.desc : `Si sblocca al livello ${s.lv}`}</span>
+        </div>
+        <span class="antro-row-badge">${done ? '✓' : `Lv ${s.lv}`}</span>
+      `;
+      sectionList.appendChild(row);
+    });
+    antroCard.appendChild(sectionList);
+
+    // Frase leggendaria
+    const quoteMap = {
+      pre:  '«Solo i più forti varcano questa soglia. Continua a camminare, Viandante — il tuo momento arriverà.»',
+      60:   '«Hai varcato la soglia dei Campioni. Ma la Bestia Ancestrale dorme ancora — sveglierà i degni al livello 60.»',
+      70:   '«La Bestia è caduta. Che la tua gloria sia incisa nella pietra, livello 70, nella Sala dei Trofei.»',
+      80:   '«I trofei non bastano ai veri Campioni. Al livello 80 la Forgia attende il tuo metallo più duro.»',
+      90:   '«Il fuoco ti ha temprato. Ma il Dungeon Infinito non ha fondo — solo il livello 90 rivela la verità.»',
+      100:  '«Sei arrivato dove pochissimi osano sognare. La Sala della Leggenda ti appartiene per sempre.»',
+      max:  '«Hai percorso ogni corridoio, sconfitto ogni ombra. Il tuo nome risuona nell\'Antro per l\'eternità.»',
+    };
+    const quoteKey = !isUnlocked ? 'pre' : !nextSection ? 'max' : String(nextSection.lv);
+    antroCard.appendChild(el('p', 'antro-quote', quoteMap[quoteKey] || quoteMap.pre));
+
+    // CTA
+    if (isUnlocked) {
+      const enterBtn = el('button', 'btn btn-primary wide antro-enter-btn', '⚔️ Entra nell\'Antro');
+      enterBtn.addEventListener('click', () => { MARKET_VIEW = 'antro'; setTab('market'); });
+      antroCard.appendChild(enterBtn);
+    } else {
+      const lockedBtn = el('button', 'btn wide antro-locked-btn', `🔒 Disponibile al Livello 50 · ti mancano ${50 - heroLv} livelli`);
+      lockedBtn.disabled = true;
+      antroCard.appendChild(lockedBtn);
+    }
+
+    c.appendChild(antroCard);
+  }
+
   } catch (err) {
     console.error('[renderMarket]', err);
     const errPanel = el('div', 'panel center');
@@ -5707,6 +5799,74 @@ function renderMarket(c) {
     c.appendChild(errPanel);
   }
 }
+
+/* ── Antro del Campione — Hub ── */
+function renderAntroView(c) {
+  const heroLv = HERO.level || 1;
+  const activeKey = MARKET_VIEW;
+
+  // Back
+  const isSubView = activeKey !== 'antro';
+  const backBtn = el('button', 'view-back-link', isSubView ? '‹ Antro del Campione' : '‹ Il Borgo');
+  backBtn.addEventListener('click', () => {
+    MARKET_VIEW = isSubView ? 'antro' : 'hub';
+    setTab('market');
+  });
+  c.appendChild(backBtn);
+
+  // Se siamo in una sotto-sezione, deleghiamo
+  if (activeKey === 'antro_contratti' && heroLv >= 50) { renderAntroContrattiView(c); return; }
+  if (activeKey === 'antro_bestia'    && heroLv >= 60) { renderAntroBestiaView(c);    return; }
+  if (activeKey === 'antro_trofei'    && heroLv >= 70) { renderAntroTrofeiView(c);    return; }
+  if (activeKey === 'antro_forgia'    && heroLv >= 80) { renderAntroForgiaView(c);    return; }
+  if (activeKey === 'antro_dungeon'   && heroLv >= 90) { renderAntroDungeonView(c);   return; }
+  if (activeKey === 'antro_leggenda'  && heroLv >= 100){ renderAntroLeggendaView(c);  return; }
+
+  // Hub principale
+  const hubHeader = el('div', 'antro-view-header');
+  hubHeader.innerHTML = `
+    <div class="antro-view-ornament">— ✦ —</div>
+    <h2 class="antro-view-title">Antro del Campione</h2>
+    <p class="antro-view-sub">Lv ${heroLv} &nbsp;·&nbsp; ${ANTRO_SECTIONS.filter(s => heroLv >= s.lv).length} / 6 sezioni sbloccate</p>
+  `;
+  c.appendChild(hubHeader);
+
+  ANTRO_SECTIONS.forEach(s => {
+    const done = heroLv >= s.lv;
+    const card = el('div', `panel antro-hub-card${done ? ' antro-hub-open' : ' antro-hub-sealed'}`);
+    card.innerHTML = `
+      <div class="ahc-icon">${done ? s.icon : '🔒'}</div>
+      <div class="ahc-body">
+        <div class="ahc-name">${s.name}</div>
+        <div class="ahc-desc">${done ? s.desc : `Si sblocca al livello ${s.lv}`}</div>
+      </div>
+      <div class="ahc-lv">Lv ${s.lv}</div>
+    `;
+    if (done) {
+      card.addEventListener('click', () => { MARKET_VIEW = s.key; setTab('market'); });
+    }
+    c.appendChild(card);
+  });
+}
+
+/* Sezioni dell'Antro — contenuto in costruzione */
+function _antroComingSoon(c, s) {
+  const wrap = el('div', 'panel center antro-coming-soon');
+  wrap.innerHTML = `
+    <div style="font-size:3rem;margin-bottom:.5rem">${s.icon}</div>
+    <h3 class="panel-title">${s.name}</h3>
+    <p class="muted small" style="margin:.5rem 0 1.2rem">${s.desc}</p>
+    <div class="antro-cs-badge">🔨 In costruzione</div>
+    <p class="muted small" style="margin-top:.8rem">Questa sezione sarà disponibile a breve.<br>Continua il tuo cammino, Campione.</p>
+  `;
+  c.appendChild(wrap);
+}
+function renderAntroContrattiView(c) { _antroComingSoon(c, ANTRO_SECTIONS[0]); }
+function renderAntroBestiaView(c)    { _antroComingSoon(c, ANTRO_SECTIONS[1]); }
+function renderAntroTrofeiView(c)    { _antroComingSoon(c, ANTRO_SECTIONS[2]); }
+function renderAntroForgiaView(c)    { _antroComingSoon(c, ANTRO_SECTIONS[3]); }
+function renderAntroDungeonView(c)   { _antroComingSoon(c, ANTRO_SECTIONS[4]); }
+function renderAntroLeggendaView(c)  { _antroComingSoon(c, ANTRO_SECTIONS[5]); }
 
 function npcBanner(imgPath, name, quote) {
   const b = el('div', 'npc-banner');
