@@ -446,6 +446,7 @@ const RPG = (() => {
     { name:'Ylla la Cantora',         role:'Barda',           icon:'🎵',  requests:['Porta questo messaggio cantato — non in forma scritta.','Ha perso la voce ma non il messaggio. Portalo tu.','Deve arrivare una melodia a tre destinatari sparsi per la città.'] },
     { name:'Dax il Contrabbandiere',  role:'Contrabbandiere', icon:'🥷',  requests:['Muoviti come se non stessi portando niente di importante.','Ha bisogno di qualcuno che faccia da diversivo mentre lui si sposta.','Cammina da questo lato — e fai finta di non conoscerlo.'] },
     { name:'Ria la Cartografa',       role:'Cartografa',      icon:'🗺️',  requests:['Misura questa strada a piedi — non si fida delle stime a cavallo.','Vuole la distanza esatta fino al bordo della foresta.','Ha bisogno di un secondo parere su una mappa. Cammina e conta.'] },
+    { name:'Il Biscazziere',          role:'Biscazziere',     icon:'🃏',  img:'biscazziere', requests:['Ha un debito da riscuotere oltre il ponte — ma i suoi piedi non lo portano.','Vuole che qualcuno consegni una busta. "Non aprirla. Non leggerla. Vai."','Ha un\'ultima mano da giocare. Serve un messaggero veloce.'] },
   ];
 
   const BOARD_QUEST_POOL = [
