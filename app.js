@@ -723,9 +723,9 @@ const TUTORIAL_SLIDES = [
     scene: 'hubs',
   },
   {
-    title: 'La Guida è nelle Impostazioni',
-    text: 'Trovi il <b>Manuale del Giocatore</b> completo nelle <b>Impostazioni</b> ⚙️ — regole, formule e segreti di Hero\'s Pace tutti in un posto.',
-    scene: 'guide',
+    title: 'Sfide giornaliere & Streak',
+    text: 'Ogni giorno hai <b>3 sfide</b> da completare: km, Arena, mini-gioco. Completa tutto per il <b>bonus streak</b> e ricompense sempre più rare.',
+    scene: 'streak',
   },
   {
     title: 'Inizia adesso!',
@@ -749,17 +749,17 @@ function _buildTutScene(scene) {
       <div class="tut-hub-item">🏕️<span class="tut-hub-label">Rifugio</span></div>
       <div class="tut-hub-item">🏘️<span class="tut-hub-label">Borgo</span></div>
       <div class="tut-hub-item">⚔️<span class="tut-hub-label">Arena</span></div>`;
-  } else if (scene === 'guide') {
-    d.innerHTML = `<div class="tut-scene-inner tut-guide-inner">
-      <div class="tut-guide-phone-frame">
-        <div class="tut-guide-tabbar">
-          <span class="tut-guide-tab">🏠</span>
-          <span class="tut-guide-tab">🗺️</span>
-          <span class="tut-guide-tab tut-guide-tab-center">⚡</span>
-          <span class="tut-guide-tab">🏘️</span>
-          <span class="tut-guide-tab tut-guide-tab-active">👤<div class="tut-guide-tab-label">EROE</div></span>
-        </div>
-        <div class="tut-guide-arrow-up">⬆ tocca qui poi ⚙️</div>
+  } else if (scene === 'streak') {
+    d.innerHTML = `<div class="tut-scene-inner tut-streak-inner">
+      <div class="tut-streak-left">
+        <div class="tut-streak-fire">🔥</div>
+        <div class="tut-streak-num">7</div>
+        <div class="tut-streak-label">giorni</div>
+      </div>
+      <div class="tut-streak-checks">
+        <div class="tut-scheck tut-scheck-done">✅ 3 km percorsi</div>
+        <div class="tut-scheck tut-scheck-done">✅ Arena</div>
+        <div class="tut-scheck tut-scheck-pending" id="tut-check-mg">☐ Mini-gioco</div>
       </div>
     </div>`;
   } else if (scene === 'start') {
@@ -814,6 +814,18 @@ function showTutorial() {
       `<span class="tutorial-dot${i === idx ? ' active' : ''}"></span>`
     ).join('');
     btn.innerHTML = idx === n - 1 ? '⚔️ Inizia l\'avventura!' : 'Avanti →';
+    // Animate the pending check on the streak slide
+    if (TUTORIAL_SLIDES[idx] && TUTORIAL_SLIDES[idx].scene === 'streak') {
+      const chk = overlay.querySelector('#tut-check-mg');
+      if (chk && !chk.classList.contains('tut-scheck-done')) {
+        setTimeout(() => {
+          if (!chk.classList.contains('tut-scheck-done')) {
+            chk.textContent = '✅ Mini-gioco';
+            chk.className = 'tut-scheck tut-scheck-done';
+          }
+        }, 900);
+      }
+    }
   }
 
   function go(newIdx) {
@@ -822,6 +834,8 @@ function showTutorial() {
   }
 
   function close() {
+    keyActive = false;
+    document.removeEventListener('keydown', onKey);
     overlay.classList.add('tutorial-out');
     setTimeout(() => overlay.remove(), 300);
     HERO.tutorialDone = true;
@@ -830,10 +844,25 @@ function showTutorial() {
     updateTabOnboardingPulse();
     nextOpening();
     setTab('train');
+    // Brief pulse on the workout entry to guide eyes
+    setTimeout(() => {
+      const inp = document.querySelector('.sss-input');
+      if (inp) { inp.classList.add('tut-entry-pulse'); setTimeout(() => inp.classList.remove('tut-entry-pulse'), 2200); }
+    }, 400);
   }
 
   btn.addEventListener('click', () => { if (idx === n - 1) close(); else go(idx + 1); });
   overlay.querySelector('.tutorial-skip').addEventListener('click', close);
+
+  // Keyboard navigation (removed in close via flag)
+  let keyActive = true;
+  function onKey(e) {
+    if (!keyActive) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') go(idx + 1);
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') go(idx - 1);
+    else if (e.key === 'Escape') close();
+  }
+  document.addEventListener('keydown', onKey);
 
   // Swipe support
   overlay.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
@@ -845,6 +874,7 @@ function showTutorial() {
   updateUI();
   document.body.appendChild(overlay);
   requestAnimationFrame(() => overlay.classList.add('tutorial-in'));
+
 }
 
 function updateTabOnboardingPulse() {
