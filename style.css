@@ -7955,3 +7955,186 @@ img.fiche-inline {
   color: #e0d0a8;
   text-shadow: 0 1px 3px rgba(0,0,0,.6);
 }
+
+/* ═══════════════ Tappe della Via — Milestone Overlay ═══════════════ */
+
+.milestone-overlay {
+  position: fixed; inset: 0; z-index: 9000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  background: rgba(0,0,0,.78);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  transition: opacity .35s ease;
+}
+.milestone-overlay.milestone-visible { opacity: 1; }
+.milestone-overlay.milestone-exit    { opacity: 0; pointer-events: none; }
+
+.milestone-card {
+  max-width: 400px; width: 100%;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.12) 0%, transparent 55%),
+    linear-gradient(160deg, #1a1208 0%, #0a0804 100%);
+  border: 2px solid var(--ms-border, #c9932e);
+  border-radius: 18px;
+  padding: 24px 20px 22px;
+  text-align: center;
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,.8),
+    0 8px 36px rgba(0,0,0,.85),
+    0 0 48px var(--ms-glow, rgba(201,147,46,.4)),
+    inset 0 1px 0 rgba(255,255,255,.1);
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  animation: msCardIn .45s cubic-bezier(.2,.8,.3,1) both;
+}
+@keyframes msCardIn {
+  from { transform: scale(.82) translateY(20px); opacity: 0; }
+  to   { transform: scale(1)   translateY(0);    opacity: 1; }
+}
+
+.ms-tier-badge {
+  font-family: 'Cinzel', serif;
+  font-size: .65rem;
+  font-weight: 800;
+  letter-spacing: .16em;
+  color: var(--ms-border, #c9932e);
+  text-shadow: 0 0 12px var(--ms-glow, rgba(201,147,46,.5));
+  background: rgba(0,0,0,.4);
+  border: 1px solid var(--ms-border, #c9932e);
+  border-radius: 20px;
+  padding: 3px 12px;
+}
+
+.ms-icon {
+  font-size: 3.4rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 16px var(--ms-glow, rgba(201,147,46,.6)));
+  animation: msIconPop .5s .2s cubic-bezier(.15,1.4,.4,1) both;
+}
+@keyframes msIconPop {
+  from { transform: scale(0) rotate(-20deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0);      opacity: 1; }
+}
+
+.ms-session-label {
+  font-family: 'Cinzel', serif;
+  font-size: .7rem;
+  font-weight: 700;
+  color: rgba(200,170,100,.6);
+  letter-spacing: .08em;
+}
+
+.ms-title {
+  font-family: 'Cinzel', serif;
+  font-weight: 900;
+  font-size: 1.15rem;
+  color: var(--ms-border, #e8b64c);
+  text-shadow: 0 0 20px var(--ms-glow, rgba(232,182,76,.45)), 0 1px 3px rgba(0,0,0,.8);
+  line-height: 1.25;
+  margin: 0;
+}
+
+.ms-scene {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: .92rem;
+  font-style: italic;
+  color: #c8b890;
+  line-height: 1.6;
+  text-align: center;
+  margin: 2px 0;
+}
+
+.ms-divider {
+  width: 100%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--ms-border, #c9932e), transparent);
+  opacity: .5;
+  margin: 2px 0;
+}
+
+.ms-reward-row {
+  display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+}
+
+.ms-reward-chip {
+  font-family: 'Cinzel', serif;
+  font-size: .8rem;
+  font-weight: 700;
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1.5px solid;
+  white-space: nowrap;
+}
+.ms-reward-chip.gold {
+  background: rgba(201,147,46,.18);
+  border-color: rgba(201,147,46,.6);
+  color: #f0c050;
+  text-shadow: 0 0 8px rgba(255,200,60,.4);
+}
+.ms-reward-chip.item {
+  background: rgba(123,63,191,.18);
+  border-color: rgba(123,63,191,.55);
+  color: #c4a0f0;
+}
+
+.ms-btn {
+  width: 100%;
+  margin-top: 4px;
+  font-size: 1rem;
+  letter-spacing: .04em;
+}
+
+/* ── Canvas particles (milestone overlay) ── */
+.ms-particles {
+  position: absolute; inset: 0; pointer-events: none;
+  width: 100%; height: 100%;
+}
+
+/* ── Tappe della Via — profilo hero ── */
+.ms-profile-panel { padding: 14px 14px 16px; }
+
+.ms-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.ms-pb {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  background: rgba(0,0,0,.28);
+  border: 1.5px solid rgba(255,255,255,.1);
+  border-radius: 10px;
+  padding: 8px 4px 6px;
+  transition: transform .15s, box-shadow .15s;
+  cursor: default;
+}
+.ms-pb.done {
+  background: linear-gradient(160deg, rgba(255,255,255,.08), rgba(0,0,0,.3));
+  border-color: var(--ms-border, #c9932e);
+  box-shadow: 0 0 10px var(--ms-glow, rgba(201,147,46,.4)), inset 0 1px 0 rgba(255,255,255,.12);
+  cursor: pointer;
+}
+.ms-pb.done:active { transform: scale(.94); }
+.ms-pb.near {
+  border-color: rgba(255,255,255,.28);
+  background: rgba(255,255,255,.04);
+}
+
+.ms-pb-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 6px var(--ms-glow, transparent));
+}
+.ms-pb:not(.done) .ms-pb-icon { opacity: .28; font-size: .85rem; }
+.ms-pb.near .ms-pb-icon { opacity: .55; font-size: .9rem; }
+
+.ms-pb-num {
+  font-family: 'Cinzel', serif;
+  font-size: .6rem;
+  font-weight: 700;
+  color: rgba(200,170,100,.5);
+  letter-spacing: .05em;
+}
+.ms-pb.done .ms-pb-num { color: var(--ms-border, #e8b64c); opacity: .85; }
+.ms-pb.near .ms-pb-num { color: rgba(255,255,255,.6); }

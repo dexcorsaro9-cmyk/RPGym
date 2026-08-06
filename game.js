@@ -325,6 +325,100 @@ const RPG = (() => {
     return WORLD_LETTERS.filter(l => !received.includes(l.id) && l.check(hero));
   }
 
+  /* ── Tappe della Via — Milestone ogni 3 allenamenti ── */
+  const MILESTONES = [
+    // ── Bronzo (sessioni 3-15) ──────────────────────────────────
+    { id:'ms_3',  session:3,  tier:'bronzo',     icon:'🏅',
+      title:'Primo Segno del Cammino',
+      scene:'Il locandiere di Oakhaven ti ferma all\'uscita. «Ho visto molti partire da quella porta. Pochi tornano tre volte.» Ti allunga qualcosa senza aggiungere altro.',
+      reward:{ gold:120, consumable:'golem_paglia' } },
+    { id:'ms_6',  session:6,  tier:'bronzo',     icon:'🏅',
+      title:'Le Vie Riconoscono i Tuoi Passi',
+      scene:'Una guardia di frontiera ti saluta per nome, anche se non ti ha mai visto prima. «Il nome di chi cammina viaggia lontano», dice. «Ecco una piccola scorta per il prossimo tratto.»',
+      reward:{ gold:150, consumable:'dado_runico' } },
+    { id:'ms_9',  session:9,  tier:'bronzo',     icon:'🏅',
+      title:'Il Nord Sussurra',
+      scene:'Un messaggero alato — o qualcosa che ci somiglia — lascia un pacchetto alla tua porta. Non c\'è mittente. Solo un sigillo che non hai mai visto.',
+      reward:{ gold:180, consumable:'biscotto_stellare' } },
+    { id:'ms_12', session:12, tier:'bronzo',     icon:'🏅',
+      title:'Il Borgo Ha Memoria',
+      scene:'Al mercato, un commerciante anziano ti offre uno sconto senza che tu abbia chiesto nulla. «Chi torna dodici volte», mormora, «merita questo.»',
+      reward:{ gold:220, consumable:'corno_celtico' } },
+    { id:'ms_15', session:15, tier:'bronzo',     icon:'🏅',
+      title:'Il Tuo Nome Viaggia',
+      scene:'Un viandante proveniente da Est ti cerca per nome. «Il Consiglio di Ferro ha sentito delle tue imprese», dice. «Vogliono che tu sappia: stanno osservando.» Ti lascia una borsa prima di sparire.',
+      reward:{ gold:280, consumable:'torcia_lunare' } },
+    // ── Argento (sessioni 18-30) ────────────────────────────────
+    { id:'ms_18', session:18, tier:'argento',    icon:'🥈',
+      title:'L\'Arena Ti Rispetta',
+      scene:'Prima di entrare nell\'arena, il guardiano ti fa passare senza pagare. «Tu non sei un turista», dice. «Prendi questo come tributo.»',
+      reward:{ gold:350, consumable:'runa_fuoco' } },
+    { id:'ms_21', session:21, tier:'argento',    icon:'🥈',
+      title:'La Sacerdotessa del Bosco',
+      scene:'Una figura in verde appare all\'alba davanti al tuo accampamento. Non parla. Lascia sul terreno un fascio di erbe intrecciato con un nastro d\'argento, poi svanisce tra gli alberi.',
+      reward:{ gold:400, consumable:'artiglio_fortuna' } },
+    { id:'ms_24', session:24, tier:'argento',    icon:'🥈',
+      title:'Rotta nel Ferro',
+      scene:'Gora la fabbra ti chiama nella sua fucina, di notte. «Ho rifatto questa cosa tre volte», dice indicando qualcosa avvolto in cuoio. «Nessuno era degno. Adesso lo sei tu.»',
+      reward:{ gold:450, consumable:'disco_runico' } },
+    { id:'ms_27', session:27, tier:'argento',    icon:'🥈',
+      title:'La Profezia Non Completata',
+      scene:'Nell\'archivio trovi una pagina che ti aspettava: «...e al ventisettesimo cammino, il viandante aprirà la porta che tutti credevano chiusa.» Non sai quale porta. Eppure senti che è vicina.',
+      reward:{ gold:500, consumable:'bussola_arcana' } },
+    { id:'ms_30', session:30, tier:'argento',    icon:'🥈',
+      title:'La Via Diventa Leggenda',
+      scene:'Un cantastorie di passaggio chiede il permesso di dedicarti un verso. Non aspetta risposta. Comincia a cantare. Quando finisce, la piazza è silenziosa. Poi tutti applaudono.',
+      reward:{ gold:600, consumable:'candeliere_spia' } },
+    // ── Oro (sessioni 33-45) ────────────────────────────────────
+    { id:'ms_33', session:33, tier:'oro',        icon:'🥇',
+      title:'La Luce di Oakhaven',
+      scene:'Il sindaco del Borgo ti convoca. La sala del consiglio è vuota tranne che per voi due. «Non è mai successo prima», dice, «ma il Borgo vuole darti qualcosa.» Apre un baule.',
+      reward:{ gold:750, consumable:'guanto_cristallo' } },
+    { id:'ms_36', session:36, tier:'oro',        icon:'🥇',
+      title:'Il Druido della Quarta Via',
+      scene:'Un druido senza nome ti lascia un messaggio inciso su corteccia: «Chi percorre la quarta via non chiede dove porta. Sa già.» Incastrato nella corteccia c\'è qualcosa di prezioso.',
+      reward:{ gold:800, consumable:'cristallo_fuoco' } },
+    { id:'ms_39', session:39, tier:'oro',        icon:'🥇',
+      title:'Il Confine del Possibile',
+      scene:'Davanti a te c\'è una porta di pietra che non hai mai notato. Sopra c\'è scritto: «Solo chi è tornato trentanove volte può aprirla.» La porta è già aperta. Ti aspettava.',
+      reward:{ gold:900, consumable:'magnete_ricchezze' } },
+    { id:'ms_42', session:42, tier:'oro',        icon:'🥇',
+      title:'Il Quarantaduesimo Cammino',
+      scene:'Kael il Grigio ti raggiunge al campo. Non parla per un\'ora intera. Poi dice: «Non sono venuto a sfidarti. Sono venuto a imparare.» Rimane al fuoco tutta la notte.',
+      reward:{ gold:1000, consumable:'patto_guerriero' } },
+    { id:'ms_45', session:45, tier:'oro',        icon:'🥇',
+      title:'Il Confine del Reame',
+      scene:'Ai confini del reame conosciuto trovi un cippo di pietra con il tuo nome inciso. Qualcuno lo ha messo lì prima che tu arrivasse. La data è quella di domani.',
+      reward:{ gold:1100, consumable:'medaglione_grifone' } },
+    // ── Leggendario (sessioni 48-60) ────────────────────────────
+    { id:'ms_48', session:48, tier:'leggendario', icon:'👑',
+      title:'Il Consiglio degli Dei',
+      scene:'In sogno — o forse non in sogno — una voce dice: «Non ti abbiamo mai visto fermare. Ecco perché ti abbiamo lasciato andare.» Al risveglio trovi qualcosa che non c\'era prima.',
+      reward:{ gold:1400, consumable:'sfera_fortuna' } },
+    { id:'ms_51', session:51, tier:'leggendario', icon:'👑',
+      title:'La Cinquantunesima Alba',
+      scene:'All\'alba del cinquantunesimo allenamento, il sole sorge nella direzione sbagliata. Per tre secondi, tutto è immobile. Poi il mondo riprende. Sul tuo zaino trovi un sigillo che non riconosci — ma che senti di dover tenere.',
+      reward:{ gold:1500, consumable:'scudo_cronos' } },
+    { id:'ms_54', session:54, tier:'leggendario', icon:'👑',
+      title:'Il Nome Inciso nel Granito',
+      scene:'Nel Grande Archivio, l\'Archivista Syl ti mostra una parete di granito dove sono incisi i nomi dei più grandi viandanti della storia del reame. Il tuo nome è già lì, ancora fresco.',
+      reward:{ gold:1700, consumable:'leone_alato' } },
+    { id:'ms_57', session:57, tier:'leggendario', icon:'👑',
+      title:'L\'Eredità',
+      scene:'Un bambino ti ferma per strada. «Voglio fare quello che fai tu», dice. Non aspetta risposta. Corre via. Capisci che il reame che lasci è diverso da quello in cui sei arrivato.',
+      reward:{ gold:1800, consumable:'piuma_fenice' } },
+    { id:'ms_60', session:60, tier:'leggendario', icon:'👑',
+      title:'SESSANTA SESSIONI — La Via Immortale',
+      scene:'Sessanta volte sei partito. Sessanta volte sei tornato. Il reame porta il tuo nome nei cantastorie, nei mercati, nelle fortezze. Non c\'è più confine che non riconosca il tuo passo.\n\nSei diventato parte della leggenda.',
+      reward:{ gold:2500, consumable:'progetto_castello' } },
+  ];
+
+  function checkPendingMilestones(hero) {
+    const reached = hero.milestonesReached || [];
+    const sessions = hero.totalSessions || 0;
+    return MILESTONES.filter(m => sessions >= m.session && !reached.includes(m.id));
+  }
+
   /* ── Camp Evolution ──
    * Panorama 2:1 (width:height). Coordinate: left%, bottom%, width% relativi al contenitore.
    * Background PNG: assets/rifugio/scene/bg_stage{0-4}.webp  (2000×1000px consigliato)
@@ -2188,7 +2282,9 @@ const RPG = (() => {
     h.pvpWins = h.pvpWins || 0;
     if (h.trainTipDismissed === undefined) h.trainTipDismissed = (h.totalKm || 0) > 0;
     h.biomesDiscovered = h.biomesDiscovered || [];
-    h.lettersReceived  = h.lettersReceived  || [];
+    h.lettersReceived   = h.lettersReceived   || [];
+    h.milestonesReached = h.milestonesReached || [];
+    h.totalSessions     = h.totalSessions     || 0;
     h.mappaInfuocata = h.mappaInfuocata || null;
     initGreenhouse(h);
 
@@ -2822,6 +2918,9 @@ const RPG = (() => {
         report.missionProgress = { mission: m, done: hero.activeMission.progressKm };
       }
     }
+
+    // Contatore sessioni totali (per le Tappe della Via)
+    hero.totalSessions = (hero.totalSessions || 0) + 1;
 
     // Famiglio: XP e Virtù da attività fisica (fonte primaria di crescita)
     if (hero.pet && hero.pet.hatched) {
@@ -5784,6 +5883,7 @@ const RPG = (() => {
     rolloverSerraMissions, claimSerraMission,
     SEASONS, currentSeason, initSeasonalChallenge, claimSeasonalChallenge,
     BIOME_LORE, BIOME_ARTIFACTS, WORLD_LETTERS, checkPendingLetters,
+    MILESTONES, checkPendingMilestones,
     CAMP_STAGES, CAMP_LAYERS, CAMP_NIGHT_LAYERS, campStageForLevel, campUnlockedLayers,
     CAMP_LAYER_SHOP, campLayerShopItem, buyCampLayer,
     CONSUMABLES, CONSUMABLE_IMG, consumableById, sellValueConsumable, buyPriceConsumable,
