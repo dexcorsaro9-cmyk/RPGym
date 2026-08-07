@@ -1030,8 +1030,8 @@ function showResources() {
   modal(`
     <h3 class="panel-title">🎒 Le tue Risorse</h3>
     <div class="res-detail"><span class="res-detail-icon">🪙</span><div><b>Moneta d'Oro</b><br><span class="small muted">La valuta del reame: compra cavalcature, armi e armature.</span></div><b class="res-detail-qty">${HERO.gold}</b></div>
-    <div class="res-detail"><span class="res-detail-icon">🪵</span><div><b>Legno</b><br><span class="small muted">Materiale da costruzione per il tuo Rifugio.</span></div><b class="res-detail-qty">${HERO.wood}</b></div>
-    <div class="res-detail"><span class="res-detail-icon">🪨</span><div><b>Roccia</b><br><span class="small muted">Pietra grezza per le strutture più solide.</span></div><b class="res-detail-qty">${HERO.stone}</b></div>
+    <div class="res-detail"><span class="res-detail-icon">🌲</span><div><b>Legno</b><br><span class="small muted">Materiale da costruzione per il tuo Rifugio.</span></div><b class="res-detail-qty">${HERO.wood}</b></div>
+    <div class="res-detail"><span class="res-detail-icon">⛏️</span><div><b>Roccia</b><br><span class="small muted">Pietra grezza per le strutture più solide.</span></div><b class="res-detail-qty">${HERO.stone}</b></div>
     <div class="res-detail res-detail-fiches"><span class="res-detail-icon">${FICHE_ICO}</span><div><b>Fiches del Fato</b><br><span class="small muted">Valuta della Cartomante: vinci al Lascio o Raddoppio, spendi alla Tenda del Fato.</span></div><b class="res-detail-qty">${HERO.fiches||0}</b></div>
     <button class="btn btn-primary wide" onclick="closeModal()">Chiudi</button>
   `);
@@ -2207,7 +2207,7 @@ function renderSantuarioView(c) {
         if (r.failed) {
           toast(`😔 ${esc(pet.name)} è tornato a mani vuote...`);
         } else {
-          toast(r.epic ? `🌟 Bottino eccellente! 🪙${r.gold} 🪵${r.wood} 🪨${r.stone}` : `🎒 Bottino: 🪙${r.gold} 🪵${r.wood} 🪨${r.stone}`);
+          toast(r.epic ? `🌟 Bottino eccellente! 🪙${r.gold} 🌲${r.wood} ⛏️${r.stone}` : `🎒 Bottino: 🪙${r.gold} 🌲${r.wood} ⛏️${r.stone}`);
           sfx('chest');
         }
       }
@@ -2289,8 +2289,8 @@ function playEvolutionSequence(stage, reward) {
     <div class="evo-bonus evo-hidden">✦ ${sp.bonusDesc || ''}${isLeg ? ' (×2)' : ''}</div>
     <div class="evo-reward evo-hidden">${[
       reward.gold  ? `🪙 +${reward.gold}`  : '',
-      reward.wood  ? `🪵 +${reward.wood}`  : '',
-      reward.stone ? `🪨 +${reward.stone}` : '',
+      reward.wood  ? `🌲 +${reward.wood}`  : '',
+      reward.stone ? `⛏️ +${reward.stone}` : '',
     ].filter(Boolean).join('  ')}</div>
     <div class="evo-unlock evo-hidden">${reward.msg || ''}</div>
     <button class="evo-continue evo-hidden">✦ Continua ✦</button>
@@ -2441,7 +2441,7 @@ function openStruttureStageModal(stage) {
         <div class="small">${
           has ? 'Costruita' :
           locked ? `🔒 Richiede Livello ${it.minLevel}` :
-          `🪵 ${it.price.wood} · 🪨 ${it.price.stone}`
+          `🌲 ${it.price.wood} · ⛏️ ${it.price.stone}`
         }</div>
       </div>`;
     if (has) {
@@ -2554,7 +2554,7 @@ function openFurnitureSetModal(setId) {
     row.innerHTML = `${imgHtml}<div class="loot-body">
       <div class="loot-head"><b>${esc(it.name)}</b>${it.epic ? ' <span class="tag">EPICO</span>' : ''}${has ? ' ✅' : ''}</div>
       <div class="small muted">${esc(it.bonusText)}</div>
-      <div class="small">${has ? 'Posseduto' : `🪙 ${it.price.gold} · 🪵 ${it.price.wood} · 🪨 ${it.price.stone}`}</div>
+      <div class="small">${has ? 'Posseduto' : `🪙 ${it.price.gold} · 🌲 ${it.price.wood} · ⛏️ ${it.price.stone}`}</div>
     </div>`;
     if (!has) {
       row.classList.add('pickable');
@@ -2713,7 +2713,7 @@ function renderMap(c) {
     TIERS.forEach((tier, i) => {
       const done = progressKm >= tier.km;
       const isClaimed = claimed.includes(i);
-      const rewardTxt = `🪙${tier.gold}${tier.wood ? ` 🪵${tier.wood}` : ''}${tier.item ? ' + 🎒' : ''}`;
+      const rewardTxt = `🪙${tier.gold}${tier.wood ? ` 🌲${tier.wood}` : ''}${tier.item ? ' + 🎒' : ''}`;
 
       const lbl = el('div', 'tm-label');
       lbl.appendChild(el('div', 'tm-reward' + (done && !isClaimed ? ' ready' : ''), rewardTxt));
@@ -2732,7 +2732,7 @@ function renderMap(c) {
             HERO.consumableBuffs.chestReveal = false;
             persist();
             const previewHtml = `<h3 class="center">🕯️ Contenuto Forziere</h3>
-              <p class="center">🪙 ${t.gold}${t.wood ? ` 🪵 ${t.wood}` : ''}${t.item ? ' + <b>Oggetto</b>' : ''}</p>
+              <p class="center">🪙 ${t.gold}${t.wood ? ` 🌲 ${t.wood}` : ''}${t.item ? ' + <b>Oggetto</b>' : ''}</p>
               <p class="center small muted">Riscuoti per ottenerlo!</p>
               <button class="btn btn-primary wide" onclick="closeModal()">Riscuoti ora</button>`;
             modal(previewHtml);
@@ -2747,7 +2747,7 @@ function renderMap(c) {
           const itemEl = reward.item ? `<div class="loot-list" style="margin:.5rem 0">${itemHtml(reward.item)}</div>` : '';
           const consEl = reward.consumable ? `<p class="center small">💰 ${esc(reward.consumable.icon)} <b>${esc(reward.consumable.name)}</b> aggiunto alla Sacca!</p>` : '';
           modal(`<h3 class="center">🗺️ Tappa ${i + 1} completata!</h3>
-            <p class="center">🪙 +${reward.gold}${reward.wood ? ` 🪵 +${reward.wood}` : ''}${itemEl}</p>
+            <p class="center">🪙 +${reward.gold}${reward.wood ? ` 🌲 +${reward.wood}` : ''}${itemEl}</p>
             ${consEl}
             <button class="btn btn-primary wide" onclick="closeModal();setTab('camp')">Ottimo!</button>`);
         });
@@ -4442,8 +4442,8 @@ function _openBachecaDetail(q, todayKm, claimed, done, tm) {
   const rr = el('div', 'bv-reward-row');
   if (reward.gold)  rr.appendChild(el('span', 'bv-rchip gold',  `🪙 ${reward.gold}`));
   if (reward.xp)    rr.appendChild(el('span', 'bv-rchip xp',    `⭐ ${reward.xp} XP`));
-  if (reward.wood)  rr.appendChild(el('span', 'bv-rchip wood',  `🪵 ${reward.wood}`));
-  if (reward.stone) rr.appendChild(el('span', 'bv-rchip stone', `🪨 ${reward.stone}`));
+  if (reward.wood)  rr.appendChild(el('span', 'bv-rchip wood',  `🌲 ${reward.wood}`));
+  if (reward.stone) rr.appendChild(el('span', 'bv-rchip stone', `⛏️ ${reward.stone}`));
   if (reward.consumable) {
     const ci = RPG.consumableById(reward.consumable);
     if (ci) rr.appendChild(el('span', 'bv-rchip item', `${ci.icon} ${esc(ci.name)}`));
@@ -4460,8 +4460,8 @@ function _openBachecaDetail(q, todayKm, claimed, done, tm) {
       const parts = [];
       if (reward.gold)  parts.push(`🪙 +${reward.gold}`);
       if (reward.xp)    parts.push(`⭐ +${reward.xp} XP`);
-      if (reward.wood)  parts.push(`🪵 +${reward.wood}`);
-      if (reward.stone) parts.push(`🪨 +${reward.stone}`);
+      if (reward.wood)  parts.push(`🌲 +${reward.wood}`);
+      if (reward.stone) parts.push(`⛏️ +${reward.stone}`);
       if (reward.consumable) { const ci = RPG.consumableById(reward.consumable); if (ci) parts.push(`${ci.icon} ${ci.name}`); }
       toast(`${q.npc.icon} Missione di ${q.npc.name} completata! ${parts.join(' · ')}`);
       vibrate([60, 40, 100]);
@@ -5086,8 +5086,8 @@ function showReport(r) {
   html += `<div class="report-rewards">
     <div class="rpt-reward star"><span class="rpt-rew-val">+${r.xp}</span><span class="rpt-rew-label">XP</span></div>
     <div class="rpt-reward gold"><span class="rpt-rew-val">+${r.gold}</span><span class="rpt-rew-label">🪙</span></div>
-    <div class="rpt-reward wood"><span class="rpt-rew-val">+${r.wood}</span><span class="rpt-rew-label">🪵</span></div>
-    <div class="rpt-reward stone"><span class="rpt-rew-val">+${r.stone}</span><span class="rpt-rew-label">🪨</span></div>
+    <div class="rpt-reward wood"><span class="rpt-rew-val">+${r.wood}</span><span class="rpt-rew-label">🌲</span></div>
+    <div class="rpt-reward stone"><span class="rpt-rew-val">+${r.stone}</span><span class="rpt-rew-label">⛏️</span></div>
   </div>`;
 
   if (r.streakBonus)
@@ -5477,8 +5477,8 @@ function revealChest(title, chest) {
   RPG.updateWeeklyProgress(HERO, 'chest', 1);
   const parts = [];
   if (chest.gold) parts.push(`<div class="chest-res-chip gold">🪙 ${chest.gold}</div>`);
-  if (chest.wood) parts.push(`<div class="chest-res-chip wood">🪵 ${chest.wood}</div>`);
-  if (chest.stone) parts.push(`<div class="chest-res-chip stone">🪨 ${chest.stone}</div>`);
+  if (chest.wood) parts.push(`<div class="chest-res-chip wood">🌲 ${chest.wood}</div>`);
+  if (chest.stone) parts.push(`<div class="chest-res-chip stone">⛏️ ${chest.stone}</div>`);
   let html = `<div class="chest-reveal-header">
     <div class="chest-burst-ring"></div>
     <h3 class="chest-reveal-title">🎁 "${esc(title)}"</h3>
@@ -6170,7 +6170,7 @@ function renderRuotaView(c) {
       if (rw.jackpot)    rewardText = `<b>⭐ JACKPOT!</b> +${rw.gold} 🪙 +${rw.fiches} ${FICHE_ICO}`;
       else if (rw.gold)  rewardText = `+${rw.gold} 🪙 Oro`;
       else if (rw.fiches)rewardText = `+${rw.fiches} ${FICHE_ICO} Fiches`;
-      else if (rw.wood)  rewardText = `+${rw.wood} 🪵 Legna`;
+      else if (rw.wood)  rewardText = `+${rw.wood} 🌲 Legna`;
       else if (rw.item)  rewardText = `🎁 ${esc(rw.item.name)} (${rw.item.rarity})`;
       else               rewardText = '💨 Il vento ti ha voltato le spalle.';
 
@@ -8984,7 +8984,7 @@ function renderSerraView(c) {
         const itemLine = rew.items.length ? `<br>🎒 ${rew.items.map(it => `${it.icon} ${esc(it.name)}`).join(', ')}` : '';
         const goldLine = rew.gold ? `<br>🪙 +${rew.gold} oro` : '';
         const maturBonusLine = rew.maturBonus > 0 ? `<br><span style="color:var(--gold-bright)">⭐ Bonus stagionatura: +${rew.maturBonus} oro!</span>` : '';
-        const resLine  = rew.wood  ? `<br>🪵 +${rew.wood} legno · 🪨 +${rew.stone} pietra` : '';
+        const resLine  = rew.wood  ? `<br>🌲 +${rew.wood} legno · ⛏️ +${rew.stone} pietra` : '';
         modal(`<h3 class="panel-title">✨ Raccolto!</h3>
           <p class="center" style="font-size:2.5rem">${pData.icon}</p>
           <p class="center"><b>${esc(pData.name)}</b></p>

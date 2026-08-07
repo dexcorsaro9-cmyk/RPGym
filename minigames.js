@@ -33,8 +33,8 @@ function mgRewardHTML(r, title, sub) {
   const lines = [];
   if (r.xp)             lines.push(`⭐ +${r.xp} XP`);
   if (r.gold  > 0)      lines.push(`🪙 +${r.gold} Oro`);
-  if (r.wood)           lines.push(`🪵 +${r.wood} Legna`);
-  if (r.stone)          lines.push(`🪨 +${r.stone} Pietra`);
+  if (r.wood)           lines.push(`🌲 +${r.wood} Legna`);
+  if (r.stone)          lines.push(`⛏️ +${r.stone} Pietra`);
   if (r.gold  < 0)      lines.push(`🪙 ${r.gold} Oro`);
   return `<div class="mg-reward"><div class="mg-reward-title">${title}</div>${sub?`<div class="mg-reward-sub">${sub}</div>`:''}<div class="mg-reward-lines">${lines.map(l=>`<span class="mg-rl">${l}</span>`).join('')}</div></div>`;
 }
