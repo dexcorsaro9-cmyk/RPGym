@@ -5515,12 +5515,12 @@ let MARKET_VIEW = 'hub';
 let NERO_FILTER = 'all';
 
 const ANTRO_SECTIONS = [
-  { lv: 50,  key: 'antro_contratti', icon: '⚔️', name: 'Contratti del Campione', desc: 'Sfide settimanali per i più tenaci.' },
-  { lv: 60,  key: 'antro_bestia',    icon: '🐉', name: 'Bestia Ancestrale',       desc: 'Un boss mensile per i soli degni.' },
-  { lv: 70,  key: 'antro_trofei',    icon: '🏆', name: 'Sala dei Trofei',         desc: 'I tuoi record incisi nella pietra.' },
-  { lv: 80,  key: 'antro_forgia',    icon: '🔥', name: 'Forgia del Campione',     desc: 'Forgia equipaggiamento leggendario.' },
-  { lv: 90,  key: 'antro_dungeon',   icon: '🌀', name: 'Dungeon Infinito',        desc: 'Profondità senza fondo, gloria senza fine.' },
-  { lv: 100, key: 'antro_leggenda',  icon: '👑', name: 'Sala della Leggenda',     desc: 'Il tuo nome tra i Grandi del Reame.' },
+  { lv: 50,  key: 'antro_contratti', icon: '⚔️', name: 'Contratti del Campione', desc: 'Sfide settimanali per i più tenaci.',            quote: '«Solo chi accetta l\'arduo impegno merita il titolo di Campione.»' },
+  { lv: 60,  key: 'antro_bestia',    icon: '🐉', name: 'Bestia Ancestrale',       desc: 'Un boss mensile che può essere abbattuto solo dai degni.',   quote: '«L\'Antica Belva non conosce pietà. Mostrami cosa sei fatto.»' },
+  { lv: 70,  key: 'antro_trofei',    icon: '🏆', name: 'Sala dei Trofei',         desc: 'I tuoi record e imprese incisi nella pietra eterna.',        quote: '«La pietra dimentica i nomi vili. Il tuo sarà l\'eccezione.»' },
+  { lv: 80,  key: 'antro_forgia',    icon: '🔥', name: 'Forgia del Campione',     desc: 'Forgia equipaggiamento leggendario irripetibile.',           quote: '«Il ferro comune brucia. Solo l\'acciaio del sacrificio sopravvive.»' },
+  { lv: 90,  key: 'antro_dungeon',   icon: '🌀', name: 'Dungeon Infinito',        desc: 'Abissi senza fondo che mettono alla prova l\'eterno.',       quote: '«Ogni gradino più in basso rivela una verità che pochissimi reggono.»' },
+  { lv: 100, key: 'antro_leggenda',  icon: '👑', name: 'Sala della Leggenda',     desc: 'Il tuo nome inciso tra i Grandi del Reame per sempre.',      quote: '«Cento livelli. Centinaia di chilometri. Un solo nome: il tuo.»' },
 ];
 
 function renderMarket(c) {
@@ -5716,14 +5716,21 @@ function renderMarket(c) {
 
     const antroCard = el('div', `panel borgo-entry-panel antro-card${isUnlocked ? ' antro-unlocked' : ''}`);
 
-    // Header banner (CSS puro, nessuna dipendenza da immagini)
+    // Header banner con immagine
     const banner = el('div', 'antro-header-banner');
-    banner.innerHTML = `
+    const bannerImg = el('img', 'antro-header-img');
+    bannerImg.src = 'assets/antro del campione.webp';
+    bannerImg.alt = '';
+    bannerImg.loading = 'lazy';
+    banner.appendChild(bannerImg);
+    const bannerOverlay = el('div', 'antro-header-overlay');
+    bannerOverlay.innerHTML = `
       <div class="antro-header-ornament">✦ &nbsp; ✦ &nbsp; ✦</div>
       <div class="antro-header-title">Antro del Campione</div>
       <div class="antro-header-subtitle">${isUnlocked ? `${unlockedCount} di 6 sezioni sbloccate` : 'Si svela al Livello 50'}</div>
       ${!isUnlocked ? '<div class="antro-lock-glyph">🔒</div>' : ''}
     `;
+    banner.appendChild(bannerOverlay);
     antroCard.appendChild(banner);
 
     // Barra progresso milestone
@@ -5750,11 +5757,13 @@ function renderMarket(c) {
       const done = heroLv >= s.lv;
       const isNext = nextSection && s.lv === nextSection.lv;
       const row = el('div', `antro-section-row${done ? ' antro-row-done' : isNext ? ' antro-row-next' : ' antro-row-sealed'}`);
+      const rowDesc = done ? s.desc : isNext ? `Si sblocca al livello ${s.lv} · ${s.quote}` : `Segreto svelato al livello ${s.lv}…`;
       row.innerHTML = `
         <span class="antro-row-icon">${done ? s.icon : isNext ? '🔓' : '🔒'}</span>
         <div class="antro-row-body">
           <span class="antro-row-name">${done || isNext ? s.name : '???'}</span>
-          <span class="antro-row-desc">${done ? s.desc : `Si sblocca al livello ${s.lv}`}</span>
+          <span class="antro-row-desc">${rowDesc}</span>
+          ${done ? `<span class="antro-row-quote">${s.quote}</span>` : ''}
         </div>
         <span class="antro-row-badge">${done ? '✓' : `Lv ${s.lv}`}</span>
       `;
@@ -5764,13 +5773,13 @@ function renderMarket(c) {
 
     // Frase leggendaria
     const quoteMap = {
-      pre:  '«Solo i più forti varcano questa soglia. Continua a camminare, Viandante — il tuo momento arriverà.»',
-      60:   '«Hai varcato la soglia dei Campioni. Ma la Bestia Ancestrale dorme ancora — sveglierà i degni al livello 60.»',
-      70:   '«La Bestia è caduta. Che la tua gloria sia incisa nella pietra, livello 70, nella Sala dei Trofei.»',
-      80:   '«I trofei non bastano ai veri Campioni. Al livello 80 la Forgia attende il tuo metallo più duro.»',
-      90:   '«Il fuoco ti ha temprato. Ma il Dungeon Infinito non ha fondo — solo il livello 90 rivela la verità.»',
-      100:  '«Sei arrivato dove pochissimi osano sognare. La Sala della Leggenda ti appartiene per sempre.»',
-      max:  '«Hai percorso ogni corridoio, sconfitto ogni ombra. Il tuo nome risuona nell\'Antro per l\'eternità.»',
+      pre:  '«Dietro questa porta riposano sfide che cambieranno il tuo destino. Ogni passo che fai oggi ti avvicina a ciò che si nasconde nell\'oscurità. Livello 50. Non mollare.»',
+      60:   '«Hai varcato la soglia. Ora l\'Antro ti studia, ti misura. Qualcosa di antico si agita nelle profondità — si dice che dorme solo finché non arriva un degno avversario…»',
+      70:   '«La Bestia Ancestrale è caduta per mano tua. Il Reame ricorderà. Ma la Sala dei Trofei chiede ancora di più: mostra al mondo chi sei davvero.»',
+      80:   '«Il tuo nome è già inciso. Non basta. Al livello 80 la Forgia arde per te — metalli che nessun mercante vende, poteri che nessun dungeon ordinario può dare.»',
+      90:   '«Hai bruciato ogni ostacolo. Eppure il Dungeon Infinito ride nell\'ombra. Nessuno sa cosa si trova in fondo — perché nessuno è mai tornato a raccontarlo.»',
+      100:  '«Cento livelli. Il confine dell\'impossibile è qui, adesso, nella Sala della Leggenda. Pochi nella storia del Reame hanno osato tanto. Tutti hanno guadagnato l\'eternità.»',
+      max:  '«Hai percorso ogni corridoio, sconfitto ogni ombra, inciso il tuo nome nella roccia più antica del Reame. L\'Antro è tuo. Per sempre.»',
     };
     const quoteKey = !isUnlocked ? 'pre' : !nextSection ? 'max' : String(nextSection.lv);
     antroCard.appendChild(el('p', 'antro-quote', quoteMap[quoteKey] || quoteMap.pre));
