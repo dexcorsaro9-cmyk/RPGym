@@ -4069,17 +4069,7 @@ img.fiche-inline {
 .ach-toast-name  { font-size: .88rem; font-weight: 700; color: #f4e7cd; }
 .ach-toast-reward { font-size: .72rem; color: rgba(255,255,255,.65); }
 
-/* Bacheca camp chip */
-.board-camp-chip { margin: .4rem 0; }
-.bcc-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:.5rem; }
-.bcc-title { font-size:.85rem; font-weight:700; }
-.bcc-badge { background:var(--gold); color:#1a0e04; font-size:.63rem; font-weight:800; padding:2px 8px; border-radius:10px; white-space:nowrap; }
-.bcc-done  { font-size:.72rem; color:#86efac; }
-.bcc-quests { display:flex; flex-direction:column; gap:4px; margin-bottom:.6rem; }
-.bcc-quest { font-size:.78rem; padding:4px 7px; border-radius:6px; background:rgba(255,255,255,.05); }
-.bcc-quest-done   { color:#86efac; }
-.bcc-quest-ready  { color:#fbbf24; }
-.bcc-quest-locked { color:rgba(255,255,255,.4); }
+
 
 /* ── Pergamena Bioma ───────────────────────────────────────── */
 .biome-parchment-overlay {

@@ -1656,33 +1656,6 @@ function renderCamp(c) {
     c.appendChild(fp);
   }
 
-  // Bacheca del Viandante — chip di accesso rapido (solo dopo prima sessione)
-  if ((HERO.totalKm || 0) > 0) {
-    const prevBoard = HERO.board;
-    const bd = RPG.generateDailyBoard(HERO);
-    if (bd !== prevBoard) persist();
-    const todayKmCamp = RPG.todayKm(HERO);
-    const campClaimed = bd.claimed.length;
-    const campClaimable = bd.quests.filter(q => todayKmCamp >= q.km && !bd.claimed.includes(q.id)).length;
-    const chip = el('div', 'panel board-camp-chip');
-    chip.innerHTML = `
-      <div class="bcc-header">
-        <span class="bcc-title">📜 Bacheca del Viandante</span>
-        ${campClaimable > 0 ? `<span class="bcc-badge">${campClaimable} da riscuotere!</span>` : campClaimed === bd.quests.length ? '<span class="bcc-done">✅ Tutto completato</span>' : ''}
-      </div>
-      <div class="bcc-quests">
-        ${bd.quests.map(q => {
-          const isClaimed = bd.claimed.includes(q.id);
-          const kmOk = todayKmCamp >= q.km;
-          const state = isClaimed ? 'done' : kmOk ? 'ready' : 'locked';
-          const icon = isClaimed ? '✅' : kmOk ? '⚡' : '🔒';
-          return `<div class="bcc-quest bcc-quest-${state}">${icon} ${esc(q.npc.name)} — ${q.km} km</div>`;
-        }).join('')}
-      </div>
-      <button class="btn btn-small wide bcc-btn">Vai alla Bacheca →</button>`;
-    chip.querySelector('.bcc-btn').addEventListener('click', () => setTab('train'));
-    c.appendChild(chip);
-  }
 
   // Santuario dei Famigli
   if (HERO.companion && HERO.pet && !HERO.pet.hatched) {
