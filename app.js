@@ -9285,7 +9285,7 @@ function sfx(kind) {
    in crash l'intero script a metà (Temporal Dead Zone), lasciando
    funzionalità come l'Arena rotte per tutta la sessione. */
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js?v=449').catch(() => {});
+  navigator.serviceWorker.register('sw.js?v=450').catch(() => {});
   /* Quando un nuovo SW prende il controllo (skipWaiting + clients.claim)
      ricarica la pagina per caricare il codice aggiornato. */
   navigator.serviceWorker.addEventListener('controllerchange', () => location.reload());
