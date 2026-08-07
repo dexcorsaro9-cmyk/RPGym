@@ -1890,7 +1890,7 @@ function renderSeasonPassView(c) {
               <div style="display:flex;align-items:center">
                 ${[['🪙','500 Oro'],['🧪','Pozione Rara'],['🌲','100 Legna'],['🔮','Runa Epica'],['🪙','800 Oro'],['⛏️','150 Pietra'],['🖼️','Cornice'],['🪙','1200 Oro'],['🎴','Fiches'],['🖼️','Cornice Sabbia'],['⚔️','Scimitarra'],['🌅','Sfondo Alba'],['🏆','Cosmetic']].map(([ ic, nm], i) => `
                   <div style="display:flex;flex-direction:column;align-items:center;width:72px;flex-shrink:0">
-                    <div style="font-size:.58rem;color:#C8943A;margin-bottom:4px;height:14px">${i===0?'Lv 1':i===6?'Lv 7':i===9?'Lv 10':i===12?'Lv 30':''}</div>
+                    <div style="font-size:.58rem;color:#C8943A;margin-bottom:4px;height:14px">${i===0?'Lv 1':i===6?'Lv 7':i===9?'Lv 10':i===12?'Lv 50':''}</div>
                     <div style="width:${i===12?'60px':'46px'};height:${i===12?'60px':'46px'};border-radius:50%;background:#140A04;border:2px solid #4A2A10;display:flex;align-items:center;justify-content:center;font-size:${i===12?'1.5rem':'1.2rem'}">${ic}</div>
                     <div style="font-size:.54rem;color:#6A4A20;margin-top:4px;text-align:center;max-width:64px">${nm}</div>
                   </div>
@@ -1904,7 +1904,7 @@ function renderSeasonPassView(c) {
               <div style="display:flex;align-items:center">
                 ${[['🪙','200 Oro'],['🌲','50 Legna'],['🧪','Pozione'],['🪙','300 Oro'],['⛏️','50 Pietra'],['🪙','400 Oro'],['⭐','···'],['🌲','80 Legna'],['🪙','500 Oro'],['🏅','Badge'],['📛','Titolo'],['🪙','2000 Oro'],['📜','Pergamena']].map(([ic,nm], i) => `
                   <div style="display:flex;flex-direction:column;align-items:center;width:72px;flex-shrink:0">
-                    <div style="font-size:.58rem;color:#6A4A20;margin-bottom:4px;height:14px">${i===0?'Lv 1':i===6?'Lv 7':i===9?'Lv 10':i===12?'Lv 30':''}</div>
+                    <div style="font-size:.58rem;color:#6A4A20;margin-bottom:4px;height:14px">${i===0?'Lv 1':i===6?'Lv 7':i===9?'Lv 10':i===12?'Lv 50':''}</div>
                     <div style="width:${i===12?'60px':'46px'};height:${i===12?'60px':'46px'};border-radius:50%;background:#140A04;border:2px solid #2A1808;display:flex;align-items:center;justify-content:center;font-size:${i===12?'1.5rem':'1.2rem'};opacity:.45">${ic}</div>
                     <div style="font-size:.54rem;color:#4A3020;margin-top:4px;text-align:center;max-width:64px">${nm}</div>
                   </div>
