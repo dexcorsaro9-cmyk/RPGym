@@ -5156,6 +5156,39 @@ img.fiche-inline {
 .ob-btn { align-self: stretch; }
 .ob-btn-dismiss { background: none; border: 1px solid var(--divider); color: var(--muted); font-size: .85rem; border-radius: 8px; padding: 6px 12px; cursor: pointer; }
 
+/* ── Banner onboarding progressivo (renderOnboardingBanner) ── */
+.onb-banner {
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 14px;
+  background: linear-gradient(135deg, rgba(200,148,58,.18) 0%, rgba(139,31,31,.12) 100%);
+  border: 1px solid rgba(200,148,58,.45);
+  border-radius: 14px;
+  margin-bottom: 12px;
+  animation: onb-in .3s cubic-bezier(.2,.8,.4,1) both;
+}
+.onb-icon { font-size: 1.6rem; flex-shrink: 0; line-height: 1; }
+.onb-body { flex: 1; min-width: 0; }
+.onb-title { font-size: .9rem; font-weight: 700; color: var(--text, #f0e6d0); margin-bottom: 2px; }
+.onb-desc { font-size: .77rem; color: var(--muted, #a09070); line-height: 1.4; }
+.onb-btn {
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #C8943A, #8B1F1F);
+  color: #fff9ee;
+  border: none; border-radius: 9px;
+  padding: 7px 11px;
+  font-size: .78rem; font-weight: 700;
+  cursor: pointer; white-space: nowrap;
+}
+.onb-out { animation: onb-out .25s ease-in both; }
+@keyframes onb-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes onb-out {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-8px); }
+}
+
 /* ── Tab tooltip bubble ── */
 .tab-tooltip {
   position: fixed;

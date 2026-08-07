@@ -264,6 +264,7 @@ function endBattle(heroWon) {
     RPG.updateChallengeProgress(HERO, 'arena', 1);
     RPG.addPetVirtue(HERO, 'coraggio', b.v.boss ? 3 : 1);
     HERO.fiches = (HERO.fiches || 0) + (b.v.boss ? 3 : 1);
+    advanceOnboarding(2, 10);
     persist(); renderHUD();
     sfx('level');
     if (center) center.innerHTML = `<div class="battle-result-overlay"><div class="battle-result-text win">VITTORIA!</div></div>`;
