@@ -894,6 +894,38 @@ function updateTabOnboardingPulse() {
   trainTab.classList.toggle('tab-onboarding-pulse', showPulse);
 }
 
+/* ── Banner contestuale di onboarding progressivo ──────────────────────────
+   Mostra un suggerimento nella tab giusta al momento giusto.
+   Scompare non appena l'utente completa l'azione suggerita.
+   step = il valore di HERO.onboardingStep richiesto per mostrarlo.
+   onAction: callback che avanza lo step e naviga.
+───────────────────────────────────────────────────────────────────────── */
+function renderOnboardingBanner(c, { step, icon, title, desc, actionLabel, onAction }) {
+  if (!HERO || HERO.onboardingStep !== step) return;
+  const banner = el('div', 'onb-banner');
+  banner.innerHTML = `
+    <div class="onb-icon">${icon}</div>
+    <div class="onb-body">
+      <div class="onb-title">${title}</div>
+      <div class="onb-desc">${desc}</div>
+    </div>
+    <button class="onb-btn">${actionLabel} →</button>`;
+  banner.querySelector('.onb-btn').addEventListener('click', () => {
+    banner.classList.add('onb-out');
+    setTimeout(() => banner.remove(), 250);
+    onAction();
+  });
+  c.insertBefore(banner, c.firstChild);
+}
+
+/* Avanza onboardingStep se è esattamente al valore atteso.
+   toStep opzionale: salta direttamente a quel valore (es. 2→10 per saltare il 3 legacy). */
+function advanceOnboarding(fromStep, toStep) {
+  if (!HERO || HERO.onboardingStep !== fromStep) return;
+  HERO.onboardingStep = toStep !== undefined ? toStep : fromStep + 1;
+  persist();
+}
+
 const TAB_TOOLTIP_TEXT = {
   camp:   { icon: '🏕️', title: 'Rifugio',   body: 'La tua base. Costruisci strutture per ottenere bonus permanenti al tuo eroe.' },
   map:    { icon: '🗺️', title: 'Mappa',     body: 'Ogni km che cammini o corri avanza il tuo viaggio. Esplora nuove regioni!' },
@@ -1664,6 +1696,33 @@ function renderCamp(c) {
     c.appendChild(spBanner);
   }
 
+  /* Step 11: dopo Mappa → invita alla Serra */
+  renderOnboardingBanner(c, {
+    step: 11, icon: '🌱',
+    title: 'Coltiva il tuo Rifugio!',
+    desc: 'La Serra del Viandante ti permette di coltivare erbe e semi per creare pozioni rare. Aprila e pianta qualcosa!',
+    actionLabel: 'Vai alla Serra',
+    onAction: () => { advanceOnboarding(11); CAMP_VIEW = 'serra'; setTab('camp'); }
+  });
+
+  /* Step 12: dopo Serra → invita alla Bacheca del Viandante */
+  renderOnboardingBanner(c, {
+    step: 12, icon: '📜',
+    title: 'Missioni giornaliere!',
+    desc: 'La Bacheca del Viandante si rinnova ogni giorno — completa sfide fisiche e riscuoti ricompense in oro e oggetti rari.',
+    actionLabel: 'Scorri le missioni',
+    onAction: () => advanceOnboarding(12)
+  });
+
+  /* Step 13: dopo Bacheca → invita al Famiglio */
+  renderOnboardingBanner(c, {
+    step: 13, icon: '🐾',
+    title: 'Adotta un Famiglio!',
+    desc: 'Il Santuario dei Famigli ti aspetta. Schiudi il tuo uovo e prenditi cura del tuo compagno per bonus esclusivi!',
+    actionLabel: 'Visita il Santuario',
+    onAction: () => { advanceOnboarding(13); CAMP_VIEW = 'santuario'; setTab('camp'); }
+  });
+
   // Prima missione — visibile solo finché totalKm === 0
   if ((HERO.totalKm || 0) === 0) {
     const fp = el('div', 'panel camp-first-quest');
@@ -2035,6 +2094,7 @@ function playHatchSequence(pet) {
 }
 
 function renderSantuarioView(c) {
+  advanceOnboarding(13);
   const pet = HERO.pet;
   if (!pet.hatched) { renderEggView(c); return; }
   RPG.tickPet(HERO); persist();
@@ -2683,6 +2743,16 @@ function renderMap(c) {
   if (MAP_VIEW === 'atlas')      { renderAtlasView(c);      return; }
   if (MAP_VIEW === 'pantheon')   { renderPantheonView(c);   return; }
   if (MAP_VIEW === 'avamposto')  { renderAvampostoView(c);  return; }
+
+  /* Step 10: prima visita alla Mappa dopo la prima vittoria in Arena */
+  renderOnboardingBanner(c, {
+    step: 10, icon: '🗺️',
+    title: 'Benvenuto nella Mappa!',
+    desc: 'Ogni km registrato avanza il tuo viaggio tra biomi e tappe. Più ti alleni, più lontano arriverai e nuovi territori si apriranno!',
+    actionLabel: 'Esplora',
+    onAction: () => advanceOnboarding(10)
+  });
+
   const biome = RPG.currentBiome(HERO.level);
 
   // ── Il bioma attuale, con progresso verso il prossimo ──
@@ -5641,6 +5711,15 @@ function renderMarket(c) {
   if (MARKET_VIEW === 'catena')      { renderCatenaView(c);      return; }
   if (MARKET_VIEW === 'casse')       { renderCasseView(c);       return; }
   if (MARKET_VIEW === 'antro' || MARKET_VIEW.startsWith('antro_')) { renderAntroView(c); return; }
+
+  /* Step 2: dopo il 1° workout → invita all'Arena */
+  renderOnboardingBanner(c, {
+    step: 2, icon: '⚔️',
+    title: 'È ora di combattere!',
+    desc: 'Hai completato il tuo primo allenamento. Ora sfida un villain nell\'Arena — ogni vittoria porta oro e oggetti rari.',
+    actionLabel: 'Vai all\'Arena',
+    onAction: () => { advanceOnboarding(2); MARKET_VIEW = 'antro'; setTab('market'); }
+  });
 
   const marketTitle = el('h2', 'section-title', '🏘️ Il Borgo');
   c.appendChild(marketTitle);
@@ -9117,6 +9196,7 @@ function renderSaccaView(c) {
 /* ── La Serra del Viandante ─────────────────────────────────────────────── */
 function renderSerraView(c) {
   c.classList.add('in-serra');
+  advanceOnboarding(11);
 
   const backBtn = el('button', 'view-back-link', '‹ Rifugio');
   backBtn.addEventListener('click', () => { c.classList.remove('in-serra'); CAMP_VIEW = 'main'; setTab('camp'); });
