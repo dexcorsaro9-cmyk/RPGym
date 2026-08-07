@@ -1082,6 +1082,10 @@ function renderHUD() {
   bumpRes('res-wood', HERO.wood);
   bumpRes('res-stone', HERO.stone);
   bumpRes('res-fiches', HERO.fiches || 0);
+  const _woodIco = document.querySelector('[title="Legna"] .res-ico');
+  const _stoneIco = document.querySelector('[title="Pietra"] .res-ico');
+  if (_woodIco) _woodIco.textContent = '🌲';
+  if (_stoneIco) _stoneIco.textContent = '⛏️';
   updateBadges();
 }
 
@@ -9285,7 +9289,7 @@ function sfx(kind) {
    in crash l'intero script a metà (Temporal Dead Zone), lasciando
    funzionalità come l'Arena rotte per tutta la sessione. */
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js?v=450').catch(() => {});
+  navigator.serviceWorker.register('sw.js?v=451').catch(() => {});
   /* Quando un nuovo SW prende il controllo (skipWaiting + clients.claim)
      ricarica la pagina per caricare il codice aggiornato. */
   navigator.serviceWorker.addEventListener('controllerchange', () => location.reload());
