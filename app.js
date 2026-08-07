@@ -9717,7 +9717,7 @@ function renderGuidaView(c) {
     },
     {
       icon: '⚔️', title: 'Arena',
-      body: `Ogni giorno hai un certo numero di sfide disponibili nell'Arena (tab <b>Mappa</b>). Sfidi nemici in un duello a morra: Attacco, Difesa e Schivata si battono secondo regole RPG. Vincendo guadagni oro, XP arena e — con probabilità variabile — un consumabile. I boss sono avversari speciali con ricompense maggiori. La difficoltà scala con il tuo livello.`,
+      body: `Ogni giorno hai un certo numero di sfide disponibili nell'<b>Antro dell'Oscurità</b> (tab <b>Borgo</b>). Sfidi nemici in un duello a morra: Attacco, Difesa e Schivata si battono secondo regole RPG. Vincendo guadagni oro, fiches arena e — con probabilità variabile — un consumabile. I boss sono avversari speciali con ricompense maggiori. La difficoltà scala con il tuo livello.`,
     },
     {
       icon: '👹', title: 'Boss Settimanale',
@@ -9730,6 +9730,10 @@ function renderGuidaView(c) {
     {
       icon: '🏕️', title: 'Rifugio',
       body: `Il tuo campo base cresce con te. Sblocca e potenzia strutture spendendo oro, legno e pietra. Ogni struttura aggiunge bonus passivi permanenti (più monete, più XP, ecc.). La scena cambia visivamente con il tuo livello e con il ciclo giorno/notte in tempo reale.`,
+    },
+    {
+      icon: '📜', title: 'Bacheca del Viandante',
+      body: `Ogni giorno la Bacheca del Viandante (tab <b>Rifugio</b>, in fondo) espone nuove commissioni fisiche: correre N km, registrare X allenamenti, raggiungere una soglia di passi. Ogni missione ha un livello di difficoltà (commissione, ricerca, impresa) e una ricompensa in oro e oggetti. Le missioni si resettano a mezzanotte — non lasciare ricompense non riscuotute!`,
     },
     {
       icon: '🌱', title: 'Serra del Viandante',
@@ -9764,6 +9768,10 @@ function renderGuidaView(c) {
       body: `Al livello 100 puoi scegliere di <b>Rinascere</b>: torni al livello 1 ma ottieni un bonus permanente di <b>+20% XP</b> su tutti gli allenamenti futuri. Oggetti, km, trofei e oro rimangono intatti. Ogni Rinascita aumenta il moltiplicatore cumulativamente.`,
     },
     {
+      icon: '☀️', title: 'Pass Stagionale',
+      body: `Il <b>Pass Stagionale</b> (tab <b>Rifugio</b>) introduce stagioni a tema della durata di alcuni mesi — la prima è <i>Era della Conquista</i>. Ogni km registrato converte in punti stagione (10 punti per km). I punti avanzano su un percorso di 50 livelli con premi su due tracce: <b>Free</b> (gratuita, aperta a tutti) e <b>Premium</b>. Tra i premi: consumabili rari, oggetti esclusivi, cavalcature e cosmetici. <i>In arrivo presto.</i>`,
+    },
+    {
       icon: '💡', title: 'Consigli pratici',
       body: `
         <ul class="guida-tips">
@@ -9773,6 +9781,7 @@ function renderGuidaView(c) {
           <li>Visita il Bazar ogni giorno: a volte ha oggetti rari a prezzo di comune.</li>
           <li>Equipa sempre tutti gli slot — anche un oggetto comune dà +XP.</li>
           <li>Il famiglio va nutrito almeno una volta al giorno per mantenere i bonus.</li>
+          <li>Controlla la Bacheca del Viandante ogni sera — le missioni completate scadono a mezzanotte.</li>
           <li>Backup regolare del salvataggio dalle Impostazioni — il gioco salva in locale.</li>
         </ul>`,
     },
