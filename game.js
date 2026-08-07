@@ -224,7 +224,7 @@ const RPG = (() => {
 
   /* ── Artefatti dei Biomi (uno per bioma, sbloccato alla scoperta) ── */
   const BIOME_ARTIFACTS = [
-    { name: 'Pietra del Focolare',   icon: '🪨', flavor: 'Un frammento del muro di casa tua — ancora tiepido, come se il fuoco non si fosse mai spento del tutto.' },
+    { name: 'Pietra del Focolare',   icon: '⛏️', flavor: 'Un frammento del muro di casa tua — ancora tiepido, come se il fuoco non si fosse mai spento del tutto.' },
     { name: 'Foglia Fossile',        icon: '🍂', flavor: 'Imprigionata nell\'ambra da secoli. La foresta ha memoria lunga.' },
     { name: 'Seme Perduto',          icon: '🌱', flavor: 'Germogliato tra le pietre. La vita si apre strada ovunque, anche dove non dovrebbe.' },
     { name: 'Frammento di Vento',    icon: '💨', flavor: 'Non pesa nulla, ma stringerlo dà la sensazione di poter camminare per sempre.' },
@@ -587,7 +587,7 @@ const RPG = (() => {
     { id: 'banner_worn',   stage: 0, minLevel: 8,  name: 'Stendardo Consumato',     icon: '🚩', price: { wood: 15,  stone: 12  } },
     // ── Stage 1: Avamposto ──
     { id: 'log_cabin',     stage: 1, minLevel: 10, name: 'Capanna di Tronchi',      icon: '🏠', price: { wood: 30,  stone: 15  } },
-    { id: 'stockade',      stage: 1, minLevel: 12, name: 'Palizzata',               icon: '🪵', price: { wood: 25,  stone: 30  } },
+    { id: 'stockade',      stage: 1, minLevel: 12, name: 'Palizzata',               icon: '🌲', price: { wood: 25,  stone: 30  } },
     { id: 'blacksmith',    stage: 1, minLevel: 14, name: 'Fucina del Fabbro',       icon: '⚒️', price: { wood: 20,  stone: 40  } },
     { id: 'well',          stage: 1, minLevel: 16, name: 'Pozzo del Villaggio',     icon: '🪣', price: { wood: 15,  stone: 45  } },
     { id: 'watchtower_s',  stage: 1, minLevel: 18, name: 'Torre di Guardia',        icon: '🗼', price: { wood: 35,  stone: 35  } },
@@ -621,7 +621,7 @@ const RPG = (() => {
     if (hero.level < item.minLevel) return `Richiede Livello ${item.minLevel}.`;
     const p = item.price;
     if (hero.wood < p.wood || hero.stone < p.stone) {
-      return `Risorse insufficienti (servono 🪵${p.wood} 🪨${p.stone}).`;
+      return `Risorse insufficienti (servono 🌲${p.wood} ⛏️${p.stone}).`;
     }
     hero.wood -= p.wood; hero.stone -= p.stone;
     hero.furniture.owned.push(layerId);
@@ -664,7 +664,7 @@ const RPG = (() => {
     { id:'dado_runico',       name:'Dado Runico',            cat:'rune',      rarity:'comune',     icon:'🎲', desc:'Effetto casuale: XP / monete / risorse ×2',  baseValue:15,  effect:{ type:'random' } },
     { id:'artiglio_fortuna',  name:'Artiglio della Fortuna', cat:'rune',      rarity:'raro',       icon:'🦞', desc:'+30% probabilità drop raro da boss',         baseValue:35,  effect:{ type:'drop_boost',       value:0.30, expiresH:24 } },
     { id:'cristallo_fuoco',   name:'Cristallo di Fuoco',     cat:'rune',      rarity:'epico',      icon:'🔴', desc:'+50% danno Arena per 24h',                   baseValue:80,  effect:{ type:'arena_mult',       value:0.50, expiresH:24 } },
-    { id:'disco_runico',      name:'Disco Runico',           cat:'rune',      rarity:'raro',       icon:'🪨', desc:'Bonus casuale (XP/oro/risorse) per 12h',     baseValue:35,  effect:{ type:'random_timed',     expiresH:12 } },
+    { id:'disco_runico',      name:'Disco Runico',           cat:'rune',      rarity:'raro',       icon:'⛏️', desc:'Bonus casuale (XP/oro/risorse) per 12h',     baseValue:35,  effect:{ type:'random_timed',     expiresH:12 } },
     { id:'guanto_cristallo',  name:'Guanto di Cristallo',    cat:'rune',      rarity:'epico',      icon:'🧤', desc:'Prossima sconfitta Arena non conta',          baseValue:80,  effect:{ type:'arena_shield' } },
     { id:'medaglione_grifone',name:'Medaglione del Grifone', cat:'rune',      rarity:'epico',      icon:'🛡️', desc:'Immunità sconfitta Arena per 2 giorni',      baseValue:90,  effect:{ type:'arena_shield_long',days:2 } },
     { id:'runa_fuoco',        name:'Runa di Fuoco',          cat:'rune',      rarity:'raro',       icon:'🔥', desc:'+20% XP da battaglie Arena oggi',            baseValue:35,  effect:{ type:'arena_mult',       value:0.20, expiresH:24 } },
@@ -3782,7 +3782,7 @@ const RPG = (() => {
   function cleanPet(hero) {
     if (!hero.pet || !hero.pet.hatched) return 'Il tuo famiglio è ancora un uovo: aspetta la schiusa!';
     const WOOD_COST = 10, STONE_COST = 10;
-    if (hero.wood < WOOD_COST || hero.stone < STONE_COST) return `Serve più legna/pietra (hai 🪵${hero.wood}/🪨${hero.stone}, servono ${WOOD_COST}/${STONE_COST}).`;
+    if (hero.wood < WOOD_COST || hero.stone < STONE_COST) return `Serve più legna/pietra (hai 🌲${hero.wood}/⛏️${hero.stone}, servono ${WOOD_COST}/${STONE_COST}).`;
     tickPet(hero);
     hero.wood -= WOOD_COST; hero.stone -= STONE_COST;
     hero.pet.kmAtLastClean = hero.totalKm;
@@ -4357,7 +4357,7 @@ const RPG = (() => {
     if (hero.level < (BIOMES[s.biomeIdx] ? BIOMES[s.biomeIdx].min : 999)) return 'Non hai ancora raggiunto questo bioma.';
     const p = it.price;
     if (hero.gold < p.gold || hero.wood < p.wood || hero.stone < p.stone) {
-      return `Risorse insufficienti (servono 🪙${p.gold} 🪵${p.wood} 🪨${p.stone}).`;
+      return `Risorse insufficienti (servono 🪙${p.gold} 🌲${p.wood} ⛏️${p.stone}).`;
     }
     hero.gold -= p.gold; hero.wood -= p.wood; hero.stone -= p.stone;
     hero.furniture.owned.push(itemId);
@@ -4685,7 +4685,7 @@ const RPG = (() => {
       choices: [
         { icon:'🦵', label:'Sfruttate il terreno con una spinta', hit:[15,28], dmg:[12,20] },
         { icon:'🧠', label:'Vi muovete con cautela',               hit:[10,20], dmg:[3,9]   },
-        { icon:'🪨', label:'Lanciate un sasso come diversivo',     hit:[8,18],  dmg:[5,12]  },
+        { icon:'⛏️', label:'Lanciate un sasso come diversivo',     hit:[8,18],  dmg:[5,12]  },
       ]},
     { text: 'Il nemico tenta un colpo basso!',
       choices: [
@@ -5270,7 +5270,7 @@ const RPG = (() => {
     { id: 'cartographer',name: 'Cartografo',       icon: '🗺️', cost: 1, reqLevel: 20,
       desc: '+20% km contano per la Mappa del Tesoro',
       effect: { treasureKmBonus: 0.20 } },
-    { id: 'hoarder',     name: 'Accumulatore',     icon: '🪵', cost: 1, reqLevel: 20,
+    { id: 'hoarder',     name: 'Accumulatore',     icon: '🌲', cost: 1, reqLevel: 20,
       desc: '+15% legna e pietra raccolte',
       effect: { resMult: 0.15 } },
   ];
@@ -5411,7 +5411,7 @@ const RPG = (() => {
       months: [8, 9, 10],
       desc: 'Il tempo del raccolto. Risorse e oro abbondano ovunque.',
       bonuses: [
-        '🪵 +25% legno e pietra da ogni allenamento',
+        '🌲 +25% legno e pietra da ogni allenamento',
         '🪙 +15% oro da ogni allenamento',
       ],
       challenge: { label: 'Grande Raccolto',        km: 100, reward: 'epico'      },
@@ -6124,7 +6124,7 @@ const RPG = (() => {
     const RUOTA_SECTORS = [
       { id: 'gold_sm',    label: '🪙 ×30',        color: '#e8b64c', weight: 28 },
       { id: 'fiches_sm',  label: '🎴 ×5',         color: '#9c6ae1', weight: 24 },
-      { id: 'wood',       label: '🪵 ×20',        color: '#a0714f', weight: 14 },
+      { id: 'wood',       label: '🌲 ×20',        color: '#a0714f', weight: 14 },
       { id: 'nothing',    label: '💨 Vento',      color: '#6b7280', weight: 12 },
       { id: 'gold_big',   label: '🪙 ×100',       color: '#f59e0b', weight: 8  },
       { id: 'item',       label: '🎁 Oggetto',    color: '#3b82f6', weight: 7  },
