@@ -1177,9 +1177,13 @@ function setTab(tab, dir) {
   if (tab === 'map')    c.classList.add('bg-map');
   if (tab === 'train')  c.classList.add('bg-train');
   if (tab === 'market') c.classList.add('bg-market');
-  c.classList.remove('tab-in', 'tab-slide-left', 'tab-slide-right');
   c.innerHTML = '';
-  ({ camp: renderCamp, map: renderMap, train: renderTrain, market: renderMarket, hero: renderHero }[tab])(c);
+  /* Wrapper interno per l'animazione: non mettere mai transform su #tab-content
+     direttamente — iOS bug: transform+overflow-y:auto resetta/glitch lo scroll */
+  const animWrap = document.createElement('div');
+  animWrap.className = 'tab-anim-wrap';
+  c.appendChild(animWrap);
+  ({ camp: renderCamp, map: renderMap, train: renderTrain, market: renderMarket, hero: renderHero }[tab])(animWrap);
 
   const sameSubView = tab === prevTab && !dir &&
     (tab !== 'camp'   || CAMP_VIEW   === prevCampView)   &&
@@ -1191,19 +1195,17 @@ function setTab(tab, dir) {
   if (sameSubView) {
     c.scrollTop = prevScroll;
   } else if (tab === 'market' && MARKET_VIEW === 'hub' && prevMarketView !== 'hub') {
-    /* ritorno all'hub del Borgo: ripristina la posizione pre-sub-view */
     c.scrollTop = _marketHubScroll;
   } else if (tab === 'map' && MAP_VIEW === 'main' && prevMapView !== 'main') {
-    /* ritorno alla Mappa principale: ripristina la posizione pre-sub-view */
     c.scrollTop = _mapHubScroll;
   } else {
     c.scrollTop = 0;
   }
 
   requestAnimationFrame(() => {
-    if (dir === 'left')       c.classList.add('tab-slide-left');
-    else if (dir === 'right') c.classList.add('tab-slide-right');
-    else                      c.classList.add('tab-in');
+    if (dir === 'left')       animWrap.classList.add('tab-slide-left');
+    else if (dir === 'right') animWrap.classList.add('tab-slide-right');
+    else                      animWrap.classList.add('tab-in');
   });
   updateBadges();
   if (HERO) {

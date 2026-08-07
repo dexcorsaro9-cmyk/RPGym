@@ -701,7 +701,7 @@ body {
   padding: 20px;
 }
 .modal-box {
-  max-height: 85dvh; overflow-y: auto;
+  max-height: 85svh; overflow-y: auto; overscroll-behavior-y: contain;
   flex: none; margin: 0; width: 100%; max-width: 420px;
 }
 .modal-box.modal-opening {
@@ -1294,9 +1294,11 @@ img.camp-layer {
   from { opacity: 0; transform: translateX(-48px); }
   to   { opacity: 1; transform: translateX(0); }
 }
-#tab-content.tab-in          { animation: tab-content-in        .22s cubic-bezier(.2,.8,.4,1) both; }
-#tab-content.tab-slide-left  { animation: tab-slide-from-right  .22s cubic-bezier(.2,.8,.4,1) both; }
-#tab-content.tab-slide-right { animation: tab-slide-from-left   .22s cubic-bezier(.2,.8,.4,1) both; }
+/* Animazioni su wrapper interno — mai su #tab-content diretto (iOS bug: transform+overflow-y:auto resetta lo scroll) */
+.tab-anim-wrap { min-height: 100%; }
+.tab-anim-wrap.tab-in          { animation: tab-content-in        .22s cubic-bezier(.2,.8,.4,1) both; }
+.tab-anim-wrap.tab-slide-left  { animation: tab-slide-from-right  .22s cubic-bezier(.2,.8,.4,1) both; }
+.tab-anim-wrap.tab-slide-right { animation: tab-slide-from-left   .22s cubic-bezier(.2,.8,.4,1) both; }
 .tab img.tab-icon {
   width: 34px; height: 34px; object-fit: contain;
   filter: drop-shadow(0 2px 3px rgba(0,0,0,.6));
