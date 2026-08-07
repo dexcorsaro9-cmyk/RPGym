@@ -1406,6 +1406,7 @@ function renderCamp(c) {
   if (CAMP_VIEW === 'strutture')   { renderStruttureView(c);   return; }
   if (CAMP_VIEW === 'arredamento') { renderArredamentoView(c); return; }
   if (CAMP_VIEW === 'serra')       { renderSerraView(c);       return; }
+  if (CAMP_VIEW === 'seasonpass')  { renderSeasonPassView(c);  return; }
 
   /* ── Panorama scena campo con ciclo giorno/notte ── */
   const phase       = getCampTimePhase();
@@ -1642,6 +1643,25 @@ function renderCamp(c) {
   panorama.appendChild(seasonEl);
 
 
+  // ── Pass Stagionale — banner di accesso ──
+  {
+    const spBanner = el('div', 'panel borgo-entry-panel season-pass-banner');
+    spBanner.style.cssText = 'cursor:pointer;background:linear-gradient(135deg,#3A1208 0%,#1E0C04 50%,#2A1A08 100%);border:1px solid #6A3A18;position:relative;overflow:hidden';
+    spBanner.innerHTML = `
+      <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(200,148,58,.15) 0%,transparent 60%);pointer-events:none"></div>
+      <div style="display:flex;align-items:center;gap:14px;padding:14px 16px">
+        <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#C8943A,#8B1F1F);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;box-shadow:0 0 14px rgba(200,148,58,.45)">☀️</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.12em;color:#C8943A;margin-bottom:2px">Pass Stagionale · Stagione 1</div>
+          <div style="font-size:.97rem;font-weight:700;color:#FDEDC0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Era della Conquista</div>
+          <div style="font-size:.75rem;color:#A08050;margin-top:2px">Coming Soon ✨</div>
+        </div>
+        <div style="font-size:.75rem;color:#C8943A;font-weight:600;flex-shrink:0">Apri ›</div>
+      </div>`;
+    spBanner.addEventListener('click', () => { CAMP_VIEW = 'seasonpass'; setTab('camp'); });
+    c.appendChild(spBanner);
+  }
+
   // Prima missione — visibile solo finché totalKm === 0
   if ((HERO.totalKm || 0) === 0) {
     const fp = el('div', 'panel camp-first-quest');
@@ -1810,6 +1830,109 @@ function renderCamp(c) {
   });
   rp.appendChild(rbtn);
   c.appendChild(rp);
+}
+
+function renderSeasonPassView(c) {
+  const backBtn = el('button', 'view-back-link', '‹ Rifugio');
+  backBtn.addEventListener('click', () => { CAMP_VIEW = 'main'; setTab('camp'); });
+  c.appendChild(backBtn);
+
+  c.insertAdjacentHTML('beforeend', `
+  <div style="min-height:100vh;background:linear-gradient(180deg,#1A0C04 0%,#0E0804 100%)">
+
+    <!-- Header -->
+    <div style="background:linear-gradient(180deg,#2A1008 0%,#1A0804 100%);border-bottom:1px solid #4A2A10;padding:50px 16px 16px">
+      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px">
+        <div style="flex:1">
+          <div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.14em;color:#C8943A">☀️ Stagione 1</div>
+          <div style="font-size:1.1rem;font-weight:800;color:#FDEDC0;font-family:'Cinzel',serif">Era della Conquista</div>
+        </div>
+        <div style="text-align:right;font-size:.72rem;color:#A08050">
+          Scade in<br><strong style="font-size:1rem;color:#E8B060">54 giorni</strong>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="background:linear-gradient(135deg,#C8943A,#8B1F1F);color:#FDEDC0;font-weight:800;font-size:.85rem;padding:4px 12px;border-radius:99px;flex-shrink:0">Lv 1</div>
+        <div style="flex:1">
+          <div style="height:8px;background:#2A1808;border-radius:99px;overflow:hidden;margin-bottom:3px">
+            <div style="height:100%;width:0%;background:linear-gradient(90deg,#C8943A,#E8C050);border-radius:99px"></div>
+          </div>
+          <div style="font-size:.65rem;color:#8A6A3A">0 / 1.000 punti stagione · 1 km = 10 punti</div>
+        </div>
+      </div>
+      <div style="display:flex;margin-top:14px;gap:8px">
+        <div style="flex:1;text-align:center;padding:7px;border-radius:8px;font-size:.78rem;font-weight:600;background:#2A1A08;color:#A08050;border:1px solid #4A3020">Gratuito</div>
+        <div style="flex:1;text-align:center;padding:7px;border-radius:8px;font-size:.78rem;font-weight:600;background:linear-gradient(135deg,#3A1A08,#2A0C04);color:#E8C060;border:1px solid #8B3A10;box-shadow:0 0 12px rgba(200,80,20,.2)">👑 Pass Leggendario</div>
+      </div>
+    </div>
+
+    <!-- Coming Soon overlay + Track -->
+    <div style="position:relative;padding:24px 16px 0">
+
+      <!-- Legenda -->
+      <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:12px;scrollbar-width:none">
+        <div style="display:flex;align-items:center;gap:6px;background:#1E1208;border:1px solid #3A2210;border-radius:99px;padding:5px 12px;font-size:.72rem;white-space:nowrap;flex-shrink:0;color:#F0DFC0"><span style="width:8px;height:8px;border-radius:50%;background:#C8943A;display:inline-block"></span> Sbloccato</div>
+        <div style="display:flex;align-items:center;gap:6px;background:#1E1208;border:1px solid #3A2210;border-radius:99px;padding:5px 12px;font-size:.72rem;white-space:nowrap;flex-shrink:0;color:#F0DFC0"><span style="width:8px;height:8px;border-radius:50%;background:#6ABE30;display:inline-block"></span> Da riscuotere</div>
+        <div style="display:flex;align-items:center;gap:6px;background:#1E1208;border:1px solid #3A2210;border-radius:99px;padding:5px 12px;font-size:.72rem;white-space:nowrap;flex-shrink:0;color:#F0DFC0"><span style="width:8px;height:8px;border-radius:50%;background:#3A2210;display:inline-block"></span> Bloccato</div>
+        <div style="display:flex;align-items:center;gap:6px;background:#1E1208;border:1px solid #3A2210;border-radius:99px;padding:5px 12px;font-size:.72rem;white-space:nowrap;flex-shrink:0;color:#F0DFC0"><span style="width:8px;height:8px;border-radius:50%;background:#E8C060;border:1px solid #8B3A10;display:inline-block"></span> Solo Premium</div>
+      </div>
+
+      <!-- Track preview (blurred) -->
+      <div style="position:relative;overflow:hidden;border-radius:12px">
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;filter:blur(3px) brightness(.5);pointer-events:none;user-select:none">
+          <div style="display:flex;flex-direction:column;width:max-content;padding:16px 20px">
+
+            <!-- ROW PREMIUM (preview) -->
+            <div style="display:flex;align-items:center;height:110px">
+              <div style="width:60px;font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:#E8C060;flex-shrink:0;text-align:right;padding-right:8px">👑<br>Premium</div>
+              <div style="display:flex;align-items:center">
+                ${[['🪙','500 Oro'],['🧪','Pozione Rara'],['🌲','100 Legna'],['🔮','Runa Epica'],['🪙','800 Oro'],['⛏️','150 Pietra'],['🖼️','Cornice'],['🪙','1200 Oro'],['🎴','Fiches'],['🖼️','Cornice Sabbia'],['⚔️','Scimitarra'],['🌅','Sfondo Alba'],['🏆','Cosmetic']].map(([ ic, nm], i) => `
+                  <div style="display:flex;flex-direction:column;align-items:center;width:72px;flex-shrink:0">
+                    <div style="font-size:.58rem;color:#C8943A;margin-bottom:4px;height:14px">${i===0?'Lv 1':i===6?'Lv 7':i===9?'Lv 10':i===12?'Lv 30':''}</div>
+                    <div style="width:${i===12?'60px':'46px'};height:${i===12?'60px':'46px'};border-radius:50%;background:#140A04;border:2px solid #4A2A10;display:flex;align-items:center;justify-content:center;font-size:${i===12?'1.5rem':'1.2rem'}">${ic}</div>
+                    <div style="font-size:.54rem;color:#6A4A20;margin-top:4px;text-align:center;max-width:64px">${nm}</div>
+                  </div>
+                  ${i<12?'<div style="height:3px;width:26px;background:#2A1808;flex-shrink:0;margin-bottom:26px"></div>':''}`).join('')}
+              </div>
+            </div>
+
+            <!-- ROW GRATUITA (preview) -->
+            <div style="display:flex;align-items:center;height:110px">
+              <div style="width:60px;font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:#6A4A20;flex-shrink:0;text-align:right;padding-right:8px">Gratis</div>
+              <div style="display:flex;align-items:center">
+                ${[['🪙','200 Oro'],['🌲','50 Legna'],['🧪','Pozione'],['🪙','300 Oro'],['⛏️','50 Pietra'],['🪙','400 Oro'],['⭐','···'],['🌲','80 Legna'],['🪙','500 Oro'],['🏅','Badge'],['📛','Titolo'],['🪙','2000 Oro'],['📜','Pergamena']].map(([ic,nm], i) => `
+                  <div style="display:flex;flex-direction:column;align-items:center;width:72px;flex-shrink:0">
+                    <div style="font-size:.58rem;color:#6A4A20;margin-bottom:4px;height:14px">${i===0?'Lv 1':i===6?'Lv 7':i===9?'Lv 10':i===12?'Lv 30':''}</div>
+                    <div style="width:${i===12?'60px':'46px'};height:${i===12?'60px':'46px'};border-radius:50%;background:#140A04;border:2px solid #2A1808;display:flex;align-items:center;justify-content:center;font-size:${i===12?'1.5rem':'1.2rem'};opacity:.45">${ic}</div>
+                    <div style="font-size:.54rem;color:#4A3020;margin-top:4px;text-align:center;max-width:64px">${nm}</div>
+                  </div>
+                  ${i<12?'<div style="height:3px;width:26px;background:#1A0E06;flex-shrink:0;margin-bottom:26px"></div>':''}`).join('')}
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Coming Soon overlay -->
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(14,8,4,.35);backdrop-filter:blur(1px)">
+          <div style="font-size:2.4rem">⏳</div>
+          <div style="font-family:'Cinzel',serif;font-size:1.3rem;font-weight:700;color:#FDEDC0;text-shadow:0 2px 12px rgba(0,0,0,.8)">Coming Soon</div>
+          <div style="font-size:.82rem;color:#C8943A;text-align:center;max-width:240px;line-height:1.5">Il Pass Stagionale è in arrivo.<br>Continua ad allenarti — ogni km conterà.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA unlock -->
+    <div style="margin:20px 16px;background:linear-gradient(135deg,#8B3A10,#5A1A08);border:1px solid #C8943A;border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;opacity:.6;pointer-events:none">
+      <div style="font-size:1.6rem">👑</div>
+      <div style="flex:1">
+        <div style="font-size:.9rem;font-weight:700;color:#FDEDC0;font-family:'Cinzel',serif">Pass Leggendario</div>
+        <div style="font-size:.72rem;color:#C8943A">Sblocca la track premium · cavalcatura · avatar esclusivo</div>
+      </div>
+      <div style="font-size:1rem;font-weight:800;color:#E8C060;white-space:nowrap">4,99€</div>
+    </div>
+
+  </div>`);
 }
 
 function showAllyBase(o) {
