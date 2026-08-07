@@ -2616,7 +2616,7 @@ function renderMap(c) {
         persist(); renderHUD();
         vibrate([150, 50, 200]);
         const itemEl = reward.item ? `<div class="loot-list" style="margin:.5rem 0">${itemHtml(reward.item)}</div>` : '';
-        const consEl = reward.consumable ? `<p class="center small">💰 ${esc(reward.consumable.icon)} <b>${esc(reward.consumable.name)}</b> nella Sacca!</p>` : '';
+        const consEl = reward.consumable ? `<p class="center small">💰 ${esc(reward.consumable.icon)} <b>${esc(reward.consumable.name)}</b> nel Box Consumabili!</p>` : '';
         modal(`<h3 class="center">${boss.icon} ${esc(boss.name)} sconfitto!</h3>
           <p class="center">🪙 +${reward.gold} oro${itemEl}</p>
           ${consEl}
@@ -6768,6 +6768,7 @@ function renderHero(c) {
   if (HERO_VIEW === 'settings') { renderSettingsView(c); return; }
   if (HERO_VIEW === 'diary')    { renderDiaryView(c);    return; }
   if (HERO_VIEW === 'zaino')    { renderZainoView(c);    return; }
+  if (HERO_VIEW === 'sacca')    { renderSaccaView(c);    return; }
   if (HERO_VIEW === 'guida')    { renderGuidaView(c);    return; }
   if (HERO_VIEW === 'cronache') { renderCronacheView(c); return; }
 
@@ -6850,15 +6851,20 @@ function renderHero(c) {
     c.appendChild(ptEl);
   }
 
-  // Sacca del Viandante
+  // Box Consumabili
   const consCount = Object.values(HERO.consumables || {}).reduce((s, q) => s + q, 0);
   const activeBuff = HERO.consumableBuffs && (
     HERO.consumableBuffs.xpMult || HERO.consumableBuffs.goldMult ||
     HERO.consumableBuffs.allBoost || HERO.consumableBuffs.streakShield > 0
   );
-  const saccaBtn = el('button', `btn ${activeBuff ? 'btn-primary' : ''} wide`, `💰 Sacca del Viandante${consCount > 0 ? ` (${consCount})` : ''}`);
-  if (activeBuff) saccaBtn.style.position = 'relative';
-  saccaBtn.addEventListener('click', () => { HERO_VIEW = 'zaino'; setTab('hero'); });
+  const boxBtn = el('button', `btn ${activeBuff ? 'btn-primary' : ''} wide`, `⚗️ Box Consumabili${consCount > 0 ? ` (${consCount})` : ''}`);
+  if (activeBuff) boxBtn.style.position = 'relative';
+  boxBtn.addEventListener('click', () => { HERO_VIEW = 'zaino'; setTab('hero'); });
+  c.appendChild(boxBtn);
+
+  // Sacca del Viandante (guardaroba)
+  const saccaBtn = el('button', 'btn wide', '🎒 Sacca del Viandante');
+  saccaBtn.addEventListener('click', () => { HERO_VIEW = 'sacca'; setTab('hero'); });
   c.appendChild(saccaBtn);
 
   // Sottomenù
@@ -7070,7 +7076,7 @@ function renderDiaryView(c) {
       ['cavaliere', 'Di corsa', `${(HERO.kmByType.corsa || 0).toFixed(1)} km`],
       ['chiave', 'Streak login', `${HERO.streak.count} giorni`],
       ['spade', 'Missioni compiute', `${HERO.missionsDone.length}`],
-      ['zaino', 'Oggetti nello zaino', `${HERO.items.length}`],
+      ['zaino', 'Consumabili in tasca', `${Object.values(HERO.consumables||{}).reduce((s,q)=>s+q,0)}`],
     ];
     impreseRows.forEach(([file, label, val]) => {
       const row = el('div', 'stat-row');
@@ -8688,7 +8694,7 @@ function renderZainoView(c) {
   const backBtn = el('button', 'btn btn-small', '↩ Torna all\'Eroe');
   backBtn.addEventListener('click', () => { HERO_VIEW = 'main'; setTab('hero'); });
   c.appendChild(backBtn);
-  c.appendChild(el('h2', 'section-title', '💰 Sacca del Viandante'));
+  c.appendChild(el('h2', 'section-title', '⚗️ Box Consumabili'));
 
   // Buff attivi
   const bff = HERO.consumableBuffs || {};
@@ -8775,7 +8781,7 @@ function renderZainoView(c) {
     const comuniN = countByRarity('comune');
     const rariN   = countByRarity('raro');
     const cp = el('div', 'panel crafting-panel');
-    cp.appendChild(el('h3', 'panel-title', '⚗️ Alchimia della Sacca'));
+    cp.appendChild(el('h3', 'panel-title', '⚗️ Alchimia'));
     cp.appendChild(el('p', 'muted small', 'Combina 3 consumabili della stessa rarità per ottenerne uno della rarità superiore.'));
     const rows = [
       { from: 'comune', to: 'raro',   count: comuniN, label: '3 Comuni → 1 Raro',   canDo: comuniN >= 3 },
@@ -8804,7 +8810,7 @@ function renderZainoView(c) {
     const unlocked = RPG.consumableAchievementsUnlocked(HERO);
     if (unlocked.length) {
       const ap = el('div', 'panel crafting-panel');
-      ap.appendChild(el('h3', 'panel-title', '🏅 Traguardi della Sacca'));
+      ap.appendChild(el('h3', 'panel-title', '🏅 Traguardi'));
       unlocked.forEach(a => {
         const claimed = (HERO.achievementsClaimed || []).includes(a.id);
         const row = el('div', 'crafting-row');
@@ -8847,6 +8853,139 @@ function renderZainoView(c) {
       catGrid.appendChild(card);
     });
     c.appendChild(catGrid);
+  }
+}
+
+/* ── Sacca del Viandante (guardaroba cosmetic) ──────────────────────────── */
+const SACCA_CATS = [
+  { id: 'avatar',     icon: '👤', label: 'Avatar' },
+  { id: 'cavalcature', icon: '🐴', label: 'Cavalcature' },
+  { id: 'cornici',    icon: '🖼️', label: 'Cornici' },
+  { id: 'titoli',     icon: '📛', label: 'Titoli' },
+];
+let SACCA_CAT = 'avatar';
+
+function renderSaccaView(c) {
+  const backBtn = el('button', 'btn btn-small', '↩ Torna all\'Eroe');
+  backBtn.addEventListener('click', () => { HERO_VIEW = 'main'; setTab('hero'); });
+  c.appendChild(backBtn);
+  c.appendChild(el('h2', 'section-title', '🎒 Sacca del Viandante'));
+  c.appendChild(el('p', 'muted small center', 'Cosmetici sbloccati dai Pass Stagionali e dagli eventi del reame.'));
+
+  // Filtri categoria
+  const sw = el('div', 'coll-switch');
+  SACCA_CATS.forEach(cat => {
+    const b = el('button', 'coll-btn' + (SACCA_CAT === cat.id ? ' active' : ''), `${cat.icon} ${cat.label}`);
+    b.addEventListener('click', () => { SACCA_CAT = cat.id; setTab('hero'); });
+    sw.appendChild(b);
+  });
+  c.appendChild(sw);
+
+  const cosmetici = HERO.cosmetici || {};
+
+  if (SACCA_CAT === 'avatar') {
+    const owned = cosmetici.avatar || [];
+    if (!owned.length) {
+      c.appendChild(el('div', 'panel muted', '👤 Nessun avatar stagionale ancora sbloccato — partecipa al Pass Stagionale per ottenerne di esclusivi.'));
+    } else {
+      const grid = el('div', 'consumable-grid');
+      owned.forEach(av => {
+        const card = el('div', 'consumable-card' + (HERO.avatar === av.src ? ' equipped' : ''));
+        const img = el('img', 'consumable-img');
+        img.src = av.src; img.alt = av.name;
+        card.appendChild(img);
+        card.appendChild(el('div', 'consumable-name', av.name));
+        if (av.season) card.appendChild(el('div', 'muted small', av.season));
+        const btn = el('button', HERO.avatar === av.src ? 'btn btn-small btn-secondary' : 'btn btn-small btn-primary',
+          HERO.avatar === av.src ? '✓ Equipaggiato' : 'Equipaggia');
+        btn.disabled = HERO.avatar === av.src;
+        btn.addEventListener('click', () => {
+          HERO.avatar = av.src; persist(); renderHUD();
+          toast(`👤 ${av.name} equipaggiato!`); setTab('hero');
+        });
+        card.appendChild(btn);
+        grid.appendChild(card);
+      });
+      c.appendChild(grid);
+    }
+  }
+
+  if (SACCA_CAT === 'cavalcature') {
+    const allMounts = (HERO.mountsOwned || []).map(id => RPG.mountById(id)).filter(Boolean);
+    if (!allMounts.length) {
+      c.appendChild(el('div', 'panel muted', '🐴 Nessuna cavalcatura sbloccata — acquistale nella Stalla o guadagnale dal Pass Stagionale.'));
+    } else {
+      const grid = el('div', 'consumable-grid');
+      allMounts.forEach(m => {
+        const active = HERO.mount === m.id;
+        const card = el('div', 'consumable-card' + (active ? ' equipped' : ''));
+        const img = el('img', 'consumable-img');
+        img.src = m.img || `assets/mounts/${m.id}.webp`; img.alt = m.name;
+        img.addEventListener('error', () => { img.style.display = 'none'; card.prepend(el('span', 'consumable-emoji', m.icon || '🐴')); });
+        card.appendChild(img);
+        card.appendChild(el('div', 'consumable-name', m.name));
+        const btn = el('button', active ? 'btn btn-small btn-secondary' : 'btn btn-small btn-primary',
+          active ? '✓ In sella' : 'Equipaggia');
+        btn.disabled = active;
+        btn.addEventListener('click', () => {
+          HERO.mount = m.id; persist(); renderHUD();
+          toast(`🐴 ${m.name} equipaggiata!`); setTab('hero');
+        });
+        card.appendChild(btn);
+        grid.appendChild(card);
+      });
+      c.appendChild(grid);
+    }
+  }
+
+  if (SACCA_CAT === 'cornici') {
+    const owned = cosmetici.cornici || [];
+    if (!owned.length) {
+      c.appendChild(el('div', 'panel muted', '🖼️ Nessuna cornice ancora sbloccata — le cornici si ottengono dai Pass Stagionali.'));
+    } else {
+      const grid = el('div', 'consumable-grid');
+      owned.forEach(fr => {
+        const active = HERO.frameId === fr.id;
+        const card = el('div', 'consumable-card' + (active ? ' equipped' : ''));
+        card.appendChild(el('div', 'consumable-name', fr.name));
+        if (fr.season) card.appendChild(el('div', 'muted small', fr.season));
+        const btn = el('button', active ? 'btn btn-small btn-secondary' : 'btn btn-small btn-primary',
+          active ? '✓ Attiva' : 'Attiva');
+        btn.disabled = active;
+        btn.addEventListener('click', () => {
+          HERO.frameId = fr.id; persist();
+          toast(`🖼️ ${fr.name} attivata!`); setTab('hero');
+        });
+        card.appendChild(btn);
+        grid.appendChild(card);
+      });
+      c.appendChild(grid);
+    }
+  }
+
+  if (SACCA_CAT === 'titoli') {
+    const owned = cosmetici.titoli || [];
+    if (!owned.length) {
+      c.appendChild(el('div', 'panel muted', '📛 Nessun titolo stagionale ancora sbloccato — i titoli esclusivi si ottengono dai Pass Stagionali e dalle classifiche.'));
+    } else {
+      const grid = el('div', 'consumable-grid');
+      owned.forEach(t => {
+        const active = HERO.customTitle === t.id;
+        const card = el('div', 'consumable-card' + (active ? ' equipped' : ''));
+        card.appendChild(el('div', 'consumable-name', t.name));
+        if (t.season) card.appendChild(el('div', 'muted small', t.season));
+        const btn = el('button', active ? 'btn btn-small btn-secondary' : 'btn btn-small btn-primary',
+          active ? '✓ Attivo' : 'Attiva');
+        btn.disabled = active;
+        btn.addEventListener('click', () => {
+          HERO.customTitle = t.id; persist(); renderHUD();
+          toast(`📛 ${t.name} attivato!`); setTab('hero');
+        });
+        card.appendChild(btn);
+        grid.appendChild(card);
+      });
+      c.appendChild(grid);
+    }
   }
 }
 
@@ -9289,7 +9428,7 @@ function sfx(kind) {
    in crash l'intero script a metà (Temporal Dead Zone), lasciando
    funzionalità come l'Arena rotte per tutta la sessione. */
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js?v=451').catch(() => {});
+  navigator.serviceWorker.register('sw.js?v=452').catch(() => {});
   /* Quando un nuovo SW prende il controllo (skipWaiting + clients.claim)
      ricarica la pagina per caricare il codice aggiornato. */
   navigator.serviceWorker.addEventListener('controllerchange', () => location.reload());
@@ -9396,8 +9535,8 @@ function renderGuidaView(c) {
       body: `Adotta un famiglio nel Rifugio. Ha Fame, Umore e Energia che scendono col tempo: nutrilo e giocaci ogni giorno. I famigli con statistiche alte ti danno bonus passivi all'XP e all'oro. Se trascurato troppo a lungo si ammala e i bonus si azzerano. Puoi sbloccare famigli rari completando missioni speciali.`,
     },
     {
-      icon: '💰', title: 'Sacca del Viandante',
-      body: `La sacca (menu Eroe) contiene i tuoi consumabili. Ogni consumabile ha un effetto istantaneo o un buff temporaneo: pozioni che raddoppiano l'XP per 3 sessioni, rune che moltiplicano l'oro, scudi che proteggono la streak, e molto altro. Usali prima di un allenamento per massimizzare le ricompense. I consumabili si ottengono da: Arena, boss, mappa, sfide, missioni Serra e acquistandoli al <b>Bazar</b>.`,
+      icon: '⚗️', title: 'Box Consumabili',
+      body: `Il Box Consumabili (menu Eroe) contiene le tue pozioni e i tuoi buff. Ogni consumabile ha un effetto istantaneo o un buff temporaneo: pozioni che raddoppiano l'XP per 3 sessioni, rune che moltiplicano l'oro, scudi che proteggono la streak, e molto altro. Usali prima di un allenamento per massimizzare le ricompense. I consumabili si ottengono da: Arena, boss, mappa, sfide, missioni Serra e acquistandoli al <b>Bazar</b>.`,
     },
     {
       icon: '🏘️', title: 'Borgo',
