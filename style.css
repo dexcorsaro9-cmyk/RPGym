@@ -19,7 +19,7 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-html { background: #1a0f05; }
+html { background: #1a0f05; height: 100%; overflow: hidden; }
 html, body { height: 100%; }
 body {
   font-family: 'Crimson Pro', Georgia, serif;
@@ -180,7 +180,7 @@ body {
 .avatar-choice.selected { border: 3px solid var(--gold); box-shadow: 0 0 10px var(--gold-bright); }
 
 /* ── HUD ── */
-#screen-game { background: transparent; height: 100dvh; overflow: hidden; }
+#screen-game { background: transparent; position: fixed; inset: 0; height: auto; overflow: hidden; overscroll-behavior: none; }
 #hud {
   position: relative; z-index: 10;
   display: flex; justify-content: space-between; align-items: center;
@@ -246,6 +246,7 @@ body {
   flex: 1; min-height: 0; overflow-y: auto;
   padding: 14px 12px calc(130px + env(safe-area-inset-bottom));
   max-width: 560px; width: 100%; align-self: center;
+  overscroll-behavior-y: contain;
 }
 #tab-content .section-title { color: var(--gold-bright); }
 #tab-content .section-title::before { background: linear-gradient(to right, transparent, var(--gold-bright)); }
@@ -634,6 +635,7 @@ body {
 /* ── Tab bar: tavola di legno scolpita ── */
 #tabbar {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
+  transform: translateZ(0); will-change: transform;
   display: flex; justify-content: space-around; align-items: flex-end;
   padding: calc(16px + 4px) 4px calc(env(safe-area-inset-bottom) + 13px);
   transition: opacity .18s ease;
