@@ -682,13 +682,15 @@ function enterGame() {
     persist();
     if (recap) OPEN_QUEUE.push(() => showMonthlyRecap(recap));
   }
-  // Recap settimanale (primo accesso della nuova settimana, solo con storico)
+  // Recap settimanale — solo il lunedì (getDay()===1)
   const curWeek = RPG.weekStamp();
-  if (HERO.lastRecapWeek !== curWeek && (HERO.log || []).length > 0) {
-    const wrecap = RPG.getWeeklyRecap(HERO);
+  if (HERO.lastRecapWeek !== curWeek) {
     HERO.lastRecapWeek = curWeek;
     persist();
-    if (wrecap) OPEN_QUEUE.push(() => showWeeklyRecap(wrecap));
+    if (new Date().getDay() === 1 && (HERO.log || []).length > 0) {
+      const wrecap = RPG.getWeeklyRecap(HERO);
+      if (wrecap) OPEN_QUEUE.push(() => showWeeklyRecap(wrecap));
+    }
   }
   // Riepilogo "cosa ti aspetta oggi" (una volta al giorno, non al primo accesso)
   if (HERO.summarySeen !== todayISO() && (HERO.totalKm || 0) > 0) {
