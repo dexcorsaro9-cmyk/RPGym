@@ -1155,16 +1155,19 @@ document.querySelectorAll('#tabbar .tab').forEach(t =>
 
 // Swipe orizzontale su #tab-content → cambia tab
 const _TAB_ORDER = ['camp', 'map', 'train', 'market', 'hero'];
-let _swX = null, _swY = null;
+let _swX = null, _swY = null, _swInScrollable = false;
 document.addEventListener('touchstart', e => {
   if ($('#screen-game').classList.contains('hidden')) return;
   _swX = e.touches[0].clientX; _swY = e.touches[0].clientY;
+  // Mark if touch starts inside a horizontally-scrollable container (e.g. quick-cons-row)
+  _swInScrollable = !!(e.target && e.target.closest('.quick-cons-row, .coll-switch, .act-row'));
 }, { passive: true });
 document.addEventListener('touchend', e => {
   if (_swX === null) return;
   const dx = e.changedTouches[0].clientX - _swX;
   const dy = e.changedTouches[0].clientY - _swY;
   _swX = null; _swY = null;
+  if (_swInScrollable) { _swInScrollable = false; return; }
   if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
   if (document.getElementById('modal').classList.contains('hidden') === false) return;
   const mgOv = document.getElementById('mg-ov');
@@ -2251,12 +2254,15 @@ function renderSantuarioView(c) {
   feedBtn.addEventListener('click', openFeedPicker);
   grid.appendChild(feedBtn);
 
-  const playBtn = el('button', 'btn submenu-btn');
-  playBtn.innerHTML = `<span class="submenu-emoji">🎾</span><span>Gioca</span>`;
+  const stamina = HERO.stamina || 0;
+  const PLAY_COST = 5;
+  const canPlay = stamina >= PLAY_COST;
+  const playBtn = el('button', 'btn submenu-btn' + (canPlay ? '' : ' submenu-btn-disabled'));
+  playBtn.innerHTML = `<span class="submenu-emoji">🎾</span><span>Gioca<br><small style="font-size:.68rem;opacity:.7">${canPlay ? `⚡${stamina.toFixed(0)}/${PLAY_COST}` : `⚡${stamina.toFixed(0)}/${PLAY_COST} — corri!`}</small></span>`;
   playBtn.addEventListener('click', () => {
     const r = RPG.playWithPet(HERO);
     persist();
-    if (r && r.ok) { checkPetEvolution(r); toast('🎾 Che divertimento!'); sfx('coin'); } else toast(r);
+    if (r && r.ok) { checkPetEvolution(r); toast('🎾 Che divertimento!'); sfx('coin'); } else toast(typeof r === 'string' ? r : 'Stamina insufficiente — registra una corsa per generarla!');
     setTab('camp');
   });
   grid.appendChild(playBtn);
@@ -4530,6 +4536,9 @@ function renderBacheca(c, todayKm) {
     npcRow.appendChild(el('span', 'bv-npc-name', esc(q.npc.name)));
     body.appendChild(npcRow);
 
+    // Quest description text
+    body.appendChild(el('div', 'bv-quest-preview', esc(q.text)));
+
     // Mini km bar
     const barWrap = el('div', 'bv-km-bar-wrap');
     const barFill = el('div', 'bv-km-bar-fill');
@@ -6547,10 +6556,13 @@ function renderCatenaView(c) {
   c.appendChild(msgEl);
 
   if (done) {
-    const wasBusted = step === 0 || (step < RPG.CATENA_STEPS.length && cart.catenaDone);
-    msgEl.innerHTML = step === 0
-      ? `<div class="catena-bust">💀 La catena si è spezzata. Torna domani.</div>`
-      : `<div class="catena-cashed">✅ Hai incassato all'anello ${step}. Torna domani!</div>`;
+    if (cart.catenaBusted) {
+      msgEl.innerHTML = step === 0
+        ? `<div class="catena-bust">💀 La catena si è spezzata. Torna domani.</div>`
+        : `<div class="catena-bust">💀 La catena si è spezzata all'anello ${step + 1}. Niente oro oggi. Torna domani.</div>`;
+    } else {
+      msgEl.innerHTML = `<div class="catena-cashed">✅ Hai incassato all'anello ${step}. Torna domani!</div>`;
+    }
     return;
   }
 
@@ -6661,6 +6673,7 @@ function renderCasseView(c) {
             <div class="casse-result-title">${ct.emoji} ${ct.name} — Contenuto:</div>
             ${rewardHtml}
           </div>`;
+        resultArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
         sfx('coin');
         if (rw.item && (rw.rarity === 'leggendario' || rw.rarity === 'epico')) vibrate([200, 100, 300]);
         else vibrate([80, 40, 120]);
@@ -6759,6 +6772,41 @@ function renderNero(c) {
     '«Non chiedo da dove vengono. Non ti chiedo chi sei. Oro in mano — affare fatto. Sparisci prima dell\'alba.»');
   nerobanner.classList.add('npc-banner-nero');
   c.appendChild(nerobanner);
+
+  // Daily stolen goods: 1 random consumable at 50% off
+  {
+    const today = todayISO();
+    const seed = (s => { let h = 0x9e3779b9; for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 0x9e3779b9); return h >>> 0; })(today + 'nero');
+    const buyable = RPG.CONSUMABLES.filter(co => co.rarity !== 'leggendario');
+    const pick = buyable[seed % buyable.length];
+    const fullPrice = RPG.buyPriceConsumable(pick.id);
+    const salePrice = Math.floor(fullPrice * 0.5);
+    const neroKey = 'nero-' + today;
+    const alreadyBought = HERO.bazarDailyPurchases && HERO.bazarDailyPurchases[neroKey];
+    const offerBox = el('div', 'panel nero-offer-panel');
+    offerBox.appendChild(el('h3', 'panel-title', '🕯️ Merce di Contrabbando · -50%'));
+    const row = el('div', 'mission-row');
+    row.appendChild(el('div', 'mission-mid',
+      `<span class="res-ico">${pick.icon}</span> <b>${esc(pick.name)}</b> <span class="tag tag-sale">–50%</span><br>
+       <span class="small muted">${esc(pick.desc)}</span><br>
+       <s class="muted small">🪙${fullPrice}</s> → <b>🪙${salePrice}</b>`));
+    const buyBtn = el('button', 'btn btn-small' + (!alreadyBought && HERO.gold >= salePrice ? ' btn-primary' : ''), alreadyBought ? '✅ Acquistato' : `Acquista 🪙${salePrice}`);
+    buyBtn.disabled = alreadyBought || HERO.gold < salePrice;
+    buyBtn.addEventListener('click', () => {
+      if (HERO.gold < salePrice) { toast('Oro insufficiente!'); return; }
+      HERO.gold -= salePrice;
+      RPG.addConsumable(HERO, pick.id, 1);
+      if (!HERO.bazarDailyPurchases) HERO.bazarDailyPurchases = {};
+      HERO.bazarDailyPurchases[neroKey] = true;
+      persist(); renderHUD();
+      toast(`${pick.icon} ${pick.name} acquisito dalla Merce di Contrabbando!`);
+      setTab('market');
+    });
+    row.appendChild(buyBtn);
+    offerBox.appendChild(row);
+    c.appendChild(offerBox);
+  }
+
   const sellable = HERO.items.filter(i => !Object.values(HERO.equipment).includes(i.id));
   if (!sellable.length) {
     c.appendChild(emptyState('💼', 'Non hai bottini da vendere. Gli oggetti equipaggiati non si toccano!'));
@@ -8889,7 +8937,7 @@ function showScratchCard(ticket) {
       } else {
         resEl.innerHTML = `<p class="muted">Nessun premio questa volta — riprova con il prossimo biglietto!</p>`;
       }
-      MARKET_VIEW = 'hub'; setTab('market');
+      setTimeout(() => { MARKET_VIEW = 'hub'; setTab('market'); }, 3000);
     }
   });
 }
@@ -9329,7 +9377,8 @@ function renderSerraView(c) {
           <div class="pot-stat-label muted small">🌱 Crescita — ${growPct}%</div>
           <div class="pot-stat-bar"><div class="pot-fill-xp" style="width:${growPct}%"></div></div>
         </div>
-        <div class="pot-water-info">Versati oggi: <b>${(pot.water || 0).toFixed(1)} / ${pData.water} km</b></div>`;
+        <div class="pot-water-info">Versati oggi: <b>${(pot.water || 0).toFixed(1)} / ${pData.water} km</b></div>
+        ${pData.trait ? `<div class="pot-trait"><span class="pot-trait-tag">✦ ${pData.trait}</span> <span class="pot-trait-desc muted small">${esc(pData.desc)}</span></div>` : ''}`;
       const waterBtn = el('button', 'btn btn-primary wide btn-small', '💧 Annaffia (1 km)');
       waterBtn.disabled = waterAvail < 1;
       waterBtn.addEventListener('click', () => {

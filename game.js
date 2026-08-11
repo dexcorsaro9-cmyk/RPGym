@@ -5344,7 +5344,7 @@ const RPG = (() => {
     { id: 'rest_echo',     icon: '🌙', name: 'Essenza del Riposo',     desc: 'Bonus 2x XP come dopo un giorno di riposo' },
   ];
   function getDailyPotion() {
-    const d = new Date();
+    const d = new Date(); d.setHours(d.getHours() - 4); // same -4h offset as gameDate/todayStamp
     const seed = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate() + 77;
     const v = (((seed * 1664525 + 1013904223) & 0x7fffffff) >>> 0) % DAILY_POTIONS.length;
     return DAILY_POTIONS[v];
@@ -6115,6 +6115,7 @@ const RPG = (() => {
         hero.cartomante.ruotaSpins       = 0;
         hero.cartomante.catenaStep       = 0;
         hero.cartomante.catenaDone       = false;
+        hero.cartomante.catenaBusted     = false;
         hero.cartomante.cassaOpenedToday = {};
       }
       if (!hero.cartomante.cassaOpenedToday) hero.cartomante.cassaOpenedToday = {};
@@ -6207,7 +6208,8 @@ const RPG = (() => {
       const s = CATENA_STEPS[step];
       const busted = Math.random() < s.bust;
       if (busted) {
-        hero.cartomante.catenaDone = true;
+        hero.cartomante.catenaDone   = true;
+        hero.cartomante.catenaBusted = true;
         return { ok: true, busted: true, step };
       }
       hero.cartomante.catenaStep = step + 1;
