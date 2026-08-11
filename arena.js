@@ -277,7 +277,7 @@ function endBattle(heroWon) {
       PENDING_CHEST = { title: 'Vittoria su ' + b.v.name, chest };
       modal(`<div class="chest-zone">
         <p class="center big-news">⚔️ Hai sconfitto ${esc(b.v.name)}!</p>
-        <button class="chest-btn" id="btn-open-chest"><img src="assets/ui/chest.svg" alt="scrigno"></button>
+        <button class="chest-btn" id="btn-open-chest"><img src="assets/ui/chest-epic.webp" alt="scrigno"></button>
         <p class="small muted center">Tocca lo scrigno per aprirlo</p>
       </div>`);
       document.getElementById('btn-open-chest')?.addEventListener('click', openChest);
@@ -297,7 +297,7 @@ function endBattle(heroWon) {
         modal(`<div class="chest-zone">
           <p class="center big-news">🛡️ Lo Scudo Arena ti ha salvato!</p>
           <p class="muted small center">Hai perso il duello, ma il consumabile ha garantito le ricompense.</p>
-          <button class="chest-btn" id="btn-open-chest"><img src="assets/ui/chest.svg" alt="scrigno"></button>
+          <button class="chest-btn" id="btn-open-chest"><img src="assets/ui/chest-epic.webp" alt="scrigno"></button>
           <p class="small muted center">Tocca lo scrigno per aprirlo</p>
         </div>`);
         document.getElementById('btn-open-chest')?.addEventListener('click', openChest);
@@ -318,7 +318,7 @@ function endBattle(heroWon) {
         modal(`<div class="chest-zone">
           <p class="center big-news">🌑 La Sfera Ombra ha agito!</p>
           <p class="muted small center">${esc(b.v.name)} ha vinto, ma il tuo talisman ha garantito il drop.</p>
-          <button class="chest-btn" id="btn-open-chest"><img src="assets/ui/chest.svg" alt="scrigno"></button>
+          <button class="chest-btn" id="btn-open-chest"><img src="assets/ui/chest-epic.webp" alt="scrigno"></button>
           <p class="small muted center">Tocca lo scrigno per aprirlo</p>
         </div>`);
         document.getElementById('btn-open-chest')?.addEventListener('click', openChest);
