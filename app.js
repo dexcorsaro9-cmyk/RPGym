@@ -6752,6 +6752,33 @@ function renderCasseView(c) {
     card.appendChild(btn);
     c.appendChild(card);
   });
+
+  // ── Disclosure probabilità (store compliance) ──────────────────
+  const oddsPanel = el('div', 'panel casse-odds-panel');
+  oddsPanel.innerHTML = `
+    <div class="casse-odds-title">📊 Probabilità di drop</div>
+    <div class="casse-odds-table-wrap">
+      <table class="casse-odds-table">
+        <thead>
+          <tr>
+            <th>Ricompensa</th>
+            <th>🥉 Bronzo</th>
+            <th>🥈 Argento</th>
+            <th>🥇 Oro</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Oggetto Comune</td>    <td>55%</td> <td>—</td>   <td>—</td></tr>
+          <tr><td>Oggetto Non comune</td><td>28%</td> <td>38%</td> <td>—</td></tr>
+          <tr><td>Oggetto Raro</td>      <td>7%</td>  <td>32%</td> <td>38%</td></tr>
+          <tr><td>Oggetto Epico</td>     <td>—</td>   <td>10%</td> <td>28%</td></tr>
+          <tr><td>Oggetto Leggendario</td><td>—</td>  <td>—</td>   <td>12%</td></tr>
+          <tr class="casse-odds-alt"><td>Oro / Fiches</td><td>10%</td><td>20%</td><td>22%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="casse-odds-note">Le Fiches sono valuta virtuale di gioco, senza valore reale.</p>`;
+  c.appendChild(oddsPanel);
 }
 
 function renderStalla(c) {

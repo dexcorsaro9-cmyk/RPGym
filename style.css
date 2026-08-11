@@ -7958,6 +7958,17 @@ img.fiche-inline {
 .casse-result-wrap { background: rgba(124,58,237,.08); border: 1px solid rgba(124,58,237,.25); border-radius: 12px; padding: 14px; }
 .casse-result-title { font-weight: 700; margin-bottom: 8px; color: #c4b5fd; }
 .casse-reward-text  { font-size: 1.1rem; font-weight: 700; text-align: center; padding: 12px; }
+.casse-odds-panel { margin-top: 8px; }
+.casse-odds-title { font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+.casse-odds-table-wrap { overflow-x: auto; }
+.casse-odds-table { width: 100%; border-collapse: collapse; font-size: .78rem; }
+.casse-odds-table th { padding: 5px 8px; text-align: center; color: var(--muted); font-weight: 700; font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; border-bottom: 1px solid var(--divider); }
+.casse-odds-table th:first-child { text-align: left; }
+.casse-odds-table td { padding: 5px 8px; text-align: center; color: var(--text); border-bottom: 1px solid var(--divider); }
+.casse-odds-table td:first-child { text-align: left; color: var(--muted); }
+.casse-odds-table tr:last-child td { border-bottom: none; }
+.casse-odds-alt td { opacity: .7; font-style: italic; }
+.casse-odds-note { font-size: .7rem; color: var(--muted); margin-top: 8px; font-style: italic; }
 
 /* ═══════════════ Arena v2 ═══════════════ */
 .arena-v2 {
