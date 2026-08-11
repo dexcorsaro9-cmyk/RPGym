@@ -2125,32 +2125,26 @@ function renderSantuarioView(c) {
   const accSlot = el('div', 'equip-slot' + (accDef ? ' filled' : ''));
   accSlot.innerHTML = `<div class="equip-icon${accDef ? '' : ' empty'}">${accDef ? accDef.icon : '🎀'}</div>
     <div class="equip-label">${accDef ? accDef.name.split(' ').slice(0, 2).join(' ') : 'Accessorio'}</div>`;
-  if (accDef) {
-    accSlot.title = accDef.desc;
-    accSlot.style.cursor = 'default';
-  }
+  if (accDef) accSlot.title = accDef.desc;
+
   const conKey = HERO.equipped && HERO.equipped.consumable;
   const conDef = conKey ? RPG.CONSUMABLES.find(x => x.id === conKey) : null;
   const conSlot = el('div', 'equip-slot' + (conDef ? ' filled' : ''));
   conSlot.innerHTML = `<div class="equip-icon${conDef ? '' : ' empty'}">${conDef ? conDef.icon : '🧪'}</div>
     <div class="equip-label">${conDef ? conDef.name.split(' ').slice(0, 2).join(' ') : 'Consumabile'}</div>`;
-  const petSlotCol = el('div', 'slot-col');
-  petSlotCol.appendChild(accSlot);
-  petSlotCol.appendChild(conSlot);
 
-  // Portrait centrato con spacer sinistro per simmetria
+  // Portrait centrato con uno slot a sx e uno a dx
   const portraitWrap = el('div', 'pet-portrait-wrap');
   const img = el('img', 'pet-portrait-img');
   img.loading = 'eager';
   img.src = petImageSrc(pet);
   img.onerror = () => { img.outerHTML = `<div class="pet-portrait">${speciesInfo.icon}</div>`; };
   portraitWrap.appendChild(img);
-  if (pet.accessory) portraitWrap.appendChild(el('div', 'pet-accessory-badge', RPG.PET_ACCESSORIES[pet.accessory].icon));
 
   const portraitArea = el('div', 'pet-portrait-area');
-  portraitArea.appendChild(el('div', 'pet-slot-spacer'));
+  portraitArea.appendChild(accSlot);
   portraitArea.appendChild(portraitWrap);
-  portraitArea.appendChild(petSlotCol);
+  portraitArea.appendChild(conSlot);
   head.appendChild(portraitArea);
 
   // Desc effetto accessorio attivo
