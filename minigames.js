@@ -140,7 +140,7 @@ function renderMiniGamesHub(c) {
 }
 
 /* ── 🃏 CARTE DEL MERCANTE ── */
-const CARD_IMGS = [
+const MG_CARD_IMGS = [
   "assets/cards/caduta del generale goblin.webp",
   "assets/cards/ciclista del vento.webp",
   "assets/cards/cuore di pietra spento.webp",
@@ -165,7 +165,7 @@ function openCardsGame() {
   ];
   // pick 3 pool items + assign 3 random unique card images
   const cards    = [...POOL].sort(()=>Math.random()-.5).slice(0, 3);
-  const imgPool  = [...CARD_IMGS].sort(()=>Math.random()-.5);
+  const imgPool  = [...MG_CARD_IMGS].sort(()=>Math.random()-.5);
   cards.forEach((c, i) => { c.img = imgPool[i]; });
 
   const wrap = document.createElement('div');
