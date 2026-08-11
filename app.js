@@ -2406,25 +2406,52 @@ function renderSantuarioView(c) {
     c.appendChild(memPanel);
   }
 
+  RPG.checkAccessoryUnlocks(HERO);
+
   const shop = el('div', 'panel');
   shop.appendChild(el('h3', 'panel-title', '🛍️ Bottega degli Accessori'));
-  const shopGrid = el('div', 'loot-list');
-  Object.entries(RPG.PET_ACCESSORIES).forEach(([key, acc]) => {
+
+  const mkAccRow = (key, acc) => {
     const owned = pet.accessoriesOwned.includes(key);
     const equipped = pet.accessory === key;
-    const row = el('div', 'loot pickable' + (equipped ? ' equipped' : ''));
-    row.innerHTML = `<div class="loot-body"><div class="loot-head"><b>${acc.icon} ${acc.name}</b>${equipped ? ' ✅' : ''}</div>
-      <div class="small">${owned ? (equipped ? 'Equipaggiato' : 'Posseduto — tocca per indossare') : `🪙 ${acc.price}`}</div></div>`;
-    row.addEventListener('click', () => {
-      const r = RPG.buyAccessory(HERO, key);
-      persist();
-      if (r && r.ok) { toast(equipped ? 'Rimosso' : `${acc.icon} Equipaggiato!`); renderHUD(); }
-      else toast(r);
-      setTab('camp');
-    });
-    shopGrid.appendChild(row);
-  });
-  shop.appendChild(shopGrid);
+    const row = el('div', 'loot pickable' + (equipped ? ' equipped' : '') + (!owned && !acc.unlock ? '' : ''));
+    let statusLine;
+    if (owned) {
+      statusLine = equipped ? '<span class="tag">✅ Equipaggiato</span>' : '<span class="muted small">Posseduto — tocca per indossare</span>';
+    } else if (acc.price != null) {
+      statusLine = `<span class="muted small">🪙 ${acc.price} — tocca per acquistare</span>`;
+    } else {
+      statusLine = `<span class="muted small">🔒 Sblocca con: ${acc.unlock.label}</span>`;
+    }
+    row.innerHTML = `<div class="loot-body">
+      <div class="loot-head"><b>${acc.icon} ${acc.name}</b></div>
+      <div class="small acc-effect-desc">${esc(acc.desc)}</div>
+      <div style="margin-top:4px">${statusLine}</div>
+    </div>`;
+    if (owned || acc.price != null) {
+      row.addEventListener('click', () => {
+        const r = RPG.buyAccessory(HERO, key);
+        persist();
+        if (r && r.ok) { toast(equipped ? `${acc.icon} Rimosso` : `${acc.icon} Equipaggiato!`); renderHUD(); }
+        else toast(r);
+        setTab('camp');
+      });
+    }
+    return row;
+  };
+
+  const buyables   = Object.entries(RPG.PET_ACCESSORIES).filter(([, a]) => a.price != null);
+  const earnables  = Object.entries(RPG.PET_ACCESSORIES).filter(([, a]) => a.price == null);
+
+  const buyGrid = el('div', 'loot-list');
+  buyables.forEach(([key, acc]) => buyGrid.appendChild(mkAccRow(key, acc)));
+  shop.appendChild(buyGrid);
+
+  shop.appendChild(el('h4', 'section-title', '🏆 Accessori Guadagnati'));
+  const earnGrid = el('div', 'loot-list');
+  earnables.forEach(([key, acc]) => earnGrid.appendChild(mkAccRow(key, acc)));
+  shop.appendChild(earnGrid);
+
   c.appendChild(shop);
 }
 

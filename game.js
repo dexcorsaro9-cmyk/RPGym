@@ -3710,8 +3710,10 @@ const RPG = (() => {
       // Virtù: corsa/cyclette → Coraggio; camminata → Astuzia
       if (type === 'corsa' || type === 'cyclette') {
         addPetVirtue(hero, 'coraggio', Math.round(km * 0.5 * 10) / 10);
+        if (type === 'corsa' && hero.pet.accessory === 'cappello') addPetVirtue(hero, 'coraggio', 1);
       } else if (type === 'camminata') {
         addPetVirtue(hero, 'astuzia', Math.round(km * 0.2 * 10) / 10);
+        if (hero.pet.accessory === 'occhiali') addPetVirtue(hero, 'astuzia', 1);
       }
     }
 
@@ -4158,10 +4160,33 @@ const RPG = (() => {
   };
 
   const PET_ACCESSORIES = {
-    cappello: { name: 'Cappellino da Pirata', icon: '🏴‍☠️', price: 80 },
-    collare:  { name: 'Collare Magico', icon: '🔮', price: 60 },
-    occhiali: { name: 'Occhiali Steampunk', icon: '🥽', price: 100 },
+    // ── Acquistabili ──────────────────────────────────────────────
+    cappello:  { name: 'Cappellino da Pirata',    icon: '🏴‍☠️', price: 80,
+                 desc: '+1 Coraggio per ogni sessione di corsa.' },
+    collare:   { name: 'Collare Magico',           icon: '🔮',   price: 60,
+                 desc: 'Decadimento umore ridotto del 20%.' },
+    occhiali:  { name: 'Occhiali Steampunk',       icon: '🥽',   price: 100,
+                 desc: '+1 Astuzia per ogni sessione di camminata.' },
+    // ── Guadagnati (sbloccabili) ──────────────────────────────────
+    medaglione:{ name: 'Medaglione del Corridore', icon: '🏅',   price: null,
+                 desc: '+2 Coraggio per ogni vittoria in Arena.',
+                 unlock: { label: '100 km percorsi totali', check: h => (h.totalKm || 0) >= 100 } },
+    fiocco:    { name: 'Fiocco della Vittoria',    icon: '🎀',   price: null,
+                 desc: 'Rischio spedizione ridotto del 10%.',
+                 unlock: { label: '20 sessioni di allenamento', check: h => (h.totalSessions || 0) >= 20 } },
+    mantello:  { name: 'Mantello del Viandante',   icon: '🧣',   price: null,
+                 desc: '+2 Lealtà per ogni azione di cura.',
+                 unlock: { label: 'Famiglio al Livello 10', check: h => !!(h.pet && (h.pet.level || 0) >= 10) } },
   };
+
+  function checkAccessoryUnlocks(hero) {
+    if (!hero.pet || !hero.pet.hatched) return;
+    hero.pet.accessoriesOwned = hero.pet.accessoriesOwned || [];
+    Object.entries(PET_ACCESSORIES).forEach(([key, acc]) => {
+      if (acc.unlock && !hero.pet.accessoriesOwned.includes(key) && acc.unlock.check(hero))
+        hero.pet.accessoriesOwned.push(key);
+    });
+  }
 
   const PET_VIRTUE_META = {
     coraggio: { name: 'Coraggio', icon: '⚔️', color: '#e8604c',
@@ -4345,7 +4370,8 @@ const RPG = (() => {
     const hoursElapsed = Math.max(0, (now - p.lastTick) / 3600000);
     if (hoursElapsed > 0) {
       const hungerRate = (20 / 6) * pers.hungerRateMult * (sb.hungerDecayMult || 1);
-      const moodRate = (25 / 24) * pers.moodRateMult * (sb.moodDecayMult || 1);
+      const accMoodMult = p.accessory === 'collare' ? 0.8 : 1;
+      const moodRate = (25 / 24) * pers.moodRateMult * (sb.moodDecayMult || 1) * accMoodMult;
       p.hunger = clamp01to100(p.hunger - hungerRate * hoursElapsed);
       p.mood = clamp01to100(p.mood - moodRate * hoursElapsed);
       p.lastTick = now;
@@ -4439,7 +4465,7 @@ const RPG = (() => {
       hero.pet.wish = null;
       wishFulfilled = true;
     }
-    addPetVirtue(hero, 'lealta', 2);
+    addPetVirtue(hero, 'lealta', hero.pet.accessory === 'mantello' ? 4 : 2);
     const evoFeed = addPetXp(hero, 1);
     return { ok: true, wishFulfilled, ...(evoFeed || {}) };
   }
@@ -4451,7 +4477,7 @@ const RPG = (() => {
     tickPet(hero);
     hero.stamina -= STAMINA_COST;
     hero.pet.mood = clamp01to100(hero.pet.mood + 25);
-    addPetVirtue(hero, 'lealta', 3);
+    addPetVirtue(hero, 'lealta', hero.pet.accessory === 'mantello' ? 5 : 3);
     const evoPlay = addPetXp(hero, 1);
     return { ok: true, ...(evoPlay || {}) };
   }
@@ -4498,6 +4524,7 @@ const RPG = (() => {
     if (!acc) return 'Accessorio sconosciuto.';
     const owned = hero.pet.accessoriesOwned.includes(key);
     if (!owned) {
+      if (acc.price == null) return 'Questo accessorio non è ancora sbloccato.';
       if (hero.gold < acc.price) return 'Oro insufficiente!';
       hero.gold -= acc.price;
       hero.pet.accessoriesOwned.push(key);
@@ -4572,11 +4599,12 @@ const RPG = (() => {
     const kmDuring = Math.max(0, hero.totalKm - exp.kmAtStart);
     hero.pet.expedition = null;
 
-    // Risk modified by pet mood and consumable buff
+    // Risk modified by pet mood, consumable buff, and accessory
     const moodFactor = (hero.pet.mood || 0) < 50 ? 1.5 : 1;
     const riskMult = hero.consumableBuffs?.expeditionRiskMult ?? 1;
     if (hero.consumableBuffs?.expeditionRiskMult !== undefined) delete hero.consumableBuffs.expeditionRiskMult;
-    if (Math.random() < zone.risk * moodFactor * riskMult) {
+    const accRiskMult = hero.pet.accessory === 'fiocco' ? 0.9 : 1;
+    if (Math.random() < zone.risk * moodFactor * riskMult * accRiskMult) {
       addPetMemory(hero, `ho esplorato ${zone.name.toLowerCase()} ma sono tornato a mani vuote...`);
       return { failed: true, zone: exp.zone };
     }
@@ -5695,7 +5723,10 @@ const RPG = (() => {
     // Virtù famiglio
     if (atkDice >= 3) addPetVirtue(hero, 'coraggio', 1);
     if (magDice >= 2) addPetVirtue(hero, 'astuzia', 1);
-    if (enemyDefeated) addPetVirtue(hero, 'coraggio', 2);
+    if (enemyDefeated) {
+      addPetVirtue(hero, 'coraggio', 2);
+      if (hero.pet && hero.pet.accessory === 'medaglione') addPetVirtue(hero, 'coraggio', 2);
+    }
 
     return { heroDmg: effectiveHeroDmg, block, magExtra, magEffect, enemyHit,
              enemyDefeated, heroDefeated, goldGained, xpGained, poisonDmg,
@@ -6655,7 +6686,7 @@ const RPG = (() => {
     createPet, petXpForLevel, petStage, petStageUnlocks, petSpeciesBonus, tickPet, petArenaBonus, classArenaBonus,
     EGG_KM_NEEDED, eggProgress, hatchPet,
     feedPet, playWithPet, cleanPet, sleepPet, curePet,
-    buyAccessory, addPetXp,
+    buyAccessory, checkAccessoryUnlocks, addPetXp,
     addPetVirtue, petDominantVirtue, addPetMemory, usePetSynergy,
     startExpedition, expeditionStatus, collectExpedition,
     packAuraActive,
