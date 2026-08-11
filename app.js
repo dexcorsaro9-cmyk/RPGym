@@ -2,6 +2,12 @@
    Hero's Pace — Interfaccia utente (v2.0)
    ═══════════════════════════════════════════════════════════════ */
 
+/* Capgo OTA — notifica avvio corretto (solo in app nativa) */
+if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+  var _capUpd = window.Capacitor.Plugins && window.Capacitor.Plugins.CapacitorUpdater;
+  if (_capUpd) _capUpd.notifyAppReady();
+}
+
 let STATE = RPG.load();
 let HERO = null;
 let CURRENT_TAB = 'camp';
