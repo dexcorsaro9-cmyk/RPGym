@@ -4447,7 +4447,7 @@ const RPG = (() => {
   function playWithPet(hero) {
     if (!hero.pet || !hero.pet.hatched) return 'Il tuo famiglio è ancora un uovo: aspetta la schiusa!';
     const STAMINA_COST = 5;
-    if ((hero.stamina || 0) < STAMINA_COST) return `Serve più Stamina! Corri per generarne (hai ${(hero.stamina || 0).toFixed(1)}/${STAMINA_COST}).`;
+    if ((hero.stamina || 0) < STAMINA_COST) return `Stamina insufficiente (hai ${(hero.stamina || 0).toFixed(1)}/${STAMINA_COST}). Registra una sessione di corsa per generarla — camminata e cyclette non contano.`;
     tickPet(hero);
     hero.stamina -= STAMINA_COST;
     hero.pet.mood = clamp01to100(hero.pet.mood + 25);
