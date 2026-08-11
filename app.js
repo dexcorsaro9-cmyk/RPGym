@@ -7986,8 +7986,11 @@ function renderCardsView(c) {
   Object.entries(RPG.CARDS).forEach(([id, card]) => {
     const owned = HERO.cards.includes(id);
     const cc = el('div', 'tcard rar-' + card.rarity + (owned ? '' : ' locked'));
-    const frontHtml = `<div class="card-icon">${owned ? card.icon : '❓'}</div><b>${owned ? esc(card.name) : '???'}</b><span class="tag">${card.rarity}</span>${owned ? '<span class="tcard-tap-hint">tocca per girare</span>' : ''}`;
-    const backHtml = `<div class="tcard-back-content"><div class="card-back-icon">${card.icon}</div><p class="small lore" style="text-align:center">${esc(card.lore)}</p><b class="card-back-name">${esc(card.name)}</b><span class="tag">${card.rarity}</span><span class="tcard-tap-hint">tocca per girare</span></div>`;
+    const imgSrc = `assets/cards/${encodeURIComponent(card.name.toLowerCase())}.webp`;
+    const imgFront = owned ? `<img class="tcard-img" src="${imgSrc}" onerror="this.style.display='none'">` : `<div class="card-icon">❓</div>`;
+    const imgBack  = `<img class="tcard-img tcard-img-back" src="${imgSrc}" onerror="this.style.display='none'">`;
+    const frontHtml = `${imgFront}<b>${owned ? esc(card.name) : '???'}</b><span class="tag">${card.rarity}</span>${owned ? '<span class="tcard-tap-hint">tocca per girare</span>' : ''}`;
+    const backHtml = `<div class="tcard-back-content">${imgBack}<p class="small lore" style="text-align:center">${esc(card.lore)}</p><b class="card-back-name">${esc(card.name)}</b><span class="tag">${card.rarity}</span><span class="tcard-tap-hint">tocca per girare</span></div>`;
     cc.innerHTML = frontHtml;
     if (owned) {
       let face = 'front';
