@@ -9452,12 +9452,19 @@ function renderSerraView(c) {
   const loreBtn = el('button', 'btn btn-small', '📖 Proprietà delle Piante');
   loreBtn.style.marginTop = '12px';
   loreBtn.addEventListener('click', () => {
-    const rows = Object.values(RPG.PLANTS).map(p =>
-      `<div class="loot rar-${p.rarity}" style="margin-bottom:6px">
-        <div class="loot-head"><b>${p.icon} ${esc(p.name)}</b> <span class="tag">${RPG.RARITIES[p.rarity].label}</span> <span class="tag tag-trait">${esc(p.trait)}</span></div>
-        <div style="font-size:.82rem;margin-top:4px;line-height:1.4;color:#3b2a1a">${esc(p.desc)}</div>
-        <div style="font-size:.78rem;margin-top:3px;color:#6b543a">💧 ${p.water} km/giorno &nbsp;·&nbsp; 🗓️ ${p.days} giorni</div>
-      </div>`).join('');
+    const rarColors = { comune:'#8a7a5f', non_comune:'#3a7a4a', raro:'#2e6fb0', epico:'#7b3fbf', leggendario:'#d9822b', divino:'#b8860b' };
+    const rows = Object.values(RPG.PLANTS).map(p => {
+      const col = rarColors[p.rarity] || '#8a7a5f';
+      return `<div style="padding:10px 12px;border-radius:10px;border:1.5px solid rgba(90,61,36,.3);border-left:4px solid ${col};background:linear-gradient(160deg,#efe0c3,#d8bc90);margin-bottom:8px">
+        <div style="display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-bottom:6px">
+          <b style="color:#3b2a1a">${p.icon} ${esc(p.name)}</b>
+          <span class="tag">${RPG.RARITIES[p.rarity].label}</span>
+          <span class="tag tag-trait">${esc(p.trait)}</span>
+        </div>
+        <div style="font-size:.82rem;color:#3b2a1a;line-height:1.4;margin-bottom:4px">${esc(p.desc)}</div>
+        <div style="font-size:.78rem;color:#6b543a">💧 ${p.water} km/giorno &nbsp;·&nbsp; 🗓️ ${p.days} giorni</div>
+      </div>`;
+    }).join('');
     modal(`<h3 class="panel-title">📖 Piante della Serra</h3>
       <div class="loot-list" style="max-height:55vh;overflow-y:auto">${rows}</div>
       <button class="btn wide" onclick="closeModal()">Chiudi</button>`);
