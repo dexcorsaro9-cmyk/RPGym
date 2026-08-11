@@ -5,7 +5,7 @@
 
 
 
-const CACHE = "heropace-v473";
+const CACHE = "heropace-v474";
 const NOTIF_CACHE = 'heropace-notif-v1'; // stato notifiche (non cancellare mai)
 
 /* File locali per fallback offline */

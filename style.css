@@ -3491,8 +3491,8 @@ img.fiche-inline {
 /* ── Memorie del Famiglio ── */
 .pet-memories { display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto; padding-right: 4px; }
 .pet-memory-row { font-size: .78rem; line-height: 1.45; }
-.pet-memory-date { font-size: .65rem; color: rgba(255,255,255,.3); margin-right: 4px; }
-.pet-memory-text { color: rgba(255,255,255,.6); font-style: italic; }
+.pet-memory-date { font-size: .65rem; color: rgba(255,255,255,.5); margin-right: 4px; }
+.pet-memory-text { color: rgba(255,255,255,.88); font-style: italic; }
 
 /* ── Sinergia in Scalata ── */
 .sc-synergy-btn {
