@@ -526,6 +526,17 @@ body {
 }
 .tcard.locked { filter: grayscale(1); opacity: .55; }
 .card-icon { font-size: 2.6rem; }
+.tcard-img {
+  width: 100%;
+  max-height: 130px;
+  object-fit: contain;
+  border-radius: 6px;
+  margin-bottom: 2px;
+}
+.tcard-img-back {
+  max-height: 72px;
+  opacity: .85;
+}
 .lore { font-style: italic; font-weight: 500; color: var(--ink); }
 .tcard.rar-comune, .card-reveal.rar-comune { border-color: var(--rar-comune); }
 .tcard.rar-raro, .card-reveal.rar-raro { border-color: var(--rar-raro); }
