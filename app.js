@@ -3061,15 +3061,15 @@ function renderMap(c) {
     urgLabel.innerHTML = `⚠️ SCADE FRA <span data-cd="week">…</span> — MAI PIÙ OTTENIBILE!`;
     evp.appendChild(urgLabel);
   }
-  evp.appendChild(el('h3', 'panel-title', `${ev.icon} Taglia: ${ev.name}`));
+  evp.appendChild(el('h3', 'panel-title', `${String(ev.icon)} Taglia: ${esc(String(ev.name))}`));
   if (ev.claimedBy) {
     evp.appendChild(el('p', 'muted small', ev.claimedBy === HERO.name
-      ? `🏆 Reclamata da TE! Ricompensa: ${ev.skin}`
+      ? `🏆 Reclamata da TE! Ricompensa: ${esc(String(ev.skin))}`
       : `⛔ <b>${esc(ev.claimedBy)}</b> è arrivato prima di te questa settimana.`));
   } else {
     const cdClass = evUrgent ? 'cd-critical' : 'cd-hot';
     evp.appendChild(el('p', 'muted small',
-      `Primo allenamento singolo da <b>${ev.km} km</b> della settimana vince: <b>${ev.skin}</b>.<br>` +
+      `Primo allenamento singolo da <b>${Number(ev.km)} km</b> della settimana vince: <b>${esc(String(ev.skin))}</b>.<br>` +
       `<b class="${cdClass}">⏳ <span data-cd="week">…</span> alla fine dell'evento</b>`));
     const btn = el('button', 'btn btn-primary wide btn-small', `🏆 Reclama la Taglia`);
     btn.addEventListener('click', () => {
@@ -6941,6 +6941,7 @@ function renderErborista(c) {
     imgWrap.appendChild(img);
     card.appendChild(imgWrap);
     card.appendChild(el('div', 'consumable-name', co.name));
+    if (co.desc) card.appendChild(el('div', 'consumable-offer-desc small muted', co.desc));
     const priceEl = el('div', 'erborista-offer-price');
     priceEl.innerHTML = `<s class="muted">${RPG.buyPriceConsumable(co.id)}🪙</s> <b>${price}🪙</b>`;
     card.appendChild(priceEl);
@@ -9453,7 +9454,7 @@ function renderSerraView(c) {
   loreBtn.addEventListener('click', () => {
     const rows = Object.values(RPG.PLANTS).map(p =>
       `<div class="loot rar-${p.rarity}" style="margin-bottom:6px">
-        <div class="loot-head"><b>${p.icon} ${esc(p.name)}</b> <span class="tag">${RPG.RARITIES[p.rarity].label}</span></div>
+        <div class="loot-head"><b>${p.icon} ${esc(p.name)}</b> <span class="tag">${RPG.RARITIES[p.rarity].label}</span> <span class="tag tag-trait">${esc(p.trait)}</span></div>
         <div class="small muted">${esc(p.desc)}<br>💧 ${p.water} km/giorno · ${p.days} giorni</div>
       </div>`).join('');
     modal(`<h3 class="panel-title">📖 Piante della Serra</h3>
