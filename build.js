@@ -38,6 +38,7 @@ const staticFiles = [
   'index.html',
   'manifest.webmanifest',
   'sw.js',
+  'privacy.html',
 ];
 for (const f of staticFiles) {
   fs.copyFileSync(f, path.join(OUT, f));

@@ -1,11 +1,17 @@
 {
+  "name": "heroscape",
   "type": "module",
   "scripts": {
     "build": "node build.js",
     "dev": "python3 -m http.server 7890",
-    "test": "node tests/run.cjs"
+    "test": "node tests/run.cjs",
+    "sync": "node build.js && npx cap sync",
+    "android": "node build.js && npx cap sync && npx cap open android"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/cli": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
     "playwright": "^1.62.1"
   },
   "devDependencies": {

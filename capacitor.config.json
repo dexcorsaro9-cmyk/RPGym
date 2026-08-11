@@ -1,0 +1,16 @@
+{
+  "appId": "com.antoniodecino.heroscape",
+  "appName": "Hero's Pace",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "backgroundColor": "#241a10",
+      "androidSplashResourceName": "splash",
+      "showSpinner": false
+    }
+  }
+}
