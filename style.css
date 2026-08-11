@@ -7238,11 +7238,69 @@ img.fiche-inline {
   gap: 10px;
 }
 .erborista-offer-card {
+  height: 215px;
+  padding: 0;
+  display: block;
+  perspective: 700px;
+  cursor: pointer;
+}
+.erborista-offer-card:active { transform: none; }
+.offer-flip-inner {
   position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform .45s cubic-bezier(.4,0,.2,1);
+  border-radius: 14px;
+}
+.erborista-offer-card.flipped .offer-flip-inner {
+  transform: rotateY(180deg);
+}
+.offer-flip-front,
+.offer-flip-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 10px 8px 8px;
+  border-radius: 14px;
+}
+.offer-flip-back {
+  transform: rotateY(180deg);
+  gap: 8px;
+}
+.offer-flip-hint {
+  font-size: .6rem;
+  color: #8a7a5a;
+  opacity: .7;
+  letter-spacing: .02em;
+  margin-top: 2px;
+}
+.offer-flip-back-title {
+  font-family: 'Cinzel', serif;
+  font-size: .72rem;
+  color: var(--gold-bright);
+  text-align: center;
+  letter-spacing: .04em;
+}
+.offer-flip-desc {
+  font-size: .72rem;
+  color: var(--parchment);
+  text-align: center;
+  line-height: 1.4;
+  padding: 0 4px;
+  flex: 1;
+  display: flex;
+  align-items: center;
 }
 .erborista-offer-price {
   display: flex; align-items: center; justify-content: center;
-  gap: 6px; margin-top: 8px; font-size: .85rem;
+  gap: 6px; font-size: .85rem;
   color: #e0c878;
 }
 .erborista-offer-price s {
@@ -7250,14 +7308,6 @@ img.fiche-inline {
 }
 .erborista-offer-price b {
   color: #f5e090; font-size: .92rem; font-weight: 800;
-}
-.erborista-offer-price .original-price {
-  text-decoration: line-through; opacity: .55; font-size: .75rem; color: #9a8a68;
-}
-.erborista-offer-price .discount-badge {
-  background: #27ae60; color: #fff;
-  font-size: .65rem; font-weight: 700;
-  border-radius: 6px; padding: 1px 5px;
 }
 .consumable-offer-desc {
   text-align: center; padding: 0 6px; margin-top: 2px; line-height: 1.3;
