@@ -43,7 +43,9 @@ function beginBattle(villainId) {
     const equipType = RPG.equipTypeBonusAggregate(HERO);
     const classBonus = RPG.classArenaBonus(HERO, v);
     const furnHpBonus = Math.round(100 * (furn.arenaHpMult + equipType.arenaHpMult));
-    const furnDmgBonus = Math.round(34 * (furn.arenaDmgMult + equipType.arenaDmgMult + (v.boss ? furn.bossDmgMult : 0)));
+    const arenaMultBuff = (HERO.consumableBuffs?.arenaMult?.expiresAt > Date.now())
+      ? (HERO.consumableBuffs.arenaMult.value || 0) : 0;
+    const furnDmgBonus = Math.round(34 * (furn.arenaDmgMult + equipType.arenaDmgMult + (v.boss ? furn.bossDmgMult : 0) + arenaMultBuff));
     const maxHP = 100 + petBonus.hpBonus + furnHpBonus + classBonus.hpBonus;
     BATTLE = {
       v, heroHP: maxHP, heroMaxHP: maxHP, vHP: 100, dmg: 34, hw: 0, vw: 0, round: 1, busy: false, done: false,
@@ -281,6 +283,27 @@ function endBattle(heroWon) {
       document.getElementById('btn-open-chest')?.addEventListener('click', openChest);
     }, 1500);
   } else {
+    if (HERO.consumableBuffs?.arenaShield > 0) {
+      HERO.consumableBuffs.arenaShield--;
+      const chest = RPG.battleReward(HERO, b.v);
+      persist(); renderHUD();
+      sfx('coin');
+      if (center) center.innerHTML = `<div class="battle-result-overlay"><div class="battle-result-text win" style="color:#6dd6ff">🛡️ SCUDO!</div></div>`;
+      const vs = document.getElementById('stage-villain');
+      if (vs) vs.classList.add('defeated');
+      setTimeout(() => {
+        closeBattle();
+        PENDING_CHEST = { title: 'Scudo Arena — Drop garantito', chest };
+        modal(`<div class="chest-zone">
+          <p class="center big-news">🛡️ Lo Scudo Arena ti ha salvato!</p>
+          <p class="muted small center">Hai perso il duello, ma il consumabile ha garantito le ricompense.</p>
+          <button class="chest-btn" id="btn-open-chest"><img src="assets/ui/chest.svg" alt="scrigno"></button>
+          <p class="small muted center">Tocca lo scrigno per aprirlo</p>
+        </div>`);
+        document.getElementById('btn-open-chest')?.addEventListener('click', openChest);
+      }, 1500);
+      return;
+    }
     const shieldChest = (b.v.boss && HERO.consumableBuffs?.bossShield)
       ? RPG.battleReward(HERO, b.v) : null;
     persist(); if (shieldChest) renderHUD();
@@ -915,6 +938,7 @@ function showScalataFloor() {
   }
 
   document.getElementById('sc-confirm').addEventListener('click', () => {
+    document.getElementById('sc-confirm').disabled = true;
     const counts = { atk: 0, def: 0, mag: 0 };
     diceState.forEach(t => { if (t > 0) counts[TYPES[t]]++; });
     if (hasJolly) counts[TYPES[jollyState]]++;

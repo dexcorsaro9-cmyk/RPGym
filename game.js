@@ -1022,7 +1022,11 @@ const RPG = (() => {
     }
     if (needed > 0) return `Ti servono 3 consumabili ${fromRarity}.`;
     spent.forEach(id => { hero.consumables[id] = (hero.consumables[id] || 0) - 1; if (hero.consumables[id] <= 0) delete hero.consumables[id]; });
-    return dropConsumable(hero, toRarity);
+    const exactPool = CONSUMABLES.filter(c => c.rarity === toRarity);
+    if (!exactPool.length) return null;
+    const picked = exactPool[Math.floor(Math.random() * exactPool.length)];
+    addConsumable(hero, picked.id, 1);
+    return picked;
   }
 
   function dropConsumable(hero, minRarity) {
@@ -2503,8 +2507,12 @@ const RPG = (() => {
     const today = todayStamp();
     if (hero.streak.last === today) return null;
     const isConsecutive = hero.streak.last === yesterdayStamp();
-    if (!isConsecutive && hero.consumableBuffs && (hero.consumableBuffs.streakShield > 0)) {
-      hero.consumableBuffs.streakShield--;
+    const daysMissed = hero.streak.last
+      ? Math.max(0, Math.round((new Date(today).getTime() - new Date(hero.streak.last).getTime()) / 86400000) - 1)
+      : 0;
+    const shieldsNeeded = Math.max(1, daysMissed);
+    if (!isConsecutive && hero.consumableBuffs && hero.consumableBuffs.streakShield >= shieldsNeeded) {
+      hero.consumableBuffs.streakShield -= shieldsNeeded;
       hero.streak.last = today;
       hero.streak.count = (hero.streak.count || 1) + 1;
     } else {
@@ -3062,7 +3070,7 @@ const RPG = (() => {
     let delta = totalKmToday - already;
     if (!(delta > 0.05)) return null; // nulla di nuovo, o rumore verso il basso
     delta = Math.round(delta * 100) / 100;
-    const capped = Math.min(delta, Math.max(0, HEALTH_SYNC_DAILY_CAP - already));
+    const capped = Math.min(delta, Math.max(0, (ACTIVITIES[type].maxKmSession || HEALTH_SYNC_DAILY_CAP) - already));
     if (capped <= 0) return null;
     const report = logWorkout(hero, type, capped, { skipValidation: true });
     if (report && !report.error) {
