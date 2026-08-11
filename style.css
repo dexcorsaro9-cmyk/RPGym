@@ -3077,45 +3077,71 @@ img.fiche-inline {
 
 /* Le Imprese del Viandante — 100 traguardi */
 .section-title.small-title { font-size: 1rem; margin-top: 16px; }
-.achievement-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
-.achievement-row {
-  display: flex; align-items: center; gap: 10px;
-  background: rgba(255,255,255,.55); border-left: 4px solid var(--gold);
-  border-radius: 8px; padding: 10px 10px;
-}
-.achievement-mid .small { font-size: .82rem; color: var(--ink); }
-.achievement-row.locked { opacity: .55; border-left-color: rgba(90,61,36,.3); }
-.achievement-row.epic { border-left-color: var(--rar-leggendario, #d9822b); background: rgba(217,130,43,.15); }
-.achievement-icon { font-size: 1.6rem; width: 34px; text-align: center; flex-shrink: 0; }
-.achievement-mid { flex: 1; min-width: 0; }
-.achievement-side { flex-shrink: 0; }
+/* ── Imprese del Viandante — layout a box ── */
+.achievement-list { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
 
-/* ── Categorie Imprese ── */
+/* ogni sezione bioma = un panel chiudibile */
+.achiev-cat-section {
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(255,255,255,.28), transparent 55%),
+    linear-gradient(160deg, var(--parchment) 0%, var(--parchment-dark) 100%);
+  border: 2px solid var(--leather);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 3px 10px rgba(0,0,0,.25);
+}
+
+/* header cliccabile = "titolo del box" */
 .achiev-cat-header {
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  background: linear-gradient(135deg, rgba(90,61,36,.18), rgba(90,61,36,.06));
-  border: 2px solid var(--leather); border-radius: 10px;
-  padding: 10px 12px; cursor: pointer; width: 100%;
-  font-family: 'Cinzel', serif; font-size: .85rem;
+  background: linear-gradient(135deg, rgba(90,61,36,.22), rgba(90,61,36,.08));
+  border-bottom: 2px solid var(--leather);
+  padding: 11px 14px; cursor: pointer; width: 100%;
+  font-family: 'Cinzel', serif; font-size: .88rem;
   color: var(--ink); user-select: none;
 }
-.achiev-cat-header:active { transform: scale(.99); }
+.achiev-cat-header:active { opacity: .85; }
 .achiev-cat-left { display: flex; align-items: center; gap: 8px; }
 .achiev-cat-icon { font-size: 1.3rem; flex-shrink: 0; }
 .achiev-cat-name { font-weight: 700; }
-.achiev-cat-meta { font-size: .75rem; color: var(--ink); font-family: 'Crimson Pro', serif; }
+.achiev-cat-meta { font-size: .75rem; color: var(--ink-light); font-family: 'Crimson Pro', serif; }
 .achiev-cat-badge {
   background: var(--gold); color: #fff;
   font-size: .7rem; font-weight: 700;
-  border-radius: 999px; padding: 1px 7px;
+  border-radius: 999px; padding: 2px 8px;
   font-family: 'Crimson Pro', serif;
   white-space: nowrap;
 }
-.achiev-cat-badge.done { background: var(--emerald); }
-.achiev-cat-toggle { font-size: .8rem; color: var(--ink-light); flex-shrink: 0; }
-.achiev-cat-body { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.achiev-cat-badge.done { background: #3a9e6a; }
+.achiev-cat-toggle { font-size: .75rem; color: var(--ink-light); flex-shrink: 0; margin-left: 4px; }
+
+/* lista voci dentro il box */
+.achiev-cat-body {
+  display: flex; flex-direction: column;
+  gap: 0; padding: 8px 10px 10px;
+}
 .achiev-cat-body.collapsed { display: none; }
-.achiev-cat-section { display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px; }
+
+/* singola impresa = card con bordo completo */
+.achievement-row {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,.5);
+  border: 1.5px solid rgba(90,61,36,.25);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+}
+.achievement-row:last-child { margin-bottom: 0; }
+.achievement-row.locked { opacity: .5; border-color: rgba(90,61,36,.12); background: rgba(255,255,255,.2); }
+.achievement-row.epic {
+  border-color: var(--rar-leggendario, #c07e20);
+  background: linear-gradient(135deg, rgba(217,130,43,.18), rgba(255,255,255,.45));
+}
+.achievement-icon { font-size: 1.5rem; width: 36px; text-align: center; flex-shrink: 0; }
+.achievement-mid { flex: 1; min-width: 0; }
+.achievement-mid b { font-size: .92rem; color: var(--ink); }
+.achievement-mid .small { font-size: .8rem; color: var(--ink-light); margin-top: 1px; }
+.achievement-side { flex-shrink: 0; }
 
 /* ── Statistiche Totali ── */
 .stats-diary {
@@ -7212,11 +7238,69 @@ img.fiche-inline {
   gap: 10px;
 }
 .erborista-offer-card {
+  height: 215px;
+  padding: 0;
+  display: block;
+  perspective: 700px;
+  cursor: pointer;
+}
+.erborista-offer-card:active { transform: none; }
+.offer-flip-inner {
   position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform .45s cubic-bezier(.4,0,.2,1);
+  border-radius: 14px;
+}
+.erborista-offer-card.flipped .offer-flip-inner {
+  transform: rotateY(180deg);
+}
+.offer-flip-front,
+.offer-flip-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 10px 8px 8px;
+  border-radius: 14px;
+}
+.offer-flip-back {
+  transform: rotateY(180deg);
+  gap: 8px;
+}
+.offer-flip-hint {
+  font-size: .6rem;
+  color: #8a7a5a;
+  opacity: .7;
+  letter-spacing: .02em;
+  margin-top: 2px;
+}
+.offer-flip-back-title {
+  font-family: 'Cinzel', serif;
+  font-size: .72rem;
+  color: var(--gold-bright);
+  text-align: center;
+  letter-spacing: .04em;
+}
+.offer-flip-desc {
+  font-size: .72rem;
+  color: var(--parchment);
+  text-align: center;
+  line-height: 1.4;
+  padding: 0 4px;
+  flex: 1;
+  display: flex;
+  align-items: center;
 }
 .erborista-offer-price {
   display: flex; align-items: center; justify-content: center;
-  gap: 6px; margin-top: 8px; font-size: .85rem;
+  gap: 6px; font-size: .85rem;
   color: #e0c878;
 }
 .erborista-offer-price s {
@@ -7224,14 +7308,6 @@ img.fiche-inline {
 }
 .erborista-offer-price b {
   color: #f5e090; font-size: .92rem; font-weight: 800;
-}
-.erborista-offer-price .original-price {
-  text-decoration: line-through; opacity: .55; font-size: .75rem; color: #9a8a68;
-}
-.erborista-offer-price .discount-badge {
-  background: #27ae60; color: #fff;
-  font-size: .65rem; font-weight: 700;
-  border-radius: 6px; padding: 1px 5px;
 }
 .consumable-offer-desc {
   text-align: center; padding: 0 6px; margin-top: 2px; line-height: 1.3;

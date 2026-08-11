@@ -57,7 +57,7 @@ const RPG = (() => {
       ? Math.max(0, hero.treasureMap.startedAt + TREASURE_MAP_DURATION - Date.now())
       : 0;
     const daysLeft = Math.ceil(msLeft / 86400000);
-    return { progressKm: hero.treasureMap.progressKm, claimed: hero.treasureMap.claimed, daysLeft };
+    return { progressKm: hero.treasureMap.progressKm, claimed: hero.treasureMap.claimed || [], daysLeft };
   }
   function claimTreasureTier(hero, tierIdx) {
     const t = TREASURE_MAP_TIERS[tierIdx];
@@ -3035,6 +3035,7 @@ const RPG = (() => {
     h.trophies        = h.trophies        || [];
     h.weeklyBoss      = h.weeklyBoss      || null;
     h.treasureMap     = h.treasureMap     || null;
+    if (h.treasureMap && !Array.isArray(h.treasureMap.claimed)) h.treasureMap.claimed = [];
     h.prestige        = h.prestige        || { count: 0 };
 
     // ── v5: mercante, skill tree, lore, pozione ───────────────

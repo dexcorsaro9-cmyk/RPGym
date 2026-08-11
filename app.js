@@ -2744,6 +2744,12 @@ function openFurnitureSetModal(setId) {
 }
 
 /* ── TAB: Mappa ── */
+/* Esegue fn() in sicurezza: se lancia un'eccezione, logga e prosegue
+   così un blocco rotto non impedisce il rendering di quelli successivi. */
+function _mapBlock(label, fn) {
+  try { fn(); } catch (e) { console.error('[Mappa]', label, e); }
+}
+
 function renderMap(c) {
   if (MAP_VIEW === 'atlas')      { renderAtlasView(c);      return; }
   if (MAP_VIEW === 'pantheon')   { renderPantheonView(c);   return; }
@@ -2777,60 +2783,64 @@ function renderMap(c) {
   c.appendChild(hdr);
 
   // ── Incursione del giorno ──
-  if (HERO.incursion && !HERO.incursion.done) {
-    const inc = HERO.incursion;
-    const p = el('div', 'panel panel-featured incursion-panel');
-    p.appendChild(el('h3', 'panel-title', `⚡ INCURSIONE — solo oggi!`));
-    if (inc.enemy !== 'cavaliere-drago') {
-      const img = el('img', 'incursion-img');
-      img.src = `assets/bestiario/${inc.enemy}.webp`;
-      p.appendChild(img);
+  _mapBlock('incursione', () => {
+    if (HERO.incursion && !HERO.incursion.done) {
+      const inc = HERO.incursion;
+      const p = el('div', 'panel panel-featured incursion-panel');
+      p.appendChild(el('h3', 'panel-title', `⚡ INCURSIONE — solo oggi!`));
+      if (inc.enemy !== 'cavaliere-drago') {
+        const img = el('img', 'incursion-img');
+        img.src = `assets/bestiario/${inc.enemy}.webp`;
+        p.appendChild(img);
+      }
+      p.appendChild(el('p', 'center', `<b>${esc(inc.name)}</b>`));
+      const pct = Math.min(100, Math.round(inc.progressKm / inc.km * 100));
+      p.appendChild(el('div', 'membar', `<div class="membar-fill danger" style="width:${pct}%"></div><span>${inc.progressKm.toFixed(1)} / ${inc.km} km</span>`));
+      p.appendChild(el('p', 'muted small center',
+        `Forziere con oggetto ${(RPG.RARITIES[inc.minRarity] || RPG.RARITIES.comune).label} o superiore.<br>` +
+        `<b class="cd-hot"><span data-cd="midnight">…</span> alla scadenza!</b>`));
+      c.appendChild(p);
+    } else if (HERO.incursion && HERO.incursion.done) {
+      c.appendChild(el('div', 'panel done-strip', `✅ <b>Incursione di oggi respinta!</b> <span class="small muted">Torna domani.</span>`));
     }
-    p.appendChild(el('p', 'center', `<b>${esc(inc.name)}</b>`));
-    const pct = Math.min(100, Math.round(inc.progressKm / inc.km * 100));
-    p.appendChild(el('div', 'membar', `<div class="membar-fill danger" style="width:${pct}%"></div><span>${inc.progressKm.toFixed(1)} / ${inc.km} km</span>`));
-    p.appendChild(el('p', 'muted small center',
-      `Forziere con oggetto ${RPG.RARITIES[inc.minRarity].label} o superiore.<br>` +
-      `<b class="cd-hot"><span data-cd="midnight">…</span> alla scadenza!</b>`));
-    c.appendChild(p);
-  } else if (HERO.incursion && HERO.incursion.done) {
-    c.appendChild(el('div', 'panel done-strip', `✅ <b>Incursione di oggi respinta!</b> <span class="small muted">Torna domani.</span>`));
-  }
+  });
 
   // ── Boss settimanale ──
-  const bossStatus = RPG.weeklyBossStatus(HERO);
-  if (bossStatus) {
-    const { boss, progressKm, done, claimed } = bossStatus;
-    const pct = Math.min(100, Math.round(progressKm / boss.km * 100));
-    const bp = el('div', 'panel panel-featured boss-weekly-panel');
-    bp.appendChild(el('h3', 'panel-title', `${boss.icon} Boss Settimanale`));
-    bp.appendChild(el('p', 'center', `<b>${esc(boss.name)}</b> — <span class="muted small">${boss.zone}</span>`));
-    bp.appendChild(el('div', 'membar', `<div class="membar-fill${claimed ? '' : done ? ' gold' : ' danger'}" style="width:${pct}%"></div><span>${progressKm.toFixed(1)} / ${boss.km} km</span>`));
-    if (claimed) {
-      bp.appendChild(el('div', 'done-strip', `✅ <b>Boss sconfitto questa settimana!</b>`));
-    } else if (done) {
-      const claimBtn = el('button', 'btn btn-primary wide', `${boss.icon} Riscuoti bottino · 🪙 ${boss.gold}`);
-      claimBtn.addEventListener('click', () => {
-        const reward = RPG.claimWeeklyBoss(HERO);
-        if (!reward) return;
-        persist(); renderHUD();
-        vibrate([150, 50, 200]);
-        const itemEl = reward.item ? `<div class="loot-list" style="margin:.5rem 0">${itemHtml(reward.item)}</div>` : '';
-        const consEl = reward.consumable ? `<p class="center small">💰 ${esc(reward.consumable.icon)} <b>${esc(reward.consumable.name)}</b> nel Box Consumabili!</p>` : '';
-        modal(`<h3 class="center">${boss.icon} ${esc(boss.name)} sconfitto!</h3>
-          <p class="center">🪙 +${reward.gold} oro${itemEl}</p>
-          ${consEl}
-          <button class="btn btn-primary wide" onclick="closeModal();setTab('camp')">Ottimo!</button>`);
-      });
-      bp.appendChild(claimBtn);
-    } else {
-      bp.appendChild(el('p', 'muted small center', `Sconfiggilo entro domenica · mancano ${(boss.km - progressKm).toFixed(1)} km`));
+  _mapBlock('boss', () => {
+    const bossStatus = RPG.weeklyBossStatus(HERO);
+    if (bossStatus) {
+      const { boss, progressKm, done, claimed } = bossStatus;
+      const pct = Math.min(100, Math.round(progressKm / boss.km * 100));
+      const bp = el('div', 'panel panel-featured boss-weekly-panel');
+      bp.appendChild(el('h3', 'panel-title', `${boss.icon} Boss Settimanale`));
+      bp.appendChild(el('p', 'center', `<b>${esc(boss.name)}</b> — <span class="muted small">${boss.zone}</span>`));
+      bp.appendChild(el('div', 'membar', `<div class="membar-fill${claimed ? '' : done ? ' gold' : ' danger'}" style="width:${pct}%"></div><span>${progressKm.toFixed(1)} / ${boss.km} km</span>`));
+      if (claimed) {
+        bp.appendChild(el('div', 'done-strip', `✅ <b>Boss sconfitto questa settimana!</b>`));
+      } else if (done) {
+        const claimBtn = el('button', 'btn btn-primary wide', `${boss.icon} Riscuoti bottino · 🪙 ${boss.gold}`);
+        claimBtn.addEventListener('click', () => {
+          const reward = RPG.claimWeeklyBoss(HERO);
+          if (!reward) return;
+          persist(); renderHUD();
+          vibrate([150, 50, 200]);
+          const itemEl = reward.item ? `<div class="loot-list" style="margin:.5rem 0">${itemHtml(reward.item)}</div>` : '';
+          const consEl = reward.consumable ? `<p class="center small">💰 ${esc(reward.consumable.icon)} <b>${esc(reward.consumable.name)}</b> nel Box Consumabili!</p>` : '';
+          modal(`<h3 class="center">${boss.icon} ${esc(boss.name)} sconfitto!</h3>
+            <p class="center">🪙 +${reward.gold} oro${itemEl}</p>
+            ${consEl}
+            <button class="btn btn-primary wide" onclick="closeModal();setTab('camp')">Ottimo!</button>`);
+        });
+        bp.appendChild(claimBtn);
+      } else {
+        bp.appendChild(el('p', 'muted small center', `Sconfiggilo entro domenica · mancano ${(boss.km - progressKm).toFixed(1)} km`));
+      }
+      c.appendChild(bp);
     }
-    c.appendChild(bp);
-  }
+  });
 
   // ── Mappa del Tesoro settimanale ──
-  const tmStatus = RPG.treasureMapStatus(HERO);
+  _mapBlock('tesoro', () => { const tmStatus = RPG.treasureMapStatus(HERO);
   if (tmStatus) {
     const { progressKm, claimed } = tmStatus;
     const allClaimed = claimed.length >= RPG.TREASURE_MAP_TIERS.length;
@@ -2942,18 +2952,17 @@ function renderMap(c) {
     if (allClaimed) tp.appendChild(el('div', 'done-strip', '✅ <b>Mappa completata!</b>'));
     c.appendChild(tp);
   }
+  });
 
   // ── Pozione del Giorno ──
-  {
+  _mapBlock('pozione', () => {
     const potion = RPG.getDailyPotion();
     const already = HERO.dailyPotion && HERO.dailyPotion.claimedDate === todayISO();
     const used = already && HERO.dailyPotion.used;
-
     const pp = el('div', 'potion-day-panel panel');
     pp.appendChild(el('div', 'panel-title', `⚗️ Pozione del Giorno`));
     pp.appendChild(el('div', 'potion-name', `${potion.icon} ${potion.name}`));
     pp.appendChild(el('div', 'potion-desc', potion.desc));
-
     if (used) {
       pp.appendChild(el('div', 'potion-claimed-note', '✅ Pozione usata oggi'));
     } else if (already) {
@@ -2963,16 +2972,16 @@ function renderMap(c) {
       btn.addEventListener('click', () => {
         const err = RPG.claimDailyPotion(HERO);
         if (err) { toast(err); return; }
-        persist(); render();
+        persist(); setTab('map');
         vibrate([60, 30, 100]);
       });
       pp.appendChild(btn);
     }
     c.appendChild(pp);
-  }
+  });
 
   // ── Il Pantheon dei Campioni (entry) ──
-  {
+  _mapBlock('pantheon', () => {
     const pvpWins = HERO.pvpWins || 0;
     const pt = pvpTitle(pvpWins);
     const pvpEntry = el('div', 'panel borgo-entry-panel pantheon-entry-panel');
@@ -2989,47 +2998,49 @@ function renderMap(c) {
     enterPantheonBtn.addEventListener('click', () => { MAP_VIEW = 'pantheon'; setTab('map'); });
     pvpEntry.appendChild(enterPantheonBtn);
     c.appendChild(pvpEntry);
-  }
+  });
 
   // ── Mercante Itinerante (ven–dom) ──
-  if (RPG.isMerchantWeekend()) {
-    const merchant = RPG.getTravelingMerchant(HERO);
-    if (merchant) {
-      const mp = el('div', 'panel merchant-panel');
-      mp.appendChild(el('h3', 'panel-title', '🛒 Mercante Itinerante'));
-      mp.appendChild(el('p', 'muted small center', 'Disponibile solo venerdì–domenica! Sparisce lunedì.'));
-      merchant.offers.forEach((o, i) => {
-        const boughtKey = merchant.weekStamp + '-' + i;
-        const bought = HERO.merchantBought && HERO.merchantBought[boughtKey];
-        const effectivePrice = RPG.merchantEffectivePrice(HERO, o.price);
-        const hasDiscount = effectivePrice < o.price;
-        const row = el('div', 'merchant-offer-row' + (bought ? ' bought' : ''));
-        row.innerHTML = `<div class="merchant-offer-info">${itemHtml(o.item)}</div>`;
-        if (bought) {
-          row.innerHTML += `<span class="done-strip">✅</span>`;
-        } else {
-          const priceLabel = hasDiscount
-            ? `🪙 <s style="opacity:.5">${o.price}</s> ${effectivePrice}`
-            : `🪙 ${effectivePrice}`;
-          const btn = el('button', 'btn' + (HERO.gold >= effectivePrice ? ' btn-primary' : ''));
-          btn.innerHTML = priceLabel;
-          btn.addEventListener('click', () => {
-            const err = RPG.buyFromMerchant(HERO, i);
-            if (err) { toast(err); return; }
-            persist(); renderHUD();
-            vibrate([80, 40, 120]);
-            setTab('camp');
-          });
-          row.appendChild(btn);
-        }
-        mp.appendChild(row);
-      });
-      c.appendChild(mp);
+  _mapBlock('mercante', () => {
+    if (RPG.isMerchantWeekend()) {
+      const merchant = RPG.getTravelingMerchant(HERO);
+      if (merchant) {
+        const mp = el('div', 'panel merchant-panel');
+        mp.appendChild(el('h3', 'panel-title', '🛒 Mercante Itinerante'));
+        mp.appendChild(el('p', 'muted small center', 'Disponibile solo venerdì–domenica! Sparisce lunedì.'));
+        merchant.offers.forEach((o, i) => {
+          const boughtKey = merchant.weekStamp + '-' + i;
+          const bought = HERO.merchantBought && HERO.merchantBought[boughtKey];
+          const effectivePrice = RPG.merchantEffectivePrice(HERO, o.price);
+          const hasDiscount = effectivePrice < o.price;
+          const row = el('div', 'merchant-offer-row' + (bought ? ' bought' : ''));
+          row.innerHTML = `<div class="merchant-offer-info">${itemHtml(o.item)}</div>`;
+          if (bought) {
+            row.innerHTML += `<span class="done-strip">✅</span>`;
+          } else {
+            const priceLabel = hasDiscount
+              ? `🪙 <s style="opacity:.5">${o.price}</s> ${effectivePrice}`
+              : `🪙 ${effectivePrice}`;
+            const btn = el('button', 'btn' + (HERO.gold >= effectivePrice ? ' btn-primary' : ''));
+            btn.innerHTML = priceLabel;
+            btn.addEventListener('click', () => {
+              const err = RPG.buyFromMerchant(HERO, i);
+              if (err) { toast(err); return; }
+              persist(); renderHUD();
+              vibrate([80, 40, 120]);
+              setTab('camp');
+            });
+            row.appendChild(btn);
+          }
+          mp.appendChild(row);
+        });
+        c.appendChild(mp);
+      }
     }
-  }
+  });
 
   // ── Avamposto delle Spedizioni (entry) ──
-  {
+  _mapBlock('avamposto', () => {
     const avail = RPG.availableMissions(HERO);
     const active = HERO.activeMission ? RPG.MISSIONS.find(x => x.id === HERO.activeMission.id) : null;
     const avamposto = el('div', 'panel avamposto-entry-panel');
@@ -3049,64 +3060,68 @@ function renderMap(c) {
     enterBtn.addEventListener('click', () => { MAP_VIEW = 'avamposto'; setTab('map'); });
     avamposto.appendChild(enterBtn);
     c.appendChild(avamposto);
-  }
+  });
 
   // ── Taglia Unica settimanale (compatta) ──
-  const ev = RPG.weeklyEvent(STATE);
-  const evMsLeft = msToWeekEnd();
-  const evUrgent = evMsLeft < 86400000; // meno di 24 ore
-  const evp = el('div', 'panel event-panel' + (evUrgent && !ev.claimedBy ? ' event-panel-urgent' : ''));
-  if (evUrgent && !ev.claimedBy) {
-    const urgLabel = el('div', 'event-urgency-banner');
-    urgLabel.innerHTML = `⚠️ SCADE FRA <span data-cd="week">…</span> — MAI PIÙ OTTENIBILE!`;
-    evp.appendChild(urgLabel);
-  }
-  evp.appendChild(el('h3', 'panel-title', `${String(ev.icon)} Taglia: ${esc(String(ev.name))}`));
-  if (ev.claimedBy) {
-    evp.appendChild(el('p', 'muted small', ev.claimedBy === HERO.name
-      ? `🏆 Reclamata da TE! Ricompensa: ${esc(String(ev.skin))}`
-      : `⛔ <b>${esc(ev.claimedBy)}</b> è arrivato prima di te questa settimana.`));
-  } else {
-    const cdClass = evUrgent ? 'cd-critical' : 'cd-hot';
-    evp.appendChild(el('p', 'muted small',
-      `Primo allenamento singolo da <b>${Number(ev.km)} km</b> della settimana vince: <b>${esc(String(ev.skin))}</b>.<br>` +
-      `<b class="${cdClass}">⏳ <span data-cd="week">…</span> alla fine dell'evento</b>`));
-    const btn = el('button', 'btn btn-primary wide btn-small', `🏆 Reclama la Taglia`);
-    btn.addEventListener('click', () => {
-      const last = HERO.log[0];
-      const today = todayISO();
-      if (last && localDate(new Date(last.date)) === today && last.km >= ev.km) {
-        if (RPG.claimEvent(STATE, HERO, ev)) {
-          persist();
-          toast(`🏆 ${ev.skin} è TUO!`);
-          setTab('map');
+  _mapBlock('taglia', () => {
+    const ev = RPG.weeklyEvent(STATE);
+    const evMsLeft = msToWeekEnd();
+    const evUrgent = evMsLeft < 86400000;
+    const evp = el('div', 'panel event-panel' + (evUrgent && !ev.claimedBy ? ' event-panel-urgent' : ''));
+    if (evUrgent && !ev.claimedBy) {
+      const urgLabel = el('div', 'event-urgency-banner');
+      urgLabel.innerHTML = `⚠️ SCADE FRA <span data-cd="week">…</span> — MAI PIÙ OTTENIBILE!`;
+      evp.appendChild(urgLabel);
+    }
+    evp.appendChild(el('h3', 'panel-title', `${String(ev.icon)} Taglia: ${esc(String(ev.name))}`));
+    if (ev.claimedBy) {
+      evp.appendChild(el('p', 'muted small', ev.claimedBy === HERO.name
+        ? `🏆 Reclamata da TE! Ricompensa: ${esc(String(ev.skin))}`
+        : `⛔ <b>${esc(ev.claimedBy)}</b> è arrivato prima di te questa settimana.`));
+    } else {
+      const cdClass = evUrgent ? 'cd-critical' : 'cd-hot';
+      evp.appendChild(el('p', 'muted small',
+        `Primo allenamento singolo da <b>${Number(ev.km)} km</b> della settimana vince: <b>${esc(String(ev.skin))}</b>.<br>` +
+        `<b class="${cdClass}">⏳ <span data-cd="week">…</span> alla fine dell'evento</b>`));
+      const btn = el('button', 'btn btn-primary wide btn-small', `🏆 Reclama la Taglia`);
+      btn.addEventListener('click', () => {
+        const last = HERO.log[0];
+        const today = todayISO();
+        if (last && localDate(new Date(last.date)) === today && last.km >= ev.km) {
+          if (RPG.claimEvent(STATE, HERO, ev)) {
+            persist();
+            toast(`🏆 ${ev.skin} è TUO!`);
+            setTab('map');
+          }
+        } else {
+          toast(`Serve un allenamento di almeno ${ev.km} km oggi per reclamarla!`);
         }
-      } else {
-        toast(`Serve un allenamento di almeno ${ev.km} km oggi per reclamarla!`);
-      }
-    });
-    evp.appendChild(btn);
-  }
-  c.appendChild(evp);
+      });
+      evp.appendChild(btn);
+    }
+    c.appendChild(evp);
+  });
 
   // ── Mappa Infuocata ──
-  _renderMappaInfuocata(c);
+  _mapBlock('infuocata', () => _renderMappaInfuocata(c));
 
   // ── Atlante: pulsante di accesso alla subview ──
-  const atlasEntry = el('div', 'panel atlas-entry-panel');
-  const unlockedCount = RPG.BIOMES.filter(b => HERO.level >= b.min).length;
-  atlasEntry.innerHTML = `
-    <div class="atlas-entry-row">
-      <div>
-        <div class="atlas-entry-title">📖 Atlante del Reame</div>
-        <div class="small muted">${unlockedCount} / ${RPG.BIOMES.length} biomi scoperti</div>
-      </div>
-      <button class="btn btn-small atlas-open-btn">Esplora →</button>
-    </div>`;
-  atlasEntry.querySelector('.atlas-open-btn').addEventListener('click', () => {
-    MAP_VIEW = 'atlas'; setTab('map');
+  _mapBlock('atlante', () => {
+    const atlasEntry = el('div', 'panel atlas-entry-panel');
+    const unlockedCount = RPG.BIOMES.filter(b => HERO.level >= b.min).length;
+    atlasEntry.innerHTML = `
+      <div class="atlas-entry-row">
+        <div>
+          <div class="atlas-entry-title">📖 Atlante del Reame</div>
+          <div class="small muted">${unlockedCount} / ${RPG.BIOMES.length} biomi scoperti</div>
+        </div>
+        <button class="btn btn-small atlas-open-btn">Esplora →</button>
+      </div>`;
+    atlasEntry.querySelector('.atlas-open-btn').addEventListener('click', () => {
+      MAP_VIEW = 'atlas'; setTab('map');
+    });
+    c.appendChild(atlasEntry);
   });
-  c.appendChild(atlasEntry);
 
 }
 
@@ -6933,22 +6948,35 @@ function renderErborista(c) {
   _erboristaOffers().forEach(({ co, price }) => {
     const alreadyBought = !!dailyPurchases[co.id];
     const card = el('div', `consumable-card rarity-${co.rarity} erborista-offer-card`);
+    const inner = el('div', 'offer-flip-inner');
+
+    /* Fronte: immagine + nome + prezzo + hint */
+    const front = el('div', 'offer-flip-front');
     const imgWrap = el('div', 'consumable-img-wrap');
     const img = el('img', 'consumable-img');
     img.src = `assets/consumables/${encodeURIComponent(RPG.CONSUMABLE_IMG[co.id] || co.id)}.webp`;
     img.alt = co.name;
     img.addEventListener('error', () => { img.style.display = 'none'; imgWrap.appendChild(el('span', 'consumable-emoji', co.icon)); });
     imgWrap.appendChild(img);
-    card.appendChild(imgWrap);
-    card.appendChild(el('div', 'consumable-name', co.name));
-    if (co.desc) card.appendChild(el('div', 'consumable-offer-desc small muted', co.desc));
-    const priceEl = el('div', 'erborista-offer-price');
-    priceEl.innerHTML = `<s class="muted">${RPG.buyPriceConsumable(co.id)}🪙</s> <b>${price}🪙</b>`;
-    card.appendChild(priceEl);
+    front.appendChild(imgWrap);
+    front.appendChild(el('div', 'consumable-name', co.name));
+    const priceElF = el('div', 'erborista-offer-price');
+    priceElF.innerHTML = `<s>${RPG.buyPriceConsumable(co.id)}🪙</s> <b>${price}🪙</b>`;
+    front.appendChild(priceElF);
+    front.appendChild(el('div', 'offer-flip-hint', alreadyBought ? '✅ Acquistato' : '👆 Tocca per dettagli'));
+
+    /* Retro: nome + descrizione + prezzo + bottone acquisto */
+    const back = el('div', 'offer-flip-back');
+    back.appendChild(el('div', 'offer-flip-back-title', co.name));
+    if (co.desc) back.appendChild(el('div', 'offer-flip-desc', co.desc));
+    const priceElB = el('div', 'erborista-offer-price');
+    priceElB.innerHTML = `<s>${RPG.buyPriceConsumable(co.id)}🪙</s> <b>${price}🪙</b>`;
+    back.appendChild(priceElB);
     const buyBtn = el('button', `btn btn-primary btn-small`, alreadyBought ? '✅ Acquistato' : 'Acquista');
     buyBtn.disabled = alreadyBought || HERO.gold < price;
     if (!alreadyBought && HERO.gold < price) buyBtn.classList.add('disabled');
-    buyBtn.addEventListener('click', () => {
+    buyBtn.addEventListener('click', e => {
+      e.stopPropagation();
       if (alreadyBought) return;
       if (HERO.gold < price) { toast('Oro insufficiente!'); return; }
       HERO.gold -= price; RPG.addConsumable(HERO, co.id, 1);
@@ -6959,7 +6987,12 @@ function renderErborista(c) {
       toast(`${co.icon} ${co.name} acquistato in offerta!`);
       setTab('market');
     });
-    card.appendChild(buyBtn);
+    back.appendChild(buyBtn);
+
+    inner.appendChild(front);
+    inner.appendChild(back);
+    card.appendChild(inner);
+    card.addEventListener('click', () => card.classList.toggle('flipped'));
     offerRow.appendChild(card);
   });
   offerPanel.appendChild(offerRow);
