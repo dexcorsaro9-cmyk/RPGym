@@ -636,6 +636,7 @@ function openScalata() {
       ${keyBtn}
       <button class="btn btn-primary wide" onclick="closeModal()">Ok</button>
     </div>`);
+    $('#modal-box').classList.add('scalata-dark-modal');
     return;
   }
 
@@ -680,6 +681,7 @@ function openScalata() {
     <button class="sc-enter-btn" id="btn-scalata-start">🏰 INIZIA LA SCALATA</button>
     <button class="btn btn-ghost wide sc-later-btn" onclick="closeModal()">Forse dopo…</button>
   </div>`);
+  $('#modal-box').classList.add('scalata-dark-modal');
   document.getElementById('btn-scalata-start').addEventListener('click', () => {
     RPG.startScalata(HERO);
     persist();

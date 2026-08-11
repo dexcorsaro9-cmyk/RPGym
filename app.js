@@ -2243,6 +2243,45 @@ function renderSantuarioView(c) {
   });
   c.appendChild(statsPanel);
 
+  // ── Oggetti equipaggiati ─────────────────────────────────────
+  const equipPanel = el('div', 'panel');
+  equipPanel.appendChild(el('h3', 'panel-title', '🎽 Equipaggiamento'));
+  const petEquipRow = el('div', 'pet-equip-row');
+
+  // Slot accessorio
+  const accKey = pet.accessory;
+  const accDef = accKey ? RPG.PET_ACCESSORIES[accKey] : null;
+  const accSlot = el('div', 'equip-slot pet-equip-slot' + (accDef ? ' filled' : ''));
+  accSlot.innerHTML = `
+    <div class="equip-icon${accDef ? '' : ' empty'}">${accDef ? accDef.icon : '🎀'}</div>
+    <div class="equip-label">${accDef ? accDef.name.split(' ').slice(0, 2).join(' ') : 'Accessorio'}</div>`;
+  if (accDef) {
+    accSlot.title = accDef.desc;
+    accSlot.addEventListener('click', () => {
+      RPG.buyAccessory(HERO, accKey);
+      persist(); renderHUD(); setTab('camp');
+    });
+  }
+  petEquipRow.appendChild(accSlot);
+
+  // Slot consumabile attivo (da HERO.equipped.consumable)
+  const conKey = HERO.equipped && HERO.equipped.consumable;
+  const conDef = conKey ? RPG.CONSUMABLES.find(c => c.id === conKey) : null;
+  const conSlot = el('div', 'equip-slot pet-equip-slot' + (conDef ? ' filled' : ''));
+  conSlot.innerHTML = `
+    <div class="equip-icon${conDef ? '' : ' empty'}">${conDef ? conDef.icon : '🧪'}</div>
+    <div class="equip-label">${conDef ? conDef.name.split(' ').slice(0, 2).join(' ') : 'Consumabile'}</div>`;
+  petEquipRow.appendChild(conSlot);
+
+  equipPanel.appendChild(petEquipRow);
+
+  // Effetto attivo dell'accessorio
+  if (accDef) {
+    equipPanel.appendChild(el('p', 'acc-effect-desc small center', accDef.desc));
+  }
+
+  c.appendChild(equipPanel);
+
   const actionsPanel = el('div', 'panel');
   actionsPanel.appendChild(el('h3', 'panel-title', '🤲 Prenditi cura di lui'));
   actionsPanel.appendChild(el('p', 'muted small', '💡 La cura mantiene bisogni e virtù · l\'XP arriva dagli allenamenti!'));
