@@ -8407,6 +8407,10 @@ img.fiche-inline {
 /* ── Tappe della Via — profilo hero ── */
 .ms-profile-panel { padding: 14px 14px 16px; }
 
+.ms-profile-desc {
+  margin: 4px 0 10px;
+  line-height: 1.45;
+}
 .ms-profile-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -8445,13 +8449,13 @@ img.fiche-inline {
 
 .ms-pb-num {
   font-family: 'Cinzel', serif;
-  font-size: .6rem;
+  font-size: .68rem;
   font-weight: 700;
-  color: rgba(200,170,100,.5);
+  color: rgba(220,190,120,.7);
   letter-spacing: .05em;
 }
-.ms-pb.done .ms-pb-num { color: var(--ms-border, #e8b64c); opacity: .85; }
-.ms-pb.near .ms-pb-num { color: rgba(255,255,255,.6); }
+.ms-pb.done .ms-pb-num { color: var(--ms-border, #e8b64c); opacity: .95; }
+.ms-pb.near .ms-pb-num { color: rgba(255,255,255,.8); }
 
 /* ── Bacheca del Viandante ── */
 .bv-board-outer {

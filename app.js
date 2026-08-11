@@ -7245,6 +7245,8 @@ function renderHero(c) {
       const msp = el('div', 'panel ms-profile-panel');
       const msHead = el('h3', 'panel-title', `🏅 Tappe della Via · ${reached.length}/20`);
       msp.appendChild(msHead);
+      msp.appendChild(el('p', 'muted small ms-profile-desc',
+        `Ogni sessione di allenamento conta. Al raggiungimento di certe sessioni sblocchi premi esclusivi — oro, consumabili e storie della Via. Il numero indica la sessione richiesta.`));
       const grid = el('div', 'ms-profile-grid');
       RPG.MILESTONES.forEach(m => {
         const done = reached.includes(m.id);
