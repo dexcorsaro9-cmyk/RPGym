@@ -1638,16 +1638,63 @@ img.fiche-inline {
 /* ── Scrigno ── */
 .chest-zone { text-align: center; margin: 14px 0; }
 .chest-btn {
-  width: 5rem; height: 5rem; background: none; border: none; cursor: pointer; padding: 0;
-  filter: drop-shadow(0 6px 10px rgba(0,0,0,.4));
-  animation: chestBounce 1.6s ease-in-out infinite;
-  display: inline-block;
+  width: 11rem; height: 11rem; background: none; border: none; cursor: pointer; padding: 0;
+  position: relative; display: inline-block;
+  animation: chestBounce 2s ease-in-out infinite;
+  filter: drop-shadow(0 8px 18px rgba(0,0,0,.55));
 }
-.chest-btn img { width: 100%; height: 100%; display: block; }
+/* Aura raggiante ruotante */
+.chest-btn::before {
+  content: '';
+  position: absolute;
+  inset: -28px;
+  border-radius: 50%;
+  background: conic-gradient(
+    rgba(240,200,80,.55) 0deg,
+    transparent 25deg,
+    rgba(240,200,80,.3) 50deg,
+    transparent 75deg,
+    rgba(240,200,80,.55) 90deg,
+    transparent 115deg,
+    rgba(240,200,80,.3) 140deg,
+    transparent 165deg,
+    rgba(240,200,80,.55) 180deg,
+    transparent 205deg,
+    rgba(240,200,80,.3) 230deg,
+    transparent 255deg,
+    rgba(240,200,80,.55) 270deg,
+    transparent 295deg,
+    rgba(240,200,80,.3) 320deg,
+    transparent 345deg,
+    rgba(240,200,80,.55) 360deg
+  );
+  animation: chestAuraRotate 4s linear infinite;
+  z-index: -1;
+  pointer-events: none;
+}
+/* Alone dorato pulsante */
+.chest-btn::after {
+  content: '';
+  position: absolute;
+  inset: -16px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(240,180,60,.35) 0%, rgba(200,130,20,.18) 50%, transparent 75%);
+  animation: chestAuraPulse 1.8s ease-in-out infinite;
+  z-index: -2;
+  pointer-events: none;
+}
+@keyframes chestAuraRotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes chestAuraPulse {
+  0%, 100% { opacity: .7; transform: scale(1); }
+  50%      { opacity: 1;  transform: scale(1.12); }
+}
+.chest-btn img { width: 100%; height: 100%; display: block; object-fit: contain; }
 @keyframes chestBounce {
-  0%, 100% { transform: translateY(0) rotate(0); }
-  25%      { transform: translateY(-4px) rotate(-3deg); }
-  75%      { transform: translateY(-4px) rotate(3deg); }
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
 }
 .chest-btn.opening { animation: chestShake .9s ease-in-out; }
 @keyframes chestShake {
