@@ -5399,7 +5399,7 @@ function showReport(r) {
   if (PENDING_CHEST) {
     html += `<div class="chest-zone">
       <p class="center"><b>Un forziere ti attende!</b></p>
-      <button class="chest-btn" id="btn-open-chest"><img src="assets/ui/chest.svg" alt="scrigno"></button>
+      <button class="chest-btn" id="btn-open-chest"><img src="assets/ui/chest-epic.webp" alt="scrigno"></button>
       <p class="small muted center">Tocca lo scrigno per aprirlo</p>
     </div>`;
   }
