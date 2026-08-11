@@ -153,5 +153,14 @@
   <script src="app.js"></script>
   <script src="minigames.js"></script>
   <script src="arena.js"></script>
+  <script>
+    /* Capgo OTA — notifica che l'app è partita correttamente */
+    document.addEventListener('DOMContentLoaded', function() {
+      if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+        var updater = window.Capacitor.Plugins && window.Capacitor.Plugins.CapacitorUpdater;
+        if (updater) updater.notifyAppReady();
+      }
+    });
+  </script>
 </body>
 </html>

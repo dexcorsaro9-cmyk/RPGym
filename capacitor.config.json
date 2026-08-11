@@ -11,6 +11,9 @@
       "backgroundColor": "#241a10",
       "androidSplashResourceName": "splash",
       "showSpinner": false
+    },
+    "CapacitorUpdater": {
+      "autoUpdate": true
     }
   }
 }
