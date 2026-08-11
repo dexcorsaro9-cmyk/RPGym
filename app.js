@@ -1128,9 +1128,8 @@ function bumpRes(id, newVal) {
   span.textContent = newVal;
   if (!isNaN(old) && newVal > old) {
     span.classList.remove('res-bump');
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => span.classList.add('res-bump'));
-    });
+    void span.offsetWidth;
+    span.classList.add('res-bump');
     span.addEventListener('animationend', () => span.classList.remove('res-bump'), { once: true });
     const diff = newVal - old;
     const floatEl = document.createElement('span');
@@ -8141,7 +8140,8 @@ function modal(html) {
   }
   box.classList.remove('modal-opening');
   $('#modal').classList.remove('hidden');
-  requestAnimationFrame(() => requestAnimationFrame(() => box.classList.add('modal-opening')));
+  void box.offsetWidth;
+  box.classList.add('modal-opening');
 }
 function closeModal() {
   $('#modal').classList.add('hidden');

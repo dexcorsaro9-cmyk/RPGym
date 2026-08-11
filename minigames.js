@@ -633,6 +633,7 @@ function openDadiGame() {
         }
         currentBid = { qty: bidQty, face: bidFace };
         turn = 'oste';
+        bidBtn.disabled = true;
         renderDadi();
         setTimeout(osteMove, 900);
       });
@@ -1123,6 +1124,6 @@ function openColtelloGame() {
   arenaEl.addEventListener('mousedown', throwKnife);
   arenaEl.addEventListener('touchstart', throwKnife, { passive: false });
 
-  document.getElementById('mgck-x').addEventListener('click', mgClose);
+  document.getElementById('mgck-x').addEventListener('click', () => { state = 'END'; mgClose(); });
   closeBtn.addEventListener('click', mgClose);
 }

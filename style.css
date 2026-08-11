@@ -15,6 +15,8 @@
   --rar-raro: #2e6fb0;
   --rar-epico: #7b3fbf;
   --rar-leggendario: #d9822b;
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -180,7 +182,7 @@ body {
 .avatar-choice.selected { border: 3px solid var(--gold); box-shadow: 0 0 10px var(--gold-bright); }
 
 /* ── HUD ── */
-#screen-game { background: transparent; position: fixed; inset: 0; height: auto; overflow: hidden; overscroll-behavior: none; }
+#screen-game { background: transparent; position: fixed; inset: 0; height: auto; overflow: hidden; overscroll-behavior: none; padding-left: var(--safe-left); padding-right: var(--safe-right); }
 #hud {
   position: relative; z-index: 10;
   display: flex; justify-content: space-between; align-items: center;
@@ -1059,6 +1061,7 @@ img.camp-layer {
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
+  will-change: transform;
 }
 .camp-drag-active {
   cursor: grabbing !important;
