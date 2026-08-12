@@ -3215,25 +3215,31 @@ const RPG = (() => {
   }
 
   /* ── Incursioni (evento a tempo: 24 ore) ──────────────────── */
-  const INCURSION_TEMPLATES = [
-    { enemy: 'golem-molla',        text: 'Il Golem di Ruggine ha invaso {zone}!' },
-    { enemy: 'orco-capo',          text: 'Il Generale Orco sta saccheggiando {zone}!' },
-    { enemy: 'guerriero-fantasma', text: 'Il Guerriero Fantasma infesta {zone}!' },
-    { enemy: 'slime-boss',         text: 'Re Slime ha ricoperto {zone} di melma!' },
-    { enemy: 'drago-komodo',       text: 'Il Drago di Komodo sorvola {zone}!' },
-    { enemy: 'scrigno-malefico',   text: 'Scrigni malefici pullulano in {zone}!' },
+  // Pescate dai boss della Bestiary già sbloccati (zona accessibile al
+  // livello dell'eroe), non da un pool fisso — così la varietà cresce
+  // con la progressione invece di ripetere sempre gli stessi 6 nemici.
+  const INCURSION_PHRASES = [
+    '{name} ha invaso {zone}!',
+    '{name} sta devastando {zone}!',
+    '{name} semina il caos a {zone}!',
+    '{name} è stato avvistato a {zone}!',
+    '{name} minaccia {zone}!',
   ];
 
   function dateSeed(str) {
     return [...str].reduce((s, c) => (s * 31 + c.charCodeAt(0)) % 100000, 7);
   }
 
-  // L'incursione del giorno (uguale per tutti, generata dalla data)
+  // L'incursione del giorno (generata dalla data + livello dell'eroe)
   function todayIncursion(hero) {
     const today = todayStamp();
     const seed = dateSeed(today);
-    const t = INCURSION_TEMPLATES[seed % INCURSION_TEMPLATES.length];
-    const biome = currentBiome(hero.level);
+    const accessible = accessibleZones(hero);
+    const pool = BESTIARY.filter(b => b.boss && !b.final && accessible.includes(b.zone));
+    const fallbackPool = BESTIARY.filter(b => b.boss && !b.final);
+    const chosenPool = pool.length ? pool : fallbackPool;
+    const boss = chosenPool[seed % chosenPool.length];
+    const phrase = INCURSION_PHRASES[(seed * 7 + 3) % INCURSION_PHRASES.length];
     const km = Math.round(dailyGoalKm(hero.level) * 1.4);
     const order = Object.keys(RARITIES);
     const avail = availableRarities(hero.level);
@@ -3241,8 +3247,8 @@ const RPG = (() => {
     const minRarity = order[Math.max(order.indexOf('raro'), order.indexOf(best) - 1)];
     return {
       date: today,
-      name: t.text.replace('{zone}', biome.name),
-      enemy: t.enemy,
+      name: phrase.replace('{name}', boss.name).replace('{zone}', boss.zone),
+      enemy: boss.id,
       km,
       minRarity,
     };
