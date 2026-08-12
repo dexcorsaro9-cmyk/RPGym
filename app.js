@@ -3346,6 +3346,7 @@ function renderMap(c) {
   // ── Taglia Unica settimanale (compatta) ──
   _mapBlock('taglia', () => {
     const ev = RPG.weeklyEvent(STATE);
+    if (!ev || !ev.name || !ev.skin || !(ev.km > 0)) return;
     const evMsLeft = msToWeekEnd();
     const evUrgent = evMsLeft < 86400000;
     const evp = el('div', 'panel event-panel' + (evUrgent && !ev.claimedBy ? ' event-panel-urgent' : ''));
