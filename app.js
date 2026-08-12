@@ -123,10 +123,12 @@ function kmBarEl(title, progress, total, { color = 'gold', foot = '', extra = ''
     `<span class="km-bar-title">${title}</span>` +
     `<span class="km-bar-right">${extra}<b class="km-bar-val">${progress.toFixed(1)}</b><span class="km-bar-sep"> / ${total} km</span></span>`;
   wrap.appendChild(hdr);
+  const track = el('div', 'km-bar-track');
   const canvas = document.createElement('canvas');
   canvas.className = 'km-bar-canvas';
   canvas.setAttribute('aria-hidden', 'true');
-  wrap.appendChild(canvas);
+  track.appendChild(canvas);
+  wrap.appendChild(track);
   requestAnimationFrame(() => runKmBarCanvas(canvas, pct, done ? 'done' : color));
   if (foot) {
     const f = el('div', 'km-bar-foot');
@@ -157,7 +159,7 @@ function runKmBarCanvas(canvas, pct, themeKey) {
   if (!canvas.isConnected) return;
   const ctx = canvas.getContext('2d');
   const theme = KM_BAR_THEMES[themeKey] || KM_BAR_THEMES.gold;
-  const cssH = 18;
+  const cssH = canvas.parentElement.clientHeight || 22;
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const done = themeKey === 'done';
 
@@ -190,10 +192,6 @@ function runKmBarCanvas(canvas, pct, themeKey) {
     const r = cssH / 2;
     const fillW = cssW * (pct / 100);
     if (!seeded) { seedParticles(fillW); seeded = true; }
-
-    _kmRoundRect(ctx, 0, 0, cssW, cssH, r);
-    ctx.fillStyle = 'rgba(0,0,0,.28)';
-    ctx.fill();
 
     if (fillW > 0.5) {
       ctx.save();
