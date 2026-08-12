@@ -423,11 +423,6 @@ body {
   0%, 100% { box-shadow: 0 0 5px rgba(46,204,113,.35); }
   50%       { box-shadow: 0 0 12px rgba(46,204,113,.65); }
 }
-.km-bar-tick {
-  position: absolute; top: 15%; bottom: 15%;
-  width: 1px; background: rgba(255,255,255,.18);
-  pointer-events: none; z-index: 1;
-}
 .km-bar-foot {
   font-size: .7rem; color: var(--muted); margin-top: 5px; line-height: 1.3;
 }

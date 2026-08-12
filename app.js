@@ -44,11 +44,6 @@ function kmBarEl(title, progress, total, { color = 'gold', foot = '', extra = ''
   const fill  = el('div', `km-bar-fill ${done ? 'km-done' : 'km-' + color}`);
   fill.style.width = pct + '%';
   track.appendChild(fill);
-  [25, 50, 75].forEach(p => {
-    const t = el('div', 'km-bar-tick');
-    t.style.left = p + '%';
-    track.appendChild(t);
-  });
   wrap.appendChild(track);
   if (foot) {
     const f = el('div', 'km-bar-foot');
