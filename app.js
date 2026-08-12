@@ -1160,7 +1160,7 @@ function advanceOnboarding(fromStep, toStep) {
 const TAB_TOOLTIP_TEXT = {
   camp:   { icon: '🏕️', title: 'Rifugio',   body: 'La tua base. Costruisci strutture per ottenere bonus permanenti al tuo eroe.' },
   map:    { icon: '🗺️', title: 'Mappa',     body: 'Ogni km che cammini o corri avanza il tuo viaggio. Esplora nuove regioni!' },
-  train:  { icon: '🥾', title: 'Allenati',  body: 'Incolla o digita i tuoi passi e convertili in XP e oro per il tuo eroe.' },
+  train:  { icon: '🥾', title: 'Allenati',  body: 'Registra ogni camminata, corsa o pedalata e convertila in XP e oro per il tuo eroe.' },
   market: { icon: '🏘️', title: 'Borgo',     body: 'Commercia con gli NPC, compra consumabili e sfida i rivali dell\'Arena.' },
   hero:   { icon: '🧑‍🦯', title: 'Eroe',      body: 'Equipaggiamento, statistiche e tutto ciò che riguarda il tuo personaggio.' },
 };
