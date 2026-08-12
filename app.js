@@ -7284,39 +7284,69 @@ function renderHero(c) {
     c.appendChild(el('p', 'center small muted', `✨ Prestige ${HERO.prestige.count} · +${HERO.prestige.count*20}% XP permanente`));
   }
 
-  // ── Albero Abilità ──
+  // ── Virtù dell'Eroe ──
   {
     const pts = HERO.skillPoints || 0;
-    const sp2 = el('div', 'panel skill-tree-panel');
-    sp2.appendChild(el('h3', 'panel-title', `🌟 Abilità Passive${pts > 0 ? ` <span class="skill-pts-badge">${pts}</span>` : ''}`));
-    sp2.appendChild(el('p', 'muted small', `Punti disponibili: <b>${pts}</b> · guadagni 1 punto ogni 5 livelli`));
-    const grid = el('div', 'skill-tree-grid');
-    RPG.SKILL_TREE.forEach(sk => {
-      const learned = (HERO.skills || []).includes(sk.id);
-      const canLearn = !learned && HERO.level >= sk.reqLevel && pts >= sk.cost;
-      const locked = HERO.level < sk.reqLevel;
-      const cell = el('div', 'skill-cell' + (learned ? ' learned' : locked ? ' locked' : canLearn ? ' available' : ''));
-      cell.innerHTML = `<span class="skill-icon">${sk.icon}</span><span class="skill-name">${esc(sk.name)}</span><span class="skill-desc muted small">${esc(sk.desc)}</span>`;
-      if (locked) {
-        cell.innerHTML += `<span class="skill-req muted small">Lv ${sk.reqLevel}</span>`;
-      } else if (learned) {
-        cell.innerHTML += `<span class="skill-state done-strip">✅</span>`;
-      } else if (canLearn) {
-        const btn = el('button', 'btn btn-primary', `+${sk.cost} pt`);
-        btn.addEventListener('click', () => {
-          const err = RPG.learnSkill(HERO, sk.id);
-          if (err) { toast(err); return; }
-          persist();
-          vibrate([80, 40, 120]);
-          setTab('hero');
-        });
-        cell.appendChild(btn);
-      } else {
-        cell.innerHTML += `<span class="skill-req muted small">Lv ${sk.reqLevel} · ${sk.cost} pt</span>`;
-      }
-      grid.appendChild(cell);
+    const sp2 = el('div', 'panel virtu-panel');
+    const hdr = el('div', 'virtu-header');
+    hdr.innerHTML = `<span class="virtu-title">⚜️ Virtù dell'Eroe</span>${pts > 0 ? `<span class="skill-pts-badge">${pts} pt</span>` : ''}`;
+    sp2.appendChild(hdr);
+    sp2.appendChild(el('p', 'muted small virtu-sub', `Punti disponibili: <b>${pts}</b> · guadagni 1 punto ogni 5 livelli`));
+
+    const tiers = [
+      { label: 'Principiante', range: [1, 20] },
+      { label: 'Avventuriero', range: [21, 45] },
+      { label: 'Veterano',     range: [46, 70] },
+      { label: 'Leggendario',  range: [71, 100] },
+    ];
+
+    tiers.forEach(tier => {
+      const tierSkills = RPG.SKILL_TREE.filter(sk => sk.reqLevel >= tier.range[0] && sk.reqLevel <= tier.range[1]);
+      if (!tierSkills.length) return;
+
+      const tierWrap = el('div', 'virtu-tier');
+      tierWrap.appendChild(el('div', 'virtu-tier-label', tier.label));
+
+      const grid = el('div', 'virtu-grid');
+      tierSkills.forEach(sk => {
+        const learned = (HERO.skills || []).includes(sk.id);
+        const canLearn = !learned && HERO.level >= sk.reqLevel && pts >= sk.cost;
+        const locked = HERO.level < sk.reqLevel;
+        const stateClass = learned ? ' learned' : locked ? ' locked' : canLearn ? ' available' : '';
+        const cell = el('div', 'virtu-cell' + stateClass);
+
+        const iconEl = el('span', 'virtu-icon');
+        if (sk.img) {
+          iconEl.innerHTML = `<img src="${esc(sk.img)}" alt="${esc(sk.name)}" class="virtu-icon-img">`;
+        } else {
+          iconEl.textContent = sk.icon;
+        }
+        cell.appendChild(iconEl);
+        cell.appendChild(el('span', 'virtu-name', esc(sk.name)));
+        cell.appendChild(el('span', 'virtu-desc muted small', esc(sk.desc)));
+
+        if (locked) {
+          cell.appendChild(el('span', 'virtu-req muted small', `Lv ${sk.reqLevel}${sk.cost > 1 ? ` · ${sk.cost} pt` : ''}`));
+        } else if (learned) {
+          cell.appendChild(el('span', 'virtu-state', '✅'));
+        } else if (canLearn) {
+          const btn = el('button', 'btn btn-primary virtu-btn', `Impara · ${sk.cost} pt`);
+          btn.addEventListener('click', () => {
+            const err = RPG.learnSkill(HERO, sk.id);
+            if (err) { toast(err); return; }
+            persist();
+            vibrate([80, 40, 120]);
+            setTab('hero');
+          });
+          cell.appendChild(btn);
+        } else {
+          cell.appendChild(el('span', 'virtu-req muted small', `Lv ${sk.reqLevel} · ${sk.cost} pt`));
+        }
+        grid.appendChild(cell);
+      });
+      tierWrap.appendChild(grid);
+      sp2.appendChild(tierWrap);
     });
-    sp2.appendChild(grid);
     c.appendChild(sp2);
   }
 

@@ -818,13 +818,17 @@ const RPG = (() => {
         if (eff.stone) hero.stone = (hero.stone || 0) + eff.stone;
         break;
       case 'xp_flat':        applyXp(hero, eff.value); break;
-      case 'xp_mult':
-        b.xpMult = { value: (b.xpMult ? b.xpMult.value : 0) + eff.value, sessions: (b.xpMult ? b.xpMult.sessions : 0) + (eff.sessions || 1) };
+      case 'xp_mult': {
+        const extraSess = Math.round(skillBonus(hero, 'consumableExtra'));
+        b.xpMult = { value: (b.xpMult ? b.xpMult.value : 0) + eff.value, sessions: (b.xpMult ? b.xpMult.sessions : 0) + (eff.sessions || 1) + extraSess };
         break;
-      case 'xp_gold_mult':
-        b.xpMult  = { value: (b.xpMult  ? b.xpMult.value  : 0) + eff.value, sessions: (b.xpMult  ? b.xpMult.sessions  : 0) + (eff.sessions || 1) };
+      }
+      case 'xp_gold_mult': {
+        const extraSess2 = Math.round(skillBonus(hero, 'consumableExtra'));
+        b.xpMult  = { value: (b.xpMult  ? b.xpMult.value  : 0) + eff.value, sessions: (b.xpMult  ? b.xpMult.sessions  : 0) + (eff.sessions || 1) + extraSess2 };
         b.goldMult = { value: (b.goldMult ? b.goldMult.value : 0) + eff.value, expiresAt: now + h2ms(24) };
         break;
+      }
       case 'gold_mult':
         b.goldMult = { value: (b.goldMult ? b.goldMult.value : 0) + eff.value, expiresAt: now + h2ms(eff.expiresH || 24) };
         break;
@@ -3180,6 +3184,15 @@ const RPG = (() => {
       ? Math.max(0, Math.round((new Date(today).getTime() - new Date(hero.streak.last).getTime()) / 86400000) - 1)
       : 0;
     const shieldsNeeded = Math.max(1, daysMissed);
+    // Immortale: auto-shield una volta al mese se si salta 1 solo giorno
+    if (!isConsecutive && daysMissed === 1 && (hero.skills || []).includes('immortale')) {
+      const lastAutoShield = hero.immortaleUsed || 0;
+      if (Date.now() - lastAutoShield >= 30 * 86400000) {
+        hero.immortaleUsed = Date.now();
+        hero.consumableBuffs = hero.consumableBuffs || {};
+        hero.consumableBuffs.streakShield = (hero.consumableBuffs.streakShield || 0) + 1;
+      }
+    }
     if (!isConsecutive && hero.consumableBuffs && hero.consumableBuffs.streakShield >= shieldsNeeded) {
       hero.consumableBuffs.streakShield -= shieldsNeeded;
       hero.streak.last = today;
@@ -3412,6 +3425,8 @@ const RPG = (() => {
     if (prestigeBonus > 0) xpMult += prestigeBonus;
     // Skill tree bonuses
     if ((hero.skills || []).includes('swift_legs') && type !== 'cyclette') xpMult += 0.08;
+    if ((hero.skills || []).includes('ciclista_nato') && type === 'cyclette') xpMult += 0.10;
+    xpMult += skillBonus(hero, 'xpMult_global');
     // Buff consumabili attivi
     const cBuffs = hero.consumableBuffs || {};
     const now2 = Date.now();
@@ -4014,14 +4029,16 @@ const RPG = (() => {
   // Quante sfide restano oggi
   function battlesLeft(hero) {
     hero.battles = hero.battles || { date: null, count: 0 };
-    if (hero.battles.date !== todayStamp()) return BATTLE_MAX_DAY;
-    return Math.max(0, BATTLE_MAX_DAY - hero.battles.count);
+    const cap = BATTLE_MAX_DAY + Math.round(skillBonus(hero, 'arenaExtraFight'));
+    if (hero.battles.date !== todayStamp()) return cap;
+    return Math.max(0, cap - hero.battles.count);
   }
   // Consuma una sfida (ritorna false se esaurite)
   function useBattle(hero) {
     const today = todayStamp();
     if (hero.battles.date !== today) hero.battles = { date: today, count: 0 };
-    if (hero.battles.count >= BATTLE_MAX_DAY) return false;
+    const cap = BATTLE_MAX_DAY + Math.round(skillBonus(hero, 'arenaExtraFight'));
+    if (hero.battles.count >= cap) return false;
     hero.battles.count++;
     return true;
   }
@@ -4369,9 +4386,10 @@ const RPG = (() => {
     const now = Date.now();
     const hoursElapsed = Math.max(0, (now - p.lastTick) / 3600000);
     if (hoursElapsed > 0) {
-      const hungerRate = (20 / 6) * pers.hungerRateMult * (sb.hungerDecayMult || 1);
+      const petSlowMult = 1 - skillBonus(hero, 'petHungerSlow');
+      const hungerRate = (20 / 6) * pers.hungerRateMult * (sb.hungerDecayMult || 1) * petSlowMult;
       const accMoodMult = p.accessory === 'collare' ? 0.8 : 1;
-      const moodRate = (25 / 24) * pers.moodRateMult * (sb.moodDecayMult || 1) * accMoodMult;
+      const moodRate = (25 / 24) * pers.moodRateMult * (sb.moodDecayMult || 1) * accMoodMult * petSlowMult;
       p.hunger = clamp01to100(p.hunger - hungerRate * hoursElapsed);
       p.mood = clamp01to100(p.mood - moodRate * hoursElapsed);
       p.lastTick = now;
@@ -5902,12 +5920,13 @@ const RPG = (() => {
     const st = weeklyBossStatus(hero);
     if (!st || !st.done || st.claimed) return null;
     hero.weeklyBoss.claimed = true;
-    hero.gold += st.boss.gold;
+    const bossGold = Math.round(st.boss.gold * (1 + skillBonus(hero, 'bossGoldBonus')));
+    hero.gold += bossGold;
     const item = genItemFor(hero);
     hero.items.push(item);
     /* Boss settimanale: raro garantito */
     const consumable = dropConsumable(hero, 'raro');
-    return { gold: st.boss.gold, item, consumable };
+    return { gold: bossGold, item, consumable };
   }
 
   /* ── Mercante Itinerante (ven-dom, 3 item rari) ──────────── */
@@ -5981,6 +6000,30 @@ const RPG = (() => {
     { id: 'hoarder',     name: 'Accumulatore',     icon: '🌲', cost: 1, reqLevel: 20,
       desc: '+15% legna e pietra raccolte',
       effect: { resMult: 0.15 } },
+    { id: 'ciclista_nato', name: 'Ciclista Nato',    icon: '🚴', cost: 1, reqLevel: 25,
+      desc: '+10% XP dalla cyclette',
+      effect: { xpMult_bike: 0.10 } },
+    { id: 'arenatico',    name: 'Arenatico',         icon: '⚔️', cost: 1, reqLevel: 30,
+      desc: '+1 sfida Arena al giorno',
+      effect: { arenaExtraFight: 1 } },
+    { id: 'pollice_verde', name: 'Pollice Verde',    icon: '🌿', cost: 1, reqLevel: 35,
+      desc: 'Le piante in Serra crescono il 20% più veloce',
+      effect: { serraGrowthBonus: 0.20 } },
+    { id: 'cacciatore_boss', name: 'Cacciatore di Boss', icon: '🐉', cost: 2, reqLevel: 40,
+      desc: '+25% oro dalle ricompense Boss settimanale',
+      effect: { bossGoldBonus: 0.25 } },
+    { id: 'alchimista',   name: 'Alchimista',        icon: '⚗️', cost: 2, reqLevel: 50,
+      desc: 'I buff XP da consumabile durano 1 sessione in più',
+      effect: { consumableExtra: 1 } },
+    { id: 'domatore',     name: 'Domatore',           icon: '🐾', cost: 2, reqLevel: 60,
+      desc: 'Il famiglio perde Fame e Umore il 15% più lentamente',
+      effect: { petHungerSlow: 0.15 } },
+    { id: 'leggenda',     name: 'Leggenda',           icon: '🌟', cost: 2, reqLevel: 75,
+      desc: '+5% XP globale da ogni allenamento',
+      effect: { xpMult_global: 0.05 } },
+    { id: 'immortale',    name: 'Immortale',          icon: '🔱', cost: 2, reqLevel: 90,
+      desc: 'Se salti un giorno, la streak si protegge automaticamente (1 volta al mese)',
+      effect: { autoStreakShield: 1 } },
   ];
   function skillById(id) { return SKILL_TREE.find(s => s.id === id); }
   function learnSkill(hero, id) {
@@ -6247,7 +6290,7 @@ const RPG = (() => {
 
       const diff = water - pData.water;
       let healthHit = 0;
-      let growthPerDay = currentSeason().id === 'primavera' ? 2 : 1;
+      let growthPerDay = (currentSeason().id === 'primavera' ? 2 : 1) * (1 + skillBonus(hero, 'serraGrowthBonus'));
 
       if (diff >= -0.5 && diff <= 1.0) {
         pot.health = Math.min(100, pot.health + 10);

@@ -5502,6 +5502,70 @@ img.fiche-inline {
 .skill-req { font-size: .72rem; margin-top: .2rem; }
 .skill-state { font-size: .8rem; margin-top: .2rem; }
 
+/* ── Virtù dell'Eroe ───────────────────────────────────────── */
+.virtu-panel {
+  border: 1.5px solid rgba(212,175,55,.35);
+}
+.virtu-header {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-bottom: .25rem;
+}
+.virtu-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: .02em;
+}
+.virtu-sub { margin-bottom: .75rem; }
+.virtu-tier {
+  margin-bottom: .9rem;
+}
+.virtu-tier:last-child { margin-bottom: 0; }
+.virtu-tier-label {
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--divider);
+  padding-bottom: .3rem;
+  margin-bottom: .5rem;
+}
+.virtu-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .5rem;
+}
+.virtu-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .2rem;
+  padding: .65rem .45rem .5rem;
+  border-radius: 10px;
+  border: 1.5px solid rgba(255,255,255,.1);
+  text-align: center;
+}
+.virtu-cell.learned {
+  border-color: rgba(212,175,55,.6);
+  background: rgba(212,175,55,.07);
+}
+.virtu-cell.available {
+  border-color: var(--gold);
+  background: rgba(255,200,50,.1);
+  box-shadow: 0 0 8px rgba(212,175,55,.18);
+}
+.virtu-cell.locked { opacity: .4; }
+.virtu-icon { font-size: 1.55rem; line-height: 1; }
+.virtu-icon-img { width: 40px; height: 40px; object-fit: contain; border-radius: 50%; }
+.virtu-name { font-size: .8rem; font-weight: 700; color: var(--ink); }
+.virtu-desc { font-size: .72rem; line-height: 1.4; }
+.virtu-req { font-size: .7rem; margin-top: .15rem; }
+.virtu-state { font-size: .8rem; margin-top: .1rem; }
+.virtu-btn { font-size: .72rem; padding: .25rem .6rem; margin-top: .2rem; }
+
 /* ── Cronache di Oakhaven (Lore) ─────────────────────────── */
 .lore-panel { border: 1.5px solid rgba(150,100,255,.25); }
 .lore-panel .panel-title { color: #b48aff; }
