@@ -7713,17 +7713,21 @@ img.fiche-inline {
 /* Back link — pill sottile e discreto */
 .view-back-link {
   display: inline-flex; align-items: center; gap: 4px;
-  background: none; border: 1px solid rgba(255,200,120,.45);
-  color: rgba(255,220,160,.85); font-size: .78rem; font-weight: 600;
+  background: rgba(20,12,5,.55); backdrop-filter: blur(3px);
+  border: 1px solid rgba(255,200,120,.45);
+  color: rgba(255,220,160,.92); font-size: .78rem; font-weight: 600;
   padding: 3px 10px; border-radius: 20px; cursor: pointer;
-  margin-bottom: 8px; opacity: .85;
+  margin-bottom: 8px; opacity: .92;
   transition: opacity .15s;
 }
 .view-back-link:hover { opacity: 1; }
-/* su pergamena (rifugio/camp) il pill deve essere scuro */
+/* Le sotto-schermate del Rifugio (Serra, Santuario, ecc.) hanno sfondi
+   fotografici scuri, non pergamena chiara: manteniamo lo stesso pill
+   scuro con testo chiaro invece di invertire i colori. */
 .bg-parchment .view-back-link {
-  border-color: var(--leather);
-  color: var(--ink-light);
+  background: rgba(20,12,5,.5);
+  border-color: rgba(90,61,36,.55);
+  color: rgba(255,225,170,.92);
 }
 .view-back-link-bisca {
   border-color: #4c1d95; color: #c4b5fd;
