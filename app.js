@@ -22,6 +22,42 @@ const el = (tag, cls, html) => {
 };
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
+/* ── Barra km riutilizzabile ──────────────────────────────────────
+   title   : stringa HTML (etichetta sinistra)
+   progress: km percorsi (number)
+   total   : km obiettivo (number)
+   opts:
+     color  : 'gold' | 'danger' | 'blue'   (default 'gold')
+     foot   : stringa HTML sotto la barra   (default '')
+     extra  : stringa HTML lato destro del titolo (es. buff attivi)
+──────────────────────────────────────────────────────────────────── */
+function kmBarEl(title, progress, total, { color = 'gold', foot = '', extra = '' } = {}) {
+  const pct  = Math.min(100, total > 0 ? Math.round(progress / total * 100) : 0);
+  const done = pct >= 100;
+  const wrap = el('div', 'km-bar-block');
+  const hdr  = el('div', 'km-bar-hdr');
+  hdr.innerHTML =
+    `<span class="km-bar-title">${title}</span>` +
+    `<span class="km-bar-right">${extra}<b class="km-bar-val">${progress.toFixed(1)}</b><span class="km-bar-sep"> / ${total} km</span></span>`;
+  wrap.appendChild(hdr);
+  const track = el('div', 'km-bar-track');
+  const fill  = el('div', `km-bar-fill ${done ? 'km-done' : 'km-' + color}`);
+  fill.style.width = pct + '%';
+  track.appendChild(fill);
+  [25, 50, 75].forEach(p => {
+    const t = el('div', 'km-bar-tick');
+    t.style.left = p + '%';
+    track.appendChild(t);
+  });
+  wrap.appendChild(track);
+  if (foot) {
+    const f = el('div', 'km-bar-foot');
+    f.innerHTML = foot;
+    wrap.appendChild(f);
+  }
+  return wrap;
+}
+
 /* ── Avatar dei protagonisti (creati con l'IA) ── */
 const AVATARS = [
   { path: 'assets/avatars/eroe1.webp',      storyId: 'eroe1',      label: 'Il Viandante' },
@@ -2850,11 +2886,11 @@ function renderMap(c) {
         p.appendChild(img);
       }
       p.appendChild(el('p', 'center', `<b>${esc(inc.name)}</b>`));
-      const pct = Math.min(100, Math.round(inc.progressKm / inc.km * 100));
-      p.appendChild(el('div', 'membar', `<div class="membar-fill danger" style="width:${pct}%"></div><span>${inc.progressKm.toFixed(1)} / ${inc.km} km</span>`));
-      p.appendChild(el('p', 'muted small center',
-        `Forziere con oggetto ${(RPG.RARITIES[inc.minRarity] || RPG.RARITIES.comune).label} o superiore.<br>` +
-        `<b class="cd-hot"><span data-cd="midnight">…</span> alla scadenza!</b>`));
+      const rarLabel = (RPG.RARITIES[inc.minRarity] || RPG.RARITIES.comune).label;
+      p.appendChild(kmBarEl('⚡ ' + esc(inc.name), inc.progressKm, inc.km, {
+        color: 'danger',
+        foot:  `Forziere <b>${rarLabel}</b>+ · <b class="cd-hot"><span data-cd="midnight">…</span> alla scadenza!</b>`,
+      }));
       c.appendChild(p);
     } else if (HERO.incursion && HERO.incursion.done) {
       c.appendChild(el('div', 'panel done-strip', `✅ <b>Incursione di oggi respinta!</b> <span class="small muted">Torna domani.</span>`));
@@ -2870,7 +2906,12 @@ function renderMap(c) {
       const bp = el('div', 'panel panel-featured boss-weekly-panel');
       bp.appendChild(el('h3', 'panel-title', `${boss.icon} Boss Settimanale`));
       bp.appendChild(el('p', 'center', `<b>${esc(boss.name)}</b> — <span class="muted small">${boss.zone}</span>`));
-      bp.appendChild(el('div', 'membar', `<div class="membar-fill${claimed ? '' : done ? ' gold' : ' danger'}" style="width:${pct}%"></div><span>${progressKm.toFixed(1)} / ${boss.km} km</span>`));
+      bp.appendChild(kmBarEl(boss.icon + ' ' + esc(boss.name), progressKm, boss.km, {
+        color: done || claimed ? 'gold' : 'danger',
+        foot:  claimed ? '✅ Boss sconfitto questa settimana!'
+             : done    ? '🏆 Pronto al riscatto!'
+             :           `Mancano <b>${(boss.km - progressKm).toFixed(1)} km</b> · entro domenica`,
+      }));
       if (claimed) {
         bp.appendChild(el('div', 'done-strip', `✅ <b>Boss sconfitto questa settimana!</b>`));
       } else if (done) {
@@ -4889,16 +4930,21 @@ function renderTrain(c) {
   c.appendChild(el('h2', 'section-title', '⚔️ Registra l\'Impresa'));
 
   // Daily goal progress bar
-  const goalKm = RPG.dailyGoalKm(HERO.level);
+  const goalKm  = RPG.dailyGoalKm(HERO.level);
   const todayKm = HERO.log.filter(l => {
     const d = new Date(l.date); const t = new Date();
     return d.getFullYear() === t.getFullYear() && d.getMonth() === t.getMonth() && d.getDate() === t.getDate();
   }).reduce((s, l) => s + l.km, 0);
-  const goalPct = Math.min(100, Math.round(todayKm / goalKm * 100));
-  const goalEl = el('div', 'train-daily-goal');
-  goalEl.innerHTML = `<div class="train-goal-label">🎯 Obiettivo di oggi: <b>${todayKm.toFixed(1)} / ${goalKm} km</b>${HERO.restBonus ? ' · ✨ <b style="color:var(--gold-bright)">x2 Riposo attivo!</b>' : ''}</div>
-    <div class="train-goal-bar"><div class="train-goal-fill" style="width:${goalPct}%"></div></div>`;
-  c.appendChild(goalEl);
+  const restExtra = HERO.restBonus ? ' <span class="km-bar-buff">✨ ×2 Riposo</span>' : '';
+  const goalBar = kmBarEl('🎯 Obiettivo di oggi', todayKm, goalKm, {
+    color: 'gold',
+    extra: restExtra,
+    foot:  todayKm >= goalKm
+      ? '✅ Obiettivo raggiunto! Continua per guadagnare più bottino.'
+      : `Mancano <b>${(goalKm - todayKm).toFixed(1)} km</b> all\'obiettivo`,
+  });
+  goalBar.classList.add('train-daily-goal');
+  c.appendChild(goalBar);
 
   const form = el('div', 'panel');
   form.appendChild(el('label', 'field-label', 'Tipo di attività'));
