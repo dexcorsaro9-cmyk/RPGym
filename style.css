@@ -399,29 +399,35 @@ body {
   padding: 1px 5px; margin-right: 4px;
 }
 .km-bar-track {
-  position: relative; height: 14px;
-  background: rgba(0,0,0,.28); border-radius: 7px; overflow: hidden;
+  position: relative;
+  height: 42px;
+  background-image: url('assets/ui/traccia barra.webp');
+  background-size: 100% 100%;
+  background-color: transparent;
+  border-radius: 0;
+  overflow: hidden;
 }
 .km-bar-fill {
-  position: absolute; top: 0; left: 0; bottom: 0;
-  border-radius: 7px; overflow: hidden;
-  transition: width .6s cubic-bezier(.22,.68,.35,1.1);
+  position: absolute;
+  top: 16%; bottom: 16%; left: 0;
+  border-radius: 0;
+  background-image: url('assets/ui/fill della barra.webp');
+  background-size: 100% 100%;
+  transition: width .7s cubic-bezier(.22,.68,.35,1.1);
+  -webkit-mask-image: linear-gradient(to right, black 80%, transparent 100%);
+  mask-image: linear-gradient(to right, black 80%, transparent 100%);
 }
-.km-bar-fill::after {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.35) 50%, transparent 100%);
-  animation: membar-shimmer 2.6s ease-in-out infinite;
-}
-.km-gold   { background: linear-gradient(90deg, var(--gold), var(--gold-bright)); }
-.km-danger { background: linear-gradient(90deg, #c0392b, #e05030); }
-.km-blue   { background: linear-gradient(90deg, #2e6fb0, #4a9fd4); }
-.km-done   {
-  background: linear-gradient(90deg, #27ae60, #2ecc71);
-  animation: km-done-pulse 2.2s ease-in-out infinite;
+.km-bar-fill::after { display: none; }
+/* tutte le varianti usano il fill di fuoco — solo il glow cambia */
+.km-gold, .km-danger, .km-blue { /* fire fill */ }
+.km-done {
+  -webkit-mask-image: none;
+  mask-image: none;
+  animation: km-done-pulse 2s ease-in-out infinite;
 }
 @keyframes km-done-pulse {
-  0%, 100% { box-shadow: 0 0 5px rgba(46,204,113,.35); }
-  50%       { box-shadow: 0 0 12px rgba(46,204,113,.65); }
+  0%, 100% { box-shadow: 0 0 8px rgba(255,160,50,.5); }
+  50%       { box-shadow: 0 0 20px rgba(255,200,80,.85); }
 }
 .km-bar-foot {
   font-size: .7rem; color: var(--muted); margin-top: 5px; line-height: 1.3;
