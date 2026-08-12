@@ -3812,8 +3812,9 @@ function _buildPvpActive(container, ch, refresh) {
       claimBtn.addEventListener('click', () => {
         HERO.gold = (HERO.gold || 0) + reward;
         HERO.pvpWins = (HERO.pvpWins || 0) + 1;
+        HERO.cloud = HERO.cloud || { activeChallenge: null };
         HERO.cloud.claimedChallenges = [...(HERO.cloud.claimedChallenges || []), ch.id];
-        persist(); updateHUD();
+        persist(); renderHUD();
         const pt = pvpTitle(HERO.pvpWins);
         const titleLine = pt ? `<p class="pvp-new-title">${pt.icon} Nuovo titolo: <b>${pt.label}</b></p>` : '';
         modal(`
