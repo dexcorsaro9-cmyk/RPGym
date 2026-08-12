@@ -8,6 +8,85 @@ if (window.Capacitor && window.Capacitor.isNativePlatform()) {
   if (_capUpd) _capUpd.notifyAppReady();
 }
 
+/* ── Sincronizzazione nativa passi/distanza (HealthKit / Health Connect) ──
+   Disponibile solo nell'app nativa (Capacitor). Sulla PWA resta il flusso
+   manuale (Comandi Rapidi iOS / MacroDroid Android già esistente). */
+function nativeHealthPlugin() {
+  return (window.Capacitor && window.Capacitor.isNativePlatform() &&
+    window.Capacitor.Plugins && window.Capacitor.Plugins.Health) || null;
+}
+
+async function syncNativeHealth(silent) {
+  if (!HERO || !HERO.nativeHealthSync) return null;
+  const Health = nativeHealthPlugin();
+  if (!Health) return null;
+  try {
+    const auth = await Health.checkAuthorization({ read: ['steps'] });
+    if (!auth || !auth.readAuthorized || !auth.readAuthorized.includes('steps')) return null;
+    const start = new Date(); start.setHours(0, 0, 0, 0);
+    const { samples } = await Health.queryAggregated({
+      dataType: 'steps',
+      startDate: start.toISOString(),
+      endDate: new Date().toISOString(),
+      bucket: 'day',
+      aggregation: 'sum',
+    });
+    const steps = Math.round((samples && samples[0] && samples[0].value) || 0);
+    if (!(steps > 0)) return null;
+    const km = steps * 0.00075;
+    const isFirst = (HERO.onboardingStep || 0) <= 1;
+    const report = RPG.logHealthSync(HERO, 'camminata', km);
+    if (report && !report.error) {
+      if (isFirst) HERO.onboardingStep = 2;
+      persist(); renderHUD(); FB.syncHero(HERO).catch(() => {});
+      if (HERO.guild && report.km > 0) FB.contributeToGuild(HERO, report.km).catch(() => {});
+      checkMapNotify(); checkBoardNotify(); maybeSyncChallenge(); updateTabOnboardingPulse();
+      if (isFirst) OPEN_QUEUE.push(showFirstWorkoutCelebration);
+      if (silent) toast(`🔄 Sincronizzati ${steps} passi da Salute`);
+      else showHealthSyncResult(report);
+    }
+    return report;
+  } catch (err) {
+    console.error('Errore sincronizzazione nativa Salute:', err);
+    return null;
+  }
+}
+
+async function enableNativeHealthSync() {
+  const Health = nativeHealthPlugin();
+  if (!Health) { toast('Disponibile solo nell\'app, non nel browser.'); return false; }
+  try {
+    const avail = await Health.isAvailable();
+    if (!avail || !avail.available) { toast('Salute/Health Connect non disponibile su questo dispositivo.'); return false; }
+    const status = await Health.requestAuthorization({ read: ['steps'], write: [] });
+    if (!status || !status.readAuthorized || !status.readAuthorized.includes('steps')) {
+      toast('Permesso negato. Puoi attivarlo dalle impostazioni del dispositivo.');
+      return false;
+    }
+    HERO.nativeHealthSync = true;
+    persist();
+    await syncNativeHealth(true);
+    return true;
+  } catch (err) {
+    console.error('Errore attivazione sync nativa Salute:', err);
+    toast('Errore durante l\'attivazione.');
+    return false;
+  }
+}
+
+function disableNativeHealthSync() {
+  if (!HERO) return;
+  HERO.nativeHealthSync = false;
+  persist();
+}
+
+/* Ri-sincronizza quando l'app torna in primo piano (non solo all'apertura) */
+(function watchNativeHealthResume() {
+  const App = window.Capacitor && window.Capacitor.isNativePlatform() &&
+    window.Capacitor.Plugins && window.Capacitor.Plugins.App;
+  if (App) App.addListener('resume', () => { if (HERO) syncNativeHealth(true); });
+})();
+
 let STATE = RPG.load();
 let HERO = null;
 let CURRENT_TAB = 'camp';
@@ -779,6 +858,9 @@ function enterGame() {
   // Sincronizzazione automatica da Apple Salute (URL params o clipboard)
   const healthReport = applyHealthSyncFromURL(HERO);
   if (healthReport) { persist(); renderHUD(); FB.syncHero(HERO).catch(() => {}); if (HERO.guild && healthReport.km > 0) FB.contributeToGuild(HERO, healthReport.km).catch(() => {}); maybeSyncChallenge(); }
+
+  // Sincronizzazione automatica nativa (HealthKit / Health Connect), se attivata
+  syncNativeHealth(true);
 
   // Coda dei popup di apertura
   OPEN_QUEUE = [];
@@ -4876,6 +4958,39 @@ function _openBachecaDetail(q, todayKm, claimed, done, tm) {
 
 function renderTrain(c) {
   let chosen = 'camminata';
+
+  // ── Sincronizzazione automatica nativa (HealthKit / Health Connect) ──
+  if (nativeHealthPlugin()) {
+    const nh = el('div', 'native-health-banner' + (HERO.nativeHealthSync ? ' active' : ''));
+    if (HERO.nativeHealthSync) {
+      nh.innerHTML = `<span class="nh-icon">✅</span>
+        <div class="nh-body">
+          <div class="nh-title">Sincronizzazione automatica attiva</div>
+          <div class="nh-sub">Passi e km si aggiornano da soli ad ogni apertura dell'app</div>
+        </div>
+        <button class="nh-toggle">Disattiva</button>`;
+      nh.querySelector('.nh-toggle').addEventListener('click', () => {
+        disableNativeHealthSync();
+        toast('Sincronizzazione automatica disattivata.');
+        setTab('train');
+      });
+    } else {
+      nh.innerHTML = `<span class="nh-icon">🔗</span>
+        <div class="nh-body">
+          <div class="nh-title">Attiva la sincronizzazione automatica</div>
+          <div class="nh-sub">Niente più copia-incolla: i tuoi passi si registrano da soli</div>
+        </div>
+        <button class="nh-toggle nh-toggle-primary">Attiva</button>`;
+      nh.querySelector('.nh-toggle').addEventListener('click', async () => {
+        const btn = nh.querySelector('.nh-toggle');
+        btn.disabled = true; btn.textContent = '…';
+        const ok = await enableNativeHealthSync();
+        if (ok) { toast('✅ Sincronizzazione automatica attivata!'); setTab('train'); }
+        else { btn.disabled = false; btn.textContent = 'Attiva'; }
+      });
+    }
+    c.appendChild(nh);
+  }
 
   // ── Strip incolla-passi: sempre visibile, nessun popup ──
   const isAndroid = /android/i.test(navigator.userAgent);

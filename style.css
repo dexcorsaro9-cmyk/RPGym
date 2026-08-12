@@ -3349,6 +3349,33 @@ img.fiche-inline {
 }
 .shortcut-icon { font-size: 1.3rem; }
 /* ── Strip incolla-passi inline nel tab Allenati ── */
+/* ── Banner sincronizzazione nativa (HealthKit / Health Connect) ── */
+.native-health-banner {
+  display: flex; align-items: center; gap: 10px;
+  background: linear-gradient(90deg, rgba(46,80,139,.22), rgba(46,111,176,.14));
+  border: 1px solid rgba(74,159,212,.4);
+  border-radius: 12px; padding: 10px 12px; margin-bottom: 8px;
+}
+.native-health-banner.active {
+  background: linear-gradient(90deg, rgba(39,174,96,.2), rgba(46,204,113,.1));
+  border-color: rgba(46,204,113,.4);
+}
+.nh-icon { font-size: 1.3rem; flex-shrink: 0; }
+.nh-body { flex: 1; min-width: 0; }
+.nh-title { font-size: .82rem; font-weight: 700; color: var(--text); }
+.nh-sub { font-size: .68rem; color: var(--muted); margin-top: 1px; }
+.nh-toggle {
+  flex-shrink: 0; font-size: .72rem; font-weight: 700;
+  padding: 6px 12px; border-radius: 8px; cursor: pointer;
+  border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.08);
+  color: var(--text);
+}
+.nh-toggle-primary {
+  background: linear-gradient(135deg, #2e6fb0, #4a9fd4);
+  border-color: transparent; color: #fff;
+}
+.nh-toggle:disabled { opacity: .6; cursor: default; }
+
 .step-sync-strip {
   display: flex; align-items: center; gap: 8px;
   background: linear-gradient(90deg, rgba(30,15,5,.88), rgba(45,22,8,.82));

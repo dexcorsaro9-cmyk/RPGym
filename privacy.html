@@ -308,6 +308,11 @@ a:focus-visible {
             <td><span class="tag tag-cloud">Firebase Firestore</span></td>
             <td>Funzionalità multigiocatore opzionali</td>
           </tr>
+          <tr>
+            <td>Passi e distanza percorsa (Apple Salute / Health Connect)</td>
+            <td><span class="tag tag-device">Solo dispositivo</span></td>
+            <td>Sincronizzazione automatica facoltativa dell'attività fisica</td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -324,11 +329,11 @@ a:focus-visible {
       <li><i class="ico">✕</i>Dati anagrafici reali (nome, cognome, data di nascita)</li>
       <li><i class="ico">✕</i>Indirizzo e-mail o numero di telefono</li>
       <li><i class="ico">✕</i>Dati di posizione GPS</li>
-      <li><i class="ico">✕</i>Dati biometrici o sanitari dalla piattaforma (Apple Salute, Google Fit)</li>
+      <li><i class="ico">✕</i>Dati biometrici o sanitari diversi da passi/distanza (frequenza cardiaca, peso, sonno, ecc.)</li>
       <li><i class="ico">✕</i>Identificatori pubblicitari (IDFA, GAID)</li>
       <li><i class="ico">✕</i>Cookie di tracciamento o analytics di terze parti</li>
     </ul>
-    <p>L'integrazione con Apple Salute tramite Scorciatoie (Shortcuts) è facoltativa e totalmente gestita dall'utente: i passi vengono inviati all'app localmente, senza che Hero's Pace acceda autonomamente a HealthKit.</p>
+    <p>Nell'app nativa (iOS/Android), Hero's Pace può leggere <strong>solo passi e distanza percorsa</strong> da Apple Salute (HealthKit) o Health Connect, esclusivamente per calcolare in automatico i km giornalieri e convertirli in progressione di gioco. L'accesso richiede il consenso esplicito dell'utente tramite il permesso di sistema, è disattivabile in ogni momento dalle impostazioni dell'app o del dispositivo, e i dati letti non lasciano mai il dispositivo: non vengono trasmessi a server esterni né condivisi con terzi. In alternativa resta sempre disponibile l'import manuale tramite Scorciatoie (iOS) o MacroDroid/Tasker (Android), totalmente gestito dall'utente.</p>
   </section>
 
   <!-- 4. Notifiche -->

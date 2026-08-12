@@ -4,4 +4,5 @@
     <string name="title_activity_main">Hero\'s Pace</string>
     <string name="package_name">com.antoniodecino.heroscape</string>
     <string name="custom_url_scheme">com.antoniodecino.heroscape</string>
+    <string name="health_connect_privacy_policy_url">https://dexcorsaro9-cmyk.github.io/RPGym/privacy.html</string>
 </resources>
