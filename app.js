@@ -7291,7 +7291,31 @@ function renderHero(c) {
     const hdr = el('div', 'virtu-header');
     hdr.innerHTML = `<span class="virtu-title">⚜️ Virtù dell'Eroe</span>${pts > 0 ? `<span class="skill-pts-badge">${pts} pt</span>` : ''}`;
     sp2.appendChild(hdr);
-    sp2.appendChild(el('p', 'muted small virtu-sub', `Punti disponibili: <b>${pts}</b> · guadagni 1 punto ogni 5 livelli`));
+
+    const subRow = el('div', 'virtu-sub-row');
+    const subText = el('div', 'virtu-sub-text');
+    subText.innerHTML = `<span class="muted small">Punti: <b>${pts}</b> · 1 punto ogni 5 livelli</span><span class="muted small virtu-reset-note">🔄 Reset abilità: <b>${RPG.SKILL_RESET_COST}🪙</b></span>`;
+    subRow.appendChild(subText);
+    if ((HERO.skills || []).length > 0) {
+      const resetBtn = el('button', 'btn virtu-reset-btn', `🔄 Reset`);
+      resetBtn.addEventListener('click', () => {
+        modal(`<h3 style="margin-bottom:.6rem">Resetta le Abilità?</h3>
+          <p class="muted small" style="margin-bottom:1rem">Costo: <b>${RPG.SKILL_RESET_COST} oro</b>. Tutti i punti vengono rimborsati e puoi riassegnarli da capo.</p>
+          <div style="display:flex;gap:.5rem;justify-content:center">
+            <button class="btn btn-primary" id="confirm-reset">Conferma</button>
+            <button class="btn" id="cancel-reset">Annulla</button>
+          </div>`);
+        document.getElementById('confirm-reset').onclick = () => {
+          const err = RPG.resetSkills(HERO);
+          closeModal();
+          if (err) { toast(err); return; }
+          persist(); vibrate([60, 30, 60]); toast('✅ Abilità resettate!'); setTab('hero');
+        };
+        document.getElementById('cancel-reset').onclick = closeModal;
+      });
+      subRow.appendChild(resetBtn);
+    }
+    sp2.appendChild(subRow);
 
     const tiers = [
       { label: 'Principiante', range: [1, 20] },
@@ -7322,7 +7346,10 @@ function renderHero(c) {
           iconEl.textContent = sk.icon;
         }
         cell.appendChild(iconEl);
-        cell.appendChild(el('span', 'virtu-name', esc(sk.name)));
+        const nameRow = el('span', 'virtu-name-row');
+        nameRow.appendChild(el('span', 'virtu-name', esc(sk.name)));
+        if (sk.cost >= 2) nameRow.appendChild(el('span', 'virtu-cost-badge', `${sk.cost}pt`));
+        cell.appendChild(nameRow);
         cell.appendChild(el('span', 'virtu-desc muted small', esc(sk.desc)));
 
         if (locked) {
