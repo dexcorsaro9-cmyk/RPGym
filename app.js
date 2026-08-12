@@ -4956,41 +4956,48 @@ function _openBachecaDetail(q, todayKm, claimed, done, tm) {
   document.body.appendChild(overlay);
 }
 
+/* Banner sincronizzazione automatica nativa (HealthKit / Health Connect).
+   Riutilizzato in Allenati e in Impostazioni → Sincronizzazione Salute.
+   onRefresh: callback per ridisegnare la view chiamante dopo un cambio stato. */
+function renderNativeHealthBanner(onRefresh) {
+  if (!nativeHealthPlugin()) return null;
+  const nh = el('div', 'native-health-banner' + (HERO.nativeHealthSync ? ' active' : ''));
+  if (HERO.nativeHealthSync) {
+    nh.innerHTML = `<span class="nh-icon">✅</span>
+      <div class="nh-body">
+        <div class="nh-title">Sincronizzazione automatica attiva</div>
+        <div class="nh-sub">Passi e km si aggiornano da soli ad ogni apertura dell'app</div>
+      </div>
+      <button class="nh-toggle">Disattiva</button>`;
+    nh.querySelector('.nh-toggle').addEventListener('click', () => {
+      disableNativeHealthSync();
+      toast('Sincronizzazione automatica disattivata.');
+      onRefresh();
+    });
+  } else {
+    nh.innerHTML = `<span class="nh-icon">🔗</span>
+      <div class="nh-body">
+        <div class="nh-title">Attiva la sincronizzazione automatica</div>
+        <div class="nh-sub">Niente più copia-incolla: i tuoi passi si registrano da soli</div>
+      </div>
+      <button class="nh-toggle nh-toggle-primary">Attiva</button>`;
+    nh.querySelector('.nh-toggle').addEventListener('click', async () => {
+      const btn = nh.querySelector('.nh-toggle');
+      btn.disabled = true; btn.textContent = '…';
+      const ok = await enableNativeHealthSync();
+      if (ok) { toast('✅ Sincronizzazione automatica attivata!'); onRefresh(); }
+      else { btn.disabled = false; btn.textContent = 'Attiva'; }
+    });
+  }
+  return nh;
+}
+
 function renderTrain(c) {
   let chosen = 'camminata';
 
   // ── Sincronizzazione automatica nativa (HealthKit / Health Connect) ──
-  if (nativeHealthPlugin()) {
-    const nh = el('div', 'native-health-banner' + (HERO.nativeHealthSync ? ' active' : ''));
-    if (HERO.nativeHealthSync) {
-      nh.innerHTML = `<span class="nh-icon">✅</span>
-        <div class="nh-body">
-          <div class="nh-title">Sincronizzazione automatica attiva</div>
-          <div class="nh-sub">Passi e km si aggiornano da soli ad ogni apertura dell'app</div>
-        </div>
-        <button class="nh-toggle">Disattiva</button>`;
-      nh.querySelector('.nh-toggle').addEventListener('click', () => {
-        disableNativeHealthSync();
-        toast('Sincronizzazione automatica disattivata.');
-        setTab('train');
-      });
-    } else {
-      nh.innerHTML = `<span class="nh-icon">🔗</span>
-        <div class="nh-body">
-          <div class="nh-title">Attiva la sincronizzazione automatica</div>
-          <div class="nh-sub">Niente più copia-incolla: i tuoi passi si registrano da soli</div>
-        </div>
-        <button class="nh-toggle nh-toggle-primary">Attiva</button>`;
-      nh.querySelector('.nh-toggle').addEventListener('click', async () => {
-        const btn = nh.querySelector('.nh-toggle');
-        btn.disabled = true; btn.textContent = '…';
-        const ok = await enableNativeHealthSync();
-        if (ok) { toast('✅ Sincronizzazione automatica attivata!'); setTab('train'); }
-        else { btn.disabled = false; btn.textContent = 'Attiva'; }
-      });
-    }
-    c.appendChild(nh);
-  }
+  const nhBanner = renderNativeHealthBanner(() => setTab('train'));
+  if (nhBanner) c.appendChild(nhBanner);
 
   // ── Strip incolla-passi: sempre visibile, nessun popup ──
   const isAndroid = /android/i.test(navigator.userAgent);
@@ -5335,6 +5342,13 @@ function renderShortcutPanel() {
     <div><b>Sincronizzazione Salute</b>
     <div class="small muted">Importa i km direttamente dalla tua app fitness</div></div>`;
   p.appendChild(titleRow);
+
+  // ── Sincronizzazione automatica nativa, se disponibile ──
+  const nhBanner = renderNativeHealthBanner(() => { HERO_VIEW = 'settings'; setTab('hero'); });
+  if (nhBanner) {
+    p.appendChild(nhBanner);
+    p.appendChild(el('p', 'muted small', 'In alternativa, o se non hai ancora attivato la sincronizzazione automatica, puoi importare i passi manualmente qui sotto:'));
+  }
 
   // ── Tab iOS / Android ──
   const tabBar = el('div', 'sync-tab-bar');
