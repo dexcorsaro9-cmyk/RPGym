@@ -5979,10 +5979,33 @@ img.fiche-inline {
 
 /* ── PvP badge sul profilo eroe ──────────────────────────────── */
 .pvp-badge-profile {
-  font-size: .82rem;
-  color: var(--gold);
-  margin: .2rem 0 .4rem;
-  opacity: .9;
+  font-size: .84rem;
+  font-weight: 600;
+  color: #5c3a10;
+  background: rgba(90, 58, 16, .10);
+  border: 1px solid rgba(90, 58, 16, .18);
+  border-radius: 20px;
+  padding: .28rem .9rem;
+  display: inline-block;
+  margin: .3rem auto .5rem;
+  text-align: center;
+}
+.bg-parchment .pvp-badge-profile {
+  color: #4a2e08;
+  background: rgba(90, 58, 16, .13);
+  border-color: rgba(90, 58, 16, .25);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .pvp-badge-profile {
+    color: #f0c060;
+    background: rgba(240, 192, 96, .12);
+    border-color: rgba(240, 192, 96, .25);
+  }
+}
+:root[data-theme="dark"] .pvp-badge-profile {
+  color: #f0c060;
+  background: rgba(240, 192, 96, .12);
+  border-color: rgba(240, 192, 96, .25);
 }
 
 /* ── Hero Share Card ─────────────────────────────────────────── */

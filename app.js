@@ -7215,9 +7215,11 @@ function renderHero(c) {
   // Titolo PvP
   const pt = pvpTitle(HERO.pvpWins || 0);
   if (pt) {
-    const ptEl = el('p', 'center pvp-badge-profile');
-    ptEl.innerHTML = `${pt.icon} <b>${pt.label}</b> · ⚔️ ${HERO.pvpWins} ${HERO.pvpWins === 1 ? 'vittoria' : 'vittorie'}`;
-    c.appendChild(ptEl);
+    const ptWrap = el('div', 'center');
+    const ptEl = el('span', 'pvp-badge-profile');
+    ptEl.innerHTML = `${pt.icon} <b>${pt.label}</b> &nbsp;·&nbsp; ⚔️ ${HERO.pvpWins} ${HERO.pvpWins === 1 ? 'vittoria' : 'vittorie'}`;
+    ptWrap.appendChild(ptEl);
+    c.appendChild(ptWrap);
   }
 
   // Box Consumabili
