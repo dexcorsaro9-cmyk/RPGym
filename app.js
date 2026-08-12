@@ -5056,7 +5056,7 @@ function renderTrain(c) {
   const ACT_ICON_FILES = { cyclette: 'assets/ui/act-cyclette.webp', camminata: 'assets/ui/act-camminata.webp', corsa: 'assets/ui/act-corsa.webp' };
   const mount = HERO.mount ? RPG.mountById(HERO.mount) : null;
   Object.entries(RPG.ACTIVITIES).forEach(([key, a]) => {
-    const b = el('button', 'act-choice' + (key === chosen ? ' selected' : ''));
+    const b = el('button', `act-choice act-${key}` + (key === chosen ? ' selected' : ''));
     const iconHolder = el('div', 'act-icon-holder', a.icon);
     if (ACT_ICON_FILES[key]) {
       const img = document.createElement('img');

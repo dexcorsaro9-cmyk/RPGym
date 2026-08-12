@@ -340,25 +340,43 @@ body {
 /* ── Allenamento ── */
 .act-row { display: flex; gap: 10px; margin: 8px 0; }
 .act-choice {
-  flex: 1; padding: 14px 6px; text-align: center;
+  --act-c1: var(--leather); --act-c2: var(--gold);
+  position: relative; flex: 1; padding: 14px 6px 12px; text-align: center;
   font-family: inherit; font-size: .82rem; line-height: 1.4;
-  border: 2px solid var(--leather); border-radius: 12px;
-  background: rgba(255,255,255,.4); cursor: pointer;
+  border: 2px solid var(--act-c1); border-radius: 12px;
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--act-c1) 14%, transparent) 0%, transparent 65%),
+    rgba(255,255,255,.4);
+  cursor: pointer; overflow: hidden;
   display: flex; flex-direction: column; align-items: center; gap: 4px;
-  min-height: 112px; justify-content: center;
+  min-height: 116px; justify-content: center;
   transition: transform .14s, box-shadow .14s, border-color .14s, background .14s;
+}
+.act-choice::before {
+  content: ''; position: absolute; top: -1px; left: -1px; right: -1px; height: 4px;
+  background: linear-gradient(90deg, var(--act-c1), var(--act-c2));
+  opacity: .55; transition: opacity .14s;
 }
 .act-choice:active { transform: scale(.96); }
 .act-choice.selected {
-  border-color: var(--gold);
-  background: rgba(232,182,76,.28);
-  box-shadow: 0 0 14px rgba(201,147,46,.5), inset 0 0 20px rgba(232,182,76,.07);
+  border-color: var(--act-c2);
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--act-c2) 26%, transparent) 0%, transparent 70%),
+    rgba(255,255,255,.42);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--act-c2) 55%, transparent),
+              inset 0 0 20px color-mix(in srgb, var(--act-c2) 10%, transparent);
   transform: translateY(-2px);
 }
+.act-choice.selected::before { opacity: 1; height: 5px; }
+.act-cyclette  { --act-c1: #2e6fa8; --act-c2: #4fb0e8; }
+.act-camminata { --act-c1: #3f7d3f; --act-c2: #6fce6f; }
+.act-corsa     { --act-c1: #a8452a; --act-c2: #f0793a; }
 .act-label { font-family: 'Cinzel', serif; font-size: .88rem; font-weight: 700; color: var(--ink); }
+.act-choice.selected .act-label { color: color-mix(in srgb, var(--act-c2) 70%, var(--ink)); }
 .act-xp-badge {
-  font-size: .62rem; color: var(--gold-bright);
+  font-size: .62rem; font-weight: 700; color: var(--act-c2);
   background: rgba(0,0,0,.68); border-radius: 10px; padding: 1px 7px;
+  border: 1px solid color-mix(in srgb, var(--act-c2) 40%, transparent);
 }
 .act-bonus-badge {
   font-size: .6rem; color: #9af0b8;
@@ -1388,7 +1406,15 @@ img.fiche-inline {
 }
 
 /* ── Icone di gioco in legno (dai fogli generati con l'IA) ── */
-.act-icon-holder { font-size: 1.6rem; min-height: 46px; display: flex; align-items: center; justify-content: center; }
+.act-icon-holder {
+  font-size: 1.6rem; width: 52px; height: 52px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(circle, color-mix(in srgb, var(--act-c1) 30%, transparent) 0%, transparent 72%);
+  transition: background .14s;
+}
+.act-choice.selected .act-icon-holder {
+  background: radial-gradient(circle, color-mix(in srgb, var(--act-c2) 40%, transparent) 0%, transparent 72%);
+}
 .act-icon { width: 46px; height: 46px; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0,0,0,.4)); }
 
 .btn-plaque {
@@ -1841,6 +1867,7 @@ img.fiche-inline {
   margin: 0 0 10px;
 }
 .equip-slot {
+  position: relative; overflow: hidden;
   width: 64px; height: 64px; border-radius: 12px;
   border: 2px solid var(--leather);
   background: rgba(0,0,0,.25);
@@ -2103,27 +2130,65 @@ img.fiche-inline {
 }
 .bg-parchment .hero-rig { margin-top: 0; }
 
-/* ── Slot equipaggiamento: neri e ben visibili ── */
+/* ── Slot equipaggiamento: socket vuoto vs oggetto forgiato ── */
 .equip-slot {
   width: 68px; height: 68px;
-  border: 3px solid #1c1209;
-  background: rgba(20, 12, 5, .82);
-  box-shadow: inset 0 2px 8px rgba(0,0,0,.7), 0 2px 6px rgba(0,0,0,.4);
+  border: 2px dashed rgba(201,180,143,.35);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 50% 38%, rgba(0,0,0,.15) 0%, transparent 70%),
+    rgba(20, 12, 5, .55);
+  box-shadow: inset 0 2px 10px rgba(0,0,0,.6);
+  transition: border-color .2s, box-shadow .2s, transform .12s;
+  animation: equip-empty-breathe 3.6s ease-in-out infinite;
+}
+.equip-slot:active { transform: scale(.94); }
+@keyframes equip-empty-breathe {
+  0%, 100% { box-shadow: inset 0 2px 10px rgba(0,0,0,.6), 0 0 0 rgba(201,147,46,0); }
+  50%      { box-shadow: inset 0 2px 10px rgba(0,0,0,.6), 0 0 9px rgba(201,147,46,.28); }
 }
 .bg-parchment .equip-slot {
-  background: rgba(20, 12, 5, .82);
-  border-color: #1c1209;
+  background:
+    radial-gradient(circle at 50% 38%, rgba(0,0,0,.1) 0%, transparent 70%),
+    rgba(20, 12, 5, .5);
+  border-color: rgba(90,61,36,.4);
 }
 .equip-slot .equip-icon { font-size: 1.6rem; }
-.equip-slot .equip-icon.empty { opacity: .9; filter: none; }
+.equip-slot .equip-icon.empty { opacity: .55; filter: grayscale(.5); }
 .equip-slot .equip-label {
-  font-size: .6rem; font-weight: 800; letter-spacing: .3px;
-  color: #f4e7cd; text-shadow: 0 1px 2px #000;
+  font-size: .58rem; font-weight: 700; letter-spacing: .2px;
+  color: rgba(244,231,205,.65); text-shadow: 0 1px 2px #000;
 }
-.bg-parchment .equip-slot .equip-label { color: #f4e7cd; }
+.bg-parchment .equip-slot .equip-label { color: rgba(244,231,205,.65); }
 .equip-img { width: 46px; height: 46px; object-fit: contain; border-radius: 8px; }
 .equip-icon-img { width: 40px; height: 40px; object-fit: contain; border-radius: 8px; }
-.equip-icon-img.empty { opacity: .55; filter: grayscale(.6); }
+.equip-icon-img.empty { opacity: .5; filter: grayscale(.7); }
+
+/* ── Slot pieno: peso, cornice solida, brillio ── */
+.equip-slot.filled {
+  border: 3px solid #1c1209;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(255,255,255,.08) 0%, transparent 60%),
+    rgba(20, 12, 5, .85);
+  animation: none;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,.7), 0 2px 6px rgba(0,0,0,.4);
+}
+.equip-slot.filled .equip-label {
+  color: #f4e7cd; font-weight: 800;
+}
+.equip-slot.filled .equip-icon-img,
+.equip-slot.filled .equip-img { opacity: 1; filter: none; }
+.equip-slot.filled::after {
+  content: ''; position: absolute; inset: 0; border-radius: 12px;
+  background: linear-gradient(115deg, transparent 40%, rgba(255,255,255,.22) 50%, transparent 60%);
+  background-size: 220% 220%; background-position: 120% 0;
+  animation: equip-shine 4.5s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes equip-shine {
+  0%, 60%, 100% { background-position: 120% 0; }
+  30%            { background-position: -20% 0; }
+}
 .bg-parchment .hero-name-plate, .bg-parchment .hero-title-plate { text-shadow: 0 1px 0 rgba(255,255,255,.55); }
 
 /* ── Mappa v2 ── */
