@@ -2882,10 +2882,10 @@ function renderMap(c) {
       }
       p.appendChild(el('p', 'center', `<b>${esc(inc.name)}</b>`));
       const rarLabel = (RPG.RARITIES[inc.minRarity] || RPG.RARITIES.comune).label;
-      p.appendChild(kmBarEl('⚡ ' + esc(inc.name), inc.progressKm, inc.km, {
-        color: 'danger',
-        foot:  `Forziere <b>${rarLabel}</b>+ · <b class="cd-hot"><span data-cd="midnight">…</span> alla scadenza!</b>`,
-      }));
+      p.appendChild(kmBarEl('Progresso', inc.progressKm, inc.km, { color: 'danger' }));
+      p.appendChild(el('p', 'muted small center',
+        `Forziere con oggetto ${rarLabel} o superiore.<br>` +
+        `<b class="cd-hot"><span data-cd="midnight">…</span> alla scadenza!</b>`));
       c.appendChild(p);
     } else if (HERO.incursion && HERO.incursion.done) {
       c.appendChild(el('div', 'panel done-strip', `✅ <b>Incursione di oggi respinta!</b> <span class="small muted">Torna domani.</span>`));
@@ -2901,11 +2901,8 @@ function renderMap(c) {
       const bp = el('div', 'panel panel-featured boss-weekly-panel');
       bp.appendChild(el('h3', 'panel-title', `${boss.icon} Boss Settimanale`));
       bp.appendChild(el('p', 'center', `<b>${esc(boss.name)}</b> — <span class="muted small">${boss.zone}</span>`));
-      bp.appendChild(kmBarEl(boss.icon + ' ' + esc(boss.name), progressKm, boss.km, {
+      bp.appendChild(kmBarEl('Progresso', progressKm, boss.km, {
         color: done || claimed ? 'gold' : 'danger',
-        foot:  claimed ? '✅ Boss sconfitto questa settimana!'
-             : done    ? '🏆 Pronto al riscatto!'
-             :           `Mancano <b>${(boss.km - progressKm).toFixed(1)} km</b> · entro domenica`,
       }));
       if (claimed) {
         bp.appendChild(el('div', 'done-strip', `✅ <b>Boss sconfitto questa settimana!</b>`));
