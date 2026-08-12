@@ -3996,16 +3996,18 @@ const RPG = (() => {
 
   /* ── Taglie Uniche settimanali ────────────────────────────── */
   function weeklyEvent(state) {
-    const ws = weekStamp();
-    const seed = [...ws].reduce((s, c) => s + c.charCodeAt(0), 0);
+    const ws = weekStamp() || '';
     const pool = [
       { name: 'La Stella Cadente',      icon: '🌠', km: 8,  skin: 'Aura di Scintille Dorate' },
       { name: 'Il Mercante Fantasma',   icon: '👻', km: 10, skin: 'Mantello Spettrale' },
       { name: 'L\'Eclissi di Mezzanotte', icon: '🌘', km: 12, skin: 'Stendardo dell\'Eclissi' },
       { name: 'La Cometa Cremisi',      icon: '☄️', km: 9,  skin: 'Criniera di Fuoco per il Destriero' },
     ];
-    const ev = pool[seed % pool.length];
-    const claimed = (state.claimedEvents || []).find(c => c.week === ws);
+    const rawSeed = [...ws].reduce((s, c) => s + c.charCodeAt(0), 0);
+    const seed = Number.isFinite(rawSeed) ? rawSeed : 0;
+    const idx = ((seed % pool.length) + pool.length) % pool.length;
+    const ev = pool[idx] || pool[0];
+    const claimed = (state && state.claimedEvents || []).find(c => c && c.week === ws);
     return { ...ev, week: ws, claimedBy: claimed ? claimed.heroName : null };
   }
   function claimEvent(state, hero, ev) {
