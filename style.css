@@ -3540,8 +3540,8 @@ img.fiche-inline {
 .acc-effect-desc { color: var(--gold, #e8b64c); font-style: italic; margin-top: 2px; }
 .pet-portrait-area { display: flex; align-items: flex-end; justify-content: center; gap: 8px; width: 100%; }
 .pet-memory-row { font-size: .78rem; line-height: 1.45; }
-.pet-memory-date { font-size: .65rem; color: rgba(255,255,255,.5); margin-right: 4px; }
-.pet-memory-text { color: rgba(255,255,255,.88); font-style: italic; }
+.pet-memory-date { font-size: .65rem; color: var(--muted); margin-right: 4px; }
+.pet-memory-text { color: var(--text); font-style: italic; }
 
 /* ── Sinergia in Scalata ── */
 .sc-synergy-btn {
@@ -7947,7 +7947,7 @@ img.fiche-inline {
 .catena-roll-btn { flex: 2; }
 
 /* ── Casse Chiuse ── */
-.casse-hero-img { width: 100%; max-height: 180px; object-fit: contain; margin: 8px 0 16px; display: block; }
+.casse-hero-img { width: 60%; max-height: 180px; object-fit: contain; margin: 8px auto 16px; display: block; }
 .casse-card  { border-left: 3px solid rgba(124,58,237,.4); margin-bottom: 10px; }
 .casse-bronzo{ border-left-color: #cd7f32; }
 .casse-argento{ border-left-color: #9ca3af; }
