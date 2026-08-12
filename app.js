@@ -5033,10 +5033,10 @@ function renderTrain(c) {
     const steps = parseInt(sssInput.value, 10);
     if (steps > 0 && sssInput.value.length >= 4) setTimeout(() => applySssSteps(steps), 500);
   });
-  c.appendChild(syncStrip);
+  if (!HERO.nativeHealthSync) c.appendChild(syncStrip);
 
   // Banner primo accesso — spiega come inserire i dati
-  if (!HERO.trainTipDismissed) {
+  if (!HERO.nativeHealthSync && !HERO.trainTipDismissed) {
     const tip = el('div', 'train-first-tip');
     tip.innerHTML = `
       <button class="train-tip-close" id="train-tip-close">✕</button>
@@ -5192,7 +5192,6 @@ function renderTrain(c) {
     actRow.appendChild(b);
   });
   form.appendChild(actRow);
-  form.appendChild(el('p', 'muted small', '⬆️ Incolla i passi nella striscia sopra — usa il tipo selezionato.'));
   c.appendChild(form);
 
   // ── L'Arena dei Guerrieri ──
