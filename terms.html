@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Termini di Servizio — Hero's Pace</title>
+<meta name="robots" content="noindex">
+<style>
+/* ── Token system ─────────────────────────────────────────────── */
+:root {
+  --bg:        #FDFAF6;
+  --surface:   #F3EDE1;
+  --ink:       #1C1713;
+  --ink-mid:   #3A2E22;
+  --muted:     #6B5E4E;
+  --divider:   #DDD5C3;
+  --gold:      #C49428;
+  --gold-dim:  rgba(196,148,40,.12);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:       #16110D;
+    --surface:  #221A12;
+    --ink:      #F0E8D8;
+    --ink-mid:  #D4C4A8;
+    --muted:    #9E8E78;
+    --divider:  #3A2E20;
+    --gold:     #D4A830;
+    --gold-dim: rgba(212,168,48,.10);
+  }
+}
+:root[data-theme="dark"] {
+  --bg:       #16110D;
+  --surface:  #221A12;
+  --ink:      #F0E8D8;
+  --ink-mid:  #D4C4A8;
+  --muted:    #9E8E78;
+  --divider:  #3A2E20;
+  --gold:     #D4A830;
+  --gold-dim: rgba(212,168,48,.10);
+}
+
+/* ── Reset & base ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 1rem;
+  line-height: 1.7;
+  padding: 0 20px 80px;
+}
+
+/* ── Layout ───────────────────────────────────────────────────── */
+.doc {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+/* ── Header ───────────────────────────────────────────────────── */
+.doc-header {
+  padding: 56px 0 40px;
+  border-bottom: 1px solid var(--divider);
+  margin-bottom: 48px;
+}
+.app-name {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+.doc-title {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--ink);
+  text-wrap: balance;
+  margin-bottom: 16px;
+}
+.doc-meta {
+  font-size: .875rem;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+}
+
+/* ── Intro box ────────────────────────────────────────────────── */
+.intro-box {
+  background: var(--gold-dim);
+  border-left: 3px solid var(--gold);
+  border-radius: 0 8px 8px 0;
+  padding: 16px 20px;
+  margin-bottom: 48px;
+  font-size: .9375rem;
+  color: var(--ink-mid);
+}
+
+/* ── Sections ─────────────────────────────────────────────────── */
+.section {
+  margin-bottom: 48px;
+}
+.section-number {
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+.section-title {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 16px;
+  text-wrap: balance;
+}
+.section p {
+  color: var(--ink-mid);
+  margin-bottom: 12px;
+  max-width: 65ch;
+}
+.section p:last-child { margin-bottom: 0; }
+
+/* ── List ─────────────────────────────────────────────────────── */
+.rights-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.rights-list li {
+  display: flex;
+  gap: 10px;
+  font-size: .9375rem;
+  color: var(--ink-mid);
+}
+.rights-list .ico {
+  flex-shrink: 0;
+  width: 20px;
+  color: var(--gold);
+  font-style: normal;
+}
+
+/* ── Footer ───────────────────────────────────────────────────── */
+.doc-footer {
+  padding-top: 40px;
+  border-top: 1px solid var(--divider);
+  font-size: .8125rem;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+}
+.doc-footer a { color: var(--gold); text-decoration: none; }
+.doc-footer a:hover { text-decoration: underline; }
+
+/* ── Contact card ─────────────────────────────────────────────── */
+.contact-card {
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin-top: 16px;
+}
+.contact-card .label {
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.contact-card .value {
+  font-size: 1rem;
+  color: var(--ink);
+}
+.contact-card a { color: var(--gold); }
+
+/* ── Focus ────────────────────────────────────────────────────── */
+a:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <!-- Header -->
+  <header class="doc-header">
+    <div class="app-name">Hero's Pace</div>
+    <h1 class="doc-title">Termini di Servizio</h1>
+    <div class="doc-meta">
+      <span>Versione 1.0</span>
+      <span>Ultimo aggiornamento: 12 agosto 2026</span>
+      <span>Applicabile a: Hero's Pace (Android · iOS · Web)</span>
+    </div>
+  </header>
+
+  <!-- Intro -->
+  <div class="intro-box">
+    Utilizzando Hero's Pace accetti i termini descritti in questa pagina. Se non li accetti, ti chiediamo di non utilizzare l'applicazione. Leggi anche la nostra <a href="privacy.html" style="color:var(--gold)">Informativa sulla Privacy</a>, parte integrante di questo accordo.
+  </div>
+
+  <!-- 1. Chi siamo -->
+  <section class="section">
+    <div class="section-number">Art. 1</div>
+    <h2 class="section-title">Chi siamo</h2>
+    <p>Hero's Pace è sviluppato e gestito da un singolo sviluppatore indipendente:</p>
+    <div class="contact-card">
+      <div class="label">Sviluppatore</div>
+      <div class="value">Antonio Decino</div>
+      <div style="margin-top:8px">
+        <div class="label">Contatto</div>
+        <div class="value"><a href="mailto:9corsaro9@gmail.com">9corsaro9@gmail.com</a></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Descrizione del servizio -->
+  <section class="section">
+    <div class="section-number">Art. 2</div>
+    <h2 class="section-title">Descrizione del servizio</h2>
+    <p>Hero's Pace è un'applicazione di fitness gamificato: registra le tue attività fisiche (camminata, corsa, cyclette) e le trasforma in progressione di un personaggio RPG (esperienza, oro, oggetti, missioni). L'app funziona quasi interamente in locale sul dispositivo; alcune funzionalità opzionali (Arena PvP, gilde) usano un servizio cloud (Firebase).</p>
+    <p>Hero's Pace è offerta gratuitamente, "così com'è", senza garanzie di disponibilità continuativa, correttezza dei calcoli di gioco o assenza di errori.</p>
+  </section>
+
+  <!-- 3. Non è un dispositivo medico -->
+  <section class="section">
+    <div class="section-number">Art. 3</div>
+    <h2 class="section-title">Non è un consiglio medico</h2>
+    <p>Hero's Pace <strong>non è un dispositivo medico</strong> e non fornisce consulenza, diagnosi o trattamento medico di alcun tipo. I calcoli di esperienza, calorie stimate o progressione di gioco hanno finalità puramente ludiche e motivazionali, non cliniche.</p>
+    <p>Prima di iniziare o modificare un programma di attività fisica, in particolare se soffri di patologie pregresse, consulta il tuo medico. L'uso dell'app durante l'attività fisica è a tuo rischio: presta sempre attenzione all'ambiente circostante e non usare l'app in situazioni che richiedono piena attenzione (es. attraversamenti, traffico).</p>
+    <p>Se hai attivato la sincronizzazione automatica con Apple Salute o Health Connect, i dati letti (passi, distanza) provengono dal tuo dispositivo o dai sensori/app che hai collegato: Hero's Pace non garantisce l'accuratezza di tali misurazioni, che dipende dall'hardware e dalle app di terze parti.</p>
+  </section>
+
+  <!-- 4. Account e dati -->
+  <section class="section">
+    <div class="section-number">Art. 4</div>
+    <h2 class="section-title">Account e conservazione dei dati</h2>
+    <p>Hero's Pace non richiede la creazione di un account con e-mail o password: il tuo progresso è salvato localmente sul dispositivo. Sei l'unico responsabile della conservazione dei tuoi dati di gioco: disinstallando l'app, cancellando i dati del browser o cambiando dispositivo senza backup, il progresso viene perso in modo irreversibile.</p>
+    <p>Per i dettagli su quali dati vengono trattati e dove, consulta l'<a href="privacy.html" style="color:var(--gold)">Informativa sulla Privacy</a>.</p>
+  </section>
+
+  <!-- 5. Valuta virtuale e meccaniche simulate -->
+  <section class="section">
+    <div class="section-number">Art. 5</div>
+    <h2 class="section-title">Valuta virtuale e meccaniche di gioco simulate</h2>
+    <p>Hero's Pace include oro, fiches e altre valute di gioco interamente virtuali, prive di qualsiasi valore monetario reale. Non è possibile acquistare valuta virtuale con denaro reale, né convertirla in denaro reale, beni o servizi al di fuori dell'applicazione.</p>
+    <ul class="rights-list">
+      <li><i class="ico">🎰</i><div><strong>Casse Chiuse</strong> — probabilità di drop dichiarate in-app prima dell'apertura</div></li>
+      <li><i class="ico">🎡</i><div><strong>Ruota della Fortuna</strong> — settori e probabilità visibili al giocatore</div></li>
+      <li><i class="ico">🃏</i><div><strong>Bisca Oscura</strong> — gioco di carte con sola valuta virtuale</div></li>
+    </ul>
+    <p>Tutta la valuta e gli oggetti di gioco restano di proprietà dello sviluppatore e sono concessi in licenza d'uso limitata, revocabile e non trasferibile: non costituiscono un bene digitale acquistabile, vendibile o scambiabile al di fuori dell'app.</p>
+  </section>
+
+  <!-- 6. Condotta dell'utente -->
+  <section class="section">
+    <div class="section-number">Art. 6</div>
+    <h2 class="section-title">Condotta dell'utente</h2>
+    <p>Utilizzando Hero's Pace ti impegni a non:</p>
+    <ul class="rights-list">
+      <li><i class="ico">✕</i><div>Manomettere, decompilare o alterare il codice dell'applicazione, inclusi i dati salvati localmente, per ottenere risorse di gioco non guadagnate legittimamente</div></li>
+      <li><i class="ico">✕</i><div>Falsificare i dati di attività fisica in modo sistematico e automatizzato (bot, script) per alterare le classifiche PvP o le funzionalità di gilda</div></li>
+      <li><i class="ico">✕</i><div>Utilizzare le funzionalità multigiocatore (Arena, gilde) per molestare altri utenti o diffondere contenuti offensivi tramite nomi personaggio o messaggi</div></li>
+      <li><i class="ico">✕</i><div>Tentare di accedere senza autorizzazione all'infrastruttura cloud (Firebase) usata dall'app</div></li>
+    </ul>
+    <p>Ci riserviamo il diritto di limitare o disabilitare le funzionalità cloud (PvP, gilde) per account/identificatori che violano queste regole, senza preavviso.</p>
+  </section>
+
+  <!-- 7. Proprietà intellettuale -->
+  <section class="section">
+    <div class="section-number">Art. 7</div>
+    <h2 class="section-title">Proprietà intellettuale</h2>
+    <p>Il nome "Hero's Pace", il codice, la grafica, le illustrazioni, i testi narrativi e ogni altro contenuto dell'applicazione sono di proprietà dello sviluppatore o concessi in licenza allo stesso, e sono protetti dalle leggi sul diritto d'autore. Non è consentito copiare, ridistribuire o creare opere derivate senza autorizzazione scritta.</p>
+  </section>
+
+  <!-- 8. Limitazione di responsabilità -->
+  <section class="section">
+    <div class="section-number">Art. 8</div>
+    <h2 class="section-title">Limitazione di responsabilità</h2>
+    <p>Nei limiti massimi consentiti dalla legge applicabile, lo sviluppatore non è responsabile per: perdita di dati di gioco locali, interruzioni del servizio, imprecisioni nei calcoli derivanti da dati di attività fisica di terze parti (HealthKit, Health Connect, inserimento manuale), o infortuni derivanti dall'attività fisica svolta durante l'uso dell'app.</p>
+    <p>L'applicazione è fornita "così com'è" e "come disponibile", senza garanzie esplicite o implicite di idoneità a uno scopo particolare.</p>
+  </section>
+
+  <!-- 9. Età minima -->
+  <section class="section">
+    <div class="section-number">Art. 9</div>
+    <h2 class="section-title">Età minima</h2>
+    <p>Hero's Pace è rivolta a un pubblico generale. L'uso da parte di minori di 13 anni è raccomandato solo sotto la supervisione di un genitore o tutore, in particolare per le funzionalità di Arena (PvP) e le Casse Chiuse che utilizzano valuta virtuale.</p>
+  </section>
+
+  <!-- 10. Modifiche al servizio e ai termini -->
+  <section class="section">
+    <div class="section-number">Art. 10</div>
+    <h2 class="section-title">Modifiche al servizio e ai termini</h2>
+    <p>Ci riserviamo il diritto di modificare, sospendere o interrompere l'applicazione o parte delle sue funzionalità in qualsiasi momento. Ci riserviamo inoltre il diritto di aggiornare questi Termini di Servizio: le modifiche sostanziali verranno comunicate tramite notifica in-app o aggiornamento della data in cima a questa pagina. L'uso continuato dell'app dopo la pubblicazione delle modifiche costituisce accettazione delle stesse.</p>
+  </section>
+
+  <!-- 11. Legge applicabile -->
+  <section class="section">
+    <div class="section-number">Art. 11</div>
+    <h2 class="section-title">Legge applicabile</h2>
+    <p>Questi Termini di Servizio sono regolati dalla legge italiana. Per qualsiasi controversia sarà competente il foro del consumatore, quando applicabile, oppure il foro dello sviluppatore secondo le norme di legge ordinarie.</p>
+  </section>
+
+  <!-- Footer -->
+  <footer class="doc-footer">
+    <span>© 2026 Hero's Pace · Antonio Decino</span>
+    <span><a href="mailto:9corsaro9@gmail.com">9corsaro9@gmail.com</a></span>
+    <span>v1.0 — 12 agosto 2026</span>
+  </footer>
+
+</div>
+</body>
+</html>
