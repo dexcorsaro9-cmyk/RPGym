@@ -35,22 +35,134 @@ function kmBarEl(title, progress, total, { color = 'gold', foot = '', extra = ''
   const pct  = Math.min(100, total > 0 ? Math.round(progress / total * 100) : 0);
   const done = pct >= 100;
   const wrap = el('div', 'km-bar-block');
+  wrap.setAttribute('role', 'progressbar');
+  wrap.setAttribute('aria-valuenow', String(pct));
+  wrap.setAttribute('aria-valuemin', '0');
+  wrap.setAttribute('aria-valuemax', '100');
   const hdr  = el('div', 'km-bar-hdr');
   hdr.innerHTML =
     `<span class="km-bar-title">${title}</span>` +
     `<span class="km-bar-right">${extra}<b class="km-bar-val">${progress.toFixed(1)}</b><span class="km-bar-sep"> / ${total} km</span></span>`;
   wrap.appendChild(hdr);
-  const track = el('div', 'km-bar-track');
-  const fill  = el('div', `km-bar-fill ${done ? 'km-done' : 'km-' + color}`);
-  fill.style.width = pct + '%';
-  track.appendChild(fill);
-  wrap.appendChild(track);
+  const canvas = document.createElement('canvas');
+  canvas.className = 'km-bar-canvas';
+  canvas.setAttribute('aria-hidden', 'true');
+  wrap.appendChild(canvas);
+  requestAnimationFrame(() => runKmBarCanvas(canvas, pct, done ? 'done' : color));
   if (foot) {
     const f = el('div', 'km-bar-foot');
     f.innerHTML = foot;
     wrap.appendChild(f);
   }
   return wrap;
+}
+
+const KM_BAR_THEMES = {
+  gold:   { a: '#c9932e', b: '#f0c060', glow: 'rgba(240,192,96,.65)' },
+  danger: { a: '#c0392b', b: '#e05030', glow: 'rgba(224,80,48,.6)' },
+  blue:   { a: '#2e6fb0', b: '#4a9fd4', glow: 'rgba(74,159,212,.6)' },
+  done:   { a: '#27ae60', b: '#2ecc71', glow: 'rgba(46,204,113,.8)' },
+};
+
+function _kmRoundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function runKmBarCanvas(canvas, pct, themeKey) {
+  if (!canvas.isConnected) return;
+  const ctx = canvas.getContext('2d');
+  const theme = KM_BAR_THEMES[themeKey] || KM_BAR_THEMES.gold;
+  const cssH = 18;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const done = themeKey === 'done';
+
+  let particles = [];
+  const seedParticles = fillW => {
+    if (!done || reduceMotion) return;
+    particles = Array.from({ length: 12 }, () => ({
+      x: Math.random() * Math.max(fillW, 1),
+      y: cssH * 0.5 + (Math.random() - 0.5) * 6,
+      vy: -0.35 - Math.random() * 0.5,
+      vx: (Math.random() - 0.5) * 0.25,
+      life: Math.random(),
+      size: 1 + Math.random() * 1.6,
+    }));
+  };
+  let seeded = false;
+
+  function frame() {
+    if (!canvas.isConnected) return;
+    const cssW = canvas.parentElement.clientWidth || 300;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const wantW = Math.round(cssW * dpr), wantH = Math.round(cssH * dpr);
+    if (canvas.width !== wantW || canvas.height !== wantH) {
+      canvas.width = wantW; canvas.height = wantH;
+      canvas.style.width = cssW + 'px'; canvas.style.height = cssH + 'px';
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, cssW, cssH);
+
+    const r = cssH / 2;
+    const fillW = cssW * (pct / 100);
+    if (!seeded) { seedParticles(fillW); seeded = true; }
+
+    _kmRoundRect(ctx, 0, 0, cssW, cssH, r);
+    ctx.fillStyle = 'rgba(0,0,0,.28)';
+    ctx.fill();
+
+    if (fillW > 0.5) {
+      ctx.save();
+      _kmRoundRect(ctx, 0, 0, cssW, cssH, r);
+      ctx.clip();
+      ctx.shadowColor = theme.glow;
+      ctx.shadowBlur = done ? 14 : 8;
+      const grad = ctx.createLinearGradient(0, 0, fillW, 0);
+      grad.addColorStop(0, theme.a);
+      grad.addColorStop(1, theme.b);
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, fillW, cssH);
+      ctx.shadowBlur = 0;
+
+      if (!reduceMotion) {
+        const t = performance.now() / 1000;
+        const sweepW = cssW * 0.3;
+        const sweepX = ((t * 70) % (cssW + sweepW)) - sweepW;
+        const sGrad = ctx.createLinearGradient(sweepX, 0, sweepX + sweepW, 0);
+        sGrad.addColorStop(0, 'rgba(255,255,255,0)');
+        sGrad.addColorStop(0.5, 'rgba(255,255,255,.38)');
+        sGrad.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = sGrad;
+        ctx.fillRect(0, 0, fillW, cssH);
+      }
+      ctx.restore();
+    }
+
+    if (particles.length) {
+      particles.forEach(p => {
+        p.x += p.vx; p.y += p.vy; p.life -= 0.012;
+        if (p.life <= 0 || p.y < -4) {
+          p.x = Math.random() * Math.max(fillW, 1);
+          p.y = cssH * 0.5 + (Math.random() - 0.5) * 6;
+          p.life = 1;
+        }
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.fillStyle = theme.b;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+    }
+
+    if (!reduceMotion) requestAnimationFrame(frame);
+  }
+  frame();
 }
 
 /* ── Avatar dei protagonisti (creati con l'IA) ── */
