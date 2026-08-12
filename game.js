@@ -6003,10 +6003,10 @@ const RPG = (() => {
     { id: 'ciclista_nato', name: 'Ciclista Nato',    icon: '🚴', cost: 1, reqLevel: 25,
       desc: '+10% XP dalla cyclette',
       effect: { xpMult_bike: 0.10 } },
-    { id: 'arenatico',    name: 'Arenatico',         icon: '⚔️', cost: 1, reqLevel: 30,
+    { id: 'arenatico',    name: 'Arenatico',         icon: '⚔️', cost: 2, reqLevel: 30,
       desc: '+1 sfida Arena al giorno',
       effect: { arenaExtraFight: 1 } },
-    { id: 'pollice_verde', name: 'Pollice Verde',    icon: '🌿', cost: 1, reqLevel: 35,
+    { id: 'pollice_verde', name: 'Pollice Verde',    icon: '🌿', cost: 2, reqLevel: 35,
       desc: 'Le piante in Serra crescono il 20% più veloce',
       effect: { serraGrowthBonus: 0.20 } },
     { id: 'cacciatore_boss', name: 'Cacciatore di Boss', icon: '🐉', cost: 2, reqLevel: 40,
@@ -6035,6 +6035,17 @@ const RPG = (() => {
     if (pts < sk.cost) return 'Punti abilità insufficienti.';
     hero.skillPoints -= sk.cost;
     hero.skills.push(id);
+    return null;
+  }
+  const SKILL_RESET_COST = 150;
+  function resetSkills(hero) {
+    if ((hero.gold || 0) < SKILL_RESET_COST) return `Servono ${SKILL_RESET_COST} oro per resettare le abilità.`;
+    hero.gold -= SKILL_RESET_COST;
+    const spent = (hero.skills || []).reduce((s, id) => {
+      const sk = skillById(id); return s + (sk ? sk.cost : 0);
+    }, 0);
+    hero.skillPoints = (hero.skillPoints || 0) + spent;
+    hero.skills = [];
     return null;
   }
   function skillBonus(hero, key) {
@@ -6701,7 +6712,7 @@ const RPG = (() => {
     TREASURE_MAP_TIERS, rolloverTreasureMap, treasureMapStatus, claimTreasureTier,
     canPrestige, prestige, getMonthlyRecap, monthStamp, getWeeklyRecap, weekStamp,
     isMerchantWeekend, getTravelingMerchant, buyFromMerchant, merchantEffectivePrice,
-    SKILL_TREE, skillById, learnSkill, skillBonus, earnSkillPoints,
+    SKILL_TREE, SKILL_RESET_COST, skillById, learnSkill, resetSkills, skillBonus, earnSkillPoints,
     LORE_FRAGMENTS, checkLoreUnlock,
     DAILY_POTIONS, getDailyPotion, claimDailyPotion,
     BIOMES, MOUNTS, RARITIES, SLOTS,
