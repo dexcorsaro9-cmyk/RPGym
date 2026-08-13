@@ -77,29 +77,32 @@ const RPG = (() => {
     return { gold: t.gold, wood: t.wood, stone: t.stone, item, consumable };
   }
 
-  const WEEKLY_BOSSES = [
-    { id: 'troll',    name: 'Troll delle Paludi',     km: 30, icon: '👹', zone: 'Palude',  gold: 200 },
-    { id: 'wyvern',   name: 'Wyverna delle Nevi',     km: 40, icon: '🦎', zone: 'Tundra',  gold: 300 },
-    { id: 'golem',    name: 'Golem di Pietra',         km: 25, icon: '🗿', zone: 'Montagna',gold: 150 },
-    { id: 'banshee',  name: 'Banshee della Foresta',  km: 35, icon: '👻', zone: 'Foresta', gold: 250 },
-    { id: 'basilisk', name: 'Basilisco Antico',        km: 45, icon: '🐍', zone: 'Deserto', gold: 350 },
-    { id: 'harpy',    name: 'Arpia Crestata',          km: 20, icon: '🦅', zone: 'Prateria',gold: 120 },
-    { id: 'vampire',  name: 'Vampiro dei Pinnacoli',   km: 50, icon: '🧛', zone: 'Castello',gold: 400 },
-  ];
-
+  // Pescato dai boss della Bestiary già sbloccati (zona accessibile al
+  // livello dell'eroe), stessa logica dell'incursione giornaliera — così
+  // la varietà cresce con la progressione invece di ripetere sempre gli
+  // stessi 7 nemici fissi.
   function rolloverWeeklyBoss(hero) {
     const ws = weekStamp();
     if (!hero.weeklyBoss || hero.weeklyBoss.weekStamp !== ws) {
-      const wsNum = parseInt(ws.split('-')[1]) || 0;
-      const boss = WEEKLY_BOSSES[wsNum % WEEKLY_BOSSES.length];
-      hero.weeklyBoss = { id: boss.id, weekStamp: ws, progressKm: 0, claimed: false };
+      const seed = dateSeed(ws);
+      const accessible = accessibleZones(hero);
+      const pool = BESTIARY.filter(b => b.boss && !b.final && accessible.includes(b.zone));
+      const fallbackPool = BESTIARY.filter(b => b.boss && !b.final);
+      const chosenPool = pool.length ? pool : fallbackPool;
+      const boss = chosenPool[seed % chosenPool.length];
+      const km = Math.round(dailyGoalKm(hero.level) * 2.5);
+      const gold = Math.round(km * 7);
+      hero.weeklyBoss = {
+        id: boss.id, name: boss.name, zone: boss.zone, km, gold,
+        weekStamp: ws, progressKm: 0, claimed: false,
+      };
     }
   }
 
   function weeklyBossStatus(hero) {
     if (!hero.weeklyBoss) return null;
-    const boss = WEEKLY_BOSSES.find(b => b.id === hero.weeklyBoss.id);
-    if (!boss) return null;
+    const wb = hero.weeklyBoss;
+    const boss = { id: wb.id, name: wb.name, zone: wb.zone, km: wb.km, gold: wb.gold };
     const prog = hero.weeklyBoss.progressKm;
     const done = prog >= boss.km;
     return { boss, progressKm: prog, done, claimed: hero.weeklyBoss.claimed };
@@ -3040,6 +3043,9 @@ const RPG = (() => {
     h.ticketsEarned  = h.ticketsEarned  || 0;
     h.trophies        = h.trophies        || [];
     h.weeklyBoss      = h.weeklyBoss      || null;
+    /* Vecchio formato (pool fissa WEEKLY_BOSSES): niente km/gold salvati sull'hero,
+       forza una rigenerazione dal pool del Bestiario al prossimo rollover. */
+    if (h.weeklyBoss && h.weeklyBoss.km === undefined) h.weeklyBoss = null;
     h.treasureMap     = h.treasureMap     || null;
     if (h.treasureMap && !Array.isArray(h.treasureMap.claimed)) h.treasureMap.claimed = [];
     h.prestige        = h.prestige        || { count: 0 };
@@ -3573,7 +3579,7 @@ const RPG = (() => {
 
     // Boss settimanale
     if (hero.weeklyBoss && !hero.weeklyBoss.claimed) {
-      const bossData = WEEKLY_BOSSES.find(b => b.id === hero.weeklyBoss.id);
+      const bossData = hero.weeklyBoss;
       if (bossData && hero.weeklyBoss.progressKm < bossData.km) {
         hero.weeklyBoss.progressKm = Math.min(bossData.km, hero.weeklyBoss.progressKm + km);
         const wasDefeated = hero.weeklyBoss.progressKm >= bossData.km;
@@ -6886,7 +6892,7 @@ const RPG = (() => {
 
   return {
     ACTIVITIES, MISSIONS, CARDS, BESTIARY, TROPHIES,
-    WEEKLY_BOSSES, rolloverWeeklyBoss, weeklyBossStatus, claimWeeklyBoss,
+    rolloverWeeklyBoss, weeklyBossStatus, claimWeeklyBoss,
     getDailyWeather, WEATHER_TYPES,
     TREASURE_MAP_TIERS, rolloverTreasureMap, treasureMapStatus, claimTreasureTier,
     canPrestige, prestige, getMonthlyRecap, monthStamp, getWeeklyRecap, weekStamp,
