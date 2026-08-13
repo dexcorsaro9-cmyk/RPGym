@@ -5,7 +5,7 @@ workflows:
     environment:
       vars:
         PACKAGE_NAME: com.antoniodecino.heroscape
-      node: "20"
+      node: "22"
       java: 21
       groups:
         - android_keystore   # definisci questo gruppo nei Codemagic Environment Variables:
@@ -62,7 +62,7 @@ workflows:
         BUNDLE_ID: com.antoniodecino.heroscape
         XCODE_WORKSPACE: ios/App/App.xcworkspace
         XCODE_SCHEME: App
-      node: "20"
+      node: "22"
       xcode: latest
       cocoapods: default
     scripts:
