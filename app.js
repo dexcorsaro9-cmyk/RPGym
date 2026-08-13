@@ -683,6 +683,22 @@ function isImageAvatar(hero) {
   return hero.avatar && (hero.avatar.startsWith('data:') || hero.avatar.startsWith('assets/'));
 }
 
+/* Avatar con cornice cosmetica del Pass Stagionale, se equipaggiata */
+function avatarWithFrameEl(hero, cls) {
+  const av = avatarEl(hero, cls);
+  if (!hero.frameId) return av;
+  const cos = RPG.seasonPassCosmeticById(hero.frameId);
+  if (!cos) return av;
+  const wrap = el('div', 'sp-frame-wrap');
+  wrap.appendChild(av);
+  const frameImg = el('img', 'sp-frame-overlay');
+  frameImg.src = `assets/seasonpass/rewards/${cos.img}`;
+  frameImg.alt = '';
+  frameImg.addEventListener('error', () => frameImg.remove());
+  wrap.appendChild(frameImg);
+  return wrap;
+}
+
 /* ── Creazione eroe — Card Cinematografica ── */
 const AVATAR_LORE = {
   eroe1:       'Nato dalla cenere di Oakhaven, cammina per trovare risposte.',
@@ -1910,6 +1926,8 @@ function renderCamp(c) {
 
   // ── Pass Stagionale — banner di accesso ──
   {
+    const spStatus = RPG.seasonPassStatus(HERO);
+    const spPct = Math.round(spStatus.pointsInLevel / (spStatus.pointsForNext || RPG.SEASON_PASS.pointsPerLevel) * 100);
     const spBanner = el('div', 'panel borgo-entry-panel season-pass-banner');
     spBanner.style.cssText = 'cursor:pointer;background:linear-gradient(135deg,#3A1208 0%,#1E0C04 50%,#2A1A08 100%);border:1px solid #6A3A18;position:relative;overflow:hidden';
     spBanner.innerHTML = `
@@ -1917,9 +1935,11 @@ function renderCamp(c) {
       <div style="display:flex;align-items:center;gap:14px;padding:14px 16px">
         <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#C8943A,#8B1F1F);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;box-shadow:0 0 14px rgba(200,148,58,.45)">☀️</div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.12em;color:#C8943A;margin-bottom:2px">Pass Stagionale · Stagione 1</div>
-          <div style="font-size:.97rem;font-weight:700;color:#FDEDC0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Era della Conquista</div>
-          <div style="font-size:.75rem;color:#A08050;margin-top:2px">Coming Soon ✨</div>
+          <div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.12em;color:#C8943A;margin-bottom:2px">Pass Stagionale · Lv ${spStatus.level}/${spStatus.maxLevel}</div>
+          <div style="font-size:.97rem;font-weight:700;color:#FDEDC0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(RPG.SEASON_PASS.name)}</div>
+          <div style="height:5px;background:#2A1808;border-radius:99px;overflow:hidden;margin-top:5px">
+            <div style="height:100%;width:${spPct}%;background:linear-gradient(90deg,#C8943A,#E8C050);border-radius:99px"></div>
+          </div>
         </div>
         <div style="font-size:.75rem;color:#C8943A;font-weight:600;flex-shrink:0">Apri ›</div>
       </div>`;
@@ -2124,107 +2144,113 @@ function renderCamp(c) {
   c.appendChild(rp);
 }
 
+function seasonPassRewardIconHtml(reward) {
+  if (reward.type === 'cosmetic') {
+    return `<img class="sp-node-img" src="assets/seasonpass/rewards/${reward.cosmetic.img}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'sp-node-emoji',textContent:'${reward.icon}'}))">`;
+  }
+  return `<span class="sp-node-emoji">${reward.icon}</span>`;
+}
+
+function renderSeasonPassTrackRow(track, status) {
+  const row = el('div', 'sp-track-row');
+  row.appendChild(el('div', `sp-track-label sp-track-label-${track}`,
+    track === 'premium' ? '👑<br>Premium' : 'Gratis'));
+  const items = el('div', 'sp-track-items');
+  for (let lv = 1; lv <= RPG.SEASON_PASS.maxLevel; lv++) {
+    const reward = RPG.seasonPassRewardFor(lv, track);
+    const claimedList = track === 'premium' ? status.claimedPremium : status.claimedFree;
+    const claimed = claimedList.includes(lv);
+    const reached = lv <= status.level;
+    const claimable = reached && !claimed;
+    const node = el('div', `sp-node ${claimed ? 'sp-claimed' : claimable ? 'sp-claimable' : 'sp-locked'}`);
+    node.innerHTML = `
+      <div class="sp-node-lv">Lv ${lv}</div>
+      <div class="sp-node-circle">${claimed ? '<span class="sp-node-check">✓</span>' : seasonPassRewardIconHtml(reward)}</div>
+      <div class="sp-node-name">${esc(reward.label)}</div>`;
+    if (claimable) {
+      node.addEventListener('click', () => {
+        const result = RPG.claimSeasonPassReward(HERO, lv, track);
+        if (!result) return;
+        persist(); renderHUD();
+        vibrate([80, 40, 120]);
+        showSeasonPassRewardModal(result);
+        CAMP_VIEW = 'seasonpass'; setTab('camp');
+      });
+    } else if (!reached) {
+      node.addEventListener('click', () => toast(`🔒 Si sblocca al Livello ${lv} del Pass`));
+    }
+    items.appendChild(node);
+    if (lv < RPG.SEASON_PASS.maxLevel) items.appendChild(el('div', `sp-connector${lv < status.level ? ' sp-connector-lit' : ''}`));
+  }
+  row.appendChild(items);
+  return row;
+}
+
+function showSeasonPassRewardModal(result) {
+  const r = result.reward;
+  let bodyHtml = '';
+  if (r.type === 'gold') bodyHtml = `<p class="center">🪙 <b>+${result.gold} Oro</b></p>`;
+  else if (r.type === 'res') bodyHtml = `<p class="center">🌲 +${result.wood} Legna · ⛏️ +${result.stone} Pietra</p>`;
+  else if (r.type === 'consumable') bodyHtml = `<p class="center">${result.consumable.icon} <b>${esc(result.consumable.name)}</b> nel Box Consumabili</p>`;
+  else if (r.type === 'item') bodyHtml = `<div class="loot-list">${itemHtml(result.item)}</div>`;
+  else if (r.type === 'cosmetic') {
+    const cos = r.cosmetic;
+    const label = cos.type === 'mount' ? '🐴 Nuova cavalcatura nella Stalla e nella Sacca!'
+      : cos.type === 'avatar' ? '👤 Nuovo avatar nella Sacca del Viandante!'
+      : cos.type === 'frame' ? '🖼️ Nuova cornice nella Sacca del Viandante!'
+      : '📛 Nuovo titolo nella Sacca del Viandante!';
+    bodyHtml = `<img class="sp-modal-cosmetic-img" src="assets/seasonpass/rewards/${cos.img}" alt="">
+      <p class="center small muted">${label}</p>`;
+  }
+  modal(`<h3 class="panel-title center">${r.icon} ${esc(r.label)}</h3>
+    ${bodyHtml}
+    <button class="btn btn-primary wide" onclick="closeModal()">Fantastico!</button>`);
+}
+
 function renderSeasonPassView(c) {
   const backBtn = el('button', 'view-back-link', '‹ Rifugio');
   backBtn.addEventListener('click', () => { CAMP_VIEW = 'main'; setTab('camp'); });
   c.appendChild(backBtn);
 
-  c.insertAdjacentHTML('beforeend', `
-  <div style="min-height:100vh;background:linear-gradient(180deg,#1A0C04 0%,#0E0804 100%)">
+  const status = RPG.seasonPassStatus(HERO);
+  const pct = status.level >= status.maxLevel ? 100 : Math.round(status.pointsInLevel / status.pointsForNext * 100);
+  const kmToNext = status.level >= status.maxLevel ? 0 : Math.max(0, Math.round((status.pointsForNext - status.pointsInLevel) / RPG.SEASON_PASS.pointsPerKm * 10) / 10);
 
-    <!-- Header -->
-    <div style="background:linear-gradient(180deg,#2A1008 0%,#1A0804 100%);border-bottom:1px solid #4A2A10;padding:50px 16px 16px">
-      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px">
-        <div style="flex:1">
-          <div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.14em;color:#C8943A">☀️ Stagione 1</div>
-          <div style="font-size:1.1rem;font-weight:800;color:#FDEDC0;font-family:'Cinzel',serif">Era della Conquista</div>
-        </div>
-        <div style="text-align:right;font-size:.72rem;color:#A08050">
-          Scade in<br><strong style="font-size:1rem;color:#E8B060">54 giorni</strong>
-        </div>
+  const wrap = el('div', 'sp-screen');
+
+  const header = el('div', 'sp-header');
+  const logoImg = el('img', 'sp-logo');
+  logoImg.src = 'assets/seasonpass/logo.webp';
+  logoImg.alt = '';
+  logoImg.addEventListener('error', () => logoImg.remove());
+  header.appendChild(logoImg);
+  header.insertAdjacentHTML('beforeend', `
+    <div class="sp-header-row">
+      <div class="sp-lv-badge">Lv ${status.level}/${status.maxLevel}</div>
+      <div class="sp-header-bar-wrap">
+        <div class="sp-header-bar"><div class="sp-header-bar-fill" style="width:${pct}%"></div></div>
+        <div class="sp-header-bar-label">${status.pointsInLevel} / ${status.pointsForNext || RPG.SEASON_PASS.pointsPerLevel} punti${status.level < status.maxLevel ? ` · mancano ${kmToNext} km al prossimo livello` : ' · Livello massimo raggiunto!'}</div>
       </div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <div style="background:linear-gradient(135deg,#C8943A,#8B1F1F);color:#FDEDC0;font-weight:800;font-size:.85rem;padding:4px 12px;border-radius:99px;flex-shrink:0">Lv 1</div>
-        <div style="flex:1">
-          <div style="height:8px;background:#2A1808;border-radius:99px;overflow:hidden;margin-bottom:3px">
-            <div style="height:100%;width:0%;background:linear-gradient(90deg,#C8943A,#E8C050);border-radius:99px"></div>
-          </div>
-          <div style="font-size:.65rem;color:#8A6A3A">0 / 1.000 punti stagione · 1 km = 10 punti</div>
-        </div>
-      </div>
-      <div style="display:flex;margin-top:14px;gap:8px">
-        <div style="flex:1;text-align:center;padding:7px;border-radius:8px;font-size:.78rem;font-weight:600;background:#2A1A08;color:#A08050;border:1px solid #4A3020">Gratuito</div>
-        <div style="flex:1;text-align:center;padding:7px;border-radius:8px;font-size:.78rem;font-weight:600;background:linear-gradient(135deg,#3A1A08,#2A0C04);color:#E8C060;border:1px solid #8B3A10;box-shadow:0 0 12px rgba(200,80,20,.2)">👑 Pass Leggendario</div>
-      </div>
-    </div>
+    </div>`);
+  wrap.appendChild(header);
 
-    <!-- Coming Soon overlay + Track -->
-    <div style="position:relative;padding:24px 16px 0">
+  const legend = el('div', 'sp-legend');
+  legend.innerHTML = `
+    <span class="sp-legend-item"><span class="sp-dot sp-dot-claimed"></span> Riscosso</span>
+    <span class="sp-legend-item"><span class="sp-dot sp-dot-claimable"></span> Da riscuotere</span>
+    <span class="sp-legend-item"><span class="sp-dot sp-dot-locked"></span> Bloccato</span>`;
+  wrap.appendChild(legend);
 
-      <!-- Legenda -->
-      <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:12px;scrollbar-width:none">
-        <div style="display:flex;align-items:center;gap:6px;background:#1E1208;border:1px solid #3A2210;border-radius:99px;padding:5px 12px;font-size:.72rem;white-space:nowrap;flex-shrink:0;color:#F0DFC0"><span style="width:8px;height:8px;border-radius:50%;background:#C8943A;display:inline-block"></span> Sbloccato</div>
-        <div style="display:flex;align-items:center;gap:6px;background:#1E1208;border:1px solid #3A2210;border-radius:99px;padding:5px 12px;font-size:.72rem;white-space:nowrap;flex-shrink:0;color:#F0DFC0"><span style="width:8px;height:8px;border-radius:50%;background:#6ABE30;display:inline-block"></span> Da riscuotere</div>
-        <div style="display:flex;align-items:center;gap:6px;background:#1E1208;border:1px solid #3A2210;border-radius:99px;padding:5px 12px;font-size:.72rem;white-space:nowrap;flex-shrink:0;color:#F0DFC0"><span style="width:8px;height:8px;border-radius:50%;background:#3A2210;display:inline-block"></span> Bloccato</div>
-        <div style="display:flex;align-items:center;gap:6px;background:#1E1208;border:1px solid #3A2210;border-radius:99px;padding:5px 12px;font-size:.72rem;white-space:nowrap;flex-shrink:0;color:#F0DFC0"><span style="width:8px;height:8px;border-radius:50%;background:#E8C060;border:1px solid #8B3A10;display:inline-block"></span> Solo Premium</div>
-      </div>
+  const trackWrap = el('div', 'sp-track-wrap');
+  trackWrap.appendChild(renderSeasonPassTrackRow('premium', status));
+  trackWrap.appendChild(renderSeasonPassTrackRow('free', status));
+  wrap.appendChild(trackWrap);
 
-      <!-- Track preview (blurred) -->
-      <div style="position:relative;overflow:hidden;border-radius:12px">
-        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;filter:blur(3px) brightness(.5);pointer-events:none;user-select:none">
-          <div style="display:flex;flex-direction:column;width:max-content;padding:16px 20px">
+  const note = el('p', 'muted small center sp-note',
+    `Ogni km registrato vale ${RPG.SEASON_PASS.pointsPerKm} punti stagione, su entrambe le track — nessun pagamento richiesto. Cornici, avatar e cavalcatura si equipaggiano dalla 🎒 Sacca del Viandante.`);
+  wrap.appendChild(note);
 
-            <!-- ROW PREMIUM (preview) -->
-            <div style="display:flex;align-items:center;height:110px">
-              <div style="width:60px;font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:#E8C060;flex-shrink:0;text-align:right;padding-right:8px">👑<br>Premium</div>
-              <div style="display:flex;align-items:center">
-                ${[['🪙','500 Oro'],['🧪','Pozione Rara'],['🌲','100 Legna'],['🔮','Runa Epica'],['🪙','800 Oro'],['⛏️','150 Pietra'],['🖼️','Cornice'],['🪙','1200 Oro'],['🎴','Fiches'],['🖼️','Cornice Sabbia'],['⚔️','Scimitarra'],['🌅','Sfondo Alba'],['🏆','Cosmetic']].map(([ ic, nm], i) => `
-                  <div style="display:flex;flex-direction:column;align-items:center;width:72px;flex-shrink:0">
-                    <div style="font-size:.58rem;color:#C8943A;margin-bottom:4px;height:14px">${i===0?'Lv 1':i===6?'Lv 7':i===9?'Lv 10':i===12?'Lv 50':''}</div>
-                    <div style="width:${i===12?'60px':'46px'};height:${i===12?'60px':'46px'};border-radius:50%;background:#140A04;border:2px solid #4A2A10;display:flex;align-items:center;justify-content:center;font-size:${i===12?'1.5rem':'1.2rem'}">${ic}</div>
-                    <div style="font-size:.54rem;color:#6A4A20;margin-top:4px;text-align:center;max-width:64px">${nm}</div>
-                  </div>
-                  ${i<12?'<div style="height:3px;width:26px;background:#2A1808;flex-shrink:0;margin-bottom:26px"></div>':''}`).join('')}
-              </div>
-            </div>
-
-            <!-- ROW GRATUITA (preview) -->
-            <div style="display:flex;align-items:center;height:110px">
-              <div style="width:60px;font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:#6A4A20;flex-shrink:0;text-align:right;padding-right:8px">Gratis</div>
-              <div style="display:flex;align-items:center">
-                ${[['🪙','200 Oro'],['🌲','50 Legna'],['🧪','Pozione'],['🪙','300 Oro'],['⛏️','50 Pietra'],['🪙','400 Oro'],['⭐','···'],['🌲','80 Legna'],['🪙','500 Oro'],['🏅','Badge'],['📛','Titolo'],['🪙','2000 Oro'],['📜','Pergamena']].map(([ic,nm], i) => `
-                  <div style="display:flex;flex-direction:column;align-items:center;width:72px;flex-shrink:0">
-                    <div style="font-size:.58rem;color:#6A4A20;margin-bottom:4px;height:14px">${i===0?'Lv 1':i===6?'Lv 7':i===9?'Lv 10':i===12?'Lv 50':''}</div>
-                    <div style="width:${i===12?'60px':'46px'};height:${i===12?'60px':'46px'};border-radius:50%;background:#140A04;border:2px solid #2A1808;display:flex;align-items:center;justify-content:center;font-size:${i===12?'1.5rem':'1.2rem'};opacity:.45">${ic}</div>
-                    <div style="font-size:.54rem;color:#4A3020;margin-top:4px;text-align:center;max-width:64px">${nm}</div>
-                  </div>
-                  ${i<12?'<div style="height:3px;width:26px;background:#1A0E06;flex-shrink:0;margin-bottom:26px"></div>':''}`).join('')}
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        <!-- Coming Soon overlay -->
-        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(14,8,4,.35);backdrop-filter:blur(1px)">
-          <div style="font-size:2.4rem">⏳</div>
-          <div style="font-family:'Cinzel',serif;font-size:1.3rem;font-weight:700;color:#FDEDC0;text-shadow:0 2px 12px rgba(0,0,0,.8)">Coming Soon</div>
-          <div style="font-size:.82rem;color:#C8943A;text-align:center;max-width:240px;line-height:1.5">Il Pass Stagionale è in arrivo.<br>Continua ad allenarti — ogni km conterà.</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- CTA unlock -->
-    <div style="margin:20px 16px;background:linear-gradient(135deg,#8B3A10,#5A1A08);border:1px solid #C8943A;border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;opacity:.6;pointer-events:none">
-      <div style="font-size:1.6rem">👑</div>
-      <div style="flex:1">
-        <div style="font-size:.9rem;font-weight:700;color:#FDEDC0;font-family:'Cinzel',serif">Pass Leggendario</div>
-        <div style="font-size:.72rem;color:#C8943A">Sblocca la track premium · cavalcatura · avatar esclusivo</div>
-      </div>
-      <div style="font-size:1rem;font-weight:800;color:#E8C060;white-space:nowrap">4,99€</div>
-    </div>
-
-  </div>`);
+  c.appendChild(wrap);
 }
 
 function showAllyBase(o) {
@@ -7464,7 +7490,7 @@ function renderHero(c) {
   const heroCls = isImageAvatar(HERO)
     ? 'hero-fullbody hero-fullbody-big hero-idle'
     : 'hero-avatar hero-idle';
-  const av = avatarEl(HERO, heroCls);
+  const av = avatarWithFrameEl(HERO, heroCls);
   center.appendChild(av);
   rig.appendChild(leftCol);
   rig.appendChild(center);
@@ -7478,6 +7504,8 @@ function renderHero(c) {
 
   c.appendChild(el('h3', 'hero-name-plate center', esc(HERO.name)));
   const mount = HERO.mount ? RPG.mountById(HERO.mount) : null;
+  const customTitleCos = HERO.customTitle ? RPG.seasonPassCosmeticById(HERO.customTitle) : null;
+  if (customTitleCos) c.appendChild(el('p', 'center small sp-custom-title', `${customTitleCos.icon} ${esc(customTitleCos.name)}`));
   c.appendChild(el('p', 'hero-title-plate center',
     `Livello ${HERO.level} — ${RPG.heroTitle(HERO.level)}` +
     (mount ? ` · ${mount.emoji}` : '') + (HERO.companion ? ' · 🐺' : '')));
@@ -9658,14 +9686,19 @@ function renderSaccaView(c) {
       owned.forEach(fr => {
         const active = HERO.frameId === fr.id;
         const card = el('div', 'consumable-card' + (active ? ' equipped' : ''));
+        if (fr.img) {
+          const img = el('img', 'consumable-img');
+          img.src = fr.img; img.alt = fr.name;
+          img.addEventListener('error', () => img.remove());
+          card.appendChild(img);
+        }
         card.appendChild(el('div', 'consumable-name', fr.name));
         if (fr.season) card.appendChild(el('div', 'muted small', fr.season));
         const btn = el('button', active ? 'btn btn-small btn-secondary' : 'btn btn-small btn-primary',
-          active ? '✓ Attiva' : 'Attiva');
-        btn.disabled = active;
+          active ? '✕ Rimuovi' : 'Attiva');
         btn.addEventListener('click', () => {
-          HERO.frameId = fr.id; persist();
-          toast(`🖼️ ${fr.name} attivata!`); setTab('hero');
+          HERO.frameId = active ? null : fr.id; persist();
+          toast(active ? '🖼️ Cornice rimossa.' : `🖼️ ${fr.name} attivata!`); setTab('hero');
         });
         card.appendChild(btn);
         grid.appendChild(card);
@@ -9686,11 +9719,10 @@ function renderSaccaView(c) {
         card.appendChild(el('div', 'consumable-name', t.name));
         if (t.season) card.appendChild(el('div', 'muted small', t.season));
         const btn = el('button', active ? 'btn btn-small btn-secondary' : 'btn btn-small btn-primary',
-          active ? '✓ Attivo' : 'Attiva');
-        btn.disabled = active;
+          active ? '✕ Rimuovi' : 'Attiva');
         btn.addEventListener('click', () => {
-          HERO.customTitle = t.id; persist(); renderHUD();
-          toast(`📛 ${t.name} attivato!`); setTab('hero');
+          HERO.customTitle = active ? null : t.id; persist(); renderHUD();
+          toast(active ? '📛 Titolo rimosso.' : `📛 ${t.name} attivato!`); setTab('hero');
         });
         card.appendChild(btn);
         grid.appendChild(card);

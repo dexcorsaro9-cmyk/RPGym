@@ -1098,7 +1098,9 @@ const RPG = (() => {
     m.price = Math.round(15 * Math.pow(m.level, 1.8) / 10) * 10;
     m.bonus = Math.round(3 + m.level * 0.45);
   });
-  function mountById(id) { return MOUNTS.find(m => m.id === id); }
+  function mountById(id) {
+    return MOUNTS.find(m => m.id === id) || (id === 'leone_sabbie' ? SEASON_PASS_MOUNT : null);
+  }
 
   /* ── Talenti di Classe (uno per protagonista) ─────────────── */
   const CLASS_TALENTS = {
@@ -3103,6 +3105,16 @@ const RPG = (() => {
       if (!it.desc) it.desc = descForItem(it.slot, it.rarity, it.base || null, it.affixes || []);
     });
 
+    // ── Pass Stagionale ────────────────────────────────────────
+    h.seasonPass = h.seasonPass || { seasonId: SEASON_PASS.id, points: 0, claimedFree: [], claimedPremium: [] };
+    if (h.seasonPass.seasonId !== SEASON_PASS.id) {
+      h.seasonPass = { seasonId: SEASON_PASS.id, points: 0, claimedFree: [], claimedPremium: [] };
+    }
+    h.cosmetici = h.cosmetici || { avatar: [], cornici: [], titoli: [] };
+    h.cosmetici.avatar  = h.cosmetici.avatar  || [];
+    h.cosmetici.cornici = h.cosmetici.cornici || [];
+    h.cosmetici.titoli  = h.cosmetici.titoli  || [];
+
     h.schemaVersion = SCHEMA_VERSION;
     return h;
   }
@@ -3541,6 +3553,12 @@ const RPG = (() => {
     hero.totalKm += km;
     hero.kmByType[type] = (hero.kmByType[type] || 0) + km;
     updateChallengeProgress(hero, 'km', km);
+
+    // Pass Stagionale: ogni km registrato converte in punti
+    const spBefore = seasonPassStatus(hero);
+    seasonPassState(hero).points += Math.round(km * SEASON_PASS.pointsPerKm);
+    const spAfter = seasonPassStatus(hero);
+    if (spAfter.level > spBefore.level) report.seasonPassLevelUp = spAfter.level;
 
     // Sfida stagionale
     initSeasonalChallenge(hero);
@@ -4016,6 +4034,159 @@ const RPG = (() => {
     state.claimedEvents.push({ week: ev.week, heroName: hero.name, skin: ev.skin });
     hero.gold += 50;
     return true;
+  }
+
+  /* ── Pass Stagionale ───────────────────────────────────────── */
+  const SEASON_PASS = {
+    id: 'sole-ardente-1',
+    name: 'Stagione del Sole Ardente',
+    maxLevel: 50,
+    pointsPerLevel: 1000,
+    pointsPerKm: 10,
+    durationDays: 60,
+  };
+
+  // Ricompense cosmetiche esclusive del pass (track Premium).
+  // img: percorso in assets/seasonpass/rewards/.
+  const SEASON_PASS_COSMETICS = [
+    { level: 5,  id: 'fiala_deserto',    name: 'Alchimista delle Sabbie',       icon: '🧪', img: 'fiala-deserto.webp',        type: 'titolo' },
+    { level: 9,  id: 'runa_sabbia',      name: 'Custode della Runa Infuocata',  icon: '🔥', img: 'runa-sabbia.webp',          type: 'titolo' },
+    { level: 13, id: 'cornice_sabbia',   name: 'Cornice di Sabbia',             icon: '🖼️', img: 'cornice-sabbia.webp',       type: 'frame' },
+    { level: 18, id: 'scimitarra',       name: 'Portatore della Scimitarra d\'Oro', icon: '⚔️', img: 'scimitarra.webp',      type: 'titolo' },
+    { level: 22, id: 'amuleto_sole',     name: 'Benedetto dal Sole Ardente',    icon: '🔆', img: 'amuleto-sole.webp',         type: 'titolo' },
+    { level: 27, id: 'scudo_sultano',    name: 'Scudo del Sultano',             icon: '🛡️', img: 'scudo-sultano.webp',        type: 'titolo' },
+    { level: 31, id: 'cornice_calore',   name: 'Cornice del Calore',            icon: '🖼️', img: 'cornice-calore.webp',       type: 'frame' },
+    { level: 35, id: 'emblema_leone',    name: 'Emblema del Leone',             icon: '🦁', img: 'emblema-leone.webp',        type: 'titolo' },
+    { level: 39, id: 'pergamena',        name: 'Cronista della Conquista',      icon: '📜', img: 'pergamena.webp',            type: 'titolo' },
+    { level: 43, id: 'cornice_conquista',name: 'Cornice della Conquista',       icon: '🖼️', img: 'cornice-conquista.webp',    type: 'frame' },
+    { level: 46, id: 'cornice_sultano',  name: 'Cornice del Sultano',           icon: '🖼️', img: 'cornice-sultano.webp',      type: 'frame' },
+    { level: 48, id: 'cavalcatura_leone',name: 'Leone delle Sabbie',            icon: '🦁', img: 'cavalcatura-leone.webp',    type: 'mount' },
+    { level: 50, id: 'avatar_conquistatore', name: 'Il Conquistatore delle Lande', icon: '👑', img: 'avatar-conquistatore.webp', type: 'avatar' },
+  ];
+
+  function seasonPassState(hero) {
+    hero.seasonPass = hero.seasonPass || { seasonId: SEASON_PASS.id, points: 0, claimedFree: [], claimedPremium: [] };
+    return hero.seasonPass;
+  }
+
+  function seasonPassLevel(points) {
+    return Math.min(SEASON_PASS.maxLevel, 1 + Math.floor(Math.max(0, points) / SEASON_PASS.pointsPerLevel));
+  }
+
+  function seasonPassStatus(hero) {
+    const sp = seasonPassState(hero);
+    const level = seasonPassLevel(sp.points);
+    const pointsInLevel = sp.points - (level - 1) * SEASON_PASS.pointsPerLevel;
+    const pointsForNext = level >= SEASON_PASS.maxLevel ? 0 : SEASON_PASS.pointsPerLevel;
+    return {
+      ...sp,
+      level,
+      pointsInLevel: level >= SEASON_PASS.maxLevel ? SEASON_PASS.pointsPerLevel : pointsInLevel,
+      pointsForNext,
+      maxLevel: SEASON_PASS.maxLevel,
+      season: SEASON_PASS,
+    };
+  }
+
+  function seasonPassCosmeticFor(level) {
+    return SEASON_PASS_COSMETICS.find(c => c.level === level) || null;
+  }
+
+  // Ricompensa deterministica per livello/track. Track "free": oro/risorse/
+  // consumabili comuni. Track "premium": tutto più ricco, oggetti veri agli
+  // snodi da 10, cosmetici esclusivi agli snodi definiti in SEASON_PASS_COSMETICS.
+  function seasonPassRewardFor(level, track) {
+    const cosmetic = track === 'premium' ? seasonPassCosmeticFor(level) : null;
+    if (cosmetic) return { type: 'cosmetic', cosmetic, icon: cosmetic.icon, label: cosmetic.name };
+
+    const bracket = level <= 10 ? 'comune' : level <= 25 ? 'raro' : level <= 40 ? 'epico' : 'leggendario';
+    const isMilestone10 = level % 10 === 0;
+    const isMilestone5 = level % 5 === 0;
+
+    if (track === 'free') {
+      if (level === SEASON_PASS.maxLevel) return { type: 'item', minRarity: 'epico', icon: '🎁', label: 'Forziere Epico' };
+      if (isMilestone10) return { type: 'consumable', rarity: bracket === 'leggendario' ? 'epico' : bracket, icon: '🧪', label: 'Consumabile' };
+      if (isMilestone5) {
+        const wood = 30 + level * 2, stone = 20 + level;
+        return { type: 'res', wood, stone, icon: '🌲', label: `${wood} Legna + ${stone} Pietra` };
+      }
+      const amount = 40 + level * 8;
+      return { type: 'gold', amount, icon: '🪙', label: `${amount} Oro` };
+    }
+
+    // premium (livelli senza cosmetico)
+    if (level === SEASON_PASS.maxLevel) return { type: 'item', minRarity: 'leggendario', icon: '🏆', label: 'Forziere Leggendario' };
+    if (isMilestone10) return { type: 'item', minRarity: bracket, icon: '⚔️', label: `Oggetto ${bracket}` };
+    if (isMilestone5) return { type: 'consumable', rarity: bracket, icon: '🧪', label: 'Consumabile Premium' };
+    const amount = 80 + level * 14;
+    return { type: 'gold', amount, icon: '🪙', label: `${amount} Oro` };
+  }
+
+  function applySeasonPassReward(hero, reward) {
+    if (reward.type === 'gold') { hero.gold += reward.amount; return { gold: reward.amount }; }
+    if (reward.type === 'res') {
+      hero.wood += reward.wood; hero.stone += reward.stone;
+      return { wood: reward.wood, stone: reward.stone };
+    }
+    if (reward.type === 'consumable') {
+      const pool = CONSUMABLES.filter(c => c.rarity === reward.rarity);
+      const c = pool.length ? pool[Math.floor(Math.random() * pool.length)] : CONSUMABLES[0];
+      hero.consumables = hero.consumables || {};
+      hero.consumables[c.id] = (hero.consumables[c.id] || 0) + 1;
+      return { consumable: c };
+    }
+    if (reward.type === 'item') {
+      const item = genItemFor(hero, reward.minRarity);
+      hero.items.push(item);
+      return { item };
+    }
+    if (reward.type === 'cosmetic') {
+      const cos = reward.cosmetic;
+      hero.cosmetici = hero.cosmetici || { avatar: [], cornici: [], titoli: [] };
+      const imgPath = 'assets/seasonpass/rewards/' + cos.img;
+      if (cos.type === 'avatar') {
+        if (!hero.cosmetici.avatar.some(a => a.src === imgPath)) {
+          hero.cosmetici.avatar.push({ src: imgPath, name: cos.name, season: SEASON_PASS.name });
+        }
+      } else if (cos.type === 'frame') {
+        if (!hero.cosmetici.cornici.some(f => f.id === cos.id)) {
+          hero.cosmetici.cornici.push({ id: cos.id, img: imgPath, name: cos.name, season: SEASON_PASS.name });
+        }
+      } else if (cos.type === 'titolo') {
+        if (!hero.cosmetici.titoli.some(t => t.id === cos.id)) {
+          hero.cosmetici.titoli.push({ id: cos.id, name: cos.name, season: SEASON_PASS.name });
+        }
+      } else if (cos.type === 'mount') {
+        // La cavalcatura esclusiva entra nel sistema stalla, pronta da sellare.
+        hero.mountsOwned = hero.mountsOwned || [];
+        if (!hero.mountsOwned.includes(SEASON_PASS_MOUNT.id)) hero.mountsOwned.push(SEASON_PASS_MOUNT.id);
+      }
+      return { cosmetic: cos };
+    }
+    return {};
+  }
+
+  function seasonPassCosmeticById(id) { return SEASON_PASS_COSMETICS.find(c => c.id === id) || null; }
+
+  // Cavalcatura esclusiva del Pass Stagionale — fuori da MOUNTS per non
+  // interferire con l'acquisto a oro/livello: si ottiene solo dal pass.
+  const SEASON_PASS_MOUNT = {
+    id: 'leone_sabbie', name: 'Il Leone delle Sabbie', emoji: '🦁',
+    img: 'assets/seasonpass/rewards/cavalcatura-leone.webp',
+    level: 0, price: 0, bonus: 40, seasonExclusive: true,
+    bio: 'Nato tra le dune infuocate della Stagione del Sole Ardente, questo leone non conosce padroni: solo compagni degni. La sua criniera brucia come il tramonto sul deserto, e il suo passo copre distanze che nessun destriero comune oserebbe affrontare. Chi lo guadagna, lo guadagna per sempre — nessun oro potrebbe comprare la sua fedeltà.',
+  };
+
+  function claimSeasonPassReward(hero, level, track) {
+    const sp = seasonPassState(hero);
+    const status = seasonPassStatus(hero);
+    if (level < 1 || level > status.level) return null;
+    const key = track === 'premium' ? 'claimedPremium' : 'claimedFree';
+    if (sp[key].includes(level)) return null;
+    const reward = seasonPassRewardFor(level, track);
+    const result = applySeasonPassReward(hero, reward);
+    sp[key].push(level);
+    return { ...result, reward, level, track };
   }
 
   /* ── L'Arena: Morra dei Guerrieri (best of 5) ─────────────── */
@@ -6731,6 +6902,8 @@ const RPG = (() => {
     logWorkout, availableMissions, startMission,
     declareRestDay,
     weeklyEvent, claimEvent, equipmentXpBonus,
+    SEASON_PASS, SEASON_PASS_COSMETICS, SEASON_PASS_MOUNT,
+    seasonPassStatus, seasonPassRewardFor, claimSeasonPassReward, seasonPassCosmeticById,
     genItem, genItemFor, sellItem, sellValue, buyMount, forgeOffers, buyForgeItem,
     CLASS_TALENTS, talentOf, itemImg,
     BATTLE_MOVES, BATTLE_MAX_DAY, battleBeats, randomMove,

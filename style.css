@@ -1879,6 +1879,19 @@ img.fiche-inline {
 }
 .slot-col { display: flex; flex-direction: column; gap: 12px; }
 .hero-center { flex: 1; display: flex; justify-content: center; align-items: flex-end; }
+/* Cornice cosmetica del Pass Stagionale, sovrapposta all'avatar */
+.sp-frame-wrap { position: relative; display: inline-flex; align-items: flex-end; justify-content: center; }
+.sp-frame-overlay {
+  position: absolute; left: 50%; top: 50%;
+  width: 148%; height: 148%;
+  transform: translate(-50%, -50%);
+  object-fit: contain; pointer-events: none; z-index: 3;
+}
+.sp-custom-title {
+  font-family: 'Cinzel', serif; font-weight: 700; letter-spacing: .03em;
+  color: var(--gold-bright); text-shadow: 0 1px 3px rgba(0,0,0,.6);
+  margin: -2px 0 4px;
+}
 .hero-bottom-slots {
   display: flex; justify-content: center; gap: 16px;
   margin: 0 0 10px;
@@ -9567,4 +9580,84 @@ img.fiche-inline {
   .antro-card, .antro-header-banner, .antro-view-header, .antro-coming-soon {
     filter: none;
   }
+}
+
+/* ── Pass Stagionale ─────────────────────────────────────────── */
+.sp-screen {
+  background: linear-gradient(180deg, #1A0C04 0%, #0E0804 100%);
+  min-height: 100%; margin: 0 -12px; padding-bottom: 24px;
+}
+.sp-header {
+  background: linear-gradient(180deg, #2A1008 0%, #1A0804 100%);
+  border-bottom: 1px solid #4A2A10;
+  padding: 10px 16px 16px;
+}
+.sp-logo {
+  display: block; max-width: 200px; margin: 0 auto 8px; width: 100%; height: auto;
+}
+.sp-header-row { display: flex; align-items: center; gap: 10px; }
+.sp-lv-badge {
+  background: linear-gradient(135deg, #C8943A, #8B1F1F); color: #FDEDC0;
+  font-weight: 800; font-size: .85rem; padding: 4px 12px; border-radius: 99px; flex-shrink: 0;
+  font-family: 'Cinzel', serif;
+}
+.sp-header-bar-wrap { flex: 1; min-width: 0; }
+.sp-header-bar { height: 8px; background: #2A1808; border-radius: 99px; overflow: hidden; margin-bottom: 3px; }
+.sp-header-bar-fill { height: 100%; background: linear-gradient(90deg, #C8943A, #E8C050); border-radius: 99px; transition: width .5s; }
+.sp-header-bar-label { font-size: .65rem; color: #C0A070; }
+
+.sp-legend { display: flex; gap: 14px; padding: 10px 16px; flex-wrap: wrap; }
+.sp-legend-item { display: flex; align-items: center; gap: 5px; font-size: .68rem; color: #D8C0A0; }
+.sp-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.sp-dot-claimed   { background: #C8943A; }
+.sp-dot-claimable { background: #6ABE30; box-shadow: 0 0 6px rgba(106,190,48,.6); }
+.sp-dot-locked    { background: #3A2210; }
+
+.sp-track-wrap { padding: 4px 0; }
+.sp-track-row { display: flex; align-items: center; padding: 10px 0; }
+.sp-track-label {
+  width: 52px; flex-shrink: 0; text-align: right; padding-right: 8px;
+  font-size: .58rem; text-transform: uppercase; letter-spacing: .08em; line-height: 1.3;
+}
+.sp-track-label-premium { color: #E8C060; }
+.sp-track-label-free    { color: #6A4A20; }
+.sp-track-items {
+  display: flex; align-items: center; overflow-x: auto; -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; padding: 4px 16px 4px 0;
+}
+.sp-track-items::-webkit-scrollbar { display: none; }
+.sp-node {
+  display: flex; flex-direction: column; align-items: center; width: 64px; flex-shrink: 0;
+  cursor: pointer;
+}
+.sp-node-lv { font-size: .56rem; color: #8A6A3A; margin-bottom: 3px; }
+.sp-node-circle {
+  width: 46px; height: 46px; border-radius: 50%; background: #140A04;
+  border: 2px solid #2A1808; display: flex; align-items: center; justify-content: center;
+  font-size: 1.15rem; position: relative; overflow: hidden;
+}
+.sp-node-img { width: 100%; height: 100%; object-fit: cover; }
+.sp-node-emoji { line-height: 1; }
+.sp-node.sp-claimed .sp-node-circle { border-color: #4A2A10; opacity: .55; }
+.sp-node-check { color: #6ABE30; font-size: 1.3rem; font-weight: 900; }
+.sp-node.sp-claimable .sp-node-circle {
+  border-color: #6ABE30; box-shadow: 0 0 12px rgba(106,190,48,.5);
+  animation: sp-pulse 1.8s ease-in-out infinite;
+}
+@keyframes sp-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(106,190,48,.4); }
+  50%      { box-shadow: 0 0 16px rgba(106,190,48,.75); }
+}
+.sp-node.sp-locked .sp-node-circle { opacity: .4; filter: grayscale(.6); }
+.sp-node-name {
+  font-size: .52rem; color: #8A6A3A; margin-top: 4px; text-align: center;
+  max-width: 60px; line-height: 1.2;
+}
+.sp-node.sp-claimable .sp-node-name { color: #C8E8A0; }
+.sp-connector { height: 3px; width: 16px; background: #2A1808; flex-shrink: 0; margin-bottom: 22px; }
+.sp-connector-lit { background: linear-gradient(90deg, #C8943A, #6ABE30); }
+
+.sp-note { padding: 12px 20px 0; line-height: 1.5; }
+.sp-modal-cosmetic-img {
+  display: block; max-width: 200px; width: 100%; margin: 8px auto; border-radius: 8px;
 }
