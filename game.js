@@ -4041,9 +4041,9 @@ const RPG = (() => {
     id: 'sole-ardente-1',
     name: 'Stagione del Sole Ardente',
     maxLevel: 50,
-    pointsPerLevel: 1000,
+    pointsPerLevel: 50,
     pointsPerKm: 10,
-    durationDays: 60,
+    durationDays: 90,
   };
 
   // Ricompense cosmetiche esclusive del pass (track Premium).
