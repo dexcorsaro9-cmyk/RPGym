@@ -1934,7 +1934,7 @@ function renderCamp(c) {
       <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(200,148,58,.15) 0%,transparent 60%);pointer-events:none"></div>
       <div style="display:flex;align-items:center;gap:14px;padding:14px 16px">
         <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#C8943A,#8B1F1F);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 14px rgba(200,148,58,.45);overflow:hidden">
-          <img src="assets/seasonpass/logo.webp" alt="" style="width:78%;height:78%;object-fit:contain" onerror="this.replaceWith(Object.assign(document.createElement('span'),{style:'font-size:1.5rem',textContent:'☀️'}))">
+          <img src="assets/seasonpass/logo.webp" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.replaceWith(Object.assign(document.createElement('span'),{style:'font-size:1.5rem',textContent:'☀️'}))">
         </div>
         <div style="flex:1;min-width:0">
           <div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.12em;color:#C8943A;margin-bottom:2px">Pass Stagionale · Lv ${spStatus.level}/${spStatus.maxLevel}</div>
