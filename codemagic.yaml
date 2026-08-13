@@ -1,4 +1,56 @@
 workflows:
+  android-release:
+    name: Android → AAB firmato (nessuna pubblicazione automatica)
+    max_build_duration: 60
+    environment:
+      vars:
+        PACKAGE_NAME: com.antoniodecino.heroscape
+      node: "20"
+      java: 21
+      groups:
+        - android_keystore   # definisci questo gruppo nei Codemagic Environment Variables:
+                              # CM_KEYSTORE (file, la .jks codificata), CM_KEYSTORE_PASSWORD,
+                              # CM_KEY_ALIAS, CM_KEY_PASSWORD
+    scripts:
+      - name: Install Node dependencies
+        script: npm install
+
+      - name: Build web assets
+        script: node build.js
+
+      - name: Sync Android platform
+        script: npx cap sync android
+
+      - name: Decode keystore e crea keystore.properties
+        script: |
+          echo $CM_KEYSTORE | base64 --decode > $CM_BUILD_DIR/android/keystore/heropace-upload.jks
+          cat > $CM_BUILD_DIR/android/keystore.properties <<EOF
+          storeFile=keystore/heropace-upload.jks
+          storePassword=$CM_KEYSTORE_PASSWORD
+          keyAlias=$CM_KEY_ALIAS
+          keyPassword=$CM_KEY_PASSWORD
+          EOF
+
+      - name: Build AAB firmato
+        script: |
+          cd android
+          ./gradlew bundleRelease
+
+    artifacts:
+      - android/app/build/outputs/**/*.aab
+      - android/app/build/outputs/**/mapping.txt
+
+    # Nessuna sezione "publishing" verso Google Play: l'AAB resta solo come
+    # artifact scaricabile — l'upload sulla track (test interno/chiuso/produzione)
+    # va fatto manualmente da Play Console, quando decidi tu.
+    publishing:
+      email:
+        recipients:
+          - 9corsaro9@gmail.com
+        notify:
+          success: true
+          failure: true
+
   ios-testflight:
     name: iOS → TestFlight
     max_build_duration: 60
