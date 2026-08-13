@@ -3119,7 +3119,12 @@ function renderMap(c) {
       const { boss, progressKm, done, claimed } = bossStatus;
       const pct = Math.min(100, Math.round(progressKm / boss.km * 100));
       const bp = el('div', 'panel panel-featured boss-weekly-panel');
-      bp.appendChild(el('h3', 'panel-title', `${boss.icon} Boss Settimanale`));
+      bp.appendChild(el('h3', 'panel-title', `👑 Boss Settimanale`));
+      if (boss.id !== 'cavaliere-drago') {
+        const img = el('img', 'incursion-img');
+        img.src = `assets/bestiario/${boss.id}.webp`;
+        bp.appendChild(img);
+      }
       bp.appendChild(el('p', 'center', `<b>${esc(boss.name)}</b> — <span class="muted small">${boss.zone}</span>`));
       bp.appendChild(kmBarEl('Progresso', progressKm, boss.km, {
         color: done || claimed ? 'gold' : 'danger',
@@ -3127,7 +3132,7 @@ function renderMap(c) {
       if (claimed) {
         bp.appendChild(el('div', 'done-strip', `✅ <b>Boss sconfitto questa settimana!</b>`));
       } else if (done) {
-        const claimBtn = el('button', 'btn btn-primary wide', `${boss.icon} Riscuoti bottino · 🪙 ${boss.gold}`);
+        const claimBtn = el('button', 'btn btn-primary wide', `👑 Riscuoti bottino · 🪙 ${boss.gold}`);
         claimBtn.addEventListener('click', () => {
           const reward = RPG.claimWeeklyBoss(HERO);
           if (!reward) return;
@@ -3135,7 +3140,7 @@ function renderMap(c) {
           vibrate([150, 50, 200]);
           const itemEl = reward.item ? `<div class="loot-list" style="margin:.5rem 0">${itemHtml(reward.item)}</div>` : '';
           const consEl = reward.consumable ? `<p class="center small">💰 ${esc(reward.consumable.icon)} <b>${esc(reward.consumable.name)}</b> nel Box Consumabili!</p>` : '';
-          modal(`<h3 class="center">${boss.icon} ${esc(boss.name)} sconfitto!</h3>
+          modal(`<h3 class="center">👑 ${esc(boss.name)} sconfitto!</h3>
             <p class="center">🪙 +${reward.gold} oro${itemEl}</p>
             ${consEl}
             <button class="btn btn-primary wide" onclick="closeModal();setTab('camp')">Ottimo!</button>`);
