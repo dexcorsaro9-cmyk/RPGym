@@ -932,72 +932,211 @@ function _startPescaGame(baitId, fish) {
 }
 
 /* ── 💪 BRACCIO DI FERRO ── */
+const SFIDANTI_BF = [
+  { id:'mozzo',   icon:'🧑‍✈️', name:'Bren il Mozzo',           minLevel:1,  force:0.40, hasBurst:false,
+    taunt:'"Sfido pure i polli da cortile!"',
+    phases:['😏 Troppo facile.', '😅 Aspetta un secondo…', '😤 No no no!', '😱 COM\'È POSSIBILE?!'],
+    winLine:'Bren rotola giù dalla sedia.', loseLine:'Bren ti offre un boccale come consolazione.' },
+  { id:'nano',    icon:'⚒️',  name:'Durgin il Nano Possente',  minLevel:1,  force:0.50, hasBurst:false,
+    taunt:'"Le mie braccia sono state forgiate nella pietra!"',
+    phases:['💪 Solo riscaldamento.', '😬 Mh, non male.', '💦 Che forza…!', '😤 IMPOSSIBILE!'],
+    winLine:'Durgin sbatte il pugno sul tavolo.', loseLine:'"Torna quando sei pronto per i grandi."' },
+  { id:'guardia', icon:'🗡️',  name:'Korr la Guardia Ferrea',   minLevel:10, force:0.58, hasBurst:true,
+    taunt:'"Tredici anni di servizio. Nessuno mi ha mai battuto."',
+    phases:['🧊 Fredda come l\'acciaio.', '🤨 Interessante.', '💦 Stai cedendo?!', '😰 No… non ora…'],
+    winLine:'Korr annuisce in silenzio, rispettosa.', loseLine:'"Come pensavi di battere l\'acciaio?"' },
+  { id:'orco',    icon:'👹',  name:'Grunk l\'Orco della Rupe',  minLevel:25, force:0.66, hasBurst:true,
+    taunt:'"GRUNK SCHIACCIA TUTTO! GRUNK PIÙ FORTE DI TUTTI!"',
+    phases:['👹 GRUNK FORTE!', '😡 TU FASTIDIOSO!', '😤 GRUNK SUDARE?!', '😱 IMPOSSIBILE!'],
+    winLine:'Grunk cade dalla sedia con un boato.', loseLine:'"GRUNK VINCE SEMPRE! SEMPRE!"' },
+  { id:'colosso', icon:'🗿',  name:'Il Colosso di Pietra',      minLevel:45, force:0.76, hasBurst:true,
+    taunt:'"…"',
+    phases:['🗿 …', '🗿 …?', '🗿 !', '🗿 !!'],
+    winLine:'Una crepa compare sul braccio del Colosso.', loseLine:'Il Colosso torna immobile. Come se nulla fosse.' },
+];
+
 function openBraccioGame() {
   if (!mgCanPlay('braccio')) return;
 
-  let position = 50; // 0 = nano vince, 100 = eroe vince
-  let state = 'IDLE';
-  const DWARF_FORCE = 0.3;
+  const heroLvl  = HERO.level || 1;
+  const unlocked = SFIDANTI_BF.filter(s => heroLvl >= s.minLevel);
+  const sf       = unlocked[Math.floor(Math.random() * unlocked.length)];
+
+  const TAP_PUSH   = 3.8;
+  const BURST_PUSH = 11;
+  const BURST_CD   = 95;   // frames (~1.6 s)
+  const CTR_WARN   = 24;   // frames of warning before opponent burst
+  const CTR_DUR    = 38;   // frames of active opponent burst
+
+  let position   = 44;
+  let state      = 'INTRO';
+  let startTime  = 0;
+
+  let tapTimes   = [];
+  let burstCD    = 0;
+
+  let ctrTimer   = sf.hasBurst ? Math.floor(60 * (3.5 + Math.random() * 3)) : Infinity;
+  let ctrWarn    = 0;
+  let ctrActive  = 0;
 
   const wrap = document.createElement('div');
   wrap.className = 'mgbf-wrap';
   wrap.innerHTML = `
     <button class="mg-x-btn" id="mgbf-x">✕</button>
-    <div class="mg-game-title">💪 Il Nano Possente</div>
-    <p class="mg-hint" id="mgbf-msg">Tocca la zona per vincere il braccio di ferro!</p>
-    <div class="mgbf-avatars">
-      <div class="mgbf-avatar-wrap">
-        <img src="assets/minigames/braccio-di-ferro/sfidante.webp" class="mgbf-avatar-img" alt="Nano">
-        <span class="mgbf-avatar-lbl">Nano</span>
-      </div>
-      <div class="mgbf-avatar-wrap">
-        <div class="mgbf-avatar-hero" id="mgbf-hero">🤺</div>
-        <span class="mgbf-avatar-lbl">Tu</span>
-      </div>
+
+    <div class="mgbf-card" id="mgbf-card">
+      <div class="mgbf-card-icon">${sf.icon}</div>
+      <div class="mgbf-card-name">${esc(sf.name)}</div>
+      <div class="mgbf-card-taunt">${esc(sf.taunt)}</div>
+      <button class="btn btn-primary wide" id="mgbf-start">⚔️ Accetta la sfida!</button>
     </div>
-    <div class="mgbf-bar-wrap">
-      <div class="mgbf-bar-danger"></div>
-      <div class="mgbf-bar-safe"></div>
-      <div class="mgbf-indicator" id="mgbf-ind">✊</div>
+
+    <div class="mgbf-game hidden" id="mgbf-game">
+      <div class="mg-game-title">💪 Braccio di Ferro</div>
+      <div class="mgbf-match-row">
+        <div class="mgbf-avatar-wrap">
+          <div class="mgbf-opp-face" id="mgbf-opp-face">${sf.icon}</div>
+          <span class="mgbf-avatar-lbl">${esc(sf.name.split(' ')[0])}</span>
+        </div>
+        <div class="mgbf-vs-badge">VS</div>
+        <div class="mgbf-avatar-wrap">
+          <div class="mgbf-avatar-hero" id="mgbf-hero">💪</div>
+          <span class="mgbf-avatar-lbl">Tu</span>
+        </div>
+      </div>
+      <div class="mgbf-phase-line" id="mgbf-phase">${sf.phases[0]}</div>
+      <div class="mgbf-bar-wrap">
+        <div class="mgbf-bar-danger"></div>
+        <div class="mgbf-bar-safe"></div>
+        <div class="mgbf-indicator" id="mgbf-ind">✊</div>
+        <div class="mgbf-ctr-flash hidden" id="mgbf-cflash"></div>
+      </div>
+      <div class="mgbf-burst-row">
+        <span class="mgbf-burst-label">Spinta</span>
+        <div class="mgbf-burst-track"><div class="mgbf-burst-fill" id="mgbf-bfill" style="width:100%"></div></div>
+      </div>
+      <div class="mgbf-tap" id="mgbf-tap">PREMI!</div>
+      <div class="mgbf-countdown" id="mgbf-cd"></div>
     </div>
-    <div class="mgbf-tap" id="mgbf-tap">PREMI!</div>
+
     <div class="mg-result-area" id="mgbf-res"></div>
     <button class="btn mg-close-btn hidden" id="mgbf-close">Continua ›</button>`;
 
   mgOverlay(wrap);
 
-  const msgEl    = document.getElementById('mgbf-msg');
+  const cardEl   = document.getElementById('mgbf-card');
+  const gameEl   = document.getElementById('mgbf-game');
   const indEl    = document.getElementById('mgbf-ind');
   const tapEl    = document.getElementById('mgbf-tap');
   const heroEl   = document.getElementById('mgbf-hero');
+  const oppEl    = document.getElementById('mgbf-opp-face');
+  const phaseEl  = document.getElementById('mgbf-phase');
+  const cdEl     = document.getElementById('mgbf-cd');
+  const bfillEl  = document.getElementById('mgbf-bfill');
+  const cflashEl = document.getElementById('mgbf-cflash');
   const resEl    = document.getElementById('mgbf-res');
   const closeBtn = document.getElementById('mgbf-close');
 
+  document.getElementById('mgbf-start').addEventListener('click', () => {
+    cardEl.classList.add('hidden');
+    gameEl.classList.remove('hidden');
+    state     = 'PLAYING';
+    startTime = Date.now();
+    _mgRAF    = requestAnimationFrame(gameLoop);
+  });
+
   function tap(e) {
     if (e.type === 'touchstart') e.preventDefault();
-    if (state === 'IDLE') {
-      state = 'PLAYING';
-      msgEl.textContent = 'Premi velocemente!';
-      _mgRAF = requestAnimationFrame(gameLoop);
-    }
     if (state !== 'PLAYING') return;
-    position += 4.5;
-    // nano reagisce visivamente
-    heroEl.style.transform = `scale(${1 + Math.random() * 0.15})`;
-    setTimeout(() => { heroEl.style.transform = 'scale(1)'; }, 60);
+
+    const now = Date.now();
+    tapTimes.push(now);
+    tapTimes = tapTimes.filter(t => now - t < 500);
+    position += TAP_PUSH;
+
+    const rapid = tapTimes.filter(t => now - t < 350);
+    if (rapid.length >= 3 && burstCD <= 0) {
+      position += BURST_PUSH;
+      burstCD   = BURST_CD;
+      tapTimes  = [];
+      tapEl.classList.add('mgbf-burst-active');
+      tapEl.textContent = '💥 SPINTA!';
+      setTimeout(() => { tapEl.textContent = 'PREMI!'; tapEl.classList.remove('mgbf-burst-active'); }, 420);
+      vibrate([30, 20, 70]);
+    }
+
+    heroEl.style.transform = `scale(${1.08 + Math.random() * 0.12})`;
+    setTimeout(() => { heroEl.style.transform = 'scale(1)'; }, 65);
   }
 
   function gameLoop() {
     if (state !== 'PLAYING') return;
-    const extra = position > 70 ? 0.4 : 0;
-    position -= DWARF_FORCE + extra;
 
-    // shake quando vicino ai bordi
-    if (position < 20 || position > 80) wrap.classList.add('mgbf-shake');
-    else                                 wrap.classList.remove('mgbf-shake');
+    if (burstCD > 0) burstCD--;
+    bfillEl.style.width = (burstCD > 0 ? Math.round((1 - burstCD / BURST_CD) * 100) : 100) + '%';
+    bfillEl.style.background = burstCD > 0
+      ? 'linear-gradient(to right,#888,#aaa)'
+      : 'linear-gradient(to right,#4caf50,#8bc34a)';
 
-    position = Math.max(0, Math.min(position, 100));
+    // Force ramps up slightly over time (opponent warms up)
+    const elapsed = (Date.now() - startTime) / 1000;
+    const ramp    = Math.min(elapsed / 35, 0.2);
+    let force     = sf.force * (1 + ramp);
+
+    // Opponent counter-burst
+    if (sf.hasBurst) {
+      if (ctrWarn > 0) {
+        ctrWarn--;
+        if (ctrWarn === 0) {
+          ctrActive = CTR_DUR;
+          cflashEl.textContent = '⚡ CONTRATTACCA!';
+          cflashEl.classList.remove('hidden');
+          vibrate([50, 30, 100]);
+          setTimeout(() => cflashEl.classList.add('hidden'), 600);
+        }
+      } else if (ctrActive > 0) {
+        force    *= 2.9;
+        ctrActive--;
+        if (ctrActive === 0) {
+          ctrTimer = Math.floor(60 * (3 + Math.random() * 4));
+        }
+      } else {
+        ctrTimer--;
+        if (ctrTimer <= 0) {
+          ctrWarn = CTR_WARN;
+          cflashEl.textContent = '⚠️ Si prepara…';
+          cflashEl.classList.remove('hidden');
+          setTimeout(() => { if (ctrWarn > 0) cflashEl.classList.add('hidden'); }, 350);
+        }
+      }
+    }
+
+    // Extra resistance when player is winning
+    const extra = position > 70 ? force * 0.6 : 0;
+    position   -= force + extra;
+    position    = Math.max(0, Math.min(position, 100));
+
     indEl.style.left = `${position}%`;
+
+    // Shake near edges
+    if (position < 15 || position > 83) wrap.classList.add('mgbf-shake');
+    else                                  wrap.classList.remove('mgbf-shake');
+
+    // Opponent phase
+    const pi = position < 30 ? 0 : position < 55 ? 1 : position < 75 ? 2 : 3;
+    phaseEl.textContent = sf.phases[pi];
+
+    // Opponent face reacts when losing
+    oppEl.style.transform = pi >= 2 ? `scale(${0.92 + Math.random() * 0.06})` : 'scale(1)';
+
+    // Dramatic countdown near victory
+    if (position >= 86) {
+      cdEl.textContent = '🔥 FORZA! FORZA! FORZA!';
+      cdEl.classList.add('mgbf-cd-active');
+    } else {
+      cdEl.textContent = '';
+      cdEl.classList.remove('mgbf-cd-active');
+    }
 
     if (position >= 100) { endGame(true);  return; }
     if (position <= 0)   { endGame(false); return; }
@@ -1007,15 +1146,24 @@ function openBraccioGame() {
   function endGame(won) {
     state = 'END';
     wrap.classList.remove('mgbf-shake');
+    cdEl.textContent = '';
     mgRecord('braccio');
+
     if (won) {
-      const gold = 30, xp = 25;
+      const secs    = (Date.now() - startTime) / 1000;
+      const isFlash = secs < 12;
+      const gold    = isFlash ? 55 : 30;
+      const xp      = isFlash ? 42 : 25;
       mgGiveReward({ gold, xp });
       vibrate([100, 50, 200]); sfx('coin');
-      resEl.innerHTML = mgRewardHTML({ gold, xp }, '💪 Vittoria!', 'Che muscoli da guerriero!');
+      const sub = isFlash ? `⚡ Vittoria Fulminea! (${Math.round(secs)}s)` : esc(sf.winLine);
+      resEl.innerHTML = mgRewardHTML({ gold, xp }, '💪 Vittoria!', sub);
     } else {
       vibrate([300]);
-      resEl.innerHTML = `<div class="mg-reward"><div class="mg-reward-title">😵 Schiacciato!</div><div class="mg-reward-sub">Il nano vince questa volta.</div></div>`;
+      resEl.innerHTML = `<div class="mg-reward">
+        <div class="mg-reward-title">😵 Schiacciato!</div>
+        <div class="mg-reward-sub">${esc(sf.loseLine)}</div>
+      </div>`;
     }
     resEl.classList.add('mg-res-in');
     closeBtn.classList.remove('hidden');
@@ -1030,7 +1178,6 @@ function openBraccioGame() {
 
   tapEl.addEventListener('touchstart', tap, { passive: false });
   tapEl.addEventListener('mousedown', tap);
-
   document.getElementById('mgbf-x').addEventListener('click', mgClose);
   closeBtn.addEventListener('click', mgClose);
 }
