@@ -5702,6 +5702,9 @@ function showReport(r) {
       <span class="small muted">Aggiunto al Bestiario</span></div>
     </div>`;
   }
+  if (r.baitFound) {
+    html += `<div class="bait-drop-notice">${r.baitFound.icon} <b>Hai trovato: ${esc(r.baitFound.name)}!</b><br><span class="small muted">Esca aggiunta alla Taverna delle Sfide → Pesca nel Fossato</span></div>`;
+  }
   if (r.finalReveal)
     html += `<p class="big-news">🐉 LE MEMORIE SONO COMPLETE!<br><span class="small">Il Cavaliere del Drago è nel Bestiario.</span></p>`;
   if (r.incursionProgress) {
@@ -7435,6 +7438,36 @@ function renderErborista(c) {
     grid.appendChild(card);
   });
   c.appendChild(grid);
+
+  // Sezione Esche da Pesca
+  const baitPrices = { fungo: 60, osso: 90, amo_arg: 180, cristallo: 400 };
+  const baitPanel = el('div', 'panel erborista-bait-panel');
+  baitPanel.appendChild(el('h3', 'panel-title', '🎣 Esche da Pesca'));
+  baitPanel.appendChild(el('p', 'muted small', 'Usate nella Taverna delle Sfide · Pesca nel Fossato. Ogni esca si consuma dopo la pescata.'));
+  const baitGrid = el('div', 'bait-shop-grid');
+  RPG.BAITS.filter(b => b.id !== 'lombrico').forEach(b => {
+    const price = baitPrices[b.id] || 100;
+    const qty   = (HERO.baits || {})[b.id] || 0;
+    const card  = el('div', 'bait-shop-card');
+    card.innerHTML = `<div class="bait-shop-icon">${b.icon}</div>
+      <div class="bait-shop-name">${esc(b.name)}</div>
+      <div class="bait-shop-desc muted small">${esc(b.desc)}</div>
+      ${qty > 0 ? `<div class="bait-qty">×${qty} in sacca</div>` : ''}`;
+    const buyBtn = el('button', `btn btn-primary btn-small${HERO.gold < price ? ' disabled' : ''}`, `${price} 🪙`);
+    buyBtn.disabled = HERO.gold < price;
+    buyBtn.addEventListener('click', () => {
+      if (HERO.gold < price) { toast('Oro insufficiente!'); return; }
+      HERO.gold -= price;
+      RPG.addBait(HERO, b.id, 1);
+      persist(); renderHUD();
+      toast(`${b.icon} ${b.name} acquistata!`);
+      setTab('market');
+    });
+    card.appendChild(buyBtn);
+    baitGrid.appendChild(card);
+  });
+  baitPanel.appendChild(baitGrid);
+  c.appendChild(baitPanel);
 }
 
 /* ── TAB: Eroe (equipaggiamento + sottomenù) ── */

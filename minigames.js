@@ -737,9 +737,51 @@ function openDadiGame() {
 function openPescaGame() {
   if (!mgCanPlay('pesca')) return;
 
+  // Scelta esca
+  const baits = RPG.BAITS;
+  const herobaits = HERO.baits || {};
+
+  const wrap = document.createElement('div');
+  wrap.className = 'mgp-wrap bait-picker-wrap';
+  let cardsHTML = baits.map(b => {
+    const qty = b.id === 'lombrico' ? null : (herobaits[b.id] || 0);
+    const unavail = b.id !== 'lombrico' && qty === 0;
+    return `<div class="bait-card${unavail ? ' bait-unavail' : ''}" data-id="${b.id}">
+      <span class="bait-icon">${b.icon}</span>
+      <div class="bait-name">${b.name}</div>
+      <div class="bait-desc">${b.desc}</div>
+      ${b.id === 'lombrico' ? '<div class="bait-qty">∞ sempre disponibile</div>'
+        : `<div class="bait-qty">${qty > 0 ? `×${qty} disponibili` : 'Non disponibile'}</div>`}
+      ${!unavail ? `<button class="btn btn-primary btn-small bait-select-btn" data-id="${b.id}">Usa questa esca</button>` : ''}
+    </div>`;
+  }).join('');
+
+  wrap.innerHTML = `
+    <button class="mg-x-btn" id="mgp-picker-x">✕</button>
+    <div class="mg-game-title">🎣 Pesca nel Fossato</div>
+    <p class="mg-hint">Scegli l'esca prima di lanciare la lenza.</p>
+    <div class="bait-grid">${cardsHTML}</div>`;
+
+  mgOverlay(wrap, 'assets/minigames/pesca-del-fossato/fossato.webp');
+
+  document.getElementById('mgp-picker-x').addEventListener('click', mgClose);
+  document.querySelectorAll('.bait-select-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const baitId = btn.dataset.id;
+      if (baitId !== 'lombrico' && !(herobaits[baitId] > 0)) return;
+      RPG.useBait(HERO, baitId);
+      persist();
+      _startPescaGame(baitId);
+    });
+  });
+}
+
+function _startPescaGame(baitId) {
+  const baitCfg = RPG.BAITS.find(b => b.id === baitId) || RPG.BAITS[0];
+
   let state = 'IDLE';
   let zonePos = 0, zoneVelocity = 0, isThrusting = false;
-  const ZONE_HEIGHT = 90;
+  const ZONE_HEIGHT = Math.round(90 * baitCfg.zoneSize);
   const GRAVITY = 0.4, THRUST = 0.8, FRICTION = 0.92;
 
   let fishPos = 0, fishTarget = 0, fishSpeed = 0, fishTimer = 0;
@@ -749,11 +791,14 @@ function openPescaGame() {
   const WIN_MAX = 100;
   let containerHeight = 0;
 
+  const diffLabel = baitCfg.fishSpeedMult >= 1.5 ? '🔴 Difficile' :
+                    baitCfg.fishSpeedMult >= 1.25 ? '🟡 Medio' : '🟢 Facile';
+
   const wrap = document.createElement('div');
   wrap.className = 'mgp-wrap';
   wrap.innerHTML = `
     <button class="mg-x-btn" id="mgp-x">✕</button>
-    <div class="mg-game-title">🎣 Pesca nel Fossato</div>
+    <div class="mg-game-title">🎣 Pesca nel Fossato <span class="bait-active-tag">${baitCfg.icon} ${baitCfg.name} · ${diffLabel}</span></div>
     <p class="mg-hint" id="mgp-hint">Tieni premuto per far salire l'esca!<br>Mantieni il pesce nell'area verde.</p>
     <div class="mgp-arena" id="mgp-arena">
       <div class="mgp-bar-col" id="mgp-bar">
@@ -777,6 +822,8 @@ function openPescaGame() {
   const hintEl   = document.getElementById('mgp-hint');
   const resEl    = document.getElementById('mgp-res');
   const closeBtn = document.getElementById('mgp-close');
+
+  zoneEl.style.height = ZONE_HEIGHT + 'px';
 
   function cleanup() {
     window.removeEventListener('mouseup', thrustOff);
@@ -810,16 +857,16 @@ function openPescaGame() {
     if (zonePos < 0)          { zonePos = 0;          zoneVelocity = 0; }
     if (zonePos > maxZonePos) { zonePos = maxZonePos; zoneVelocity = 0; }
 
-    // Fish AI
+    // Fish AI — velocità scalata per esca
     fishTimer--;
     if (fishTimer <= 0) {
       fishTimer  = 30 + Math.random() * 60;
       fishTarget = Math.random() * (containerHeight - FISH_HEIGHT);
-      fishSpeed  = 0.5 + Math.random() * 3.5;
+      fishSpeed  = (0.5 + Math.random() * 3.5) * baitCfg.fishSpeedMult;
     }
     if (fishPos < fishTarget) fishPos += fishSpeed;
     if (fishPos > fishTarget) fishPos -= fishSpeed;
-    if (fishPos < 0)                          fishPos = 0;
+    if (fishPos < 0)                             fishPos = 0;
     if (fishPos > containerHeight - FISH_HEIGHT) fishPos = containerHeight - FISH_HEIGHT;
 
     // Collision & progress
@@ -846,10 +893,16 @@ function openPescaGame() {
     zoneEl.classList.remove('mgp-zone-active');
     mgRecord('pesca');
     if (won) {
-      const gold = 40, xp = 30;
-      mgGiveReward({ gold, xp });
+      const loot = RPG.pescaLoot(HERO, baitCfg.loot);
+      mgGiveReward({ gold: loot.gold, xp: loot.xp });
       vibrate([80, 40, 160]); sfx('coin');
-      resEl.innerHTML = mgRewardHTML({ gold, xp }, '🎣 Catturato!', 'Creatura eccezionale!');
+      let sub = 'Creatura eccezionale!';
+      if (loot.item)       sub = `🎒 ${loot.item.name} (${loot.item.rarity}) nel zaino!`;
+      if (loot.consumable) sub = `🧪 ${loot.consumable.icon} ${loot.consumable.name} nei consumabili!`;
+      if (loot.sighting)   sub = `👁️ Avvistato: ${loot.sighting.name}!`;
+      else if (loot.sighting === null && baitCfg.loot === 'bestiario') sub = 'Niente di nuovo nel Bestiario.';
+      resEl.innerHTML = mgRewardHTML({ gold: loot.gold, xp: loot.xp }, '🎣 Catturato!', sub);
+      persist();
     } else {
       arenaEl.classList.add('mgp-shake');
       setTimeout(() => arenaEl.classList.remove('mgp-shake'), 400);
@@ -860,8 +913,8 @@ function openPescaGame() {
     if (!won && mgCanPlay('pesca')) {
       const rb = document.createElement('button');
       rb.className = 'btn btn-primary wide'; rb.style.marginTop = '8px';
-      rb.textContent = 'Riprova';
-      rb.addEventListener('click', () => { mgClose(); setTimeout(openPescaGame, 300); });
+      rb.textContent = 'Riprova (cambia esca)';
+      rb.addEventListener('click', () => { cleanup(); mgClose(); setTimeout(openPescaGame, 300); });
       resEl.appendChild(rb);
     }
   }

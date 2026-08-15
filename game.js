@@ -3654,6 +3654,21 @@ const RPG = (() => {
       report.loot.push(fert);
     }
 
+    // Esche: 15% possibilità di trovarne una durante l'allenamento
+    if (Math.random() < 0.15) {
+      const baitPool = [
+        { id: 'fungo',     w: 50 },
+        { id: 'osso',      w: 30 },
+        { id: 'amo_arg',   w: 15 },
+        { id: 'cristallo', w: 5  },
+      ];
+      let r = Math.random() * 100;
+      for (const b of baitPool) {
+        r -= b.w;
+        if (r <= 0) { addBait(hero, b.id, 1); report.baitFound = BAITS.find(x => x.id === b.id); break; }
+      }
+    }
+
     // Frammenti di Memoria — l'ultimo (che rivela il Cavaliere del Drago)
     // resta bloccato finché l'eroe non raggiunge il Livello 100.
     const rawFragsDue = Math.min(5, Math.floor(hero.totalKm / MEMORY_FRAGMENT_KM));
@@ -6301,6 +6316,63 @@ const RPG = (() => {
     return null;
   }
 
+  /* ── Esche da Pesca ──────────────────────────────────────── */
+  const BAITS = [
+    { id: 'lombrico',  icon: '🪱', name: 'Lombrico',          desc: 'L\'esca di base. Sempre disponibile.',                             loot: 'base',      fishSpeedMult: 1.0,  zoneSize: 1.0  },
+    { id: 'fungo',     icon: '🍄', name: 'Fungo Magico',       desc: 'Attira consumabili insoliti dalle profondità.',                   loot: 'fungo',     fishSpeedMult: 1.15, zoneSize: 0.95 },
+    { id: 'amo_arg',   icon: '🪝', name: 'Amo d\'Argento',     desc: 'Per chi pesca oggetti rari. Il pesce è più veloce.',             loot: 'argento',   fishSpeedMult: 1.35, zoneSize: 0.85 },
+    { id: 'cristallo', icon: '💎', name: 'Cristallo Abissale', desc: 'Risuona con le creature degli abissi. Loot epico o leggendario.', loot: 'abisso',    fishSpeedMult: 1.65, zoneSize: 0.72 },
+    { id: 'osso',      icon: '🦴', name: 'Osso Antico',        desc: 'Richiama creature del Bestiario. Può svelare nuovi avvistamenti.', loot: 'bestiario', fishSpeedMult: 1.2,  zoneSize: 0.90 },
+  ];
+
+  function addBait(hero, id, qty = 1) {
+    hero.baits = hero.baits || {};
+    hero.baits[id] = (hero.baits[id] || 0) + qty;
+  }
+
+  function useBait(hero, id) {
+    if (id === 'lombrico') return true;
+    hero.baits = hero.baits || {};
+    if (!(hero.baits[id] > 0)) return false;
+    hero.baits[id]--;
+    if (hero.baits[id] <= 0) delete hero.baits[id];
+    return true;
+  }
+
+  function pescaLoot(hero, baitId) {
+    switch (baitId) {
+      case 'fungo': {
+        const pool = CONSUMABLES.filter(c => c.rarity === 'comune' || c.rarity === 'raro');
+        const co = pool[Math.floor(Math.random() * pool.length)];
+        addConsumable(hero, co.id, 1);
+        return { gold: 20, xp: 20, consumable: co };
+      }
+      case 'argento': {
+        const item = genItemFor(hero, 'raro');
+        hero.items.push(item);
+        return { gold: 80, xp: 50, item };
+      }
+      case 'abisso': {
+        const rarity = Math.random() < 0.3 ? 'leggendario' : 'epico';
+        const item = genItemFor(hero, rarity);
+        hero.items.push(item);
+        return { gold: 60, xp: 40, item };
+      }
+      case 'bestiario': {
+        const zones = accessibleZones(hero);
+        const pool = BESTIARY.filter(b => !b.boss && zones.includes(b.zone) && !hero.bestiary.includes(b.id));
+        let sighting = null;
+        if (pool.length) {
+          sighting = pool[Math.floor(Math.random() * pool.length)];
+          hero.bestiary.push(sighting.id);
+        }
+        return { gold: 35, xp: 35, sighting };
+      }
+      default:
+        return { gold: 40, xp: 30 };
+    }
+  }
+
   /* ═══════════════════════════════════════════════════════════
      LA SERRA DEL VIANDANTE
      ═══════════════════════════════════════════════════════════ */
@@ -6897,6 +6969,7 @@ const RPG = (() => {
     SKILL_TREE, SKILL_RESET_COST, skillById, learnSkill, resetSkills, skillBonus, earnSkillPoints,
     LORE_FRAGMENTS, checkLoreUnlock,
     DAILY_POTIONS, getDailyPotion, claimDailyPotion,
+    BAITS, addBait, useBait, pescaLoot,
     BIOMES, MOUNTS, RARITIES, SLOTS,
     MAX_LEVEL, GOLD_PER_KM,
     xpForLevel, dailyGoalKm, heroTitle,
