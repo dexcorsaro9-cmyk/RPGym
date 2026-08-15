@@ -7085,6 +7085,62 @@ img.fiche-inline {
 .mgck-ammo-ic.ready { opacity: 1; }
 .mgck-shake { animation: shake-anim .3s ease-in-out; }
 
+/* Speed bar */
+.mgck-speed-row {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; max-width: 260px; margin-top: 2px;
+}
+.mgck-speed-lbl {
+  font-size: .72rem; color: var(--muted);
+  white-space: nowrap; flex-shrink: 0;
+}
+.mgck-speed-track {
+  flex: 1; height: 7px; border-radius: 4px;
+  background: rgba(255,255,255,.1);
+  overflow: hidden;
+}
+.mgck-speed-fill {
+  height: 100%; border-radius: 4px;
+  width: 0%;
+  background: #4caf50;
+  transition: width .08s linear, background .2s;
+}
+
+/* Surge warning */
+.mgck-surge-warn .mgck-log-img {
+  animation: mgck-warn-pulse .3s ease-in-out infinite;
+  border-color: #ff9800;
+}
+@keyframes mgck-warn-pulse {
+  0%,100% { box-shadow: 0 0 20px rgba(0,0,0,.8); }
+  50%      { box-shadow: 0 0 28px rgba(255,152,0,.9); }
+}
+
+/* Surging */
+.mgck-surging .mgck-log-img {
+  border-color: #f44336;
+  box-shadow: 0 0 32px rgba(244,67,54,.8);
+}
+
+/* Ultima Lama finale */
+.mgck-finale .mgck-log-wrap {
+  animation: mgck-finale-pulse .6s ease-in-out infinite;
+}
+@keyframes mgck-finale-pulse {
+  0%,100% { filter: drop-shadow(0 0 6px rgba(255,60,60,.4)); }
+  50%      { filter: drop-shadow(0 0 18px rgba(255,60,60,.9)); }
+}
+
+/* Stick pop */
+.mgck-stick-pop {
+  animation: mgck-pop .35s ease-out;
+}
+@keyframes mgck-pop {
+  0%   { transform: scale(1.6); opacity: .5; }
+  60%  { transform: scale(.85); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
 /* ── Carte del Mercante (minigioco flip) ─────────────────────────────────── */
 .mg-cards-wrap { padding-top: 8px; }
 .mg-cards-row {
