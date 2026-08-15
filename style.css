@@ -6886,6 +6886,16 @@ img.fiche-inline {
 }
 @keyframes mg-fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 .mgbf-card-icon { font-size: 4rem; line-height: 1; }
+.mgbf-card-img {
+  width: 120px; height: 120px; border-radius: 16px;
+  object-fit: cover; object-position: center top;
+  border: 2px solid rgba(212,184,134,.4);
+  box-shadow: 0 4px 20px rgba(0,0,0,.5);
+}
+.mgbf-opp-img {
+  width: 100%; height: 100%; border-radius: 50%;
+  object-fit: cover; object-position: center top;
+}
 .mgbf-card-name {
   font-size: 1.05rem; font-weight: 700; font-family: 'Cinzel', serif;
   color: var(--gold-bright);
