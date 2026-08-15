@@ -6875,32 +6875,69 @@ img.fiche-inline {
 .mgbf-wrap {
   display: flex; flex-direction: column; align-items: center;
   gap: 10px; padding: 12px 10px 10px;
-  min-height: 380px;
+  min-height: 400px;
 }
-.mgbf-avatars {
-  display: flex; justify-content: space-around; width: 85%;
+
+/* Intro card (sfidante) */
+.mgbf-card {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 12px; padding: 24px 16px 20px; text-align: center;
+  animation: mg-fadein .35s ease;
+}
+@keyframes mg-fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.mgbf-card-icon { font-size: 4rem; line-height: 1; }
+.mgbf-card-name {
+  font-size: 1.05rem; font-weight: 700; font-family: 'Cinzel', serif;
+  color: var(--gold-bright);
+}
+.mgbf-card-taunt {
+  font-style: italic; color: var(--muted); font-size: .87rem;
+  max-width: 230px; line-height: 1.45;
+}
+
+/* Game screen */
+.mgbf-game {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 8px; width: 100%;
+  animation: mg-fadein .25s ease;
+}
+
+/* Match row */
+.mgbf-match-row {
+  display: flex; align-items: center; justify-content: space-around;
+  width: 85%;
 }
 .mgbf-avatar-wrap {
   display: flex; flex-direction: column; align-items: center; gap: 4px;
 }
-.mgbf-avatar-img {
-  width: 62px; height: 62px;
-  object-fit: contain; border-radius: 50%;
-  border: 2px solid rgba(212,184,134,.5);
-  background: rgba(0,0,0,.3);
+.mgbf-opp-face {
+  width: 62px; height: 62px; border-radius: 50%;
+  border: 2px solid rgba(212,184,134,.5); background: rgba(0,0,0,.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem; transition: transform .1s;
 }
 .mgbf-avatar-hero {
   width: 62px; height: 62px; border-radius: 50%;
-  border: 2px solid rgba(212,184,134,.5);
-  background: rgba(0,0,0,.3);
+  border: 2px solid rgba(212,184,134,.5); background: rgba(0,0,0,.3);
   display: flex; align-items: center; justify-content: center;
-  font-size: 2rem;
-  transition: transform .06s;
+  font-size: 2rem; transition: transform .06s;
 }
 .mgbf-avatar-lbl {
   font-size: .72rem; opacity: .65; text-transform: uppercase;
   letter-spacing: .06em; color: var(--ink);
 }
+.mgbf-vs-badge {
+  font-size: .78rem; font-weight: 900; color: var(--muted); letter-spacing: .1em;
+}
+
+/* Phase text */
+.mgbf-phase-line {
+  font-size: .82rem; color: var(--muted); font-style: italic;
+  min-height: 1.1em; text-align: center;
+  transition: opacity .3s;
+}
+
+/* Tug-of-war bar */
 .mgbf-bar-wrap {
   position: relative;
   width: 85%; height: 44px;
@@ -6929,17 +6966,62 @@ img.fiche-inline {
   will-change: left;
   transition: left .05s linear;
 }
+.mgbf-ctr-flash {
+  position: absolute; inset: 0; z-index: 5;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .75rem; font-weight: 700; letter-spacing: .04em;
+  color: #fff; background: rgba(244,67,54,.72);
+  pointer-events: none;
+  animation: mgctr-blink .3s ease;
+}
+@keyframes mgctr-blink { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+/* Burst charge bar */
+.mgbf-burst-row {
+  display: flex; align-items: center; gap: 8px; width: 85%;
+}
+.mgbf-burst-label {
+  font-size: .68rem; color: var(--muted); text-transform: uppercase;
+  letter-spacing: .07em; white-space: nowrap;
+}
+.mgbf-burst-track {
+  flex: 1; height: 5px; border-radius: 3px;
+  background: rgba(255,255,255,.1); overflow: hidden;
+}
+.mgbf-burst-fill {
+  height: 100%; border-radius: 3px;
+  transition: width .09s linear, background .2s;
+}
+
+/* Tap zone */
 .mgbf-tap {
-  width: 85%; height: 90px;
+  width: 85%; height: 88px;
   background: rgba(76,175,80,.2);
-  border: 2px dashed #4caf50;
-  border-radius: 16px;
+  border: 2px dashed #4caf50; border-radius: 16px;
   display: flex; align-items: center; justify-content: center;
   color: #4caf50; font-family: 'Cinzel', serif; font-size: 1.4rem;
   cursor: pointer; letter-spacing: .08em;
-  transition: background .08s;
+  transition: background .08s, color .1s, font-size .1s;
+  user-select: none;
 }
 .mgbf-tap:active { background: rgba(76,175,80,.5); }
+.mgbf-burst-active {
+  background: rgba(139,195,74,.42) !important;
+  color: #c5e87c !important; font-size: 1.5rem !important;
+  animation: mgburst-pop .4s ease;
+}
+@keyframes mgburst-pop { 0%{transform:scale(1.04)} 50%{transform:scale(.97)} 100%{transform:scale(1)} }
+
+/* Countdown */
+.mgbf-countdown {
+  font-size: .9rem; font-weight: 700; min-height: 1.2em;
+  color: var(--gold-bright); text-align: center;
+}
+.mgbf-cd-active {
+  animation: mgcd-pulse .45s ease-in-out infinite;
+}
+@keyframes mgcd-pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.09);opacity:.85} }
+
 .mgbf-shake { animation: shake-anim .3s ease-in-out; }
 
 /* ── Lancio del Coltello ────────────────────────────────────────────────── */
