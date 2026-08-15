@@ -6339,11 +6339,11 @@ const RPG = (() => {
 
   /* Pool pesci per esca — { id, w: peso } */
   const FISH_POOLS = {
-    lombrico:  [ {id:'carpa',55},    {id:'trota',45} ],
-    fungo:     [ {id:'arcobaleno',50},{id:'medusa',30}, {id:'carpa',20} ],
-    amo_arg:   [ {id:'calamaro',45}, {id:'delfino',35}, {id:'arcobaleno',20} ],
-    cristallo: [ {id:'squalo',50},   {id:'drago',30},   {id:'calamaro',20} ],
-    osso:      [ {id:'drago',25},    {id:'squalo',30},  {id:'calamaro',25}, {id:'medusa',20} ],
+    lombrico:  [ {id:'carpa',w:55},    {id:'trota',w:45} ],
+    fungo:     [ {id:'arcobaleno',w:50},{id:'medusa',w:30}, {id:'carpa',w:20} ],
+    amo_arg:   [ {id:'calamaro',w:45}, {id:'delfino',w:35}, {id:'arcobaleno',w:20} ],
+    cristallo: [ {id:'squalo',w:50},   {id:'drago',w:30},   {id:'calamaro',w:20} ],
+    osso:      [ {id:'drago',w:25},    {id:'squalo',w:30},  {id:'calamaro',w:25}, {id:'medusa',w:20} ],
   };
 
   function rollFish(baitId) {
