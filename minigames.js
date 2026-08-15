@@ -933,23 +933,28 @@ function _startPescaGame(baitId, fish) {
 
 /* ── 💪 BRACCIO DI FERRO ── */
 const SFIDANTI_BF = [
-  { id:'mozzo',   icon:'🧑‍✈️', name:'Bren il Mozzo',           minLevel:1,  force:0.40, hasBurst:false,
+  { id:'mozzo',   icon:'🧑‍✈️', img:'assets/minigames/braccio-di-ferro/mozzo.jpg',
+    name:'Bren il Mozzo',           minLevel:1,  force:0.40, hasBurst:false,
     taunt:'"Sfido pure i polli da cortile!"',
     phases:['😏 Troppo facile.', '😅 Aspetta un secondo…', '😤 No no no!', '😱 COM\'È POSSIBILE?!'],
     winLine:'Bren rotola giù dalla sedia.', loseLine:'Bren ti offre un boccale come consolazione.' },
-  { id:'nano',    icon:'⚒️',  name:'Durgin il Nano Possente',  minLevel:1,  force:0.50, hasBurst:false,
+  { id:'nano',    icon:'⚒️',  img:'assets/minigames/braccio-di-ferro/nano.jpg',
+    name:'Durgin il Nano Possente',  minLevel:1,  force:0.50, hasBurst:false,
     taunt:'"Le mie braccia sono state forgiate nella pietra!"',
     phases:['💪 Solo riscaldamento.', '😬 Mh, non male.', '💦 Che forza…!', '😤 IMPOSSIBILE!'],
     winLine:'Durgin sbatte il pugno sul tavolo.', loseLine:'"Torna quando sei pronto per i grandi."' },
-  { id:'guardia', icon:'🗡️',  name:'Korr la Guardia Ferrea',   minLevel:10, force:0.58, hasBurst:true,
+  { id:'guardia', icon:'🗡️',  img:'assets/minigames/braccio-di-ferro/guardia.jpg',
+    name:'Korr la Guardia Ferrea',   minLevel:10, force:0.58, hasBurst:true,
     taunt:'"Tredici anni di servizio. Nessuno mi ha mai battuto."',
     phases:['🧊 Fredda come l\'acciaio.', '🤨 Interessante.', '💦 Stai cedendo?!', '😰 No… non ora…'],
     winLine:'Korr annuisce in silenzio, rispettosa.', loseLine:'"Come pensavi di battere l\'acciaio?"' },
-  { id:'orco',    icon:'👹',  name:'Grunk l\'Orco della Rupe',  minLevel:25, force:0.66, hasBurst:true,
+  { id:'orco',    icon:'👹',  img:'assets/minigames/braccio-di-ferro/orco.jpg',
+    name:'Grunk l\'Orco della Rupe',  minLevel:25, force:0.66, hasBurst:true,
     taunt:'"GRUNK SCHIACCIA TUTTO! GRUNK PIÙ FORTE DI TUTTI!"',
     phases:['👹 GRUNK FORTE!', '😡 TU FASTIDIOSO!', '😤 GRUNK SUDARE?!', '😱 IMPOSSIBILE!'],
     winLine:'Grunk cade dalla sedia con un boato.', loseLine:'"GRUNK VINCE SEMPRE! SEMPRE!"' },
-  { id:'colosso', icon:'🗿',  name:'Il Colosso di Pietra',      minLevel:45, force:0.76, hasBurst:true,
+  { id:'colosso', icon:'🗿',  img:'assets/minigames/braccio-di-ferro/colosso.jpg',
+    name:'Il Colosso di Pietra',      minLevel:45, force:0.76, hasBurst:true,
     taunt:'"…"',
     phases:['🗿 …', '🗿 …?', '🗿 !', '🗿 !!'],
     winLine:'Una crepa compare sul braccio del Colosso.', loseLine:'Il Colosso torna immobile. Come se nulla fosse.' },
@@ -985,7 +990,7 @@ function openBraccioGame() {
     <button class="mg-x-btn" id="mgbf-x">✕</button>
 
     <div class="mgbf-card" id="mgbf-card">
-      <div class="mgbf-card-icon">${sf.icon}</div>
+      <div class="mgbf-card-icon">${sf.img ? `<img src="${sf.img}" class="mgbf-card-img" alt="${esc(sf.name)}">` : sf.icon}</div>
       <div class="mgbf-card-name">${esc(sf.name)}</div>
       <div class="mgbf-card-taunt">${esc(sf.taunt)}</div>
       <button class="btn btn-primary wide" id="mgbf-start">⚔️ Accetta la sfida!</button>
@@ -995,7 +1000,7 @@ function openBraccioGame() {
       <div class="mg-game-title">💪 Braccio di Ferro</div>
       <div class="mgbf-match-row">
         <div class="mgbf-avatar-wrap">
-          <div class="mgbf-opp-face" id="mgbf-opp-face">${sf.icon}</div>
+          <div class="mgbf-opp-face" id="mgbf-opp-face">${sf.img ? `<img src="${sf.img}" class="mgbf-opp-img" alt="${esc(sf.name)}">` : sf.icon}</div>
           <span class="mgbf-avatar-lbl">${esc(sf.name.split(' ')[0])}</span>
         </div>
         <div class="mgbf-vs-badge">VS</div>
