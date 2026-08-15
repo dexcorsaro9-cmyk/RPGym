@@ -6318,12 +6318,41 @@ const RPG = (() => {
 
   /* ── Esche da Pesca ──────────────────────────────────────── */
   const BAITS = [
-    { id: 'lombrico',  icon: '🪱', name: 'Lombrico',          desc: 'L\'esca di base. Sempre disponibile.',                             loot: 'base',      fishSpeedMult: 1.0,  zoneSize: 1.0  },
-    { id: 'fungo',     icon: '🍄', name: 'Fungo Magico',       desc: 'Attira consumabili insoliti dalle profondità.',                   loot: 'fungo',     fishSpeedMult: 1.15, zoneSize: 0.95 },
-    { id: 'amo_arg',   icon: '🪝', name: 'Amo d\'Argento',     desc: 'Per chi pesca oggetti rari. Il pesce è più veloce.',             loot: 'argento',   fishSpeedMult: 1.35, zoneSize: 0.85 },
-    { id: 'cristallo', icon: '💎', name: 'Cristallo Abissale', desc: 'Risuona con le creature degli abissi. Loot epico o leggendario.', loot: 'abisso',    fishSpeedMult: 1.65, zoneSize: 0.72 },
-    { id: 'osso',      icon: '🦴', name: 'Osso Antico',        desc: 'Richiama creature del Bestiario. Può svelare nuovi avvistamenti.', loot: 'bestiario', fishSpeedMult: 1.2,  zoneSize: 0.90 },
+    { id: 'lombrico',  icon: '🪱', name: 'Lombrico',          desc: 'L\'esca di base. Sempre disponibile.',                              zoneSize: 1.0  },
+    { id: 'fungo',     icon: '🍄', name: 'Fungo Magico',       desc: 'Attira consumabili insoliti dalle profondità.',                    zoneSize: 0.95 },
+    { id: 'amo_arg',   icon: '🪝', name: 'Amo d\'Argento',     desc: 'Richiama pesci rari. La zona di cattura si restringe.',            zoneSize: 0.85 },
+    { id: 'cristallo', icon: '💎', name: 'Cristallo Abissale', desc: 'Risuona con le creature degli abissi. Zona minima, loot massimo.', zoneSize: 0.72 },
+    { id: 'osso',      icon: '🦴', name: 'Osso Antico',        desc: 'Richiama creature del Bestiario. Può svelare nuovi avvistamenti.', zoneSize: 0.90 },
   ];
+
+  /* Pesci — rarità determina velocità e loot */
+  const FISH = [
+    { id: 'carpa',     icon: '🐟', name: 'Carpa del Fossato',    rarity: 'comune',      speedMult: 1.0,  gold: 30,  xp: 20 },
+    { id: 'trota',     icon: '🐡', name: 'Trota Maculata',       rarity: 'comune',      speedMult: 1.05, gold: 40,  xp: 28 },
+    { id: 'arcobaleno',icon: '🐠', name: 'Pesce Arcobaleno',     rarity: 'non_comune',  speedMult: 1.25, gold: 55,  xp: 38, bonus: 'consumabile' },
+    { id: 'medusa',    icon: '🪼', name: 'Medusa Fosforescente', rarity: 'non_comune',  speedMult: 1.3,  gold: 50,  xp: 42 },
+    { id: 'calamaro',  icon: '🦑', name: 'Calamaro Abissale',    rarity: 'raro',        speedMult: 1.55, gold: 85,  xp: 55, bonus: 'item_raro' },
+    { id: 'delfino',   icon: '🐬', name: 'Delfino Arcano',       rarity: 'raro',        speedMult: 1.5,  gold: 110, xp: 50 },
+    { id: 'squalo',    icon: '🦈', name: 'Squalo delle Rovine',  rarity: 'epico',       speedMult: 1.85, gold: 130, xp: 70, bonus: 'item_epico' },
+    { id: 'drago',     icon: '🐉', name: 'Drago d\'Acqua',       rarity: 'leggendario', speedMult: 2.3,  gold: 160, xp: 90, bonus: 'item_leggendario' },
+  ];
+
+  /* Pool pesci per esca — { id, w: peso } */
+  const FISH_POOLS = {
+    lombrico:  [ {id:'carpa',55},    {id:'trota',45} ],
+    fungo:     [ {id:'arcobaleno',50},{id:'medusa',30}, {id:'carpa',20} ],
+    amo_arg:   [ {id:'calamaro',45}, {id:'delfino',35}, {id:'arcobaleno',20} ],
+    cristallo: [ {id:'squalo',50},   {id:'drago',30},   {id:'calamaro',20} ],
+    osso:      [ {id:'drago',25},    {id:'squalo',30},  {id:'calamaro',25}, {id:'medusa',20} ],
+  };
+
+  function rollFish(baitId) {
+    const pool = FISH_POOLS[baitId] || FISH_POOLS.lombrico;
+    const total = pool.reduce((s, e) => s + e.w, 0);
+    let r = Math.random() * total;
+    for (const entry of pool) { r -= entry.w; if (r <= 0) return FISH.find(f => f.id === entry.id); }
+    return FISH[0];
+  }
 
   function addBait(hero, id, qty = 1) {
     hero.baits = hero.baits || {};
@@ -6339,38 +6368,26 @@ const RPG = (() => {
     return true;
   }
 
-  function pescaLoot(hero, baitId) {
-    switch (baitId) {
-      case 'fungo': {
-        const pool = CONSUMABLES.filter(c => c.rarity === 'comune' || c.rarity === 'raro');
-        const co = pool[Math.floor(Math.random() * pool.length)];
-        addConsumable(hero, co.id, 1);
-        return { gold: 20, xp: 20, consumable: co };
-      }
-      case 'argento': {
-        const item = genItemFor(hero, 'raro');
-        hero.items.push(item);
-        return { gold: 80, xp: 50, item };
-      }
-      case 'abisso': {
-        const rarity = Math.random() < 0.3 ? 'leggendario' : 'epico';
-        const item = genItemFor(hero, rarity);
-        hero.items.push(item);
-        return { gold: 60, xp: 40, item };
-      }
-      case 'bestiario': {
-        const zones = accessibleZones(hero);
-        const pool = BESTIARY.filter(b => !b.boss && zones.includes(b.zone) && !hero.bestiary.includes(b.id));
-        let sighting = null;
-        if (pool.length) {
-          sighting = pool[Math.floor(Math.random() * pool.length)];
-          hero.bestiary.push(sighting.id);
-        }
-        return { gold: 35, xp: 35, sighting };
-      }
-      default:
-        return { gold: 40, xp: 30 };
+  function pescaLoot(hero, fish) {
+    const loot = { gold: fish.gold, xp: fish.xp, fish };
+    if (fish.bonus === 'consumabile') {
+      const pool = CONSUMABLES.filter(c => c.rarity === 'comune' || c.rarity === 'raro');
+      const co = pool[Math.floor(Math.random() * pool.length)];
+      addConsumable(hero, co.id, 1);
+      loot.consumable = co;
+    } else if (fish.bonus === 'item_raro') {
+      const item = genItemFor(hero, 'raro'); hero.items.push(item); loot.item = item;
+    } else if (fish.bonus === 'item_epico') {
+      const item = genItemFor(hero, 'epico'); hero.items.push(item); loot.item = item;
+    } else if (fish.bonus === 'item_leggendario') {
+      const item = genItemFor(hero, 'leggendario'); hero.items.push(item); loot.item = item;
     }
+    if (fish.rarity === 'leggendario' || fish.id === 'drago') {
+      const zones = accessibleZones(hero);
+      const pool = BESTIARY.filter(b => !b.boss && zones.includes(b.zone) && !hero.bestiary.includes(b.id));
+      if (pool.length) { const s = pool[Math.floor(Math.random() * pool.length)]; hero.bestiary.push(s.id); loot.sighting = s; }
+    }
+    return loot;
   }
 
   /* ═══════════════════════════════════════════════════════════
@@ -6969,7 +6986,7 @@ const RPG = (() => {
     SKILL_TREE, SKILL_RESET_COST, skillById, learnSkill, resetSkills, skillBonus, earnSkillPoints,
     LORE_FRAGMENTS, checkLoreUnlock,
     DAILY_POTIONS, getDailyPotion, claimDailyPotion,
-    BAITS, addBait, useBait, pescaLoot,
+    BAITS, FISH, FISH_POOLS, addBait, useBait, rollFish, pescaLoot,
     BIOMES, MOUNTS, RARITIES, SLOTS,
     MAX_LEVEL, GOLD_PER_KM,
     xpForLevel, dailyGoalKm, heroTitle,

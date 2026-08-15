@@ -6857,6 +6857,14 @@ img.fiche-inline {
 .bait-shop-name { font-weight: 700; font-size: .82rem; }
 .bait-shop-desc { font-size: .7rem; line-height: 1.3; }
 
+/* ── Fish reveal (risultato pesca) ──────────────────────────────────────── */
+.fish-reveal {
+  display: flex; align-items: center; gap: 10px; justify-content: center;
+  background: rgba(255,255,255,.07); border-radius: 10px;
+  padding: 10px 14px; margin-bottom: 8px;
+  animation: mgFadeIn .3s ease;
+}
+
 /* ── Bait drop notice (report allenamento) ───────────────────────────────── */
 .bait-drop-notice {
   background: rgba(100,200,100,.10); border: 1px solid rgba(100,200,100,.25);

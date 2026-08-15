@@ -771,12 +771,13 @@ function openPescaGame() {
       if (baitId !== 'lombrico' && !(herobaits[baitId] > 0)) return;
       RPG.useBait(HERO, baitId);
       persist();
-      _startPescaGame(baitId);
+      const fish = RPG.rollFish(baitId);
+      _startPescaGame(baitId, fish);
     });
   });
 }
 
-function _startPescaGame(baitId) {
+function _startPescaGame(baitId, fish) {
   const baitCfg = RPG.BAITS.find(b => b.id === baitId) || RPG.BAITS[0];
 
   let state = 'IDLE';
@@ -791,15 +792,16 @@ function _startPescaGame(baitId) {
   const WIN_MAX = 100;
   let containerHeight = 0;
 
-  const diffLabel = baitCfg.fishSpeedMult >= 1.5 ? '🔴 Difficile' :
-                    baitCfg.fishSpeedMult >= 1.25 ? '🟡 Medio' : '🟢 Facile';
+  const diffLabel = fish.speedMult >= 1.8 ? '🔴 Leggendario' :
+                    fish.speedMult >= 1.4 ? '🟡 Raro' :
+                    fish.speedMult >= 1.2 ? '🟠 Non comune' : '🟢 Comune';
 
   const wrap = document.createElement('div');
   wrap.className = 'mgp-wrap';
   wrap.innerHTML = `
     <button class="mg-x-btn" id="mgp-x">✕</button>
-    <div class="mg-game-title">🎣 Pesca nel Fossato <span class="bait-active-tag">${baitCfg.icon} ${baitCfg.name} · ${diffLabel}</span></div>
-    <p class="mg-hint" id="mgp-hint">Tieni premuto per far salire l'esca!<br>Mantieni il pesce nell'area verde.</p>
+    <div class="mg-game-title">🎣 Pesca nel Fossato <span class="bait-active-tag">${baitCfg.icon} ${baitCfg.name}</span></div>
+    <p class="mg-hint" id="mgp-hint">Tieni premuto per far salire l'esca!<br>Mantieni il pesce nell'area verde.<br><span class="bait-active-tag">❓ Preda sconosciuta · ${diffLabel}</span></p>
     <div class="mgp-arena" id="mgp-arena">
       <div class="mgp-bar-col" id="mgp-bar">
         <div class="mgp-zone" id="mgp-zone"></div>
@@ -857,12 +859,12 @@ function _startPescaGame(baitId) {
     if (zonePos < 0)          { zonePos = 0;          zoneVelocity = 0; }
     if (zonePos > maxZonePos) { zonePos = maxZonePos; zoneVelocity = 0; }
 
-    // Fish AI — velocità scalata per esca
+    // Fish AI — velocità scalata per rarità pesce
     fishTimer--;
     if (fishTimer <= 0) {
       fishTimer  = 30 + Math.random() * 60;
       fishTarget = Math.random() * (containerHeight - FISH_HEIGHT);
-      fishSpeed  = (0.5 + Math.random() * 3.5) * baitCfg.fishSpeedMult;
+      fishSpeed  = (0.5 + Math.random() * 3.5) * fish.speedMult;
     }
     if (fishPos < fishTarget) fishPos += fishSpeed;
     if (fishPos > fishTarget) fishPos -= fishSpeed;
@@ -893,15 +895,16 @@ function _startPescaGame(baitId) {
     zoneEl.classList.remove('mgp-zone-active');
     mgRecord('pesca');
     if (won) {
-      const loot = RPG.pescaLoot(HERO, baitCfg.loot);
+      const loot = RPG.pescaLoot(HERO, fish);
       mgGiveReward({ gold: loot.gold, xp: loot.xp });
       vibrate([80, 40, 160]); sfx('coin');
+      const rarityColors = { comune:'#b0b8c1', non_comune:'#5dab6e', raro:'#4a90d9', epico:'#9b59b6', leggendario:'#f1c40f' };
+      const fishReveal = `<div style="font-size:2rem;line-height:1">${fish.icon}</div><div><b style="color:${rarityColors[fish.rarity]}">${fish.name}</b> <span class="small" style="color:${rarityColors[fish.rarity]}">(${fish.rarity})</span></div>`;
       let sub = 'Creatura eccezionale!';
       if (loot.item)       sub = `🎒 ${loot.item.name} (${loot.item.rarity}) nel zaino!`;
       if (loot.consumable) sub = `🧪 ${loot.consumable.icon} ${loot.consumable.name} nei consumabili!`;
       if (loot.sighting)   sub = `👁️ Avvistato: ${loot.sighting.name}!`;
-      else if (loot.sighting === null && baitCfg.loot === 'bestiario') sub = 'Niente di nuovo nel Bestiario.';
-      resEl.innerHTML = mgRewardHTML({ gold: loot.gold, xp: loot.xp }, '🎣 Catturato!', sub);
+      resEl.innerHTML = `<div class="fish-reveal">${fishReveal}</div>` + mgRewardHTML({ gold: loot.gold, xp: loot.xp }, '🎣 Catturato!', sub);
       persist();
     } else {
       arenaEl.classList.add('mgp-shake');
