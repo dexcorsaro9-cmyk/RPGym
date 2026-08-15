@@ -3135,10 +3135,7 @@ const RPG = (() => {
     return `${monday.getFullYear()}-${String(monday.getMonth()+1).padStart(2,'0')}-${String(monday.getDate()).padStart(2,'0')}`;
   }
   function gameDate() {
-    // La giornata di gioco inizia alle 04:00 — prima delle 4 si considera ancora il giorno precedente
-    const d = new Date();
-    d.setHours(d.getHours() - 4);
-    return d;
+    return new Date();
   }
   function todayStamp() {
     const d = gameDate();
@@ -6291,7 +6288,7 @@ const RPG = (() => {
     { id: 'rest_echo',     icon: '🌙', name: 'Essenza del Riposo',     desc: 'Bonus 2x XP come dopo un giorno di riposo' },
   ];
   function getDailyPotion() {
-    const d = new Date(); d.setHours(d.getHours() - 4); // same -4h offset as gameDate/todayStamp
+    const d = new Date();
     const seed = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate() + 77;
     const v = (((seed * 1664525 + 1013904223) & 0x7fffffff) >>> 0) % DAILY_POTIONS.length;
     return DAILY_POTIONS[v];
@@ -6982,7 +6979,7 @@ const RPG = (() => {
       'carica brutale', 'magia nera', 'presa stritolante', 'lama di vento',
     ];
 
-    function _biscaToday() { const d = new Date(); d.setHours(d.getHours() - 4); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+    function _biscaToday() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 
     function biscaResetIfNeeded(hero) {
       const today = _biscaToday();
@@ -7054,7 +7051,7 @@ const RPG = (() => {
 /* ── La Cartomante — Tenda del Fato ─────────────────────────────────────── */
 {
   const _C = (() => {
-    function _cartToday() { const d = new Date(); d.setHours(d.getHours() - 4); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+    function _cartToday() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 
     function cartReset(hero) {
       if (!hero.cartomante) hero.cartomante = {};

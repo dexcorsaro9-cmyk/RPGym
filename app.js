@@ -8744,7 +8744,7 @@ const FICHE_ICO = '<img class="fiche-inline" src="assets/ui/res-fiches.webp" alt
 
 /* ═══════════ v2.7: UX & FOMO ═══════════ */
 
-function gameDateApp() { const d = new Date(); d.setHours(d.getHours() - 4); return d; }
+function gameDateApp() { return new Date(); }
 function todayISO() { const d = gameDateApp(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function localDate(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 
