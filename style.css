@@ -346,7 +346,16 @@ body {
 }
 
 .active-mission { border-color: var(--gold); box-shadow: 0 0 14px rgba(201,147,46,.5); }
-.event-panel { border-color: var(--magic); }
+.event-panel {
+  border-color: var(--magic);
+  background:
+    linear-gradient(to bottom, rgba(10,5,20,.72) 0%, rgba(20,10,35,.85) 100%),
+    url('assets/backgrounds/bg-bisca.webp') center/cover no-repeat;
+  color: #f0e6d2;
+}
+.event-panel .panel-title { color: #d4b066; }
+.event-panel .muted { color: #b8a090; }
+.event-panel .event-urgency-banner { color: #ff6b6b; }
 
 /* ── Allenamento ── */
 .act-row { display: flex; gap: 10px; margin: 8px 0; }
