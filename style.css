@@ -6951,8 +6951,8 @@ img.fiche-inline {
   font-size: 2rem; transition: transform .06s;
 }
 .mgbf-avatar-lbl {
-  font-size: .72rem; opacity: .65; text-transform: uppercase;
-  letter-spacing: .06em; color: var(--ink);
+  font-size: .72rem; text-transform: uppercase;
+  letter-spacing: .06em; color: rgba(255,255,255,.75);
 }
 .mgbf-vs-badge {
   font-size: .78rem; font-weight: 900; color: var(--muted); letter-spacing: .1em;
