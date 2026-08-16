@@ -7829,7 +7829,15 @@ function renderDiaryView(c) {
       const unlocked = earnedTrophies.includes(t.id);
       const cell = el('div', 'trophy-cell' + (unlocked ? ' trophy-unlocked' : ' trophy-locked'));
       cell.title = unlocked ? `${t.name} — ${t.desc}` : `Sblocca a ${t.km} km`;
-      cell.innerHTML = `<span class="trophy-icon">${unlocked ? t.icon : '🔒'}</span><span class="trophy-name">${t.name}</span><span class="trophy-km">${t.km} km</span>`;
+      let iconHtml;
+      if (unlocked && t.img) {
+        iconHtml = `<img class="trophy-img" src="${esc(t.img)}" alt="${esc(t.name)}" onerror="this.outerHTML='<span class=trophy-icon>${t.icon}</span>'">`;
+      } else if (unlocked) {
+        iconHtml = `<span class="trophy-icon">${t.icon}</span>`;
+      } else {
+        iconHtml = `<span class="trophy-icon trophy-icon-locked">🔒</span>`;
+      }
+      cell.innerHTML = `${iconHtml}<span class="trophy-name">${esc(t.name)}</span><span class="trophy-km">${t.km} km</span>`;
       trophyGrid.appendChild(cell);
     });
     trophyPanel.appendChild(trophyGrid);
