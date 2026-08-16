@@ -1204,10 +1204,10 @@ function openColtelloGame() {
   if (!mgCanPlay('coltello')) return;
 
   const KNIVES_TOTAL  = 5;
-  const BASE_COLL_DEG = 16; // cresce con ogni coltello piantato
+  const BASE_COLL_DEG = 14; // cresce con ogni coltello piantato
 
   let logAngle     = Math.random() * 360;
-  let rotSpeed     = 1.8 + Math.random() * 0.8;
+  let rotSpeed     = 3.2 + Math.random() * 1.0;
   let stuckAngles  = [];
   let knivesLeft   = KNIVES_TOTAL;
   let knivesLanded = 0;
@@ -1216,7 +1216,7 @@ function openColtelloGame() {
   // Surge mechanic
   const SURGE_WARN = 28;
   const SURGE_DUR  = 48;
-  let surgeTimer   = Math.floor(60 * (2.5 + Math.random() * 2));
+  let surgeTimer   = Math.floor(60 * (1.5 + Math.random() * 1.5));
   let surgeWarn    = 0;
   let surgeActive  = 0;
 
@@ -1287,11 +1287,11 @@ function openColtelloGame() {
         logWrap.classList.add('mgck-surging');
       }
     } else if (surgeActive > 0) {
-      logAngle = (logAngle + rotSpeed * 2.2) % 360;
+      logAngle = (logAngle + rotSpeed * 2.8) % 360;
       surgeActive--;
       if (surgeActive === 0) {
         logWrap.classList.remove('mgck-surging');
-        surgeTimer = Math.floor(60 * (3 + Math.random() * 3));
+        surgeTimer = Math.floor(60 * (1.5 + Math.random() * 1.5));
         if (state === 'PLAYING') msgEl.textContent = knifeMsg();
       }
     } else {
@@ -1301,17 +1301,17 @@ function openColtelloGame() {
         surgeWarn = SURGE_WARN;
         msgEl.textContent = '⚠️ Si prepara…';
       }
-      // Occasional natural speed shift (subtle)
-      if (Math.random() < 0.005) {
-        const base = 1.5 + stuckAngles.length * 0.2;
-        rotSpeed = (base + Math.random() * 2) * (Math.random() < 0.25 ? -1 : 1);
+      // Occasional natural speed shift
+      if (Math.random() < 0.018) {
+        const base = 2.8 + stuckAngles.length * 0.35;
+        rotSpeed = (base + Math.random() * 2.5) * (Math.random() < 0.4 ? -1 : 1);
       }
     }
 
     logWrap.style.transform = `rotate(${logAngle}deg)`;
 
     // Speed indicator
-    const pct = Math.min(Math.abs(rotSpeed) / 4.5 * 100, 100);
+    const pct = Math.min(Math.abs(rotSpeed) / 8 * 100, 100);
     spdEl.style.width = pct + '%';
     spdEl.style.background = pct > 72 ? '#f44336' : pct > 45 ? '#ff9800' : '#4caf50';
 
@@ -1373,7 +1373,7 @@ function openColtelloGame() {
         if (knivesLeft === 1) {
           wrap.classList.add('mgck-finale');
           msgEl.textContent = '🔥 ULTIMA LAMA!';
-          rotSpeed = (Math.abs(rotSpeed) + 0.8) * (rotSpeed < 0 ? -1 : 1);
+          rotSpeed = (Math.abs(rotSpeed) + 1.8) * (rotSpeed < 0 ? -1 : 1);
         } else {
           msgEl.textContent = knifeMsg();
         }
