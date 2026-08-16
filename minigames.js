@@ -1036,6 +1036,16 @@ function openBraccioGame() {
   const tapEl    = document.getElementById('mgbf-tap');
   const heroEl   = document.getElementById('mgbf-hero');
   const oppEl    = document.getElementById('mgbf-opp-face');
+
+  /* Inserisce l'avatar reale dell'eroe nel cerchio */
+  heroEl.innerHTML = '';
+  if (HERO.avatar && (HERO.avatar.startsWith('data:') || HERO.avatar.startsWith('assets/'))) {
+    const av = document.createElement('img');
+    av.src = HERO.avatar; av.alt = HERO.name; av.className = 'mgbf-opp-img';
+    heroEl.appendChild(av);
+  } else {
+    heroEl.textContent = HERO.avatar || '💪';
+  }
   const phaseEl  = document.getElementById('mgbf-phase');
   const cdEl     = document.getElementById('mgbf-cd');
   const bfillEl  = document.getElementById('mgbf-bfill');
