@@ -2070,7 +2070,7 @@ function renderCamp(c) {
 
     // ── Sezione Strutture dell'Accampamento ──
     cp.appendChild(el('h4', 'cantiere-section-title', '🏗️ Strutture dell\'Accampamento'));
-    cp.appendChild(el('p', 'muted small',
+    cp.appendChild(el('p', 'muted small center',
       `${layersOwned} / 25 strutture costruite — appaiono nel tuo accampamento.`));
     const enterStruttureBtn = el('button', 'btn btn-primary wide', '🏗️ Costruisci Strutture');
     enterStruttureBtn.addEventListener('click', () => { CAMP_VIEW = 'strutture'; setTab('camp'); });
@@ -2078,7 +2078,7 @@ function renderCamp(c) {
 
     // ── Sezione Arredamento ──
     cp.appendChild(el('h4', 'cantiere-section-title', '🏛️ Arredamento'));
-    cp.appendChild(el('p', 'muted small',
+    cp.appendChild(el('p', 'muted small center',
       `${totalOwned} / 200 cimeli raccolti · ${setsComplete} / 20 set completi.`));
     const enterArredaBtn = el('button', 'btn btn-primary wide', '🏛️ Entra nella Bottega');
     enterArredaBtn.addEventListener('click', () => { CAMP_VIEW = 'arredamento'; setTab('camp'); });

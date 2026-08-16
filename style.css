@@ -5479,7 +5479,7 @@ img.fiche-inline {
 /* ── Missione guidata "Il Primo Passo" ── */
 .first-quest-panel {
   border: 2px solid var(--gold, #e67e22);
-  background: rgba(230,126,34,.06);
+  box-shadow: 0 0 12px rgba(230,126,34,.18), 0 4px 16px rgba(0,0,0,.4);
   display: flex; flex-direction: column; gap: 10px;
 }
 .fq-header { display: flex; flex-direction: column; gap: 2px; }
