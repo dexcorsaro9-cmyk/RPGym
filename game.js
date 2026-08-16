@@ -109,13 +109,13 @@ const RPG = (() => {
   }
 
   const TROPHIES = [
-    { id: 't10',   km: 10,   icon: '🥉', name: 'Primi Passi',          desc: '10 km percorsi' },
-    { id: 't25',   km: 25,   icon: '🎖️', name: 'Viandante',            desc: '25 km percorsi' },
-    { id: 't50',   km: 50,   icon: '🥈', name: 'Camminatore',          desc: '50 km percorsi' },
-    { id: 't100',  km: 100,  icon: '🏅', name: 'Esploratore',          desc: '100 km percorsi' },
-    { id: 't250',  km: 250,  icon: '🥇', name: 'Pellegrino',           desc: '250 km percorsi' },
-    { id: 't500',  km: 500,  icon: '🏆', name: 'Veterano del Cammino', desc: '500 km percorsi' },
-    { id: 't1000', km: 1000, icon: '👑', name: 'Leggenda Vivente',     desc: '1000 km percorsi' },
+    { id: 't10',   km: 10,   icon: '🥉', img: 'assets/ui/trofei/t10.webp',   name: 'Primi Passi',          desc: '10 km percorsi' },
+    { id: 't25',   km: 25,   icon: '🎖️', img: 'assets/ui/trofei/t25.webp',   name: 'Viandante',            desc: '25 km percorsi' },
+    { id: 't50',   km: 50,   icon: '🥈', img: 'assets/ui/trofei/t50.webp',   name: 'Camminatore',          desc: '50 km percorsi' },
+    { id: 't100',  km: 100,  icon: '🏅', img: 'assets/ui/trofei/t100.webp',  name: 'Esploratore',          desc: '100 km percorsi' },
+    { id: 't250',  km: 250,  icon: '🥇', img: 'assets/ui/trofei/t250.webp',  name: 'Pellegrino',           desc: '250 km percorsi' },
+    { id: 't500',  km: 500,  icon: '🏆', img: 'assets/ui/trofei/t500.webp',  name: 'Veterano del Cammino', desc: '500 km percorsi' },
+    { id: 't1000', km: 1000, icon: '👑', img: 'assets/ui/trofei/t1000.webp', name: 'Leggenda Vivente',     desc: '1000 km percorsi' },
   ];
 
   /* ── Curva di progressione ────────────────────────────────── */
