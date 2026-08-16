@@ -315,7 +315,7 @@ function openBoccaleGame() {
 
   let state = 'IDLE'; // IDLE | CHARGING | SLIDING | END
   let power = 0, powerDir = 1, velocity = 0, currentY = 0;
-  const FRICTION = 0.975, POWER_SPEED = 2.5;
+  const FRICTION = 0.975, POWER_SPEED = 5.2;
 
   const wrap = document.createElement('div');
   wrap.className = 'mg-boccale-wrap';
@@ -360,8 +360,8 @@ function openBoccaleGame() {
     function chargeLoop() {
       if (state !== 'CHARGING') return;
       power += POWER_SPEED * powerDir;
-      if (power >= 100) { power = 100; powerDir = -1; }
-      if (power <= 0)   { power = 0;   powerDir =  1; }
+      if (power >= 100) { power = 100; powerDir = -1; power -= Math.random() * 18; }
+      if (power <= 0)   { power = 0;   powerDir =  1; power += Math.random() * 18; }
       powerFill.style.height = `${power}%`;
       _mgRAF = requestAnimationFrame(chargeLoop);
     }
@@ -380,7 +380,7 @@ function openBoccaleGame() {
 
   function slideLoop() {
     currentY -= velocity;
-    velocity *= FRICTION;
+    velocity *= FRICTION * (0.96 + Math.random() * 0.07);
     mug.style.transform = `translateX(-50%) translateY(${currentY}px)`;
     const maxY = -(arena.clientHeight - 70);
     if (currentY <= maxY) {
@@ -399,7 +399,7 @@ function openBoccaleGame() {
     const mugR    = mug.getBoundingClientRect();
     const tgtR    = target.getBoundingClientRect();
     const dist    = Math.abs((mugR.top + mugR.height / 2) - (tgtR.top + tgtR.height / 2));
-    const tol     = tgtR.height / 1.5;
+    const tol     = tgtR.height / 3.5;
     if (dist <= tol) {
       splash.classList.add('mgb-splash-active');
       vibrate([100, 50, 200]); sfx('coin');
