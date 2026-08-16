@@ -7076,20 +7076,31 @@ img.fiche-inline {
   border: 4px solid #8d6e63;
   box-shadow: 0 0 20px rgba(0,0,0,.8);
   display: block;
+  position: relative; z-index: 2;
 }
 .mgck-stuck {
   position: absolute; top: 50%; left: 50%;
-  font-size: 1.8rem;
   transform-origin: center center;
-  margin-left: -14px; margin-top: -14px;
+  margin-left: -11px; margin-top: -32px;
   pointer-events: none;
+  z-index: 1;
+  filter: drop-shadow(-1px 3px 5px rgba(0,0,0,.95));
+}
+.mgck-knife-img {
+  width: 22px; height: 64px;
+  object-fit: contain;
+  display: block;
 }
 .mgck-knife-active {
   position: absolute; bottom: 50px; left: 50%;
   transform: translateX(-50%) translateY(0px);
-  font-size: 2.4rem; text-align: center;
   will-change: transform;
   cursor: pointer;
+  filter: drop-shadow(0 3px 8px rgba(0,0,0,.7));
+  z-index: 3;
+}
+.mgck-knife-active .mgck-knife-img {
+  width: 28px; height: 82px;
 }
 .mgck-ammo {
   position: absolute; bottom: 10px; left: 50%;

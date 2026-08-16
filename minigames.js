@@ -1235,7 +1235,7 @@ function openColtelloGame() {
       <div class="mgck-log-wrap" id="mgck-log-wrap">
         <img src="assets/minigames/lancio-coltello/ceppo.webp" class="mgck-log-img" alt="Ceppo">
       </div>
-      <div class="mgck-knife-active" id="mgck-knife">🗡️</div>
+      <div class="mgck-knife-active" id="mgck-knife"><img src="assets/minigames/lancio-coltello/coltelli.webp" class="mgck-knife-img" alt=""></div>
       <div class="mgck-ammo" id="mgck-ammo"></div>
     </div>
     <div class="mg-result-area" id="mgck-res"></div>
@@ -1351,10 +1351,13 @@ function openColtelloGame() {
       stuckAngles.push(impactAngle);
       knivesLanded++;
 
-      const stuck = document.createElement('span');
+      const stuck = document.createElement('div');
       stuck.className = 'mgck-stuck mgck-stick-pop';
-      stuck.textContent = '🗡️';
-      stuck.style.transform = `rotate(${impactAngle}deg) translateY(68px)`;
+      const kImg = document.createElement('img');
+      kImg.src = 'assets/minigames/lancio-coltello/coltelli.webp';
+      kImg.className = 'mgck-knife-img';
+      stuck.appendChild(kImg);
+      stuck.style.transform = `rotate(${impactAngle}deg) translateY(82px)`;
       logWrap.appendChild(stuck);
       vibrate([35]);
 
