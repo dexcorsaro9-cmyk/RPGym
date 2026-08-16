@@ -3952,11 +3952,15 @@ img.fiche-inline {
   position: relative;
 }
 .mg-x-btn {
-  position: absolute; top: 0; right: 8px;
-  background: none; border: none; color: rgba(255,210,80,.6);
-  font-size: 1.4rem; cursor: pointer; padding: 4px 8px; z-index: 1;
+  position: absolute; top: 8px; right: 8px;
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.55); border: 1.5px solid rgba(255,210,80,.35);
+  border-radius: 50%; color: rgba(255,210,80,.85);
+  font-size: 1.2rem; cursor: pointer; z-index: 10;
+  -webkit-tap-highlight-color: transparent;
 }
-.mg-x-btn:hover { color: var(--gold-bright); }
+.mg-x-btn:active { background: rgba(255,210,80,.18); color: var(--gold-bright); }
 .mg-game-title {
   text-align: center; font-family: 'Cinzel',serif; font-size: 1.3rem;
   color: var(--gold-bright); text-shadow: 0 0 20px rgba(255,200,50,.4);
@@ -6881,15 +6885,18 @@ img.fiche-inline {
 /* Intro card (sfidante) */
 .mgbf-card {
   display: flex; flex-direction: column; align-items: center;
-  gap: 12px; padding: 24px 16px 20px; text-align: center;
+  justify-content: center;
+  gap: 16px; padding: 48px 20px 28px; text-align: center;
+  min-height: 85vh;
   animation: mg-fadein .35s ease;
 }
 @keyframes mg-fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 .mgbf-card-icon { font-size: 4rem; line-height: 1; }
 .mgbf-card-img {
-  width: 120px; height: 120px; border-radius: 16px;
+  width: 200px; height: 200px; border-radius: 20px;
   object-fit: cover; object-position: center top;
-  border: 2px solid rgba(212,184,134,.4);
+  border: 3px solid rgba(212,184,134,.5);
+  box-shadow: 0 8px 32px rgba(0,0,0,.6);
   box-shadow: 0 4px 20px rgba(0,0,0,.5);
 }
 .mgbf-opp-img {
@@ -6897,12 +6904,12 @@ img.fiche-inline {
   object-fit: cover; object-position: center top;
 }
 .mgbf-card-name {
-  font-size: 1.05rem; font-weight: 700; font-family: 'Cinzel', serif;
-  color: var(--gold-bright);
+  font-size: 1.25rem; font-weight: 700; font-family: 'Cinzel', serif;
+  color: var(--gold-bright); text-shadow: 0 0 16px rgba(255,200,50,.3);
 }
 .mgbf-card-taunt {
-  font-style: italic; color: var(--muted); font-size: .87rem;
-  max-width: 230px; line-height: 1.45;
+  font-style: italic; color: var(--muted); font-size: .92rem;
+  max-width: 260px; line-height: 1.5;
 }
 
 /* Game screen */
