@@ -223,7 +223,7 @@ function openCardsGame() {
 /* ── 🏹 TIRO ALLA BALESTRA ── */
 function openArcheryGame() {
   if (!mgCanPlay('archery')) return;
-  let pos = 0, dir = 1, totalScore = 0, shots = 3, canShoot = true;
+  let pos = 0, dir = 1, totalScore = 0, shots = 3, canShoot = true, speed = 2.8;
   const wrap = document.createElement('div');
   wrap.className = 'mg-archery-wrap';
   wrap.innerHTML = `
@@ -263,7 +263,7 @@ function openArcheryGame() {
   }
 
   function tick() {
-    pos += dir * 1.6;
+    pos += dir * (speed + Math.random() * 0.7);
     if (pos >= 100) { pos = 100; dir = -1; }
     if (pos <= 0)   { pos = 0;   dir = 1; }
     bar.style.left = pos + '%';
@@ -282,6 +282,7 @@ function openArcheryGame() {
     hitLabel.textContent = zone.label;
     hitLabel.className = 'mga-hit-label ' + zone.cls;
     hitLabel.style.opacity = '1';
+    speed += 0.9;
     const pips = shotsEl.querySelectorAll('.mga-arrow-pip');
     if (pips[shots]) pips[shots].classList.add('mga-pip-used');
     setTimeout(() => {
