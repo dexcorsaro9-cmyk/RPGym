@@ -458,7 +458,7 @@ body {
 .log-row { padding: 4px 0; border-bottom: 1px dashed rgba(90,61,36,.3); font-size: .92rem; }
 .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px dashed rgba(90,61,36,.3); }
 .stat-row-label { display: flex; align-items: center; gap: 8px; }
-.stat-row-icon { width: 26px; height: 26px; object-fit: contain; flex-shrink: 0; filter: invert(1) sepia(1) saturate(1.5) hue-rotate(355deg) brightness(0.62); mix-blend-mode: multiply; }
+.stat-row-icon { width: 26px; height: 26px; object-fit: contain; flex-shrink: 0; filter: drop-shadow(0 1px 3px rgba(0,0,0,.35)); }
 
 /* ── Report allenamento ── */
 .report-header {
