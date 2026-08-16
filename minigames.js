@@ -924,6 +924,7 @@ function _startPescaGame(baitId, fish) {
 
   arenaEl.addEventListener('mousedown', thrustOn);
   arenaEl.addEventListener('touchstart', thrustOn, { passive: false });
+  arenaEl.addEventListener('contextmenu', e => e.preventDefault());
   window.addEventListener('mouseup', thrustOff);
   window.addEventListener('touchend', thrustOff);
 

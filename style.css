@@ -4932,11 +4932,11 @@ img.fiche-inline {
 }
 
 /* testi e pulsanti */
-.tm-reward { font-size: .8rem; color: var(--muted); text-align: center; line-height: 1.35; }
-.tm-reward.ready { color: #c9932e; font-weight: 700; }
+.tm-reward { font-size: .8rem; color: var(--ink-light); text-align: center; line-height: 1.35; }
+.tm-reward.ready { color: #8b5e0a; font-weight: 700; }
 .tm-action { display: flex; justify-content: center; align-items: center; }
-.tm-km-label    { font-size: .82rem; font-weight: 700; color: var(--muted); }
-.tm-claimed-label { font-size: .78rem; color: #666; }
+.tm-km-label    { font-size: .82rem; font-weight: 700; color: var(--ink-light); }
+.tm-claimed-label { font-size: .78rem; color: #7a5c32; }
 .tm-claim-btn {
   font-size: .78rem; padding: 5px 12px;
   background: linear-gradient(135deg, #b8860b, #e8b64c);
@@ -4947,8 +4947,8 @@ img.fiche-inline {
   white-space: nowrap;
 }
 .tm-progress-label {
-  text-align: center; font-size: .85rem; color: var(--muted);
-  padding-top: 8px; border-top: 1px solid rgba(255,255,255,.07);
+  text-align: center; font-size: .85rem; color: var(--ink-light);
+  padding-top: 8px; border-top: 1px solid rgba(90,61,36,.15);
 }
 
 /* ── Recap mensile ── */
@@ -6777,6 +6777,8 @@ img.fiche-inline {
   display: flex; justify-content: center; align-items: stretch;
   gap: 14px; flex: 1;
   min-height: 260px;
+  user-select: none; -webkit-user-select: none;
+  -webkit-touch-callout: none; touch-action: none;
 }
 .mgp-bar-col {
   position: relative;
