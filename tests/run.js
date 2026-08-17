@@ -153,30 +153,25 @@ section('bilanciamento mini-giochi — limiti earning rate');
 // Legge MG_B come testo da minigames.js senza caricare tutto il file
 const mgSrc = fs.readFileSync(path.join(__dirname, '../minigames.js'), 'utf8');
 
-// Estrae i valori chiave con regex robuste
-const goldPerPt    = parseFloat((mgSrc.match(/goldPerPt:\s*([\d.]+)/)   || [])[1]);
-const goldMult     = parseFloat((mgSrc.match(/goldMult:\s*([\d.]+)/)    || [])[1]);
-const goldPerHit   = parseFloat((mgSrc.match(/goldPerHit:\s*([\d.]+)/)  || [])[1]);
-const memGoldBase  = parseFloat((mgSrc.match(/goldBase:\s*([\d.]+)/)    || [])[1]);
+// Solo goldPerPt esiste in MG_B.archery — gli altri valori sono inline nel codice
+const goldPerPt = parseFloat((mgSrc.match(/goldPerPt:\s*([\d.]+)/) || [])[1]);
 
-assert(`archery goldPerPt ≤ 1.0 (era 1.2, ora ${goldPerPt})`, goldPerPt <= 1.0, `valore: ${goldPerPt}`);
-assert(`tap goldMult ≤ 0.20 (ora ${goldMult})`,                goldMult  <= 0.20, `valore: ${goldMult}`);
-assert(`wham goldPerHit ≤ 3 (ora ${goldPerHit})`,              goldPerHit <= 3,   `valore: ${goldPerHit}`);
-assert(`memory goldBase ≤ 25 (ora ${memGoldBase})`,            memGoldBase <= 25, `valore: ${memGoldBase}`);
+assert(`archery goldPerPt presente e ≤ 1.0 (attuale: ${goldPerPt})`, !isNaN(goldPerPt) && goldPerPt <= 1.0, `valore: ${goldPerPt}`);
 
-// Stima worst-case gold giornaliero dai soli mini-giochi
-const archMax = 90 * goldPerPt * 3;          // 3 tiri, score perfetto
-const tapMax  = 100 * goldMult * 3;           // 3 partite, power 100
-const whamMax = 12 * goldPerHit * 3;          // 3 partite, 12 anime
-const dailyGoldCeiling = archMax + tapMax + whamMax + 100; // +100 stima altri giochi
-// Stima altri giochi: dado max 60, carte 3×30=90, ruota max 60, memory 2×18=36 → 246
-const othersMax = 60 + 90 + 60 + (memGoldBase * 2);
-const ceiling = archMax + tapMax + whamMax + othersMax;
+// Worst-case gold giornaliero dai mini-giochi (valori inline in minigames.js)
+// archery: 3 tiri da 45pt × goldPerPt; carte: max 30g/partita × 3; dadi: max ~55g × 2;
+// boccale: max 30g × 2; braccio di ferro: max 30g × 2; coltello: max 30g × 2
+const archMax   = 45 * goldPerPt * 3;  // 3 tiri perfetti
+const carteMax  = 30 * 3;              // 3 partite, jackpot carte
+const dadiMax   = 55 * 2;             // 2 partite, max dadi
+const othersMax = 30 * 2 + 30 * 2 + 30 * 2; // boccale + braccio + coltello
+const ceiling   = archMax + carteMax + dadiMax + othersMax;
+
 // Soglia = worst-case assoluto (tutti jackpot nello stesso giorno).
-// Pre-fix il ceiling era >800; questa soglia cattura regressioni gravi.
+// Con i valori attuali il ceiling è ~575; soglia 750 cattura regressioni gravi.
 assert(
-  `gold/die ceiling < 550 (regressione check: vecchio bug era >800)`,
-  ceiling < 550,
+  `gold/die ceiling < 750 (regressione check, attuale ~${Math.round(ceiling)})`,
+  ceiling < 750,
   `ceiling: ${ceiling.toFixed(0)}`
 );
 

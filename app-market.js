@@ -307,7 +307,8 @@ function renderMarket(c) {
   } catch (err) {
     console.error('[renderMarket]', err);
     const errPanel = el('div', 'panel center');
-    errPanel.innerHTML = `<p style="margin-bottom:12px">⚠️ Errore nel caricamento del Borgo.</p>`;
+    errPanel.innerHTML = `<p style="margin-bottom:12px">⚠️ Errore nel caricamento del Borgo.</p>
+      <p class="muted small" style="margin-bottom:12px;word-break:break-word">${esc(err && err.message ? err.message : String(err))}</p>`;
     const retryBtn = el('button', 'btn btn-primary', '↺ Riprova');
     retryBtn.addEventListener('click', () => setTab('market'));
     errPanel.appendChild(retryBtn);

@@ -6128,8 +6128,8 @@ const RPG = (() => {
 
   /* ── Mercante Itinerante (ven-dom, 3 item rari) ──────────── */
   function isMerchantWeekend() {
-    const d = new Date().getDay(); // 0=dom, 5=ven, 6=sab
-    return d === 0 || d === 5 || d === 6;
+    const d = new Date().getDay(); // 0=dom, 1=lun, 4=gio, 5=ven, 6=sab
+    return d === 0 || d === 1 || d === 4 || d === 5 || d === 6;
   }
   function getTravelingMerchant(hero) {
     if (!isMerchantWeekend()) return null;
