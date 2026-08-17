@@ -15,13 +15,18 @@ RPG fitness PWA (Progressive Web App) che trasforma allenamenti reali in progres
 | File | Righe | Ruolo |
 |------|-------|-------|
 | `game.js` | 6304 | Motore RPG puro — nessun DOM. Esporta `const RPG = (...)()`. Tutto lo stato, le formule, i dati (biomi, oggetti, consumabili, missioni, ecc.) |
-| `app.js` | ~9800 | UI completa — tutto il rendering, la navigazione, gli eventi. Importa `RPG.*` per la logica. |
-| `arena.js` | 1211 | Sistema Arena (duello a morra guerrieri). Funzione pubblica `advanceOnboarding` importata da app.js. |
-| `minigames.js` | 1128 | Minigiochi (Bisca, Cartomante, Ruota della Fortuna, ecc.) |
-| `style.css` | 9131 | Tutti gli stili. Nessun preprocessore. |
-| `sw.js` | 218 | Service Worker — cache `heropace-vN` (bump versione ad ogni deploy). |
+| `app-core.js` | ~1500 | Globals (`STATE`, `HERO`, `CURRENT_TAB`), helpers (`el`, `esc`, `ptIcon`, `persist`), navigazione (`setTab`, `renderHUD`, swipe), onboarding, tutorial, profili, `enterGame`. |
+| `app-camp.js` | ~1570 | `renderCamp()` e sub-view Rifugio: stagioni, strutture, arredamento, santuario, famigli, serra, bacheca, pass stagionale. |
+| `app-map.js` | ~2005 | `renderMap()` e sub-view Mappa: biomi, tesoro settimanale, boss settimanale, incursione, avamposto (PvP/guild/atlas/pantheon). |
+| `app-train.js` | ~1053 | `renderTrain()`: registrazione allenamento, loot, shortcut iOS, report. |
+| `app-market.js` | ~1403 | `renderMarket()` e tutte le sub-view Borgo: stalla, mercato nero, fucina, erborista, cartomante, ruota, pozzo, catena, casse, antro, taverna, bisca. |
+| `app-hero.js` | ~2941 | `renderHero()` e sub-view Eroe: equipaggiamento, zaino, sacca, consumabili, sfide, diario, cronache, carte, bestiario, impostazioni. Contiene anche modal/toast, notifiche, badge e `runSplash` (startup). |
+| `arena.js` | 1211 | Sistema Arena (duello a morra guerrieri). |
+| `minigames.js` | 1128 | Minigiochi (Bisca, Cartomante, Ruota della Fortuna, Lancio Coltello, ecc.) |
+| `style.css` | ~9200 | Tutti gli stili. Nessun preprocessore. |
+| `sw.js` | ~223 | Service Worker — cache `heropace-vN` (bump versione ad ogni deploy). |
 | `firebase.js` | — | Config Firebase per PvP/guild (Firestore). |
-| `index.html` | — | Entry point minimale — carica gli script, definisce le sezioni `#screen-login` e `#screen-game`. |
+| `index.html` | — | Entry point — carica gli script nell'ordine corretto, definisce le sezioni `#screen-profiles` e `#screen-game`. |
 
 ---
 
@@ -87,12 +92,27 @@ HERO = {
 
 ---
 
-## Stato globale app.js
+## Stato globale (app-core.js)
 
 ```js
 let STATE = RPG.load();   // { heroes: [...], activeHeroId }
 let HERO  = null;         // hero attivo (puntatore dentro STATE.heroes)
+let CURRENT_TAB = 'camp';
 ```
+
+Ogni file di tab dichiara il proprio view-state locale:
+```js
+// app-camp.js
+let CAMP_VIEW = 'main';
+// app-map.js
+let MAP_VIEW = 'main';
+// app-market.js
+let MARKET_VIEW = 'hub';
+// app-hero.js
+let HERO_VIEW = 'main';
+```
+
+Tutti i file condividono il `window` scope — nessun modulo ES. L'ordine di caricamento degli script in `index.html` è obbligatorio: `game.js` → `app-core.js` → `app-camp.js` → `app-map.js` → `app-train.js` → `app-market.js` → `app-hero.js` → `minigames.js` → `arena.js`.
 
 Persistenza: `persist()` → `RPG.save(STATE)` → `localStorage`.
 
@@ -126,7 +146,7 @@ Pattern rendering: ogni `render*` riceve un container `c` (div) e ci appende den
 - Serra del Viandante: piante con timer reale, missioni settimanali
 - Santuario dei Famigli: Tamagotchi con Fame/Umore/Energia, evoluzioni
 - Bacheca del Viandante: commissioni giornaliere reset mezzanotte
-- Pass Stagionale: coming soon (50 livelli, traccia Free/Premium)
+- Pass Stagionale: 50 livelli, traccia Free/Premium, punti guadagnati con km
 
 ### Borgo (`renderMarket`)
 - Stalla (cavalcature), Mercato Nero (vendi/compra), Fucina (potenzia)
@@ -153,10 +173,15 @@ Pattern rendering: ogni `render*` riceve un container `c` (div) e ci appende den
 - `11` = dopo Mappa → banner Serra nel Rifugio
 - `12` = dopo Serra → banner Bacheca nel Rifugio
 - `13` = dopo Bacheca → banner Famiglio nel Rifugio
+- `14` = dopo Famiglio → banner Boss Settimanale nella Mappa
+- `15` = dopo Boss → banner Pass Stagionale nel Rifugio
+- `16` = dopo Pass → banner Fucina nel Borgo
+- `17` = dopo Fucina → banner Avamposto nella Mappa
+- `18` = onboarding completato
 
 Funzioni: `renderOnboardingBanner(c, { step, icon, title, desc, actionLabel, onAction })` e `advanceOnboarding(fromStep, toStep?)`.
 
-**ATTENZIONE:** step 3 è riservato alla migrazione — i nuovi step avanzati partono da 10 per evitare collisioni.
+**ATTENZIONE:** step 3 è riservato alla migrazione — i nuovi step avanzati partono da 10 per evitare collisioni. Non aggiungere step tra 3 e 10.
 
 ---
 
