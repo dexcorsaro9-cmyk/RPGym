@@ -84,7 +84,7 @@ function renderMiniGamesHub(c) {
 
   const hdrRow = document.createElement('div');
   hdrRow.className = 'mg-hub-hdr';
-  hdrRow.innerHTML = `<h3 class="panel-title" style="margin:0">🎮 Taverna delle Sfide <span class="mg-hub-subtitle">— Sette giochi. Un banco. Mostra cosa sei fatto.</span></h3>`;
+  hdrRow.innerHTML = `<h3 class="panel-title" style="margin:0">${ptIcon('assets/ui/borgo/taverna.webp', 'Taverna delle Sfide', '🎮')} <span class="mg-hub-subtitle">— Sette giochi. Un banco. Mostra cosa sei fatto.</span></h3>`;
   // badge totale giocate disponibili
   const totalRem = MG_CATEGORIES.flatMap(cat => cat.games).reduce((s, g) => {
     const m = getMG(g.id);

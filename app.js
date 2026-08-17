@@ -3480,7 +3480,7 @@ function renderBiscaView(c) {
   wrap.appendChild(inner);
   c.appendChild(wrap);
 
-  inner.appendChild(el('h2', 'section-title', '🃏 La Bisca Oscura'));
+  inner.appendChild(el('h2', 'section-title', ptIcon('assets/ui/borgo/bisca.webp', 'La Bisca Oscura', '🃏')));
 
   // NPC biscazziere
   const npcBanner = el('div', 'npc-banner bisca-npc-banner');
@@ -6493,10 +6493,10 @@ function _borgoSubView(c, headerSrc, title, renderFn) {
   renderFn(c);
 }
 
-function renderStallaView(c)    { _borgoSubView(c, 'assets/ui/header stalla.webp',        '🐴 La Stalla',        renderStalla); }
-function renderNeroView(c)      { _borgoSubView(c, 'assets/ui/header contrabbando.webp',   '🕯️ Il Mercato Nero',  renderNero); }
-function renderFucinaView(c)    { _borgoSubView(c, 'assets/ui/header fucina.webp',         '⚒️ La Fucina',        renderFucina); }
-function renderErboristaView(c) { _borgoSubView(c, 'assets/header bazar.webp',           '🧪 Il Bazar',         renderErborista); }
+function renderStallaView(c)    { _borgoSubView(c, 'assets/ui/header stalla.webp',        ptIcon('assets/ui/borgo/stalla.webp',       'La Stalla',       '🐴'), renderStalla); }
+function renderNeroView(c)      { _borgoSubView(c, 'assets/ui/header contrabbando.webp',   ptIcon('assets/ui/borgo/mercato-nero.webp', 'Il Mercato Nero', '🕯️'), renderNero); }
+function renderFucinaView(c)    { _borgoSubView(c, 'assets/ui/header fucina.webp',         ptIcon('assets/ui/borgo/fucina.webp',       'La Fucina',       '⚒️'), renderFucina); }
+function renderErboristaView(c) { _borgoSubView(c, 'assets/header bazar.webp',             ptIcon('assets/ui/borgo/bazar.webp',        'Il Bazar',        '🧪'), renderErborista); }
 
 /* ══════════════════════════════════════════════════════════
    CARTOMANTE — Tenda del Fato
@@ -6518,7 +6518,7 @@ function renderCartomanteView(c) {
   hImg.onerror = () => hImg.remove();
   c.appendChild(hImg);
 
-  c.appendChild(el('h2', 'section-title', '🔮 La Tenda del Fato'));
+  c.appendChild(el('h2', 'section-title', ptIcon('assets/ui/borgo/cartomante.webp', 'La Tenda del Fato', '🔮')));
 
   // NPC banner
   c.appendChild(npcBanner('assets/cartomante/cartomante-npc.webp', 'La Cartomante',
@@ -8407,7 +8407,8 @@ function _settingsDangerPanel() {
 function openSlotPicker(slotKey) {
   const s = RPG.SLOTS[slotKey];
   const candidates = HERO.items.filter(i => i.slot === slotKey);
-  let html = `<h3 class="panel-title">${s.icon} ${s.label}</h3>`;
+  const _slotImg = { seme: 'assets/ui/eroe/seme.webp', consumabile: 'assets/ui/eroe/consumabile-slot.webp' }[slotKey];
+  let html = `<h3 class="panel-title">${_slotImg ? ptIcon(_slotImg, s.label, s.icon) : `${s.icon} ${s.label}`}</h3>`;
   const current = HERO.equipment[slotKey];
   if (!candidates.length) {
     html += `<p class="muted center">Non hai ancora nessun oggetto per questo slot.<br>
