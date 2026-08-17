@@ -936,12 +936,24 @@ function renderSantuarioView(c) {
   const renameBtn = el('button', 'btn btn-small pet-rename-btn', '✏️');
   renameBtn.title = 'Rinomina';
   renameBtn.addEventListener('click', () => {
-    const newName = prompt(`Nuovo nome per ${pet.name}:`, pet.name);
-    if (newName && newName.trim()) {
-      pet.name = newName.trim().slice(0, 20);
-      persist();
-      setTab('camp');
-    }
+    modal(`
+      <h2 class="section-title">✏️ Rinomina Famiglio</h2>
+      <input id="pet-rename-inp" class="create-name-input" type="text" maxlength="20"
+             value="${esc(pet.name)}" placeholder="Nuovo nome…" autocomplete="off">
+      <div style="display:flex;gap:.75rem;margin-top:1rem;">
+        <button class="btn btn-primary wide" id="pet-rename-save">Salva</button>
+        <button class="btn wide" onclick="closeModal()">Annulla</button>
+      </div>
+    `);
+    const inp = document.getElementById('pet-rename-inp');
+    const saveBtn = document.getElementById('pet-rename-save');
+    if (inp) { inp.focus(); inp.select(); }
+    const doSave = () => {
+      const v = inp ? inp.value.trim() : '';
+      if (v) { pet.name = v.slice(0, 20); persist(); closeModal(); setTab('camp'); }
+    };
+    if (saveBtn) saveBtn.addEventListener('click', doSave);
+    if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') doSave(); });
   });
   nameRow.appendChild(renameBtn);
   head.appendChild(nameRow);

@@ -4,15 +4,38 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#3b2a1a">
+  <meta name="description" content="Trasforma camminate, corse e pedalate in un'avventura fantasy! Guadagna XP, oro e oggetti leggendari con ogni allenamento.">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Hero's Pace">
+  <!-- Open Graph -->
+  <meta property="og:type"        content="website">
+  <meta property="og:url"         content="https://dexcorsaro9-cmyk.github.io/RPGym/">
+  <meta property="og:title"       content="Hero's Pace — L'Avventura del Viandante">
+  <meta property="og:description" content="Trasforma camminate, corse e pedalate in un'avventura fantasy! Guadagna XP, oro e oggetti leggendari con ogni allenamento.">
+  <meta property="og:image"       content="https://dexcorsaro9-cmyk.github.io/RPGym/assets/screenshots/screen-rifugio.webp">
+  <meta property="og:image:width"  content="1284">
+  <meta property="og:image:height" content="2581">
+  <!-- Twitter Card -->
+  <meta name="twitter:card"        content="summary_large_image">
+  <meta name="twitter:title"       content="Hero's Pace — L'Avventura del Viandante">
+  <meta name="twitter:description" content="Trasforma camminate, corse e pedalate in un'avventura fantasy!">
+  <meta name="twitter:image"       content="https://dexcorsaro9-cmyk.github.io/RPGym/assets/screenshots/screen-rifugio.webp">
   <title>Hero's Pace — L'Avventura del Viandante</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="assets/icons/favicon.webp" type="image/png">
   <link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" sizes="180x180" href="apple-touch-icon-precomposed.png">
+  <!-- iOS PWA Splash Screens (Safari mostra questo all'avvio dell'app installata) -->
+  <link rel="apple-touch-startup-image" media="(device-width:430px) and (device-height:932px) and (-webkit-device-pixel-ratio:3)" href="assets/screenshots/screen-splash.webp">
+  <link rel="apple-touch-startup-image" media="(device-width:393px) and (device-height:852px) and (-webkit-device-pixel-ratio:3)" href="assets/screenshots/screen-splash.webp">
+  <link rel="apple-touch-startup-image" media="(device-width:428px) and (device-height:926px) and (-webkit-device-pixel-ratio:3)" href="assets/screenshots/screen-splash.webp">
+  <link rel="apple-touch-startup-image" media="(device-width:390px) and (device-height:844px) and (-webkit-device-pixel-ratio:3)" href="assets/screenshots/screen-splash.webp">
+  <link rel="apple-touch-startup-image" media="(device-width:375px) and (device-height:812px) and (-webkit-device-pixel-ratio:3)" href="assets/screenshots/screen-splash.webp">
+  <link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:3)" href="assets/screenshots/screen-splash.webp">
+  <link rel="apple-touch-startup-image" media="(device-width:375px) and (device-height:667px) and (-webkit-device-pixel-ratio:2)" href="assets/screenshots/screen-splash.webp">
+  <link rel="apple-touch-startup-image" media="(device-width:320px) and (device-height:568px) and (-webkit-device-pixel-ratio:2)" href="assets/screenshots/screen-splash.webp">
   <!-- Preconnect: Firebase CDN + Google Fonts -->
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
   <link rel="dns-prefetch" href="https://www.gstatic.com">
@@ -22,7 +45,12 @@
   <link rel="stylesheet" href="style.css">
   <!-- Preload script critici prima che il parser raggiunga il fondo del body -->
   <link rel="preload" as="script" href="game.js">
-  <link rel="preload" as="script" href="app.js">
+  <link rel="preload" as="script" href="app-core.js">
+  <link rel="preload" as="script" href="app-camp.js">
+  <link rel="preload" as="script" href="app-map.js">
+  <link rel="preload" as="script" href="app-train.js">
+  <link rel="preload" as="script" href="app-market.js">
+  <link rel="preload" as="script" href="app-hero.js">
   <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
   <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js">
 </head>
@@ -130,12 +158,12 @@
   </div>
 
   <!-- Tabbar: FUORI da #screen-game per non essere mai colpita da transform/stacking-context del parent -->
-  <nav id="tabbar" class="tab-hidden">
-    <button class="tab" data-tab="camp">🏕️<span>Rifugio</span></button>
-    <button class="tab" data-tab="map">🗺️<span>Mappa</span></button>
-    <button class="tab tab-main" data-tab="train">⚔️<span>Allenati</span></button>
-    <button class="tab" data-tab="market">🏘️<span>Borgo</span></button>
-    <button class="tab" data-tab="hero">🛡️<span>Eroe</span></button>
+  <nav id="tabbar" class="tab-hidden" role="tablist" aria-label="Navigazione principale">
+    <button class="tab" data-tab="camp"   role="tab" aria-selected="false" aria-label="Rifugio">🏕️<span>Rifugio</span></button>
+    <button class="tab" data-tab="map"    role="tab" aria-selected="false" aria-label="Mappa">🗺️<span>Mappa</span></button>
+    <button class="tab tab-main" data-tab="train"  role="tab" aria-selected="false" aria-label="Allenati">⚔️<span>Allenati</span></button>
+    <button class="tab" data-tab="market" role="tab" aria-selected="false" aria-label="Borgo">🏘️<span>Borgo</span></button>
+    <button class="tab" data-tab="hero"   role="tab" aria-selected="false" aria-label="Eroe">🛡️<span>Eroe</span></button>
   </nav>
 
   <!-- Overlay Arena (battaglia a schermo intero) -->

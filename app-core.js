@@ -586,6 +586,19 @@ un bottino alla volta. Il Re dei Predoni non chiede — conquista.`,
 
 function persist() { RPG.save(STATE); updateNotifState().catch(() => {}); }
 function vibrate(pattern) { try { navigator.vibrate && navigator.vibrate(pattern); } catch {} }
+
+/* ── Token per autenticazione sync URL (MacroDroid / Tasker / Shortcuts) ── */
+function getSyncToken() {
+  const KEY = 'rpgym_sync_token';
+  let t = localStorage.getItem(KEY);
+  if (!t || t.length < 16) {
+    const bytes = new Uint8Array(10);
+    crypto.getRandomValues(bytes);
+    t = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+    localStorage.setItem(KEY, t);
+  }
+  return t;
+}
 function maybeSyncChallenge() {
   if (HERO && HERO.cloud && HERO.cloud.activeChallenge) FB.updateChallenge(HERO).catch(() => {});
 }
@@ -1451,8 +1464,11 @@ function setTab(tab, dir) {
   }
 
   CURRENT_TAB = tab;
-  document.querySelectorAll('#tabbar .tab').forEach(t =>
-    t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('#tabbar .tab').forEach(t => {
+    const isActive = t.dataset.tab === tab;
+    t.classList.toggle('active', isActive);
+    t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+  });
   c.classList.remove('bg-parchment', 'bg-rifugio', 'bg-map', 'bg-train', 'bg-market');
   if (tab === 'hero' && HERO_VIEW === 'main') c.classList.add('bg-parchment');
   if (tab === 'camp')   c.classList.add('bg-parchment');

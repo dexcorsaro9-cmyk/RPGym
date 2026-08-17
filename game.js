@@ -3793,7 +3793,13 @@ const RPG = (() => {
   }
   function logHealthSync(hero, type, totalKmToday) {
     if (!ACTIVITIES[type] || !(totalKmToday >= 0)) return null;
+    // Sanity check: nessuna attività reale supera 200 km/giorno
+    if (totalKmToday > 200) return null;
     const hs = healthSyncState(hero);
+    // Cooldown: non più di una sync per tipo ogni 15 minuti (anti-cheat)
+    const now = Date.now();
+    hs.lastSyncAt = hs.lastSyncAt || {};
+    if (now - (hs.lastSyncAt[type] || 0) < 15 * 60 * 1000) return null;
     const already = hs.applied[type] || 0;
     let delta = totalKmToday - already;
     if (!(delta > 0.05)) return null; // nulla di nuovo, o rumore verso il basso
@@ -3803,6 +3809,7 @@ const RPG = (() => {
     const report = logWorkout(hero, type, capped, { skipValidation: true });
     if (report && !report.error) {
       hs.applied[type] = already + capped;
+      hs.lastSyncAt[type] = now;
       report.autoSync = true;
     }
     return report;
@@ -6128,8 +6135,8 @@ const RPG = (() => {
 
   /* ── Mercante Itinerante (ven-dom, 3 item rari) ──────────── */
   function isMerchantWeekend() {
-    const d = new Date().getDay(); // 0=dom, 5=ven, 6=sab
-    return d === 0 || d === 5 || d === 6;
+    const d = new Date().getDay(); // 0=dom, 1=lun, 4=gio, 5=ven, 6=sab
+    return d === 0 || d === 1 || d === 4 || d === 5 || d === 6;
   }
   function getTravelingMerchant(hero) {
     if (!isMerchantWeekend()) return null;

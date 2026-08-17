@@ -1,0 +1,14 @@
+#!/bin/sh
+# Incrementa automaticamente la versione cache del Service Worker ad ogni commit.
+# Attivare una volta sola con: git config core.hooksPath .githooks
+
+SW="sw.js"
+if [ ! -f "$SW" ]; then exit 0; fi
+
+current=$(grep -oE 'heropace-v[0-9]+' "$SW" | head -1 | grep -oE '[0-9]+$')
+if [ -z "$current" ]; then exit 0; fi
+
+next=$((current + 1))
+sed -i "s/heropace-v${current}/heropace-v${next}/" "$SW"
+git add "$SW"
+echo "[sw] cache bump: v${current} → v${next}"
