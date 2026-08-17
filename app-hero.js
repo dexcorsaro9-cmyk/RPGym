@@ -684,7 +684,46 @@ function renderSettingsView(c) {
   c.appendChild(_settingsFullscreenPanel());
   c.appendChild(_settingsPvpPanel());
   c.appendChild(_settingsDangerPanel());
+  c.appendChild(_settingsSyncTokenPanel());
   c.appendChild(_settingsPrivacyPanel());
+}
+
+function _settingsSyncTokenPanel() {
+  const p = el('div', 'panel shortcut-panel');
+  p.appendChild(el('h3', 'panel-title', '🔑 Token Sincronizzazione'));
+  p.appendChild(el('p', 'guide-text', 'Includi &sync_token=TOKEN nell\'URL del tuo Comando Rapido (MacroDroid / Tasker). Senza token il sync automatico viene rifiutato.'));
+  const token = getSyncToken();
+  const tokenRow = el('div', 'sync-token-row');
+  const code = el('code', 'sync-token-code', token);
+  const copyBtn = el('button', 'btn btn-small', '📋 Copia');
+  copyBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(token)
+      .then(() => toast('Token copiato!'))
+      .catch(() => { toast(token); });
+  });
+  tokenRow.appendChild(code);
+  tokenRow.appendChild(copyBtn);
+  p.appendChild(tokenRow);
+
+  const resetBtn = el('button', 'btn btn-small', '🔄 Rigenera token');
+  resetBtn.style.marginTop = '.5rem';
+  resetBtn.addEventListener('click', () => {
+    modal(`<h3 class="panel-title" style="margin-bottom:.6rem">🔄 Rigenera token?</h3>
+      <p class="muted small" style="margin-bottom:1rem">Il token attuale smetterà di funzionare. Dovrai aggiornare tutti i Comandi Rapidi con il nuovo token.</p>
+      <div style="display:flex;gap:.5rem">
+        <button class="btn btn-primary" id="regen-confirm">Rigenera</button>
+        <button class="btn" onclick="closeModal()">Annulla</button>
+      </div>`);
+    document.getElementById('regen-confirm').addEventListener('click', () => {
+      localStorage.removeItem('rpgym_sync_token');
+      getSyncToken();
+      closeModal();
+      toast('Token rigenerato. Aggiorna i tuoi Comandi Rapidi.');
+      setTab('hero');
+    });
+  });
+  p.appendChild(resetBtn);
+  return p;
 }
 
 function _settingsPrivacyPanel() {
@@ -768,6 +807,17 @@ function _settingsBackupPanel() {
   p.appendChild(el('p', 'guide-text', 'Esporta i tuoi eroi su file JSON e reimportali su qualsiasi dispositivo.'));
 
   // ── Export ───────────────────────────────────────────────────
+  // Avviso se backup mai fatto o > 30 giorni fa
+  const lastBackupTs = parseInt(localStorage.getItem('rpgym_last_backup') || '0', 10);
+  const daysSinceBackup = lastBackupTs ? Math.floor((Date.now() - lastBackupTs) / 86400000) : null;
+  if (daysSinceBackup === null || daysSinceBackup > 30) {
+    const warn = el('div', 'backup-warn-banner');
+    warn.textContent = daysSinceBackup === null
+      ? '⚠️ Nessun backup ancora. Se svuoti il browser perdi tutti i progressi.'
+      : `⚠️ Ultimo backup: ${daysSinceBackup} giorni fa. Fallo regolarmente.`;
+    p.appendChild(warn);
+  }
+
   const exportBtn = el('button', 'btn btn-primary', '📤 Esporta salvataggio');
   exportBtn.addEventListener('click', () => {
     const data = localStorage.getItem('rpgym_save_v1');
@@ -779,6 +829,7 @@ function _settingsBackupPanel() {
     a.download = `heropace_backup_${new Date().toISOString().slice(0,10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
+    localStorage.setItem('rpgym_last_backup', Date.now().toString());
     toast('📤 Backup esportato!');
   });
 
@@ -1392,7 +1443,23 @@ function applyStepsSync(steps, banner) {
 function applyHealthSyncFromURL(hero) {
   try {
     const params = new URLSearchParams(location.search);
-    // Accetta sync_steps (passi interi da HealthKit) oppure sync_km (km con virgola o punto)
+    const hasSync = params.has('sync_km') || params.has('sync_steps');
+    if (!hasSync) return null;
+
+    // Valida il token — previene iniezioni km tramite URL artefatti
+    const givenToken = params.get('sync_token');
+    history.replaceState({}, '', location.pathname + location.hash);
+    if (!givenToken) {
+      console.warn('[sync] URL senza sync_token — sync rifiutato. Aggiorna il Comando Rapido.');
+      setTimeout(() => toast('⚠️ Sync rifiutato: token mancante. Aggiorna il Comando Rapido in Impostazioni.'), 1500);
+      return null;
+    }
+    if (givenToken !== getSyncToken()) {
+      console.warn('[sync] sync_token non valido — sync rifiutato.');
+      setTimeout(() => toast('⚠️ Sync rifiutato: token errato. Controlla il Comando Rapido in Impostazioni.'), 1500);
+      return null;
+    }
+
     let km;
     if (params.has('sync_steps')) {
       const steps = parseInt(params.get('sync_steps'), 10);
@@ -1401,9 +1468,6 @@ function applyHealthSyncFromURL(hero) {
       km = parseFloat((params.get('sync_km') || '').replace(',', '.'));
     }
     const type = params.get('sync_type') || 'camminata';
-    if (params.has('sync_km') || params.has('sync_type') || params.has('sync_steps')) {
-      history.replaceState({}, '', location.pathname + location.hash);
-    }
     if (!hero || !(km > 0) || !RPG.ACTIVITIES[type]) return null;
     return RPG.logHealthSync(hero, type, km);
   } catch (err) {

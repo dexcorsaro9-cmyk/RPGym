@@ -586,6 +586,19 @@ un bottino alla volta. Il Re dei Predoni non chiede — conquista.`,
 
 function persist() { RPG.save(STATE); updateNotifState().catch(() => {}); }
 function vibrate(pattern) { try { navigator.vibrate && navigator.vibrate(pattern); } catch {} }
+
+/* ── Token per autenticazione sync URL (MacroDroid / Tasker / Shortcuts) ── */
+function getSyncToken() {
+  const KEY = 'rpgym_sync_token';
+  let t = localStorage.getItem(KEY);
+  if (!t || t.length < 16) {
+    const bytes = new Uint8Array(10);
+    crypto.getRandomValues(bytes);
+    t = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+    localStorage.setItem(KEY, t);
+  }
+  return t;
+}
 function maybeSyncChallenge() {
   if (HERO && HERO.cloud && HERO.cloud.activeChallenge) FB.updateChallenge(HERO).catch(() => {});
 }

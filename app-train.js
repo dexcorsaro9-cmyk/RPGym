@@ -445,7 +445,7 @@ function renderShortcutPanel() {
       <div class="shortcut-step"><span class="step-num">3</span>
         <div>Azione → <b>Variabile</b> → leggi passi da <b>Health Connect</b> di oggi → salva in variabile <code>passi</code>.</div></div>
       <div class="shortcut-step"><span class="step-num">4</span>
-        <div>Azione → <b>Apri URL</b>:<br><code style="font-size:.75rem;word-break:break-all">${APP_BASE_URL}?sync_steps=[passi]</code></div></div>
+        <div>Azione → <b>Apri URL</b>:<br><code style="font-size:.75rem;word-break:break-all">${APP_BASE_URL}?sync_steps=[passi]&sync_token=${getSyncToken()}</code><br><span class="muted" style="font-size:.7rem">Il token si trova in Impostazioni → 🔑 Token Sincronizzazione.</span></div></div>
       <div class="shortcut-step"><span class="step-num">5</span>
         <div>Salva la macro. Ogni sera alle 21 aprirà l'app e sincronizzerà i passi automaticamente.</div></div>
     </div>`;
@@ -469,7 +469,7 @@ function renderShortcutPanel() {
       <div class="shortcut-step"><span class="step-num">2</span>
         <div>Crea un nuovo <b>Task</b>: Azione → <b>Health Connect</b> → Leggi <b>Passi</b> di oggi → salva in <code>%passi</code>.</div></div>
       <div class="shortcut-step"><span class="step-num">3</span>
-        <div>Aggiungi azione <b>"Apri URL"</b>:<br><code style="font-size:.75rem;word-break:break-all">${APP_BASE_URL}?sync_steps=%passi</code></div></div>
+        <div>Aggiungi azione <b>"Apri URL"</b>:<br><code style="font-size:.75rem;word-break:break-all">${APP_BASE_URL}?sync_steps=%passi&sync_token=${getSyncToken()}</code><br><span class="muted" style="font-size:.7rem">Token in Impostazioni → 🔑 Token Sincronizzazione.</span></div></div>
       <div class="shortcut-step"><span class="step-num">4</span>
         <div>Crea un <b>Profilo</b> con trigger orario (es. 21:00) e collega il task. Oppure aggiungi un <b>widget</b> sul desktop per lanciarlo manualmente.</div></div>
     </div>`;

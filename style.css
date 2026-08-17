@@ -5550,6 +5550,40 @@ img.challenge-icon { width: 36px; height: 36px; object-fit: contain; filter: dro
   margin-top: 2px;
   font-weight: 400;
 }
+/* ── Backup warning banner ─── */
+.backup-warn-banner {
+  background: rgba(200, 100, 20, .15);
+  border: 1px solid rgba(200, 100, 20, .5);
+  border-left: 3px solid #c86414;
+  border-radius: 8px;
+  padding: .55rem .85rem;
+  font-size: .82rem;
+  color: #e8a060;
+  margin-bottom: .75rem;
+  line-height: 1.4;
+}
+
+/* ── Sync token row ──────────── */
+.sync-token-row {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  margin: .5rem 0;
+  flex-wrap: wrap;
+}
+.sync-token-code {
+  font-family: 'Courier New', monospace;
+  font-size: .78rem;
+  background: rgba(85, 94, 204, .15);
+  border: 1px solid rgba(85, 94, 204, .4);
+  border-radius: 6px;
+  padding: .3rem .6rem;
+  color: #9faff8;
+  word-break: break-all;
+  flex: 1;
+  min-width: 0;
+}
+
 .btn-danger {
   background: linear-gradient(135deg, #8b2020, #b53030);
   color: #fff;
