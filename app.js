@@ -6224,7 +6224,7 @@ function renderMarket(c) {
     const biscaBetsLeft2 = (HERO.bisca && HERO.bisca.betsLeft !== undefined) ? HERO.bisca.betsLeft : RPG.BISCA_DAILY_BETS;
     biscaEntry.appendChild(el('div', biscaBetsLeft2 > 0 ? 'bisca-avail-badge' : 'bisca-avail-badge bisca-exhausted',
       biscaBetsLeft2 > 0 ? `🎰 ${biscaBetsLeft2} scommesse disponibili` : '⛔ Scommesse esaurite per oggi'));
-    const enterBiscaBtn2 = el('button', 'btn btn-primary wide', '🃏 Entra nella Bisca');
+    const enterBiscaBtn2 = el('button', 'btn btn-primary wide', ptIcon('assets/ui/borgo/bisca.webp', 'Entra nella Bisca', '🃏'));
     enterBiscaBtn2.addEventListener('click', () => { MARKET_VIEW = 'bisca'; setTab('market'); });
     biscaEntry.appendChild(enterBiscaBtn2);
     c.appendChild(biscaEntry);
@@ -6247,7 +6247,7 @@ function renderMarket(c) {
       '«Le stelle non mentono. Entrate, se avete il coraggio di sapere cosa vi riserva il destino.»'));
     const fichesNow = HERO.fiches || 0;
     cartEntry.appendChild(el('div', 'cart-badge-row', `<span class="cart-fiches-badge">${FICHE_ICO} ${fichesNow} Fiches</span>${cart.ruotaSpins > 0 ? '' : ' <span class="cart-free-badge">✨ Giro gratis disponibile</span>'}`));
-    const enterCartBtn = el('button', 'btn btn-primary wide', '🔮 Entra nella Tenda');
+    const enterCartBtn = el('button', 'btn btn-primary wide', ptIcon('assets/ui/borgo/cartomante.webp', 'Entra nella Tenda', '🔮'));
     enterCartBtn.addEventListener('click', () => { MARKET_VIEW = 'cartomante'; setTab('market'); });
     cartEntry.appendChild(enterCartBtn);
     c.appendChild(cartEntry);
@@ -6268,7 +6268,7 @@ function renderMarket(c) {
       '«Tra dadi truccati e boccali volanti, qui si separa chi ha nervi saldi da chi torna a casa vuoto.»'));
     const totalRemMkt2 = MG_CATEGORIES.flatMap(cat => cat.games).reduce((s, g) => s + Math.max(0, MG_MAX[g.id] - getMG(g.id).n), 0);
     if (totalRemMkt2 > 0) tavernaEntry2.appendChild(el('div', 'taverna-avail-badge', `🎮 ${totalRemMkt2} partite disponibili`));
-    const enterTavernaBtn2 = el('button', 'btn btn-primary wide', '🍺 Entra nella Taverna');
+    const enterTavernaBtn2 = el('button', 'btn btn-primary wide', ptIcon('assets/ui/borgo/taverna.webp', 'Entra nella Taverna', '🍺'));
     enterTavernaBtn2.addEventListener('click', () => { MARKET_VIEW = 'taverna'; setTab('market'); });
     tavernaEntry2.appendChild(enterTavernaBtn2);
     c.appendChild(tavernaEntry2);
@@ -6276,12 +6276,12 @@ function renderMarket(c) {
 
   // ── Altre sezioni del Borgo ──
   const borgoSections = [
-    { key: 'fucina',    emoji: '⚒️', icon: 'assets/ui/borgo/fucina.webp',       title: 'La Fucina',             quote: '«Batto il ferro dall\'alba. Portami il tuo pezzo peggiore: te lo riforgio meglio di prima.»', img: 'assets/ui/header fucina.webp',        btn: '⚒️ Entra nella Fucina' },
-    { key: 'erborista', emoji: '🧪', icon: 'assets/ui/borgo/bazar.webp',         title: 'Il Bazar',               quote: '«Rimedi, rune e reliquie — tutto ciò che un viandante non sapeva di volere, finché non lo vede.»', img: 'assets/header bazar.webp', btn: '🧪 Entra nel Bazar' },
-    { key: 'nero',      emoji: '🕯️', icon: 'assets/ui/borgo/mercato-nero.webp', title: 'Il Mercato Nero',       quote: '«Nessuna domanda, nessun registro. Solo oro che cambia mano nel buio.»',                    img: 'assets/ui/header contrabbando.webp', btn: '🕯️ Entra nel Mercato Nero' },
-    { key: 'stalla',    emoji: '🐴', icon: 'assets/ui/borgo/stalla.webp',        title: 'La Stalla',             quote: '«La tua cavalcatura ti porta lontano — trattala bene e moltiplicherà ogni tuo passo.»',    img: 'assets/ui/header stalla.webp',       btn: '🐴 Entra nella Stalla' },
+    { key: 'fucina',    emoji: '⚒️', icon: 'assets/ui/borgo/fucina.webp',       title: 'La Fucina',       btnLabel: 'Entra nella Fucina',      quote: '«Batto il ferro dall\'alba. Portami il tuo pezzo peggiore: te lo riforgio meglio di prima.»', img: 'assets/ui/header fucina.webp' },
+    { key: 'erborista', emoji: '🧪', icon: 'assets/ui/borgo/bazar.webp',         title: 'Il Bazar',         btnLabel: 'Entra nel Bazar',          quote: '«Rimedi, rune e reliquie — tutto ciò che un viandante non sapeva di volere, finché non lo vede.»', img: 'assets/header bazar.webp' },
+    { key: 'nero',      emoji: '🕯️', icon: 'assets/ui/borgo/mercato-nero.webp', title: 'Il Mercato Nero',  btnLabel: 'Entra nel Mercato Nero',  quote: '«Nessuna domanda, nessun registro. Solo oro che cambia mano nel buio.»',                    img: 'assets/ui/header contrabbando.webp' },
+    { key: 'stalla',    emoji: '🐴', icon: 'assets/ui/borgo/stalla.webp',        title: 'La Stalla',        btnLabel: 'Entra nella Stalla',      quote: '«La tua cavalcatura ti porta lontano — trattala bene e moltiplicherà ogni tuo passo.»',    img: 'assets/ui/header stalla.webp' },
   ];
-  borgoSections.forEach(({ key, emoji, icon, title, quote, img, btn }) => {
+  borgoSections.forEach(({ key, emoji, icon, title, btnLabel, quote, img }) => {
     const panel = el('div', 'panel borgo-entry-panel');
     const thumb = document.createElement('img');
     thumb.loading = 'lazy';
@@ -6292,7 +6292,7 @@ function renderMarket(c) {
     panel.appendChild(thumb);
     panel.appendChild(el('h3', 'panel-title', ptIcon(icon, title, emoji)));
     panel.appendChild(el('p', 'muted small borgo-entry-quote', quote));
-    const enterBtn = el('button', 'btn btn-primary wide', btn);
+    const enterBtn = el('button', 'btn btn-primary wide', ptIcon(icon, btnLabel, emoji));
     enterBtn.addEventListener('click', () => { MARKET_VIEW = key; setTab('market'); });
     panel.appendChild(enterBtn);
     c.appendChild(panel);
