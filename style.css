@@ -286,6 +286,8 @@ body {
     linear-gradient(160deg, #f5e6c0 0%, #e8d099 100%);
   border-color: var(--gold);
   box-shadow: 0 4px 20px rgba(0,0,0,.45), 0 0 14px rgba(232,182,76,.25);
+  --text: var(--ink);
+  --muted: var(--ink-light);
 }
 
 /* ── Rifugio ── */
