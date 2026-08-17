@@ -4072,6 +4072,7 @@ img.fiche-inline {
   display: flex; align-items: flex-start; gap: 8px; margin-bottom: 4px;
 }
 .challenge-icon { font-size: 1.3rem; flex-shrink: 0; }
+img.challenge-icon { width: 36px; height: 36px; object-fit: contain; filter: drop-shadow(0 1px 4px rgba(0,0,0,.3)); }
 .challenge-mid  { flex: 1; display: flex; flex-direction: column; gap: 2px; }
 .challenge-label { font-weight: 700; font-size: 1rem; color: var(--ink); }
 .challenge-rew  { color: var(--ink); font-size: .88rem; }
