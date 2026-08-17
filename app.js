@@ -7904,9 +7904,12 @@ function renderDiaryView(c) {
         const letter = RPG.WORLD_LETTERS.find(l => l.id === id);
         if (!letter) return;
         const card = el('div', 'ep-card');
+        const avatarHtml = letter.img
+          ? `<img class="ep-avatar" src="${esc(letter.img)}" alt="${esc(letter.sender)}" onerror="this.outerHTML='<span class=ep-icon>${letter.icon}</span>'">`
+          : `<span class="ep-icon">${letter.icon}</span>`;
         card.innerHTML = `
           <div class="ep-card-header">
-            <span class="ep-icon">${letter.icon}</span>
+            ${avatarHtml}
             <div class="ep-meta">
               <span class="ep-sender">${esc(letter.sender)}</span>
               <span class="ep-role">${esc(letter.role)}</span>
@@ -7915,9 +7918,12 @@ function renderDiaryView(c) {
           <div class="ep-title">${esc(letter.title)}</div>`;
         card.addEventListener('click', () => {
           const bodyHtml = esc(letter.body).replace(/\n/g, '<br>');
+          const modalAvatar = letter.img
+            ? `<img class="ep-modal-avatar" src="${esc(letter.img)}" alt="${esc(letter.sender)}">`
+            : `<span style="font-size:2rem">${letter.icon}</span>`;
           modal(`
             <div class="ep-modal-header">
-              <span style="font-size:2rem">${letter.icon}</span>
+              ${modalAvatar}
               <div><b>${esc(letter.sender)}</b><br><span class="muted small">${esc(letter.role)}</span></div>
             </div>
             <h3 style="margin:12px 0 8px;text-align:center">${esc(letter.title)}</h3>
