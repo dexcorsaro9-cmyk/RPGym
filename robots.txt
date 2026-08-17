@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://dexcorsaro9-cmyk.github.io/RPGym/sitemap.xml

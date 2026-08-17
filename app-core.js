@@ -1464,8 +1464,11 @@ function setTab(tab, dir) {
   }
 
   CURRENT_TAB = tab;
-  document.querySelectorAll('#tabbar .tab').forEach(t =>
-    t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('#tabbar .tab').forEach(t => {
+    const isActive = t.dataset.tab === tab;
+    t.classList.toggle('active', isActive);
+    t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+  });
   c.classList.remove('bg-parchment', 'bg-rifugio', 'bg-map', 'bg-train', 'bg-market');
   if (tab === 'hero' && HERO_VIEW === 'main') c.classList.add('bg-parchment');
   if (tab === 'camp')   c.classList.add('bg-parchment');

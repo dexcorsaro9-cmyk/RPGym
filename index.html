@@ -27,6 +27,15 @@
   <link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" sizes="180x180" href="apple-touch-icon-precomposed.png">
+  <!-- iOS PWA Splash Screens (Safari mostra questo all'avvio dell'app installata) -->
+  <link rel="apple-touch-startup-image" media="(device-width:430px) and (device-height:932px) and (-webkit-device-pixel-ratio:3)" href="assets/screenshots/screen-splash.webp">
+  <link rel="apple-touch-startup-image" media="(device-width:393px) and (device-height:852px) and (-webkit-device-pixel-ratio:3)" href="assets/screenshots/screen-splash.webp">
+  <link rel="apple-touch-startup-image" media="(device-width:428px) and (device-height:926px) and (-webkit-device-pixel-ratio:3)" href="assets/screenshots/screen-splash.webp">
+  <link rel="apple-touch-startup-image" media="(device-width:390px) and (device-height:844px) and (-webkit-device-pixel-ratio:3)" href="assets/screenshots/screen-splash.webp">
+  <link rel="apple-touch-startup-image" media="(device-width:375px) and (device-height:812px) and (-webkit-device-pixel-ratio:3)" href="assets/screenshots/screen-splash.webp">
+  <link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:3)" href="assets/screenshots/screen-splash.webp">
+  <link rel="apple-touch-startup-image" media="(device-width:375px) and (device-height:667px) and (-webkit-device-pixel-ratio:2)" href="assets/screenshots/screen-splash.webp">
+  <link rel="apple-touch-startup-image" media="(device-width:320px) and (device-height:568px) and (-webkit-device-pixel-ratio:2)" href="assets/screenshots/screen-splash.webp">
   <!-- Preconnect: Firebase CDN + Google Fonts -->
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
   <link rel="dns-prefetch" href="https://www.gstatic.com">
@@ -149,12 +158,12 @@
   </div>
 
   <!-- Tabbar: FUORI da #screen-game per non essere mai colpita da transform/stacking-context del parent -->
-  <nav id="tabbar" class="tab-hidden">
-    <button class="tab" data-tab="camp">🏕️<span>Rifugio</span></button>
-    <button class="tab" data-tab="map">🗺️<span>Mappa</span></button>
-    <button class="tab tab-main" data-tab="train">⚔️<span>Allenati</span></button>
-    <button class="tab" data-tab="market">🏘️<span>Borgo</span></button>
-    <button class="tab" data-tab="hero">🛡️<span>Eroe</span></button>
+  <nav id="tabbar" class="tab-hidden" role="tablist" aria-label="Navigazione principale">
+    <button class="tab" data-tab="camp"   role="tab" aria-selected="false" aria-label="Rifugio">🏕️<span>Rifugio</span></button>
+    <button class="tab" data-tab="map"    role="tab" aria-selected="false" aria-label="Mappa">🗺️<span>Mappa</span></button>
+    <button class="tab tab-main" data-tab="train"  role="tab" aria-selected="false" aria-label="Allenati">⚔️<span>Allenati</span></button>
+    <button class="tab" data-tab="market" role="tab" aria-selected="false" aria-label="Borgo">🏘️<span>Borgo</span></button>
+    <button class="tab" data-tab="hero"   role="tab" aria-selected="false" aria-label="Eroe">🛡️<span>Eroe</span></button>
   </nav>
 
   <!-- Overlay Arena (battaglia a schermo intero) -->
