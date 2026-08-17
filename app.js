@@ -99,6 +99,9 @@ const el = (tag, cls, html) => {
   if (tag === 'img') e.loading = 'lazy';
   return e;
 };
+/* Helper: h3 panel-title con icona Pixar + fallback emoji */
+const ptIcon = (src, text, fallback = '') =>
+  `<img class="panel-title-icon" src="${src}" onerror="this.outerHTML='${fallback}'">${text}`;
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 /* ── Barra km riutilizzabile ──────────────────────────────────────
@@ -2065,7 +2068,7 @@ function renderCamp(c) {
     cantThumb.alt = '';
     cp.appendChild(cantThumb);
 
-    cp.appendChild(el('h3', 'panel-title', '🏗️ Il Cantiere dell\'Eroe'));
+    cp.appendChild(el('h3', 'panel-title', ptIcon('assets/ui/rifugio/cantiere.webp', 'Il Cantiere dell\'Eroe', '🏗️')));
     cp.appendChild(el('p', 'muted small borgo-entry-quote', 'Costruisci edifici e arreda la tua dimora per sbloccare bonus permanenti.'));
 
     // ── Sezione Strutture dell'Accampamento ──
@@ -2097,7 +2100,7 @@ function renderCamp(c) {
     serraThumb.src = 'assets/minigames/serra/SERRA.webp';
     serraThumb.alt = '';
     gp.appendChild(serraThumb);
-    gp.appendChild(el('h3', 'panel-title', '🌿 La Serra del Viandante'));
+    gp.appendChild(el('h3', 'panel-title', ptIcon('assets/ui/rifugio/serra-icona.webp', 'La Serra del Viandante', '🌿')));
     if (dangerCount) gp.appendChild(el('p', 'serra-danger-warn', `⚠️ ${dangerCount} pianta${dangerCount > 1 ? 'e in pericolo' : ' in pericolo'}! Annaffia subito.`));
     gp.appendChild(el('p', 'muted small borgo-entry-quote',
       readyCount
@@ -2116,11 +2119,8 @@ function renderCamp(c) {
   const others = STATE.heroes.filter(h => h.id !== HERO.id);
   if (others.length) {
     const vp = el('div', 'panel');
-    const vTitle = el('h3', 'panel-title', '🪞 Visita il Rifugio del tuo Alleato');
+    const vTitle = el('h3', 'panel-title', ptIcon('assets/ui/rifugio/alleato.webp', 'Visita il Rifugio del tuo Alleato', '🪞'));
     vp.appendChild(vTitle);
-    const trofeoImg = new Image();
-    trofeoImg.onload = () => { vTitle.innerHTML = `<img class="panel-title-icon" src="assets/ui/rifugio/trofeo-alleato.webp"> Visita il Rifugio del tuo Alleato`; };
-    trofeoImg.src = 'assets/ui/rifugio/trofeo-alleato.webp';
     others.forEach(o => {
       const btn = el('button', 'btn wide', `Guarda la base di ${esc(o.name)}`);
       btn.addEventListener('click', () => showAllyBase(o));
@@ -2131,7 +2131,7 @@ function renderCamp(c) {
 
   // Riposo
   const rp = el('div', HERO.restBonus ? 'panel panel-featured' : 'panel');
-  rp.appendChild(el('h3', 'panel-title', '😴 Falò Rigenerante'));
+  rp.appendChild(el('h3', 'panel-title', ptIcon('assets/ui/rifugio/falo.webp', 'Falò Rigenerante', '😴')));
   rp.appendChild(el('p', 'muted small',
     'Dichiara un Giorno di Riposo (max 2 a settimana): il prossimo allenamento varrà il DOPPIO.' +
     (HERO.restBonus ? '<br><b>✨ Bonus Riposo attivo: il prossimo allenamento vale x2!</b>' : '')));
@@ -2968,7 +2968,7 @@ function renderArredamentoView(c) {
   arredHdrImg.alt = ''; arredHdrImg.className = 'borgo-sub-header';
   arredHdrImg.onerror = () => arredHdrImg.remove();
   c.appendChild(arredHdrImg);
-  c.appendChild(el('h2', 'section-title', '🏛️ Bottega dell\'Arredamento'));
+  c.appendChild(el('h2', 'section-title', ptIcon('assets/ui/rifugio/arredamento.webp', 'Bottega dell\'Arredamento', '🏛️')));
   const totalOwned = (HERO.furniture && HERO.furniture.owned.length) || 0;
   c.appendChild(el('p', 'sub-header-label center', `${totalOwned} / 200 cimeli raccolti in tutto il regno`));
 
@@ -3094,7 +3094,7 @@ function renderMap(c) {
     if (HERO.incursion && !HERO.incursion.done) {
       const inc = HERO.incursion;
       const p = el('div', 'panel panel-featured incursion-panel');
-      p.appendChild(el('h3', 'panel-title', `⚡ INCURSIONE — solo oggi!`));
+      p.appendChild(el('h3', 'panel-title', ptIcon('assets/ui/mappa/incursione.webp', 'INCURSIONE — solo oggi!', '⚡')));
       if (inc.enemy !== 'cavaliere-drago') {
         const img = el('img', 'incursion-img');
         img.src = `assets/bestiario/${inc.enemy}.webp`;
@@ -3119,7 +3119,7 @@ function renderMap(c) {
       const { boss, progressKm, done, claimed } = bossStatus;
       const pct = Math.min(100, Math.round(progressKm / boss.km * 100));
       const bp = el('div', 'panel panel-featured boss-weekly-panel');
-      bp.appendChild(el('h3', 'panel-title', `👑 Boss Settimanale`));
+      bp.appendChild(el('h3', 'panel-title', ptIcon('assets/ui/mappa/boss-settimanale.webp', 'Boss Settimanale', '👑')));
       if (boss.id !== 'cavaliere-drago') {
         const img = el('img', 'incursion-img');
         img.src = `assets/bestiario/${boss.id}.webp`;
@@ -3162,7 +3162,7 @@ function renderMap(c) {
     const WP_IMGS = ['assets/map/waypoint-1.webp', 'assets/map/waypoint-2.webp', 'assets/map/waypoint-3.webp'];
 
     const tp = el('div', 'panel treasure-map-panel');
-    tp.appendChild(el('h3', 'panel-title', '🗺️ Mappa del Tesoro'));
+    tp.appendChild(el('h3', 'panel-title', ptIcon('assets/ui/mappa/mappa-tesoro.webp', 'Mappa del Tesoro', '🗺️')));
 
     // ── riga track: medal – segmento – medal – segmento – medal ──
     const track = el('div', 'tm-track');
@@ -3274,7 +3274,7 @@ function renderMap(c) {
     const already = HERO.dailyPotion && HERO.dailyPotion.claimedDate === todayISO();
     const used = already && HERO.dailyPotion.used;
     const pp = el('div', 'potion-day-panel panel');
-    pp.appendChild(el('div', 'panel-title', `⚗️ Pozione del Giorno`));
+    pp.appendChild(el('div', 'panel-title', ptIcon('assets/ui/mappa/pozione-giorno.webp', 'Pozione del Giorno', '⚗️')));
     pp.appendChild(el('div', 'potion-name', `${potion.icon} ${potion.name}`));
     pp.appendChild(el('div', 'potion-desc', potion.desc));
     if (used) {
@@ -3305,7 +3305,7 @@ function renderMap(c) {
     pantheonThumb.className = 'borgo-entry-header';
     pantheonThumb.onerror = () => pantheonThumb.remove();
     pvpEntry.appendChild(pantheonThumb);
-    pvpEntry.appendChild(el('h3', 'panel-title pantheon-entry-title', '🏛️ Il Pantheon dei Campioni'));
+    pvpEntry.appendChild(el('h3', 'panel-title pantheon-entry-title', ptIcon('assets/ui/mappa/pantheon.webp', 'Il Pantheon dei Campioni', '🏛️')));
     if (pt) pvpEntry.appendChild(el('div', 'pantheon-rank-chip', `${pt.icon} ${pt.label}`));
     pvpEntry.appendChild(el('p', 'muted small borgo-entry-quote', '«Classifica globale · I tuoi Rivali · Sfide PvP»'));
     const enterPantheonBtn = el('button', 'btn btn-primary wide', '⚔️ Entra nel Pantheon');
@@ -3363,7 +3363,7 @@ function renderMap(c) {
     thumb.alt = '';
     thumb.className = 'camp-panel-thumb';
     avamposto.appendChild(thumb);
-    avamposto.appendChild(el('h3', 'panel-title', '🏕️ Avamposto delle Spedizioni'));
+    avamposto.appendChild(el('h3', 'panel-title', ptIcon('assets/ui/mappa/avamposto.webp', 'Avamposto delle Spedizioni', '🏕️')));
     avamposto.appendChild(el('p', 'muted small',
       active
         ? `🐎 In viaggio: ${active.name} — ${HERO.activeMission.progressKm.toFixed(1)} / ${active.km} km`
@@ -3388,7 +3388,7 @@ function renderMap(c) {
       urgLabel.innerHTML = `⚠️ SCADE FRA <span data-cd="week">…</span> — MAI PIÙ OTTENIBILE!`;
       evp.appendChild(urgLabel);
     }
-    evp.appendChild(el('h3', 'panel-title', `${String(ev.icon)} Taglia: ${esc(String(ev.name))}`));
+    evp.appendChild(el('h3', 'panel-title', ptIcon('assets/ui/mappa/taglia.webp', `Taglia: ${esc(String(ev.name))}`, String(ev.icon))));
     if (ev.claimedBy) {
       evp.appendChild(el('p', 'muted small', ev.claimedBy === HERO.name
         ? `🏆 Reclamata da TE! Ricompensa: ${esc(String(ev.skin))}`
@@ -3427,7 +3427,7 @@ function renderMap(c) {
     atlasEntry.innerHTML = `
       <div class="atlas-entry-row">
         <div>
-          <div class="atlas-entry-title">📖 Atlante del Reame</div>
+          <div class="atlas-entry-title">${ptIcon('assets/ui/mappa/atlante.webp', 'Atlante del Reame', '📖')}</div>
           <div class="small muted">${unlockedCount} / ${RPG.BIOMES.length} biomi scoperti</div>
         </div>
         <button class="btn btn-small atlas-open-btn">Esplora →</button>
@@ -3650,7 +3650,7 @@ function _renderMappaInfuocata(c) {
 
   if (info.status === 'offered') {
     panel.innerHTML = `
-      <h3 class="panel-title">🗺️ Mappa Infuocata</h3>
+      <h3 class="panel-title">${ptIcon('assets/ui/mappa/mappa-infuocata.webp', 'Mappa Infuocata', '🗺️')}</h3>
       <p class="muted small">Una mappa segreta è disponibile questa settimana. Attivala e corri <b>10 km in 24 ore</b> per reclamare un bottino leggendario — ma la rarità cala con il passare del tempo!</p>
       <div class="mi-tiers-preview">
         <span class="mi-tier-dot" style="color:#d9822b">★ Leggendario</span> &lt;4h ·
@@ -3675,7 +3675,7 @@ function _renderMappaInfuocata(c) {
     const tierColor = tier ? tier.color : '#8a7a5f';
     const tierLabel = tier ? tier.label : 'Comune';
     panel.innerHTML = `
-      <h3 class="panel-title">🗺️ Mappa Infuocata</h3>
+      <h3 class="panel-title">${ptIcon('assets/ui/mappa/mappa-infuocata.webp', 'Mappa Infuocata', '🗺️')}</h3>
       <div class="mi-status-row">
         <span class="mi-current-tier" style="color:${tierColor}">★ ${tierLabel}</span>
         <span class="mi-time-left" data-mi-cd>⏳ <span data-cd="mi">…</span></span>
@@ -3690,7 +3690,7 @@ function _renderMappaInfuocata(c) {
     const elapsed = Date.now() - info.activatedAt;
     const tier = RPG.MI_TIERS.find(t => elapsed < t.maxMs) || RPG.MI_TIERS[RPG.MI_TIERS.length - 1];
     panel.innerHTML = `
-      <h3 class="panel-title">🗺️ Mappa Infuocata</h3>
+      <h3 class="panel-title">${ptIcon('assets/ui/mappa/mappa-infuocata.webp', 'Mappa Infuocata', '🗺️')}</h3>
       <p class="center" style="font-size:2rem">🎉</p>
       <p class="center"><b>10 km completati!</b></p>
       <p class="center muted small">Il tuo bottino: <b style="color:${tier.color}">★ ${tier.label}</b></p>`;
@@ -3719,13 +3719,13 @@ function _renderMappaInfuocata(c) {
 
   } else if (info.status === 'burned') {
     panel.innerHTML = `
-      <h3 class="panel-title">🗺️ Mappa Infuocata</h3>
+      <h3 class="panel-title">${ptIcon('assets/ui/mappa/mappa-infuocata.webp', 'Mappa Infuocata', '🗺️')}</h3>
       <p class="center muted">⏰ Il tempo è scaduto. La mappa si è consumata senza lasciare traccia…</p>
       <p class="muted small center">La prossima Mappa Infuocata apparirà la settimana prossima.</p>`;
 
   } else if (info.status === 'claimed') {
     panel.innerHTML = `
-      <h3 class="panel-title">🗺️ Mappa Infuocata</h3>
+      <h3 class="panel-title">${ptIcon('assets/ui/mappa/mappa-infuocata.webp', 'Mappa Infuocata', '🗺️')}</h3>
       <p class="center">✅ Bottino reclamato questa settimana!</p>
       <p class="muted small center">La prossima Mappa Infuocata apparirà la settimana prossima.</p>`;
   }
@@ -4547,7 +4547,7 @@ function renderAtlasView(c) {
   const back = el('button', 'btn btn-small', '← Mappa');
   back.addEventListener('click', () => { MAP_VIEW = 'main'; setTab('map'); });
   c.appendChild(back);
-  c.appendChild(el('h2', 'section-title', '📖 Atlante del Reame'));
+  c.appendChild(el('h2', 'section-title', ptIcon('assets/ui/mappa/atlante.webp', 'Atlante del Reame', '📖')));
 
   const biome = RPG.currentBiome(HERO.level);
   const grid = el('div', 'biome-atlas');
@@ -6155,7 +6155,7 @@ function renderMarket(c) {
     const reached = kmLeft <= 0;
     const fp = el('div', 'panel panel-featured fugitive-merchant-panel');
     fp.innerHTML = `
-      <h3 class="panel-title">🏃 Mercante Fuggiasco!</h3>
+      <h3 class="panel-title">${ptIcon('assets/ui/borgo/mercante-fuggiasco.webp', 'Mercante Fuggiasco!', '🏃')}</h3>
       <div class="fm-subtitle">Sparisce a mezzanotte · <b class="cd-hot"><span data-cd="midnight">…</span></b></div>
       <div class="fm-item">${itemHtml(fm.item)}</div>
       <div class="fm-prices">
@@ -6202,7 +6202,7 @@ function renderMarket(c) {
     biscaEntryThumb.className = 'borgo-entry-header';
     biscaEntryThumb.onerror = () => biscaEntryThumb.remove();
     biscaEntry.appendChild(biscaEntryThumb);
-    biscaEntry.appendChild(el('h3', 'panel-title', '🃏 La Bisca Oscura'));
+    biscaEntry.appendChild(el('h3', 'panel-title', ptIcon('assets/ui/borgo/bisca.webp', 'La Bisca Oscura', '🃏')));
     biscaEntry.appendChild(el('p', 'muted small borgo-entry-quote',
       '«Nessuno sa chi organizza gli scontri. Nessuno chiede. Le monete parlano per tutti.»'));
     RPG.biscaResetIfNeeded(HERO);
@@ -6227,7 +6227,7 @@ function renderMarket(c) {
     cartThumb.className = 'borgo-entry-header';
     cartThumb.onerror = () => cartThumb.remove();
     cartEntry.appendChild(cartThumb);
-    cartEntry.appendChild(el('h3', 'panel-title', '🔮 La Cartomante'));
+    cartEntry.appendChild(el('h3', 'panel-title', ptIcon('assets/ui/borgo/cartomante.webp', 'La Cartomante', '🔮')));
     cartEntry.appendChild(el('p', 'muted small borgo-entry-quote',
       '«Le stelle non mentono. Entrate, se avete il coraggio di sapere cosa vi riserva il destino.»'));
     const fichesNow = HERO.fiches || 0;
@@ -6248,7 +6248,7 @@ function renderMarket(c) {
     tavernaThumb2.className = 'borgo-entry-header';
     tavernaThumb2.onerror = () => tavernaThumb2.remove();
     tavernaEntry2.appendChild(tavernaThumb2);
-    tavernaEntry2.appendChild(el('h3', 'panel-title', '🍺 La Taverna delle Sfide'));
+    tavernaEntry2.appendChild(el('h3', 'panel-title', ptIcon('assets/ui/borgo/taverna.webp', 'La Taverna delle Sfide', '🍺')));
     tavernaEntry2.appendChild(el('p', 'muted small borgo-entry-quote',
       '«Tra dadi truccati e boccali volanti, qui si separa chi ha nervi saldi da chi torna a casa vuoto.»'));
     const totalRemMkt2 = MG_CATEGORIES.flatMap(cat => cat.games).reduce((s, g) => s + Math.max(0, MG_MAX[g.id] - getMG(g.id).n), 0);
@@ -6261,12 +6261,12 @@ function renderMarket(c) {
 
   // ── Altre sezioni del Borgo ──
   const borgoSections = [
-    { key: 'fucina',    emoji: '⚒️', title: 'La Fucina',             quote: '«Batto il ferro dall\'alba. Portami il tuo pezzo peggiore: te lo riforgio meglio di prima.»', img: 'assets/ui/header fucina.webp',        btn: '⚒️ Entra nella Fucina' },
-    { key: 'erborista', emoji: '🧪', title: 'Il Bazar',               quote: '«Rimedi, rune e reliquie — tutto ciò che un viandante non sapeva di volere, finché non lo vede.»', img: 'assets/header bazar.webp', btn: '🧪 Entra nel Bazar' },
-    { key: 'nero',      emoji: '🕯️', title: 'Il Mercato Nero',       quote: '«Nessuna domanda, nessun registro. Solo oro che cambia mano nel buio.»',                    img: 'assets/ui/header contrabbando.webp', btn: '🕯️ Entra nel Mercato Nero' },
-    { key: 'stalla',    emoji: '🐴', title: 'La Stalla',             quote: '«La tua cavalcatura ti porta lontano — trattala bene e moltiplicherà ogni tuo passo.»',    img: 'assets/ui/header stalla.webp',       btn: '🐴 Entra nella Stalla' },
+    { key: 'fucina',    emoji: '⚒️', icon: 'assets/ui/borgo/fucina.webp',       title: 'La Fucina',             quote: '«Batto il ferro dall\'alba. Portami il tuo pezzo peggiore: te lo riforgio meglio di prima.»', img: 'assets/ui/header fucina.webp',        btn: '⚒️ Entra nella Fucina' },
+    { key: 'erborista', emoji: '🧪', icon: 'assets/ui/borgo/bazar.webp',         title: 'Il Bazar',               quote: '«Rimedi, rune e reliquie — tutto ciò che un viandante non sapeva di volere, finché non lo vede.»', img: 'assets/header bazar.webp', btn: '🧪 Entra nel Bazar' },
+    { key: 'nero',      emoji: '🕯️', icon: 'assets/ui/borgo/mercato-nero.webp', title: 'Il Mercato Nero',       quote: '«Nessuna domanda, nessun registro. Solo oro che cambia mano nel buio.»',                    img: 'assets/ui/header contrabbando.webp', btn: '🕯️ Entra nel Mercato Nero' },
+    { key: 'stalla',    emoji: '🐴', icon: 'assets/ui/borgo/stalla.webp',        title: 'La Stalla',             quote: '«La tua cavalcatura ti porta lontano — trattala bene e moltiplicherà ogni tuo passo.»',    img: 'assets/ui/header stalla.webp',       btn: '🐴 Entra nella Stalla' },
   ];
-  borgoSections.forEach(({ key, emoji, title, quote, img, btn }) => {
+  borgoSections.forEach(({ key, emoji, icon, title, quote, img, btn }) => {
     const panel = el('div', 'panel borgo-entry-panel');
     const thumb = document.createElement('img');
     thumb.loading = 'lazy';
@@ -6275,7 +6275,7 @@ function renderMarket(c) {
     thumb.className = 'borgo-entry-header';
     thumb.onerror = () => thumb.remove();
     panel.appendChild(thumb);
-    panel.appendChild(el('h3', 'panel-title', `${emoji} ${title}`));
+    panel.appendChild(el('h3', 'panel-title', ptIcon(icon, title, emoji)));
     panel.appendChild(el('p', 'muted small borgo-entry-quote', quote));
     const enterBtn = el('button', 'btn btn-primary wide', btn);
     enterBtn.addEventListener('click', () => { MARKET_VIEW = key; setTab('market'); });
