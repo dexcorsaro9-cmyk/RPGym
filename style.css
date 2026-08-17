@@ -7091,8 +7091,6 @@ img.challenge-icon { width: 36px; height: 36px; object-fit: contain; filter: dro
   transform-origin: center center;
   margin-left: -11px; margin-top: -32px;
   pointer-events: none;
-  /* taglia i 20px di lama che entrano nel ceppo (82-32=50px dal centro < raggio 70px) */
-  clip-path: inset(20px 0 0 0);
   filter: drop-shadow(-1px 3px 5px rgba(0,0,0,.95));
 }
 .mgck-knife-img {
@@ -7169,8 +7167,8 @@ img.challenge-icon { width: 36px; height: 36px; object-fit: contain; filter: dro
   50%      { filter: drop-shadow(0 0 18px rgba(255,60,60,.9)); }
 }
 
-/* Stick pop */
-.mgck-stick-pop {
+/* Stick pop — animazione sulla sola immagine, non sul wrapper (evita conflitto col transform rotate+translate) */
+.mgck-knife-img.mgck-stick-pop {
   animation: mgck-pop .35s ease-out;
 }
 @keyframes mgck-pop {

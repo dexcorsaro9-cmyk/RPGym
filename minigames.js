@@ -1353,10 +1353,10 @@ function openColtelloGame() {
       knivesLanded++;
 
       const stuck = document.createElement('div');
-      stuck.className = 'mgck-stuck mgck-stick-pop';
+      stuck.className = 'mgck-stuck';
       const kImg = document.createElement('img');
       kImg.src = 'assets/minigames/lancio-coltello/coltelli.webp';
-      kImg.className = 'mgck-knife-img';
+      kImg.className = 'mgck-knife-img mgck-stick-pop';
       stuck.appendChild(kImg);
       stuck.style.transform = `rotate(${impactAngle}deg) translateY(82px)`;
       logWrap.appendChild(stuck);
