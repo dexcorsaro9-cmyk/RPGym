@@ -218,7 +218,12 @@ RPG.GOLD_PER_KM = 5
 
 ## Service Worker
 
-Cache versioned: `heropace-vN` in `sw.js`. **Bumpare N ad ogni deploy** per forzare aggiornamento sui client. Strategia: network-first per file locali, cache-first per CDN/font.
+Cache versioned: `heropace-vN` in `sw.js`. Il numero viene **incrementato automaticamente** dal git hook `.githooks/pre-commit` ad ogni commit — non serve toccarlo manualmente. Strategia: network-first per file locali, cache-first per CDN/font.
+
+Su un clone fresco, attivare il hook una volta sola:
+```bash
+git config core.hooksPath .githooks
+```
 
 ---
 
