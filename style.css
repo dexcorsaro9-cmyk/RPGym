@@ -326,6 +326,7 @@ body {
   font-size: 1rem; font-weight: 700; color: var(--leather);
   margin: 14px 0 8px; padding-bottom: 6px;
   border-bottom: 1px solid rgba(90,61,36,.25);
+  text-align: center;
 }
 
 .build-row, .mission-row {
