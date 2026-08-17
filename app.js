@@ -7776,17 +7776,18 @@ function renderDiaryView(c) {
   sp.appendChild(el('h3', 'panel-title', '⚔️ Statistiche Totali'));
   const sd = el('div', 'stats-diary-grid');
   [
-    ['🥾', HERO.log.length,                                    'Sessioni'],
-    ['🗺️', HERO.totalKm.toFixed(1) + ' km',                   'Totale'],
-    ['🚶', (HERO.kmByType.camminata || 0).toFixed(1) + ' km', 'Cammino'],
-    ['🏃', (HERO.kmByType.corsa     || 0).toFixed(1) + ' km', 'Corsa'],
-    ['🚴', (HERO.kmByType.cyclette  || 0).toFixed(1) + ' km', 'Cyclette'],
-    ['⭐', (HERO.achievementsClaimed || []).length,            'Imprese'],
-    ['📦', HERO.lootBagsOpened || 0,                          'Sacchi'],
-    ['💎', HERO.fragmentsFound || 0,                          'Frammenti'],
-  ].forEach(([ico, val, lbl]) => {
+    ['sessioni',  HERO.log.length,                                    'Sessioni',  '🥾'],
+    ['totale',    HERO.totalKm.toFixed(1) + ' km',                   'Totale',    '🗺️'],
+    ['cammino',   (HERO.kmByType.camminata || 0).toFixed(1) + ' km', 'Cammino',   '🚶'],
+    ['corsa',     (HERO.kmByType.corsa     || 0).toFixed(1) + ' km', 'Corsa',     '🏃'],
+    ['cyclette',  (HERO.kmByType.cyclette  || 0).toFixed(1) + ' km', 'Cyclette',  '🚴'],
+    ['imprese',   (HERO.achievementsClaimed || []).length,            'Imprese',   '⭐'],
+    ['sacchi',    HERO.lootBagsOpened || 0,                          'Sacchi',    '📦'],
+    ['frammenti', HERO.fragmentsFound || 0,                          'Frammenti', '💎'],
+  ].forEach(([img, val, lbl, fallback]) => {
     const it = el('div', 'stats-diary-item');
-    it.innerHTML = `<div class="stats-diary-val">${ico} ${val}</div><div class="stats-diary-lbl">${lbl}</div>`;
+    const src = `assets/ui/diario/${img}.webp`;
+    it.innerHTML = `<div class="stats-diary-val"><img class="stats-diary-icon" src="${src}" onerror="this.outerHTML='<span>${fallback}</span>'">${val}</div><div class="stats-diary-lbl">${lbl}</div>`;
     sd.appendChild(it);
   });
   sp.appendChild(sd);
@@ -7810,7 +7811,8 @@ function renderDiaryView(c) {
       const km = weekKm[key] || 0;
       const pct = Math.round(km / maxKm * 100);
       const row = el('div', 'week-row');
-      row.innerHTML = `<span class="week-row-label">${a.icon} ${a.label}</span>
+      const actImgMap = { cyclette: 'cyclette', camminata: 'cammino', corsa: 'corsa' };
+      row.innerHTML = `<span class="week-row-label"><img class="stats-diary-icon" src="assets/ui/diario/${actImgMap[key]}.webp" onerror="this.outerHTML='<span>${a.icon}</span>'">${a.label}</span>
         <div class="week-bar-wrap"><div class="week-bar-fill" style="width:${pct}%;background:${actColors[key]}"></div></div>
         <span class="week-row-val">${km.toFixed(1)}</span>`;
       weekPanel.appendChild(row);
