@@ -8,6 +8,7 @@
   "background_color": "#241a10",
   "theme_color": "#3b2a1a",
   "lang": "it",
+  "categories": ["health-fitness", "games"],
   "icons": [
     { "src": "assets/icons/ios/Icon-20.png",   "sizes": "20x20",   "type": "image/png", "purpose": "any" },
     { "src": "assets/icons/ios/Icon-29.png",   "sizes": "29x29",   "type": "image/png", "purpose": "any" },
