@@ -3480,7 +3480,7 @@ function renderBiscaView(c) {
   wrap.appendChild(inner);
   c.appendChild(wrap);
 
-  inner.appendChild(el('h2', 'section-title', '🃏 La Bisca Oscura'));
+  inner.appendChild(el('h2', 'section-title', ptIcon('assets/ui/borgo/bisca.webp', 'La Bisca Oscura', '🃏')));
 
   // NPC biscazziere
   const npcBanner = el('div', 'npc-banner bisca-npc-banner');
@@ -6493,10 +6493,10 @@ function _borgoSubView(c, headerSrc, title, renderFn) {
   renderFn(c);
 }
 
-function renderStallaView(c)    { _borgoSubView(c, 'assets/ui/header stalla.webp',        '🐴 La Stalla',        renderStalla); }
-function renderNeroView(c)      { _borgoSubView(c, 'assets/ui/header contrabbando.webp',   '🕯️ Il Mercato Nero',  renderNero); }
-function renderFucinaView(c)    { _borgoSubView(c, 'assets/ui/header fucina.webp',         '⚒️ La Fucina',        renderFucina); }
-function renderErboristaView(c) { _borgoSubView(c, 'assets/header bazar.webp',           '🧪 Il Bazar',         renderErborista); }
+function renderStallaView(c)    { _borgoSubView(c, 'assets/ui/header stalla.webp',        ptIcon('assets/ui/borgo/stalla.webp',       'La Stalla',       '🐴'), renderStalla); }
+function renderNeroView(c)      { _borgoSubView(c, 'assets/ui/header contrabbando.webp',   ptIcon('assets/ui/borgo/mercato-nero.webp', 'Il Mercato Nero', '🕯️'), renderNero); }
+function renderFucinaView(c)    { _borgoSubView(c, 'assets/ui/header fucina.webp',         ptIcon('assets/ui/borgo/fucina.webp',       'La Fucina',       '⚒️'), renderFucina); }
+function renderErboristaView(c) { _borgoSubView(c, 'assets/header bazar.webp',             ptIcon('assets/ui/borgo/bazar.webp',        'Il Bazar',        '🧪'), renderErborista); }
 
 /* ══════════════════════════════════════════════════════════
    CARTOMANTE — Tenda del Fato
@@ -6518,7 +6518,7 @@ function renderCartomanteView(c) {
   hImg.onerror = () => hImg.remove();
   c.appendChild(hImg);
 
-  c.appendChild(el('h2', 'section-title', '🔮 La Tenda del Fato'));
+  c.appendChild(el('h2', 'section-title', ptIcon('assets/ui/borgo/cartomante.webp', 'La Tenda del Fato', '🔮')));
 
   // NPC banner
   c.appendChild(npcBanner('assets/cartomante/cartomante-npc.webp', 'La Cartomante',
@@ -7565,10 +7565,11 @@ function renderHero(c) {
   if (customTitleCos) c.appendChild(el('p', 'center small sp-custom-title', `${customTitleCos.icon} ${esc(customTitleCos.name)}`));
   c.appendChild(el('p', 'hero-title-plate center',
     `Livello ${HERO.level} — ${RPG.heroTitle(HERO.level)}` +
-    (mount ? ` · ${mount.emoji}` : '') + (HERO.companion ? ' · 🐺' : '')));
+    (mount ? ` · <img class="panel-title-icon" src="assets/ui/eroe/cavalcatura.webp" onerror="this.outerHTML='${mount.emoji}'">` : '') +
+    (HERO.companion ? ` · <img class="panel-title-icon" src="assets/ui/eroe/lupo.webp" onerror="this.outerHTML='🐺'">` : '')));
   const bonus = RPG.equipmentXpBonus(HERO);
   c.appendChild(el('p', 'center small equip-total', bonus > 0
-    ? `⚡ Bonus equipaggiamento: <b>+${bonus}% XP</b>`
+    ? ptIcon('assets/ui/eroe/bonus-equip.webp', `Bonus equipaggiamento: <b>+${bonus}% XP</b>`, '⚡')
     : 'Tocca gli slot per equipaggiare il tuo bottino'));
   const talent = RPG.talentOf(HERO);
   if (talent) c.appendChild(el('p', 'center small talent-line',
@@ -7579,7 +7580,7 @@ function renderHero(c) {
   if (pt) {
     const ptWrap = el('div', 'center');
     const ptEl = el('span', 'pvp-badge-profile');
-    ptEl.innerHTML = `${pt.icon} <b>${pt.label}</b> &nbsp;·&nbsp; ⚔️ ${HERO.pvpWins} ${HERO.pvpWins === 1 ? 'vittoria' : 'vittorie'}`;
+    ptEl.innerHTML = `${ptIcon('assets/ui/eroe/leggenda-sfide.webp', '', pt.icon)} <b>${pt.label}</b> &nbsp;·&nbsp; ${ptIcon('assets/ui/eroe/vittorie.webp', '', '⚔️')} ${HERO.pvpWins} ${HERO.pvpWins === 1 ? 'vittoria' : 'vittorie'}`;
     ptWrap.appendChild(ptEl);
     c.appendChild(ptWrap);
   }
@@ -7786,7 +7787,7 @@ function renderHero(c) {
 
 function renderDiaryView(c) {
   backBar(c);
-  c.appendChild(el('h2', 'section-title', '📜 Diario del Viandante'));
+  c.appendChild(el('h2', 'section-title', ptIcon('assets/ui/diario/diario.webp', 'Diario del Viandante', '📜')));
 
   // Statistiche totali
   const sp = el('div', 'panel');
@@ -7823,7 +7824,7 @@ function renderDiaryView(c) {
     const maxKm = Math.max(...Object.values(weekKm), 0.1);
     const actColors = { cyclette: '#5a9fd4', camminata: '#5abf7a', corsa: '#e07040' };
     const weekPanel = el('div', 'panel');
-    weekPanel.appendChild(el('h3', 'panel-title', '📅 Questa Settimana'));
+    weekPanel.appendChild(el('h3', 'panel-title', ptIcon('assets/ui/diario/questa-settimana.webp', 'Questa Settimana', '📅')));
     Object.entries(RPG.ACTIVITIES).forEach(([key, a]) => {
       const km = weekKm[key] || 0;
       const pct = Math.round(km / maxKm * 100);
@@ -7841,7 +7842,7 @@ function renderDiaryView(c) {
   // Trofei km
   {
     const trophyPanel = el('div', 'panel');
-    trophyPanel.appendChild(el('h3', 'panel-title', '🏆 Trofei'));
+    trophyPanel.appendChild(el('h3', 'panel-title', ptIcon('assets/ui/diario/trofei.webp', 'Trofei', '🏆')));
     const trophyGrid = el('div', 'trophy-grid');
     const earnedTrophies = HERO.trophies || [];
     RPG.TROPHIES.forEach(t => {
@@ -7891,7 +7892,7 @@ function renderDiaryView(c) {
   // Reliquie del Viandante
   {
     const relPanel = el('div', 'panel');
-    relPanel.appendChild(el('h3', 'panel-title', '🗿 Reliquie del Viandante'));
+    relPanel.appendChild(el('h3', 'panel-title', ptIcon('assets/ui/diario/reliquie.webp', 'Reliquie del Viandante', '🗿')));
     const discovered = HERO.biomesDiscovered || [];
     const found = discovered.length;
     const total = RPG.BIOME_ARTIFACTS.length;
@@ -7918,7 +7919,7 @@ function renderDiaryView(c) {
     const letters = HERO.lettersReceived || [];
     if (letters.length) {
       const epPanel = el('div', 'panel');
-      epPanel.appendChild(el('h3', 'panel-title', '📬 Epistolario'));
+      epPanel.appendChild(el('h3', 'panel-title', ptIcon('assets/ui/diario/epistolario.webp', 'Epistolario', '📬')));
       letters.forEach(id => {
         const letter = RPG.WORLD_LETTERS.find(l => l.id === id);
         if (!letter) return;
@@ -7982,7 +7983,7 @@ function renderDiaryView(c) {
       const spkPanel = el('div', 'panel');
       spkPanel.innerHTML = `
         <div class="sparkline-header">
-          <span class="sparkline-title">📈 Ultime ${last10.length} sessioni</span>
+          <span class="sparkline-title">${ptIcon('assets/ui/diario/sessioni.webp', `Ultime ${last10.length} sessioni`, '📈')}</span>
           <span class="sparkline-peak muted small">${maxV.toFixed(1)} km max</span>
         </div>
         <div class="sparkline-labels">
@@ -8008,7 +8009,7 @@ function renderDiaryView(c) {
     const daysInMonth = new Date(yr, mo + 1, 0).getDate();
     const startDow = (firstDay.getDay() + 6) % 7; // Monday-based (0=Mon)
     const calPanel = el('div', 'panel km-heatmap-wrap');
-    calPanel.appendChild(el('h3', 'panel-title', `📅 ${MONTH_IT[mo]} ${yr}`));
+    calPanel.appendChild(el('h3', 'panel-title', ptIcon('assets/ui/diario/calendario.webp', `${MONTH_IT[mo]} ${yr}`, '📅')));
     const calGrid = el('div', 'cal-grid');
     ['L','M','M','G','V','S','D'].forEach(d => calGrid.appendChild(el('div', 'cal-day-hdr', d)));
     for (let i = 0; i < startDow; i++) calGrid.appendChild(el('div', 'cal-cell cal-empty'));
@@ -8037,7 +8038,7 @@ function renderDiaryView(c) {
       weekLabels.push(w===0?'Questa':`${ref.getDate()}/${ref.getMonth()+1}`);
     }
     const chartPanel = el('div', 'panel km-heatmap-wrap');
-    chartPanel.appendChild(el('h3', 'panel-title', '📈 Km · Ultime 8 Settimane'));
+    chartPanel.appendChild(el('h3', 'panel-title', ptIcon('assets/ui/diario/km-settimane.webp', 'Km · Ultime 8 Settimane', '📈')));
     const canvas = document.createElement('canvas');
     canvas.width = 320; canvas.height = 120;
     canvas.style.cssText = 'width:100%;height:auto;display:block';
@@ -8077,7 +8078,7 @@ function renderDiaryView(c) {
     const today = new Date(); today.setHours(0,0,0,0);
     const MONTHS_SHORT = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
     const hmWrap = el('div', 'panel km-heatmap-wrap');
-    hmWrap.appendChild(el('h3', 'panel-title', '🌙 Attività degli Ultimi 3 Mesi'));
+    hmWrap.appendChild(el('h3', 'panel-title', ptIcon('assets/ui/diario/attivita-mesi.webp', 'Attività degli Ultimi 3 Mesi', '🌙')));
 
     // Calculate month label per week column (12 columns of 7 days)
     const weekMonthLabel = new Array(12).fill('');
@@ -8406,7 +8407,8 @@ function _settingsDangerPanel() {
 function openSlotPicker(slotKey) {
   const s = RPG.SLOTS[slotKey];
   const candidates = HERO.items.filter(i => i.slot === slotKey);
-  let html = `<h3 class="panel-title">${s.icon} ${s.label}</h3>`;
+  const _slotImg = { seme: 'assets/ui/eroe/seme.webp', consumabile: 'assets/ui/eroe/consumabile-slot.webp' }[slotKey];
+  let html = `<h3 class="panel-title">${_slotImg ? ptIcon(_slotImg, s.label, s.icon) : `${s.icon} ${s.label}`}</h3>`;
   const current = HERO.equipment[slotKey];
   if (!candidates.length) {
     html += `<p class="muted center">Non hai ancora nessun oggetto per questo slot.<br>
