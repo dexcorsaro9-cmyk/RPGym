@@ -7590,13 +7590,13 @@ function renderHero(c) {
     HERO.consumableBuffs.xpMult || HERO.consumableBuffs.goldMult ||
     HERO.consumableBuffs.allBoost || HERO.consumableBuffs.streakShield > 0
   );
-  const boxBtn = el('button', `btn ${activeBuff ? 'btn-primary' : ''} wide`, `⚗️ Box Consumabili${consCount > 0 ? ` (${consCount})` : ''}`);
+  const boxBtn = el('button', `btn ${activeBuff ? 'btn-primary' : ''} wide`, ptIcon('assets/ui/eroe/consumabili-box.webp', `Box Consumabili${consCount > 0 ? ` (${consCount})` : ''}`, '⚗️'));
   if (activeBuff) boxBtn.style.position = 'relative';
   boxBtn.addEventListener('click', () => { HERO_VIEW = 'zaino'; setTab('hero'); });
   c.appendChild(boxBtn);
 
   // Sacca del Viandante (guardaroba)
-  const saccaBtn = el('button', 'btn wide', '🎒 Sacca del Viandante');
+  const saccaBtn = el('button', 'btn wide', ptIcon('assets/ui/eroe/sacca.webp', 'Sacca del Viandante', '🎒'));
   saccaBtn.addEventListener('click', () => { HERO_VIEW = 'sacca'; setTab('hero'); });
   c.appendChild(saccaBtn);
 
