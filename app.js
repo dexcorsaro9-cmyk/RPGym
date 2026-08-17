@@ -4694,7 +4694,7 @@ function renderDailyChallenges(c) {
 
   /* header + badge */
   const titleRow = el('div', 'challenge-title-row');
-  titleRow.innerHTML = `<h3 class="panel-title" style="margin:0">🎯 Sfide</h3>`;
+  titleRow.innerHTML = `<h3 class="panel-title" style="margin:0">${ptIcon('assets/ui/sfide/sfide.webp', 'Sfide', '🎯')}</h3>`;
   if (totalClaimable) titleRow.appendChild(el('span', 'mg-card-badge', String(totalClaimable)));
   panel.appendChild(titleRow);
 
@@ -4839,7 +4839,7 @@ function renderBacheca(c, todayKm) {
   // Top beam
   const beam = el('div', 'bv-board-beam');
   beam.innerHTML = `
-    <div class="bv-board-title">📋 &ensp; Bacheca del Viandante &ensp; 📋</div>
+    <div class="bv-board-title">${ptIcon('assets/ui/rifugio/bacheca.webp', 'Bacheca del Viandante', '📋')}</div>
     <span class="bv-board-title-deco">✦ &ensp; Oakhaven &ensp; ✦</span>`;
   outer.appendChild(beam);
 
@@ -5172,7 +5172,7 @@ function renderTrain(c) {
     const quickCons = RPG.CONSUMABLES.filter(co => (owned[co.id] || 0) > 0);
     if (quickCons.length) {
       const qp = el('div', 'quick-cons-strip panel');
-      qp.appendChild(el('div', 'quick-cons-label', '💊 Potenzia prima di allenarti'));
+      qp.appendChild(el('div', 'quick-cons-label', ptIcon('assets/ui/train/potenzia.webp', 'Potenzia prima di allenarti', '💊')));
       const row = el('div', 'quick-cons-row');
       quickCons.forEach(co => {
         const btn = el('button', `quick-cons-btn rarity-${co.rarity}`, '');
@@ -5209,7 +5209,7 @@ function renderTrain(c) {
     return d.getFullYear() === t.getFullYear() && d.getMonth() === t.getMonth() && d.getDate() === t.getDate();
   }).reduce((s, l) => s + l.km, 0);
   const restExtra = HERO.restBonus ? ' <span class="km-bar-buff">✨ ×2 Riposo</span>' : '';
-  const goalBar = kmBarEl('🎯 Obiettivo di oggi', todayKm, goalKm, {
+  const goalBar = kmBarEl(ptIcon('assets/ui/train/obiettivo.webp', 'Obiettivo di oggi', '🎯'), todayKm, goalKm, {
     color: 'gold',
     extra: restExtra,
     foot:  todayKm >= goalKm
@@ -7500,7 +7500,7 @@ function renderHero(c) {
   if (HERO_VIEW === 'cronache') { renderCronacheView(c); return; }
 
   const titleH2 = el('h2', 'section-title on-parchment-title hero-title-row');
-  titleH2.innerHTML = '🛡️ Equipaggiamento';
+  titleH2.innerHTML = ptIcon('assets/ui/eroe/equipaggiamento.webp', 'Equipaggiamento', '🛡️');
   const settingsBtn = el('button', 'hero-settings-btn', '⚙️');
   settingsBtn.title = 'Impostazioni';
   settingsBtn.addEventListener('click', () => { HERO_VIEW = 'settings'; setTab('hero'); });
@@ -7522,6 +7522,8 @@ function renderHero(c) {
     scudo: 'assets/ui/eroe/slot_scudo.webp',
     anello: 'assets/ui/eroe/slot_anello.webp',
     amuleto: 'assets/ui/eroe/slot_amuleto.webp',
+    seme: 'assets/ui/eroe/seme.webp',
+    consumabile: 'assets/ui/eroe/consumabile-slot.webp',
   };
   const makeSlot = key => {
     const s = RPG.SLOTS[key];
@@ -7652,7 +7654,7 @@ function renderHero(c) {
     const pts = HERO.skillPoints || 0;
     const sp2 = el('div', 'panel virtu-panel');
     const hdr = el('div', 'virtu-header');
-    hdr.innerHTML = `<span class="virtu-title">⚜️ Virtù dell'Eroe</span>${pts > 0 ? `<span class="skill-pts-badge">${pts} pt</span>` : ''}`;
+    hdr.innerHTML = `<span class="virtu-title">${ptIcon('assets/ui/eroe/virtu.webp', "Virtù dell'Eroe", '⚜️')}</span>${pts > 0 ? `<span class="skill-pts-badge">${pts} pt</span>` : ''}`;
     sp2.appendChild(hdr);
 
     const subRow = el('div', 'virtu-sub-row');
@@ -7746,7 +7748,7 @@ function renderHero(c) {
     const totalSessions = HERO.totalSessions || 0;
     if (totalSessions >= 1 || reached.length > 0) {
       const msp = el('div', 'panel ms-profile-panel');
-      const msHead = el('h3', 'panel-title', `🏅 Tappe della Via · ${reached.length}/20`);
+      const msHead = el('h3', 'panel-title', ptIcon('assets/ui/mappa/tappe.webp', `Tappe della Via · ${reached.length}/20`, '🏅'));
       msp.appendChild(msHead);
       msp.appendChild(el('p', 'muted small ms-profile-desc',
         `Ogni sessione di allenamento conta. Al raggiungimento di certe sessioni sblocchi premi esclusivi — oro, consumabili e storie della Via. Il numero indica la sessione richiesta.`));
@@ -7771,7 +7773,7 @@ function renderHero(c) {
   {
     const unlocked2 = HERO.loreUnlocked || [];
     if (unlocked2.length > 0 || HERO.totalKm >= 40) {
-      const loreBtn = el('button', 'btn wide lore-entry-btn', `📖 Cronache di Oakhaven · ${unlocked2.length}/${RPG.LORE_FRAGMENTS.length} capitoli`);
+      const loreBtn = el('button', 'btn wide lore-entry-btn', ptIcon('assets/ui/eroe/cronache.webp', `Cronache di Oakhaven · ${unlocked2.length}/${RPG.LORE_FRAGMENTS.length} capitoli`, '📖'));
       loreBtn.addEventListener('click', () => { HERO_VIEW = 'cronache'; setTab('hero'); });
       c.appendChild(loreBtn);
     }
@@ -8460,7 +8462,7 @@ function backBar(c) {
 
 function renderCronacheView(c) {
   backBar(c);
-  c.appendChild(el('h2', 'section-title', '📖 Cronache di Oakhaven'));
+  c.appendChild(el('h2', 'section-title', ptIcon('assets/ui/eroe/cronache.webp', 'Cronache di Oakhaven', '📖')));
 
   const unlocked = HERO.loreUnlocked || [];
   const total = RPG.LORE_FRAGMENTS.length;
@@ -9504,7 +9506,7 @@ function renderZainoView(c) {
   const backBtn = el('button', 'btn btn-small', '↩ Torna all\'Eroe');
   backBtn.addEventListener('click', () => { HERO_VIEW = 'main'; setTab('hero'); });
   c.appendChild(backBtn);
-  c.appendChild(el('h2', 'section-title', '⚗️ Box Consumabili'));
+  c.appendChild(el('h2', 'section-title', ptIcon('assets/ui/eroe/consumabili-box.webp', 'Box Consumabili', '⚗️')));
 
   // Buff attivi
   const bff = HERO.consumableBuffs || {};
@@ -9679,7 +9681,7 @@ function renderSaccaView(c) {
   const backBtn = el('button', 'btn btn-small', '↩ Torna all\'Eroe');
   backBtn.addEventListener('click', () => { HERO_VIEW = 'main'; setTab('hero'); });
   c.appendChild(backBtn);
-  c.appendChild(el('h2', 'section-title', '🎒 Sacca del Viandante'));
+  c.appendChild(el('h2', 'section-title', ptIcon('assets/ui/eroe/sacca.webp', 'Sacca del Viandante', '🎒')));
   c.appendChild(el('p', 'muted small center', 'Cosmetici sbloccati dai Pass Stagionali e dagli eventi del reame.'));
 
   // Filtri categoria
