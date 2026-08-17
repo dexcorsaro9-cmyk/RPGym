@@ -1979,6 +1979,15 @@ function renderCamp(c) {
     onAction: () => { advanceOnboarding(13); CAMP_VIEW = 'santuario'; setTab('camp'); }
   });
 
+  /* Step 15: dopo Boss Settimanale → Pass Stagionale */
+  renderOnboardingBanner(c, {
+    step: 15, icon: '🌞',
+    title: 'La Stagione del Sole Ardente!',
+    desc: 'Ogni km percorso ti guadagna punti stagionali. Sali di livello nel Pass Stagionale per sbloccare ricompense, cosmetici e la cavalcatura esclusiva.',
+    actionLabel: 'Apri il Pass',
+    onAction: () => { advanceOnboarding(15); CAMP_VIEW = 'seasonpass'; setTab('camp'); }
+  });
+
   // Prima missione — visibile solo finché totalKm === 0
   if ((HERO.totalKm || 0) === 0) {
     const fp = el('div', 'panel camp-first-quest');
@@ -2210,6 +2219,7 @@ function showSeasonPassRewardModal(result) {
 }
 
 function renderSeasonPassView(c) {
+  advanceOnboarding(15);
   const backBtn = el('button', 'view-back-link', '‹ Rifugio');
   backBtn.addEventListener('click', () => { CAMP_VIEW = 'main'; setTab('camp'); });
   c.appendChild(backBtn);
@@ -3069,6 +3079,24 @@ function renderMap(c) {
     desc: 'Ogni km registrato avanza il tuo viaggio tra biomi e tappe. Più ti alleni, più lontano arriverai e nuovi territori si apriranno!',
     actionLabel: 'Esplora',
     onAction: () => advanceOnboarding(10)
+  });
+
+  /* Step 14: scopri il Boss Settimanale */
+  renderOnboardingBanner(c, {
+    step: 14, icon: '👹',
+    title: 'Il Boss ti sfida!',
+    desc: 'Ogni settimana un nemico diverso appare sulla Mappa. Percorri i km richiesti entro domenica per sconfiggerlo e guadagnare bottino leggendario.',
+    actionLabel: 'Vedi il Boss',
+    onAction: () => advanceOnboarding(14)
+  });
+
+  /* Step 17: scopri l'Avamposto e le Gilde */
+  renderOnboardingBanner(c, {
+    step: 17, icon: '🏰',
+    title: "L'Avamposto ti aspetta!",
+    desc: "Oltre la mappa trovi sfide PvP, Gilde con cui condividere i progressi e l'Atlas dei viaggiatori. Unisciti a un clan o affronta altri eroi reali.",
+    actionLabel: "Raggiungi l'Avamposto",
+    onAction: () => { advanceOnboarding(17); MAP_VIEW = 'avamposto'; setTab('map'); }
   });
 
   const biome = RPG.currentBiome(HERO.level);
@@ -4157,6 +4185,7 @@ function _buildPvpActive(container, ch, refresh) {
 let MAP_VIEW = 'main';
 
 function renderAvampostoView(c) {
+  advanceOnboarding(17);
   const banner = el('div', 'subview-hero-banner avamposto-hero-banner');
   const backBtn = el('button', 'btn btn-small subview-back-btn', '← Mappa');
   backBtn.addEventListener('click', () => { MAP_VIEW = 'main'; setTab('map'); });
@@ -6129,6 +6158,15 @@ function renderMarket(c) {
     onAction: () => { advanceOnboarding(2); MARKET_VIEW = 'antro'; setTab('market'); }
   });
 
+  /* Step 16: dopo Pass Stagionale → scopri la Fucina */
+  renderOnboardingBanner(c, {
+    step: 16, icon: '⚒️',
+    title: 'Potenzia il tuo arsenale!',
+    desc: 'Nella Fucina puoi migliorare gli oggetti equipaggiati spendendo oro e risorse. Trasforma un\'arma rara in qualcosa di leggendario.',
+    actionLabel: 'Vai alla Fucina',
+    onAction: () => { advanceOnboarding(16); MARKET_VIEW = 'fucina'; setTab('market'); }
+  });
+
   const marketTitle = el('h2', 'section-title', '🏘️ Il Borgo');
   c.appendChild(marketTitle);
   const marketIcon = new Image();
@@ -7267,6 +7305,7 @@ function renderNero(c) {
 }
 
 function renderFucina(c) {
+  advanceOnboarding(16);
   HERO.forgeSeen = todayISO();
   persist();
   updateBadges();
