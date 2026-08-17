@@ -2072,18 +2072,18 @@ function renderCamp(c) {
     cp.appendChild(el('p', 'muted small borgo-entry-quote', 'Costruisci edifici e arreda la tua dimora per sbloccare bonus permanenti.'));
 
     // ── Sezione Strutture dell'Accampamento ──
-    cp.appendChild(el('h4', 'cantiere-section-title', '🏗️ Strutture dell\'Accampamento'));
+    cp.appendChild(el('h4', 'cantiere-section-title', ptIcon('assets/ui/rifugio/strutture.webp', 'Strutture dell\'Accampamento', '🏗️')));
     cp.appendChild(el('p', 'muted small center',
       `${layersOwned} / 25 strutture costruite — appaiono nel tuo accampamento.`));
-    const enterStruttureBtn = el('button', 'btn btn-primary wide', '🏗️ Costruisci Strutture');
+    const enterStruttureBtn = el('button', 'btn btn-primary wide', ptIcon('assets/ui/rifugio/strutture.webp', 'Costruisci Strutture', '🏗️'));
     enterStruttureBtn.addEventListener('click', () => { CAMP_VIEW = 'strutture'; setTab('camp'); });
     cp.appendChild(enterStruttureBtn);
 
     // ── Sezione Arredamento ──
-    cp.appendChild(el('h4', 'cantiere-section-title', '🏛️ Arredamento'));
+    cp.appendChild(el('h4', 'cantiere-section-title', ptIcon('assets/ui/rifugio/arredamento-btn.webp', 'Arredamento', '🏛️')));
     cp.appendChild(el('p', 'muted small center',
       `${totalOwned} / 200 cimeli raccolti · ${setsComplete} / 20 set completi.`));
-    const enterArredaBtn = el('button', 'btn btn-primary wide', '🏛️ Entra nella Bottega');
+    const enterArredaBtn = el('button', 'btn btn-primary wide', ptIcon('assets/ui/rifugio/arredamento-btn.webp', 'Entra nella Bottega', '🏛️'));
     enterArredaBtn.addEventListener('click', () => { CAMP_VIEW = 'arredamento'; setTab('camp'); });
     cp.appendChild(enterArredaBtn);
 
