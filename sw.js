@@ -5,7 +5,7 @@
 
 
 
-const CACHE = "heropace-v523";
+const CACHE = "heropace-v524";
 const NOTIF_CACHE = 'heropace-notif-v1'; // stato notifiche (non cancellare mai)
 
 /* File locali per fallback offline */
@@ -13,7 +13,12 @@ const OFFLINE_ASSETS = [
   'index.html',
   'style.css',
   'game.js',
-  'app.js',
+  'app-core.js',
+  'app-camp.js',
+  'app-map.js',
+  'app-train.js',
+  'app-market.js',
+  'app-hero.js',
   'minigames.js',
   'arena.js',
   'firebase.js',
