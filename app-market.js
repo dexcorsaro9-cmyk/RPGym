@@ -347,6 +347,25 @@ function renderAntroView(c) {
   `;
   c.appendChild(hubHeader);
 
+  // Tutorial collassabile — aperto di default per chi non ha mai giocato in Arena
+  const neverPlayed = !(HERO.pvp && (HERO.pvp.wins || HERO.pvp.losses));
+  const arenaHelp = document.createElement('details');
+  arenaHelp.className = 'panel antro-help-card';
+  if (neverPlayed) arenaHelp.open = true;
+  arenaHelp.innerHTML = `
+    <summary class="antro-help-summary">⚔️ Come funziona l'Arena</summary>
+    <div class="antro-help-body">
+      <p>Ogni giorno hai un numero limitato di sfide. Ogni scontro è un <b>duello a morra in 5 round</b>:</p>
+      <div class="antro-help-moves">
+        <div>🗡️ <b>Fendente</b> batte Schivata</div>
+        <div>🛡️ <b>Parata</b> batte Fendente</div>
+        <div>💨 <b>Schivata</b> batte Parata</div>
+      </div>
+      <p class="muted small" style="margin-top:.6rem">Vinci <b>3 round su 5</b> per guadagnare oro e fiches arena. I <b>Boss</b> hanno ricompense speciali.</p>
+    </div>
+  `;
+  c.appendChild(arenaHelp);
+
   ANTRO_SECTIONS.forEach(s => {
     const done = heroLv >= s.lv;
     const card = el('div', `panel antro-hub-card${done ? ' antro-hub-open' : ' antro-hub-sealed'}`);

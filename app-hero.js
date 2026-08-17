@@ -196,6 +196,14 @@ function renderHero(c) {
     }
     sp2.appendChild(subRow);
 
+    // Talento di Classe — bonus innato dell'eroe, unico per storyId
+    const talent = RPG.talentOf(HERO);
+    if (talent) {
+      const tc = el('div', 'virtu-talent-card');
+      tc.innerHTML = `<span class="virtu-talent-icon">${talent.icon}</span><div class="virtu-talent-body"><span class="virtu-talent-name">${esc(talent.name)}</span><span class="virtu-talent-desc">${esc(talent.desc)}</span></div>`;
+      sp2.appendChild(tc);
+    }
+
     const tiers = [
       { label: 'Principiante', range: [1, 20] },
       { label: 'Avventuriero', range: [21, 45] },

@@ -36,6 +36,24 @@ function renderMap(c) {
     onAction: () => { advanceOnboarding(17); MAP_VIEW = 'avamposto'; setTab('map'); }
   });
 
+  // Tutorial collassabile — aperto di default per chi non ha mai reclamato un tesoro
+  const neverTreasure = !(HERO.treasureMap && HERO.treasureMap.claimed && HERO.treasureMap.claimed.length > 0);
+  const mapHelp = document.createElement('details');
+  mapHelp.className = 'panel map-help-card';
+  if (neverTreasure) mapHelp.open = true;
+  mapHelp.innerHTML = `
+    <summary class="map-help-summary">🗺️ Come funziona la Mappa</summary>
+    <div class="map-help-body">
+      <p>I km registrati avanzano il tuo viaggio e sbloccano nuovi biomi. Ogni settimana la Mappa offre tre sfide:</p>
+      <div class="map-help-rows">
+        <div><span>🗺️</span><span><b>Mappa del Tesoro</b> — 3 tappe a 8 / 22 / 45 km, con ricompense crescenti.</span></div>
+        <div><span>👹</span><span><b>Boss Settimanale</b> — percorri i km richiesti entro domenica per sconfiggerlo.</span></div>
+        <div><span>⚡</span><span><b>Incursione del Giorno</b> — un nemico temporaneo, si resetta ogni 24 h.</span></div>
+      </div>
+    </div>
+  `;
+  c.appendChild(mapHelp);
+
   const biome = RPG.currentBiome(HERO.level);
 
   // ── Il bioma attuale, con progresso verso il prossimo ──
