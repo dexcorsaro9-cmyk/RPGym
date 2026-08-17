@@ -1564,6 +1564,7 @@ function openFurnitureSetModal(setId) {
           sfx('coin');
           renderHUD();
           closeModal();
+          setTab('camp');
           openFurnitureSetModal(setId);
         } else {
           toast(r);
