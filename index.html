@@ -4,9 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#3b2a1a">
+  <meta name="description" content="Trasforma camminate, corse e pedalate in un'avventura fantasy! Guadagna XP, oro e oggetti leggendari con ogni allenamento.">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Hero's Pace">
+  <!-- Open Graph -->
+  <meta property="og:type"        content="website">
+  <meta property="og:url"         content="https://dexcorsaro9-cmyk.github.io/RPGym/">
+  <meta property="og:title"       content="Hero's Pace — L'Avventura del Viandante">
+  <meta property="og:description" content="Trasforma camminate, corse e pedalate in un'avventura fantasy! Guadagna XP, oro e oggetti leggendari con ogni allenamento.">
+  <meta property="og:image"       content="https://dexcorsaro9-cmyk.github.io/RPGym/assets/screenshots/screen-rifugio.webp">
+  <meta property="og:image:width"  content="1284">
+  <meta property="og:image:height" content="2581">
+  <!-- Twitter Card -->
+  <meta name="twitter:card"        content="summary_large_image">
+  <meta name="twitter:title"       content="Hero's Pace — L'Avventura del Viandante">
+  <meta name="twitter:description" content="Trasforma camminate, corse e pedalate in un'avventura fantasy!">
+  <meta name="twitter:image"       content="https://dexcorsaro9-cmyk.github.io/RPGym/assets/screenshots/screen-rifugio.webp">
   <title>Hero's Pace — L'Avventura del Viandante</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="assets/icons/favicon.webp" type="image/png">
@@ -22,7 +36,12 @@
   <link rel="stylesheet" href="style.css">
   <!-- Preload script critici prima che il parser raggiunga il fondo del body -->
   <link rel="preload" as="script" href="game.js">
-  <link rel="preload" as="script" href="app.js">
+  <link rel="preload" as="script" href="app-core.js">
+  <link rel="preload" as="script" href="app-camp.js">
+  <link rel="preload" as="script" href="app-map.js">
+  <link rel="preload" as="script" href="app-train.js">
+  <link rel="preload" as="script" href="app-market.js">
+  <link rel="preload" as="script" href="app-hero.js">
   <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
   <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js">
 </head>
