@@ -4614,6 +4614,17 @@ function _timeUntilMonday() {
   return dd > 0 ? `${dd}g ${h}h` : `${h}h`;
 }
 
+const CHALLENGE_ICONS = {
+  km:       'assets/ui/sfide/km.webp',
+  arena:    'assets/ui/sfide/arena.webp',
+  minigame: 'assets/ui/sfide/taverna.webp',
+  sell:     'assets/ui/sfide/contrabbando.webp',
+  chest:    'assets/ui/sfide/scrigno.webp',
+  dungeon:  'assets/ui/sfide/dungeon.webp',
+  bisca:    'assets/ui/sfide/bisca.webp',
+  scalata:  'assets/ui/sfide/scalata.webp',
+};
+
 function renderChallengeList(panel, list, claimFn, bonusObj, bonusClaimed, countdown) {
   list.forEach((ch, i) => {
     const done = ch.progress >= ch.target;
@@ -4622,9 +4633,13 @@ function renderChallengeList(panel, list, claimFn, bonusObj, bonusClaimed, count
     const progTxt = ch.type === 'km'
       ? `${Math.min(ch.progress, ch.target).toFixed(1)} / ${ch.target} km`
       : `${Math.min(Math.round(ch.progress), ch.target)} / ${ch.target}`;
+    const _ci = CHALLENGE_ICONS[ch.type];
+    const iconHtml = _ci
+      ? `<img class="challenge-icon" src="${_ci}" onerror="this.outerHTML='<span class=\\'challenge-icon\\'>${ch.icon}</span>'" alt="">`
+      : `<span class="challenge-icon">${ch.icon}</span>`;
     row.innerHTML = `
       <div class="challenge-head">
-        <span class="challenge-icon">${ch.icon}</span>
+        ${iconHtml}
         <div class="challenge-mid">
           <span class="challenge-label">${esc(ch.label)}</span>
           <span class="challenge-rew muted small">🪙 ${ch.reward.gold} &nbsp;⭐ ${ch.reward.xp} XP</span>
