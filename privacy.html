@@ -1,417 +1,150 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Privacy Policy — Hero's Pace</title>
-<meta name="robots" content="noindex">
-<style>
-/* ── Token system ─────────────────────────────────────────────── */
-:root {
-  --bg:        #FDFAF6;
-  --surface:   #F3EDE1;
-  --ink:       #1C1713;
-  --ink-mid:   #3A2E22;
-  --muted:     #6B5E4E;
-  --divider:   #DDD5C3;
-  --gold:      #C49428;
-  --gold-dim:  rgba(196,148,40,.12);
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg:       #16110D;
-    --surface:  #221A12;
-    --ink:      #F0E8D8;
-    --ink-mid:  #D4C4A8;
-    --muted:    #9E8E78;
-    --divider:  #3A2E20;
-    --gold:     #D4A830;
-    --gold-dim: rgba(212,168,48,.10);
-  }
-}
-:root[data-theme="dark"] {
-  --bg:       #16110D;
-  --surface:  #221A12;
-  --ink:      #F0E8D8;
-  --ink-mid:  #D4C4A8;
-  --muted:    #9E8E78;
-  --divider:  #3A2E20;
-  --gold:     #D4A830;
-  --gold-dim: rgba(212,168,48,.10);
-}
-
-/* ── Reset & base ─────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  background: var(--bg);
-  color: var(--ink);
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-  font-size: 1rem;
-  line-height: 1.7;
-  padding: 0 20px 80px;
-}
-
-/* ── Layout ───────────────────────────────────────────────────── */
-.doc {
-  max-width: 680px;
-  margin: 0 auto;
-}
-
-/* ── Header ───────────────────────────────────────────────────── */
-.doc-header {
-  padding: 56px 0 40px;
-  border-bottom: 1px solid var(--divider);
-  margin-bottom: 48px;
-}
-.app-name {
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--gold);
-  margin-bottom: 12px;
-}
-.doc-title {
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 2rem;
-  font-weight: 700;
-  line-height: 1.2;
-  color: var(--ink);
-  text-wrap: balance;
-  margin-bottom: 16px;
-}
-.doc-meta {
-  font-size: .875rem;
-  color: var(--muted);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 20px;
-}
-
-/* ── Intro box ────────────────────────────────────────────────── */
-.intro-box {
-  background: var(--gold-dim);
-  border-left: 3px solid var(--gold);
-  border-radius: 0 8px 8px 0;
-  padding: 16px 20px;
-  margin-bottom: 48px;
-  font-size: .9375rem;
-  color: var(--ink-mid);
-}
-
-/* ── Sections ─────────────────────────────────────────────────── */
-.section {
-  margin-bottom: 48px;
-}
-.section-number {
-  font-size: .75rem;
-  font-weight: 700;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: var(--gold);
-  margin-bottom: 6px;
-}
-.section-title {
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--ink);
-  margin-bottom: 16px;
-  text-wrap: balance;
-}
-.section p {
-  color: var(--ink-mid);
-  margin-bottom: 12px;
-  max-width: 65ch;
-}
-.section p:last-child { margin-bottom: 0; }
-
-/* ── Data table ───────────────────────────────────────────────── */
-.data-table-wrap { overflow-x: auto; margin-bottom: 16px; }
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: .875rem;
-}
-.data-table th {
-  text-align: left;
-  padding: 8px 12px;
-  font-size: .7rem;
-  font-weight: 700;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--muted);
-  border-bottom: 1px solid var(--divider);
-}
-.data-table td {
-  padding: 10px 12px;
-  vertical-align: top;
-  border-bottom: 1px solid var(--divider);
-  color: var(--ink-mid);
-}
-.data-table tr:last-child td { border-bottom: none; }
-.data-table .tag {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: .75rem;
-  font-weight: 600;
-  background: var(--surface);
-  color: var(--muted);
-}
-.data-table .tag-device { color: #2a7a4e; background: rgba(42,122,78,.1); }
-.data-table .tag-cloud  { color: #1a5fa0; background: rgba(26,95,160,.1); }
-
-/* ── List ─────────────────────────────────────────────────────── */
-.rights-list {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-.rights-list li {
-  display: flex;
-  gap: 10px;
-  font-size: .9375rem;
-  color: var(--ink-mid);
-}
-.rights-list .ico {
-  flex-shrink: 0;
-  width: 20px;
-  color: var(--gold);
-  font-style: normal;
-}
-
-/* ── Footer ───────────────────────────────────────────────────── */
-.doc-footer {
-  padding-top: 40px;
-  border-top: 1px solid var(--divider);
-  font-size: .8125rem;
-  color: var(--muted);
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 8px;
-}
-.doc-footer a { color: var(--gold); text-decoration: none; }
-.doc-footer a:hover { text-decoration: underline; }
-
-/* ── Contact card ─────────────────────────────────────────────── */
-.contact-card {
-  background: var(--surface);
-  border-radius: 10px;
-  padding: 20px 24px;
-  margin-top: 16px;
-}
-.contact-card .label {
-  font-size: .7rem;
-  font-weight: 700;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 6px;
-}
-.contact-card .value {
-  font-size: 1rem;
-  color: var(--ink);
-}
-.contact-card a { color: var(--gold); }
-
-/* ── Focus ────────────────────────────────────────────────────── */
-a:focus-visible {
-  outline: 2px solid var(--gold);
-  outline-offset: 2px;
-  border-radius: 2px;
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#3b2a1a">
+  <title>Privacy Policy — Hero's Pace</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #1a1008; --surface: #2a1a0a; --border: #4a3218;
+      --gold: #c9932e; --text: #f0e6d2; --muted: #9a7a56;
+      --ink: #3b2a1a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Crimson Pro', Georgia, serif;
+      font-size: 1.05rem;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+    .page {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+    }
+    .back-link {
+      display: inline-block;
+      font-family: 'Cinzel', serif;
+      font-size: .75rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      margin-bottom: 2rem;
+    }
+    .back-link:hover { color: var(--gold); }
+    h1 {
+      font-family: 'Cinzel', serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--gold);
+      line-height: 1.2;
+      text-wrap: balance;
+      margin-bottom: .4rem;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-style: italic;
+      margin-bottom: 2.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    h2 {
+      font-family: 'Cinzel', serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: .04em;
+      margin: 2rem 0 .6rem;
+    }
+    p { margin-bottom: .8rem; }
+    ul { padding-left: 1.4rem; margin-bottom: .8rem; }
+    li { margin-bottom: .35rem; }
+    a { color: var(--gold); }
+    .highlight {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--gold);
+      padding: .8rem 1rem;
+      margin: 1rem 0;
+      font-size: .96rem;
+    }
+    footer {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: .88rem;
+    }
+  </style>
 </head>
 <body>
-<div class="doc">
+<div class="page">
+  <a class="back-link" href="index.html">‹ Torna al gioco</a>
 
-  <!-- Header -->
-  <header class="doc-header">
-    <div class="app-name">Hero's Pace</div>
-    <h1 class="doc-title">Informativa sulla Privacy</h1>
-    <div class="doc-meta">
-      <span>Versione 1.0</span>
-      <span>Ultimo aggiornamento: 11 agosto 2025</span>
-      <span>Applicabile a: Hero's Pace (Android · iOS · Web)</span>
-    </div>
-  </header>
+  <h1>Privacy Policy</h1>
+  <p class="subtitle">Hero's Pace — L'Avventura del Viandante &nbsp;·&nbsp; Ultimo aggiornamento: agosto 2026</p>
 
-  <!-- Intro -->
-  <div class="intro-box">
-    Hero's Pace è progettato per funzionare quasi interamente <strong>sul tuo dispositivo</strong>. Non raccogliamo dati personali per scopi commerciali, non mostriamo pubblicità e non vendiamo informazioni a terze parti.
+  <div class="highlight">
+    In sintesi: Hero's Pace non raccoglie dati personali, non mostra pubblicità e non vende nulla ai terzi. Il tuo salvataggio vive sul tuo dispositivo.
   </div>
 
-  <!-- 1. Titolare -->
-  <section class="section">
-    <div class="section-number">Art. 1</div>
-    <h2 class="section-title">Titolare del trattamento</h2>
-    <p>Il titolare del trattamento dei dati personali è il singolo sviluppatore dell'applicazione:</p>
-    <div class="contact-card">
-      <div class="label">Sviluppatore</div>
-      <div class="value">Antonio Decino</div>
-      <div style="margin-top:8px">
-        <div class="label">Contatto</div>
-        <div class="value"><a href="mailto:9corsaro9@gmail.com">9corsaro9@gmail.com</a></div>
-      </div>
-    </div>
-  </section>
+  <h2>1. Chi siamo</h2>
+  <p>Hero's Pace è un'app fitness RPG sviluppata e distribuita da Dex Corsaro. L'app è pubblicata come Progressive Web App (PWA) all'indirizzo <a href="https://dexcorsaro9-cmyk.github.io/RPGym/">https://dexcorsaro9-cmyk.github.io/RPGym/</a>.</p>
 
-  <!-- 2. Dati raccolti -->
-  <section class="section">
-    <div class="section-number">Art. 2</div>
-    <h2 class="section-title">Quali dati raccogliamo e dove li conserviamo</h2>
-    <p>Hero's Pace utilizza due sole modalità di archiviazione: il dispositivo dell'utente (localStorage del browser) e Firebase Firestore (Google) per le sole funzionalità multigiocatore.</p>
+  <h2>2. Dati salvati localmente</h2>
+  <p>Tutti i dati di gioco (eroi, progressione, allenamenti, oggetti, impostazioni) sono salvati esclusivamente nel <strong>localStorage</strong> del tuo browser o dispositivo, sotto la chiave <code>rpgym_save_v1</code>. Questi dati:</p>
+  <ul>
+    <li>non lasciano mai il tuo dispositivo senza il tuo consenso esplicito;</li>
+    <li>possono essere esportati e importati tramite la funzione "Backup salvataggio" nelle impostazioni;</li>
+    <li>vengono eliminati se svuoti la cache del browser o disinstalli l'app.</li>
+  </ul>
 
-    <div class="data-table-wrap">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Dato</th>
-            <th>Dove è salvato</th>
-            <th>Finalità</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Nome del personaggio, classe, avatar</td>
-            <td><span class="tag tag-device">Solo dispositivo</span></td>
-            <td>Funzionamento del gioco</td>
-          </tr>
-          <tr>
-            <td>Km percorsi, sessioni di allenamento, tipo attività</td>
-            <td><span class="tag tag-device">Solo dispositivo</span></td>
-            <td>Calcolo XP, oro e progressione RPG</td>
-          </tr>
-          <tr>
-            <td>Inventario, equipaggiamento, valuta di gioco</td>
-            <td><span class="tag tag-device">Solo dispositivo</span></td>
-            <td>Funzionamento del gioco</td>
-          </tr>
-          <tr>
-            <td>Dati famiglio (nome, statistiche, ricordi)</td>
-            <td><span class="tag tag-device">Solo dispositivo</span></td>
-            <td>Sistema Tamagotchi in-game</td>
-          </tr>
-          <tr>
-            <td>Preferenze e impostazioni app</td>
-            <td><span class="tag tag-device">Solo dispositivo</span></td>
-            <td>Personalizzazione</td>
-          </tr>
-          <tr>
-            <td>Dati PvP e gilde (ID anonimo, risultati battaglie)</td>
-            <td><span class="tag tag-cloud">Firebase Firestore</span></td>
-            <td>Funzionalità multigiocatore opzionali</td>
-          </tr>
-          <tr>
-            <td>Passi e distanza percorsa (Apple Salute / Health Connect)</td>
-            <td><span class="tag tag-device">Solo dispositivo</span></td>
-            <td>Sincronizzazione automatica facoltativa dell'attività fisica</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+  <h2>3. Funzionalità online (Firebase)</h2>
+  <p>Le funzionalità multiplayer (PvP, gilde, classifiche) utilizzano <strong>Google Firebase Firestore</strong> per sincronizzare i dati tra giocatori. Quando attivi queste funzionalità:</p>
+  <ul>
+    <li>vengono trasmessi a Firebase il tuo nome eroe, livello, classe e statistiche PvP;</li>
+    <li>nessun dato personale reale (nome, email, telefono) è richiesto o trasmesso;</li>
+    <li>i dati Firebase sono soggetti alla <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Privacy Policy di Google</a>.</li>
+  </ul>
+  <p>Se non usi le funzionalità PvP/guild, nessun dato viene trasmesso a Firebase.</p>
 
-    <p>I dati salvati localmente non lasciano mai il dispositivo e vengono eliminati automaticamente se si cancella l'app o i dati del browser. I dati su Firebase sono associati a un identificatore anonimo generato casualmente, non a un account o a un'identità reale.</p>
-  </section>
+  <h2>4. Sincronizzazione passi (iOS Shortcuts / Android)</h2>
+  <p>La funzione di import automatico dei passi da app Salute (iOS) o Fitness (Android) avviene tramite un'automazione locale sul tuo dispositivo. I dati di passo non vengono trasmessi a nessun server esterno — vengono solo convertiti in km e registrati nel localStorage locale.</p>
 
-  <!-- 3. Dati non raccolti -->
-  <section class="section">
-    <div class="section-number">Art. 3</div>
-    <h2 class="section-title">Cosa non raccogliamo</h2>
-    <p>Hero's Pace <strong>non raccoglie</strong> i seguenti dati:</p>
-    <ul class="rights-list">
-      <li><i class="ico">✕</i>Dati anagrafici reali (nome, cognome, data di nascita)</li>
-      <li><i class="ico">✕</i>Indirizzo e-mail o numero di telefono</li>
-      <li><i class="ico">✕</i>Dati di posizione GPS</li>
-      <li><i class="ico">✕</i>Dati biometrici o sanitari diversi da passi/distanza (frequenza cardiaca, peso, sonno, ecc.)</li>
-      <li><i class="ico">✕</i>Identificatori pubblicitari (IDFA, GAID)</li>
-      <li><i class="ico">✕</i>Cookie di tracciamento o analytics di terze parti</li>
-    </ul>
-    <p>Nell'app nativa (iOS/Android), Hero's Pace può leggere <strong>solo passi e distanza percorsa</strong> da Apple Salute (HealthKit) o Health Connect, esclusivamente per calcolare in automatico i km giornalieri e convertirli in progressione di gioco. L'accesso richiede il consenso esplicito dell'utente tramite il permesso di sistema, è disattivabile in ogni momento dalle impostazioni dell'app o del dispositivo, e i dati letti non lasciano mai il dispositivo: non vengono trasmessi a server esterni né condivisi con terzi. In alternativa resta sempre disponibile l'import manuale tramite Scorciatoie (iOS) o MacroDroid/Tasker (Android), totalmente gestito dall'utente.</p>
-  </section>
+  <h2>5. Dati che non raccogliamo</h2>
+  <ul>
+    <li>Non raccogliamo email, nomi reali o numeri di telefono.</li>
+    <li>Non utilizziamo cookie di profilazione o pubblicità.</li>
+    <li>Non integriamo analytics di terze parti (Google Analytics, Mixpanel, ecc.).</li>
+    <li>Non vendiamo né condividiamo dati con terze parti commerciali.</li>
+  </ul>
 
-  <!-- 4. Notifiche -->
-  <section class="section">
-    <div class="section-number">Art. 4</div>
-    <h2 class="section-title">Notifiche push</h2>
-    <p>Hero's Pace può richiedere il permesso di inviare notifiche push tramite il Service Worker del browser. Le notifiche sono gestite interamente sul dispositivo: nessun dato viene inviato a server esterni per questo scopo. L'utente può revocare il permesso in qualsiasi momento dalle impostazioni del dispositivo o del browser.</p>
-  </section>
+  <h2>6. Service Worker e cache offline</h2>
+  <p>Hero's Pace utilizza un Service Worker per funzionare offline. Il Service Worker memorizza nella cache del browser i file statici dell'app (HTML, CSS, JS, immagini). Questi file restano sul tuo dispositivo e non contengono dati personali.</p>
 
-  <!-- 5. Firebase -->
-  <section class="section">
-    <div class="section-number">Art. 5</div>
-    <h2 class="section-title">Servizi di terze parti — Firebase (Google)</h2>
-    <p>Le funzionalità PvP e di gilda utilizzano <strong>Firebase Firestore</strong>, un servizio cloud di Google LLC. I dati trasmessi a Firebase sono limitati all'identificatore anonimo di gioco e ai risultati delle battaglie; non contengono informazioni personali identificabili.</p>
-    <p>Firebase è soggetto alla Privacy Policy di Google: <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">policies.google.com/privacy</a>. I dati potrebbero essere trasferiti e conservati in server situati fuori dall'Unione Europea, nel rispetto delle clausole contrattuali standard approvate dalla Commissione Europea.</p>
-    <p>Le funzionalità PvP e gilda sono facoltative. Chi non le utilizza non ha alcun dato trasmesso a Firebase.</p>
-  </section>
+  <h2>7. I tuoi diritti</h2>
+  <p>Poiché non raccogliamo dati personali sui nostri server, il diritto di accesso, rettifica e cancellazione si esercita direttamente sul tuo dispositivo:</p>
+  <ul>
+    <li><strong>Eliminare i dati di gioco</strong>: Impostazioni → Zona Pericolosa → Elimina tutti i dati.</li>
+    <li><strong>Eliminare la cache</strong>: Impostazioni → Aggiornamenti → Svuota cache e ricarica.</li>
+    <li><strong>Disinstallare l'app</strong>: rimuovi l'icona dalla schermata Home del tuo dispositivo.</li>
+  </ul>
 
-  <!-- 6. Conservazione -->
-  <section class="section">
-    <div class="section-number">Art. 6</div>
-    <h2 class="section-title">Conservazione e cancellazione</h2>
-    <p>I dati locali sono conservati fino a quando l'utente non disinstalla l'app o cancella i dati del browser/applicazione. L'utente può cancellare tutti i propri dati di gioco in qualsiasi momento dall'interno dell'app (<em>Impostazioni → Cancella tutti i dati</em>).</p>
-    <p>I dati su Firebase (PvP/gilde) vengono eliminati su richiesta inviando un'e-mail al titolare indicando l'identificatore di gioco. La risposta avverrà entro 30 giorni.</p>
-  </section>
+  <h2>8. Modifiche a questa policy</h2>
+  <p>In caso di aggiornamenti significativi a questa policy, la data in cima verrà aggiornata e verrà mostrato un avviso nel gioco.</p>
 
-  <!-- 7. Diritti -->
-  <section class="section">
-    <div class="section-number">Art. 7</div>
-    <h2 class="section-title">Diritti dell'utente (GDPR)</h2>
-    <p>In conformità al Regolamento UE 2016/679 (GDPR), l'utente ha diritto di:</p>
-    <ul class="rights-list">
-      <li><i class="ico">→</i><div><strong>Accedere</strong> ai propri dati trattati dal titolare</div></li>
-      <li><i class="ico">→</i><div><strong>Rettificare</strong> dati inesatti</div></li>
-      <li><i class="ico">→</i><div><strong>Cancellare</strong> i propri dati («diritto all'oblio»)</div></li>
-      <li><i class="ico">→</i><div><strong>Limitare</strong> il trattamento in determinate circostanze</div></li>
-      <li><i class="ico">→</i><div><strong>Opporsi</strong> al trattamento per motivi legittimi</div></li>
-      <li><i class="ico">→</i><div><strong>Portabilità</strong>: ricevere i propri dati in formato strutturato</div></li>
-      <li><i class="ico">→</i><div><strong>Proporre reclamo</strong> al Garante per la protezione dei dati personali (<a href="https://www.garanteprivacy.it" target="_blank" rel="noopener">garanteprivacy.it</a>)</div></li>
-    </ul>
-    <p>Per esercitare questi diritti contatta il titolare all'indirizzo indicato nell'Art. 1.</p>
-  </section>
+  <h2>9. Contatti</h2>
+  <p>Per qualsiasi domanda sulla privacy, scrivi a: <a href="mailto:9corsaro9@gmail.com">9corsaro9@gmail.com</a></p>
 
-  <!-- 7b. Meccaniche di gioco d'azzardo simulato -->
-  <section class="section">
-    <div class="section-number">Art. 7b</div>
-    <h2 class="section-title">Meccaniche di gioco d'azzardo simulato</h2>
-    <p>Hero's Pace include funzionalità di gioco d'azzardo <strong>simulato</strong> che utilizzano esclusivamente valuta virtuale di gioco (Fiches del Fato, Oro) senza alcun valore monetario reale:</p>
-    <ul class="rights-list">
-      <li><i class="ico">🎰</i><div><strong>Casse Chiuse</strong> — apertura di casse con probabilità di drop dichiarate in-app prima dell'acquisto</div></li>
-      <li><i class="ico">🎡</i><div><strong>Ruota della Fortuna</strong> — gioco a premi con settori e probabilità visibili</div></li>
-      <li><i class="ico">🃏</i><div><strong>Bisca Oscura</strong> — gioco di carte con valuta virtuale</div></li>
-    </ul>
-    <p>Non è possibile acquistare valuta virtuale con denaro reale. Non è possibile convertire la valuta di gioco in denaro reale o in qualsiasi altro bene di valore esterno all'applicazione. Le probabilità di drop delle Casse Chiuse sono consultabili direttamente nella schermata di gioco.</p>
-  </section>
-
-  <!-- 8. Minori -->
-  <section class="section">
-    <div class="section-number">Art. 8</div>
-    <h2 class="section-title">Utenti minorenni</h2>
-    <p>Hero's Pace è un'app di fitness gamificato adatta a un pubblico generale. Per utenti di età inferiore ai 13 anni si raccomanda la supervisione di un genitore o tutore, in particolare per le funzionalità opzionali di Arena (PvP) e per le Casse Chiuse, che prevedono l'uso di valuta virtuale di gioco.</p>
-    <p>Non raccogliamo consapevolmente dati personali di minori senza il consenso di un adulto responsabile. Se un genitore o tutore rileva un uso non supervisionato da parte di un minore, può contattarci per richiedere la cancellazione dei dati associati.</p>
-  </section>
-
-  <!-- 9. Modifiche -->
-  <section class="section">
-    <div class="section-number">Art. 9</div>
-    <h2 class="section-title">Modifiche alla presente informativa</h2>
-    <p>Il titolare si riserva il diritto di aggiornare questa informativa. Le modifiche sostanziali verranno comunicate tramite notifica in-app o aggiornamento della data in cima a questa pagina. L'uso continuato dell'applicazione dopo la pubblicazione delle modifiche costituisce accettazione delle stesse.</p>
-  </section>
-
-  <!-- Footer -->
-  <footer class="doc-footer">
-    <span>© 2025 Hero's Pace · Antonio Decino</span>
-    <span><a href="terms.html">Termini di Servizio</a> · <a href="mailto:9corsaro9@gmail.com">9corsaro9@gmail.com</a></span>
-    <span>v1.0 — 11 agosto 2025</span>
+  <footer>
+    Hero's Pace &nbsp;·&nbsp; Privacy Policy &nbsp;·&nbsp; Agosto 2026<br>
+    <a href="index.html">Torna al gioco</a>
   </footer>
-
 </div>
 </body>
 </html>

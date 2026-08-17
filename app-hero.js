@@ -676,6 +676,17 @@ function renderSettingsView(c) {
   c.appendChild(_settingsFullscreenPanel());
   c.appendChild(_settingsPvpPanel());
   c.appendChild(_settingsDangerPanel());
+  c.appendChild(_settingsPrivacyPanel());
+}
+
+function _settingsPrivacyPanel() {
+  const p = el('div', 'panel shortcut-panel');
+  p.appendChild(el('h3', 'panel-title', '🔒 Privacy'));
+  p.appendChild(el('p', 'guide-text', 'I tuoi dati di gioco sono salvati solo sul tuo dispositivo. Nessun dato personale viene raccolto o venduto a terzi.'));
+  const btn = el('button', 'btn wide', '📄 Leggi la Privacy Policy');
+  btn.addEventListener('click', () => window.open('privacy.html', '_blank'));
+  p.appendChild(btn);
+  return p;
 }
 
 function _settingsPvpPanel() {

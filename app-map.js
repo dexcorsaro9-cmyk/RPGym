@@ -1,5 +1,7 @@
 function _mapBlock(label, fn) {
-  try { fn(); } catch (e) { console.error('[Mappa]', label, e); }
+  try { fn(); } catch (e) {
+    console.error('[Mappa] Sezione "%s" non renderizzata (Lv.%d):\n%s', label, HERO ? HERO.level : '?', e.stack || e);
+  }
 }
 
 function renderMap(c) {
