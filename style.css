@@ -3268,10 +3268,11 @@ img.fiche-inline {
 .furniture-set-row.locked { opacity: .6; }
 .furniture-set-row.complete { border-left: 4px solid var(--gold-bright); box-shadow: 0 0 10px rgba(232,182,76,.3); }
 .furniture-set-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
-.furniture-set-icon { width: 48px; height: 48px; object-fit: contain; flex-shrink: 0; }
-.furniture-set-icon.locked-icon { display: flex; align-items: center; justify-content: center; font-size: 1.6rem; }
+.furniture-set-icon { width: 48px; height: 48px; object-fit: contain; flex-shrink: 0; mix-blend-mode: multiply; border-radius: 4px; }
+.furniture-set-icon.locked-icon { display: flex; align-items: center; justify-content: center; font-size: 1.6rem; mix-blend-mode: normal; }
 .furniture-set-mid { flex: 1; min-width: 0; }
 .set-bonus-active { color: var(--gold-bright); font-weight: 700; }
+.furniture-item-row .item-icon-big { mix-blend-mode: multiply; }
 .furniture-item-row.equipped { opacity: .75; }
 .furniture-fallback-icon { font-size: 2rem; display: flex; align-items: center; justify-content: center; width: 56px; height: 56px; }
 
@@ -6635,8 +6636,13 @@ img.challenge-icon { width: 36px; height: 36px; object-fit: contain; filter: dro
   display: block; border-radius: 10px; margin-bottom: 10px;
 }
 .sub-header-label {
-  font-size: .85rem; color: var(--ink-light);
+  font-size: .85rem; color: var(--text);
   text-align: center; margin: 0 0 8px;
+  text-shadow: 0 1px 3px rgba(0,0,0,.55);
+}
+.bg-parchment .sub-header-label {
+  color: #3a2510;
+  text-shadow: 0 1px 0 rgba(255,255,255,.35);
 }
 
 /* ── Taverna delle Sfide: entry card + hub subtitle ── */

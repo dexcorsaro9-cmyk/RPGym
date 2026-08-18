@@ -880,7 +880,7 @@ function renderSantuarioView(c) {
   sanctHdrImg.onerror = () => sanctHdrImg.remove();
   c.appendChild(sanctHdrImg);
 
-  c.appendChild(el('h2', 'section-title', '🐾 Il Santuario dei Famigli'));
+  c.appendChild(el('h2', 'section-title on-parchment-title', '🐾 Il Santuario dei Famigli'));
 
   const speciesInfo = RPG.PET_SPECIES[pet.species];
   const stage = RPG.petStage(pet.level);
@@ -1379,7 +1379,7 @@ function renderStruttureView(c) {
   cantHdrImg.alt = ''; cantHdrImg.className = 'borgo-sub-header';
   cantHdrImg.onerror = () => cantHdrImg.remove();
   c.appendChild(cantHdrImg);
-  c.appendChild(el('h2', 'section-title', '🏗️ Strutture dell\'Accampamento'));
+  c.appendChild(el('h2', 'section-title on-parchment-title', '🏗️ Strutture dell\'Accampamento'));
   const ownedIds = (HERO.furniture && HERO.furniture.owned) || [];
   const layersOwned = RPG.CAMP_LAYER_SHOP.filter(l => ownedIds.includes(l.id)).length;
   const struttureSubLbl = el('p', 'sub-header-label',
@@ -1492,7 +1492,7 @@ function renderArredamentoView(c) {
   arredHdrImg.alt = ''; arredHdrImg.className = 'borgo-sub-header';
   arredHdrImg.onerror = () => arredHdrImg.remove();
   c.appendChild(arredHdrImg);
-  c.appendChild(el('h2', 'section-title', ptIcon('assets/ui/rifugio/arredamento.webp', 'Bottega dell\'Arredamento', '🏛️')));
+  c.appendChild(el('h2', 'section-title on-parchment-title', ptIcon('assets/ui/rifugio/arredamento.webp', 'Bottega dell\'Arredamento', '🏛️')));
   const totalOwned = (HERO.furniture && HERO.furniture.owned.length) || 0;
   c.appendChild(el('p', 'sub-header-label center', `${totalOwned} / 200 cimeli raccolti in tutto il regno`));
 
@@ -1564,6 +1564,7 @@ function openFurnitureSetModal(setId) {
           sfx('coin');
           renderHUD();
           closeModal();
+          setTab('camp');
           openFurnitureSetModal(setId);
         } else {
           toast(r);
