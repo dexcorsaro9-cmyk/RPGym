@@ -14,7 +14,12 @@ fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(OUT);
 
 // ── 1. Minifica JS ──────────────────────────────────────────────
-const jsFiles = ['firebase.js', 'game.js', 'app.js', 'minigames.js', 'arena.js'];
+const jsFiles = [
+  'firebase.js', 'game.js',
+  'app-core.js', 'app-camp.js', 'app-map.js', 'app-train.js',
+  'app-market.js', 'app-hero.js',
+  'minigames.js', 'arena.js',
+];
 await Promise.all(jsFiles.map(f =>
   esbuild.build({
     entryPoints: [path.join(SRC, f)],

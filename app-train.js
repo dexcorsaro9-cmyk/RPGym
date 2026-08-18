@@ -159,6 +159,13 @@ function renderTrain(c) {
     }
   }
 
+  // ── Live Workout (solo app nativa iOS) ───────────────────────────────────
+  const WorkoutPlugin = window.Capacitor?.isNativePlatform() &&
+    window.Capacitor?.getPlatform() === 'ios' &&
+    window.Capacitor?.Plugins?.WorkoutPlugin;
+
+  if (WorkoutPlugin) renderLiveWorkoutCard(c, WorkoutPlugin, () => chosen);
+
   c.appendChild(el('h2', 'section-title', '⚔️ Registra l\'Impresa'));
 
   // Daily goal progress bar
@@ -1049,5 +1056,139 @@ function revealChest(title, chest) {
     <button class="btn btn-primary wide" onclick="closeModal(); setTab('hero')">Vai all'Equipaggiamento</button>
     <button class="btn wide" onclick="closeModal()">Chiudi</button>`;
   modal(html);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Live Workout Card — solo app nativa iOS (WorkoutPlugin Swift)
+   ═══════════════════════════════════════════════════════════════ */
+let _liveWorkoutListener = null;   // handle per rimuovere il listener al termine
+
+function renderLiveWorkoutCard(c, Plugin, getActivity) {
+  const card = el('div', 'panel live-workout-card');
+  card.innerHTML = `
+    <div class="lw-header">
+      <span class="lw-icon">🏃</span>
+      <div>
+        <div class="lw-title">Allenamento dal Vivo</div>
+        <div class="lw-sub muted small">GPS + Pedometro · salva su Apple Health</div>
+      </div>
+    </div>
+    <div class="lw-stats" id="lw-stats" style="display:none">
+      <div class="lw-stat"><span class="lw-stat-val" id="lw-km">0.00</span><span class="lw-stat-lbl">km</span></div>
+      <div class="lw-stat"><span class="lw-stat-val" id="lw-time">0:00</span><span class="lw-stat-lbl">tempo</span></div>
+      <div class="lw-stat"><span class="lw-stat-val" id="lw-pace">—</span><span class="lw-stat-lbl">min/km</span></div>
+      <div class="lw-stat"><span class="lw-stat-val" id="lw-steps">0</span><span class="lw-stat-lbl">passi</span></div>
+    </div>
+    <div class="lw-actions" id="lw-actions">
+      <button class="btn btn-primary wide" id="lw-start-btn">▶ Avvia Allenamento</button>
+    </div>
+    <div class="lw-msg muted small center" id="lw-msg"></div>`;
+
+  c.appendChild(card);
+
+  const statsDiv  = card.querySelector('#lw-stats');
+  const actionsDiv = card.querySelector('#lw-actions');
+  const msgDiv    = card.querySelector('#lw-msg');
+  const startBtn  = card.querySelector('#lw-start-btn');
+
+  let timerInterval = null;
+  let workoutActive = false;
+
+  const fmtTime = secs => {
+    const m = Math.floor(secs / 60), s = Math.floor(secs % 60);
+    return `${m}:${String(s).padStart(2, '0')}`;
+  };
+  const fmtPace = p => p > 0 ? `${Math.floor(p)}'${String(Math.round((p % 1) * 60)).padStart(2, '0')}"` : '—';
+
+  const updateStats = data => {
+    card.querySelector('#lw-km').textContent   = (data.distanceKm || 0).toFixed(2);
+    card.querySelector('#lw-steps').textContent = data.steps || 0;
+    card.querySelector('#lw-pace').textContent  = fmtPace(data.paceMinPerKm || 0);
+    if (!timerInterval && data.elapsedSeconds > 0) {
+      card.querySelector('#lw-time').textContent = fmtTime(data.elapsedSeconds);
+    }
+  };
+
+  const startWorkout = async () => {
+    msgDiv.textContent = 'Richiedo permessi…';
+    try {
+      await Plugin.requestPermissions();
+    } catch (e) {
+      msgDiv.textContent = 'Permesso negato. Attiva HealthKit nelle Impostazioni.';
+      return;
+    }
+
+    const actMap = { camminata: 'walking', corsa: 'running', cyclette: 'cycling' };
+    const actType = actMap[typeof getActivity === 'function' ? getActivity() : getActivity] || 'running';
+
+    msgDiv.textContent = 'Avvio sessione…';
+    try {
+      const res = await Plugin.startWorkout({ activityType: actType });
+      if (!res.started && !res.alreadyRunning) throw new Error('Avvio fallito');
+    } catch (e) {
+      msgDiv.textContent = `Errore: ${e.message}`;
+      return;
+    }
+
+    workoutActive = true;
+    msgDiv.textContent = '';
+    statsDiv.style.display = 'grid';
+    actionsDiv.innerHTML = `<button class="btn btn-danger wide" id="lw-stop-btn">⏹ Termina Allenamento</button>`;
+    card.querySelector('#lw-stop-btn').addEventListener('click', stopWorkout);
+
+    // Live updates dal plugin
+    _liveWorkoutListener = await Plugin.addListener('liveUpdate', updateStats);
+
+    // Timer locale come fallback visivo (il plugin aggiorna ogni ~2s)
+    let elapsed = 0;
+    timerInterval = setInterval(() => {
+      elapsed++;
+      card.querySelector('#lw-time').textContent = fmtTime(elapsed);
+    }, 1000);
+  };
+
+  const stopWorkout = async () => {
+    if (!workoutActive) return;
+    actionsDiv.innerHTML = '<span class="muted small">Salvataggio…</span>';
+    if (_liveWorkoutListener) { _liveWorkoutListener.remove(); _liveWorkoutListener = null; }
+    clearInterval(timerInterval); timerInterval = null;
+
+    let summary;
+    try {
+      summary = await Plugin.stopWorkout();
+    } catch (e) {
+      actionsDiv.innerHTML = `<span class="muted small">${e.message}</span>`;
+      return;
+    }
+
+    workoutActive = false;
+    statsDiv.style.display = 'none';
+    actionsDiv.innerHTML = `<button class="btn btn-primary wide" id="lw-start-btn">▶ Avvia Allenamento</button>`;
+    card.querySelector('#lw-start-btn').addEventListener('click', startWorkout);
+
+    const km = Math.round((summary.distanceKm || 0) * 100) / 100;
+    if (km < 0.05) { msgDiv.textContent = 'Troppo pochi km. Prova di nuovo.'; return; }
+    msgDiv.textContent = summary.savedToHealth ? '✅ Salvato su Apple Health' : '';
+
+    // Passa i dati al motore RPG
+    const actMap = { camminata: 'walking', corsa: 'running', cyclette: 'cycling' };
+    const activity = typeof getActivity === 'function' ? getActivity() : getActivity;
+    const isFirst = (HERO.onboardingStep || 0) <= 1;
+    const report = RPG.logWorkout(HERO, activity, km);
+    if (report && !report.error) {
+      if (isFirst) HERO.onboardingStep = 2;
+      persist(); renderHUD(); FB.syncHero(HERO).catch(() => {});
+      if (HERO.guild && report.km > 0) FB.contributeToGuild(HERO, report.km).catch(() => {});
+      checkMapNotify(); checkBoardNotify(); maybeSyncChallenge(); updateTabOnboardingPulse();
+      if (isFirst) OPEN_QUEUE.push(showFirstWorkoutCelebration);
+      showReport(report);
+    } else {
+      msgDiv.textContent = report?.error === 'too_soon'
+        ? 'Hai già registrato un\'attività di recente.'
+        : 'Errore nella registrazione.';
+    }
+  };
+
+  startBtn.addEventListener('click', startWorkout);
 }
 
