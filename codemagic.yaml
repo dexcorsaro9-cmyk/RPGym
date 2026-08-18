@@ -77,11 +77,6 @@ workflows:
           fi
           npx cap sync ios
 
-      - name: Install CocoaPods
-        script: |
-          cd ios/App
-          pod install
-
       - name: Set bundle version
         script: |
           BUILD_NUMBER=$(app-store-connect get-latest-testflight-build-number "$BUNDLE_ID" --pre-release-version 1.0.0 2>/dev/null || echo "0")
