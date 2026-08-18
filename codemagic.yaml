@@ -81,7 +81,7 @@ workflows:
 
       - name: Set bundle version
         script: |
-          BUILD_NUMBER=$(app-store-connect get-latest-testflight-build-number "$BUNDLE_ID" --pre-release-version 1.0.0 2>/dev/null || echo "0")
+          BUILD_NUMBER=$(app-store-connect get-latest-testflight-build-number "$BUNDLE_ID" --pre-release-version 1.0 2>/dev/null || echo "0")
           cd ios/App && agvtool new-version -all $((BUILD_NUMBER + 1))
 
       - name: Setup code signing
