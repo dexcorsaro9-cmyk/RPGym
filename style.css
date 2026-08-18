@@ -6429,6 +6429,23 @@ img.challenge-icon { width: 36px; height: 36px; object-fit: contain; filter: dro
   font-size: .85rem;
 }
 
+/* ── Live Workout Card (solo iOS nativo) ─────────────────────── */
+.live-workout-card { border: 1px solid rgba(232,182,76,.3); }
+.lw-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.lw-icon { font-size: 2rem; }
+.lw-title { font-weight: 700; font-size: 1.05rem; }
+.lw-sub { margin-top: 2px; }
+.lw-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 8px; margin-bottom: 14px; text-align: center;
+}
+.lw-stat { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.lw-stat-val { font-size: 1.4rem; font-weight: 700; color: var(--gold-bright); font-variant-numeric: tabular-nums; }
+.lw-stat-lbl { font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.lw-actions { margin-top: 4px; }
+.lw-msg { margin-top: 8px; min-height: 1.2em; }
+.btn-danger { background: rgba(200,60,60,.15); color: #e05555; border: 1px solid rgba(200,60,60,.35); }
+
 /* ── Banner primo accesso (Allenati) ─────────────────────────── */
 .train-first-tip {
   position: relative;
