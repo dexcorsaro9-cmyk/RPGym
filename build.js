@@ -20,12 +20,23 @@ const jsFiles = [
   'app-market.js', 'app-hero.js',
   'minigames.js', 'arena.js',
 ];
+// target 'es2020' (non 'es2017'!): tutti i file condividono lo stesso scope
+// globale window (nessun modulo ES — vedi CLAUDE.md), e ogni file viene
+// minificato SEPARATAMENTE. Con target 'es2017' esbuild deve "down-levelare"
+// lo spread di oggetti ({...obj}, sintassi ES2018) iniettando in ogni file
+// un proprio helper interno con nome corto (es. "V"). Se due file diversi
+// finiscono per usare la stessa lettera per scopi diversi, l'ultimo caricato
+// sovrascrive silenziosamente window.V dell'altro — bug reale già capitato
+// (app-map.js sovrascriveva la V di game.js con Object.prototype.hasOwnProperty,
+// rompendo ogni spread successivo con "undefined is not an object").
+// Con target 'es2020' lo spread resta sintassi nativa: nessun helper, nessuna
+// collisione. ES2020 è ampiamente supportato dai dispositivi target dell'app.
 await Promise.all(jsFiles.map(f =>
   esbuild.build({
     entryPoints: [path.join(SRC, f)],
     outfile: path.join(OUT, f),
     minify: true,
-    target: 'es2017',
+    target: 'es2020',
     logLevel: 'info',
   })
 ));
