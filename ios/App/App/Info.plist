@@ -70,5 +70,7 @@
 	<string>Hero's Pace legge i tuoi passi e la distanza percorsa da Salute per convertirli automaticamente in XP e progressione di gioco.</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>Hero's Pace non scrive dati in Salute.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>
