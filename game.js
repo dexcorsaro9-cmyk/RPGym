@@ -3358,7 +3358,7 @@ const RPG = (() => {
     const seed = dateSeed(today + (hero.id || ''));
     if (seed % 2 !== 0) { hero.fugitiveMerchant = { date: today, item: null }; return; }
     const rarityKeys = Object.keys(RARITIES);
-    const slots = Object.keys(SLOTS);
+    const slots = EQUIP_SLOTS;
     const itemSeed = dateSeed(today + 'fug');
     const slotKey = slots[itemSeed % slots.length];
     const minIdx = Math.max(1, rarityKeys.indexOf('non_comune'));
@@ -6146,7 +6146,7 @@ const RPG = (() => {
       return { weekStamp: ws, offers: hero.merchantOffers.offers };
     }
     const seed = dateSeed(ws + '-merchant');
-    const slots = Object.keys(SLOTS);
+    const slots = EQUIP_SLOTS;
     const rarityKeys = Object.keys(RARITIES);
     const minIdx = Math.max(2, rarityKeys.indexOf('raro'));
     const offers = [];
