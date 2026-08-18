@@ -92,12 +92,14 @@ workflows:
           echo "Key length: ${#APP_STORE_CONNECT_PRIVATE_KEY}"
           echo "=== Initialize keychain ==="
           keychain initialize
-          echo "=== Fetch signing files (cert + profile) ==="
-          app-store-connect fetch-signing-files "$BUNDLE_ID" \
-            --type IOS_APP_STORE \
-            --create
-          echo "=== Add certificates to keychain ==="
+          echo "=== Create distribution certificate ==="
+          app-store-connect certificates create --type IOS_DISTRIBUTION
+          echo "=== Add certificate to keychain ==="
           keychain add-certificates
+          echo "=== Create provisioning profile ==="
+          app-store-connect profiles create "RPGym-AppStore" \
+            --type IOS_APP_STORE \
+            --bundle-id "$BUNDLE_ID" 2>&1 || echo "Profile may already exist, continuing"
           echo "=== Apply profiles to Xcode project ==="
           xcode-project use-profiles
 
