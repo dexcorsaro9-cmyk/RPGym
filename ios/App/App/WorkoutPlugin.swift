@@ -21,8 +21,9 @@ public class WorkoutPlugin: CAPPlugin, CAPBridgedPlugin {
     // ── Stato ────────────────────────────────────────────────────────────────
     private let healthStore = HKHealthStore()
     private let pedometer   = CMPedometer()
-    private var workoutSession:  HKWorkoutSession?
-    private var workoutBuilder:  HKLiveWorkoutBuilder?
+    // Tipizzati Any? perché HKWorkoutSession su iPhone richiede iOS 26+
+    private var workoutSession: Any?
+    private var workoutBuilder: Any?
     private var startDate: Date?
     private var lastSteps: Int    = 0
     private var lastDistKm: Double = 0
@@ -42,7 +43,7 @@ public class WorkoutPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     // ── requestPermissions ───────────────────────────────────────────────────
-    @objc func requestPermissions(_ call: CAPPluginCall) {
+    @objc public override func requestPermissions(_ call: CAPPluginCall) {
         guard HKHealthStore.isHealthDataAvailable() else {
             call.reject("HealthKit non disponibile su questo dispositivo"); return
         }
@@ -57,6 +58,10 @@ public class WorkoutPlugin: CAPPlugin, CAPBridgedPlugin {
 
     // ── startWorkout ─────────────────────────────────────────────────────────
     @objc func startWorkout(_ call: CAPPluginCall) {
+        guard #available(iOS 26.0, *) else {
+            call.reject("Tracciamento workout in tempo reale richiede iOS 26 o superiore")
+            return
+        }
         guard workoutSession == nil else { call.resolve(["alreadyRunning": true]); return }
 
         let raw = call.getString("activityType") ?? "running"
@@ -126,8 +131,12 @@ public class WorkoutPlugin: CAPPlugin, CAPBridgedPlugin {
 
     // ── stopWorkout ──────────────────────────────────────────────────────────
     @objc func stopWorkout(_ call: CAPPluginCall) {
-        guard let session = workoutSession,
-              let builder = workoutBuilder,
+        guard #available(iOS 26.0, *) else {
+            call.reject("Tracciamento workout in tempo reale richiede iOS 26 o superiore")
+            return
+        }
+        guard let session = workoutSession as? HKWorkoutSession,
+              let builder = workoutBuilder as? HKLiveWorkoutBuilder,
               let start   = startDate else {
             call.reject("Nessun workout attivo"); return
         }
