@@ -3,7 +3,7 @@ let MARKET_VIEW = 'hub';
 let NERO_FILTER = 'all';
 
 const ANTRO_SECTIONS = [
-  { lv: 50,  key: 'antro_contratti', icon: '⚔️', name: 'Contratti del Campione', desc: 'Sfide settimanali per i più tenaci.',            quote: '«Solo chi accetta l\'arduo impegno merita il titolo di Campione.»' },
+  { lv: 50,  key: 'antro_contratti', icon: '🐲', name: 'Carte dei Draghi',        desc: 'Colleziona e gioca con le 100 carte dei draghi leggendari.',  quote: '«Le carte non mentono. Ogni drago rivela il tuo destino.»' },
   { lv: 60,  key: 'antro_bestia',    icon: '🐉', name: 'Bestia Ancestrale',       desc: 'Un boss mensile che può essere abbattuto solo dai degni.',   quote: '«L\'Antica Belva non conosce pietà. Mostrami cosa sei fatto.»' },
   { lv: 70,  key: 'antro_trofei',    icon: '🏆', name: 'Sala dei Trofei',         desc: 'I tuoi record e imprese incisi nella pietra eterna.',        quote: '«La pietra dimentica i nomi vili. Il tuo sarà l\'eccezione.»' },
   { lv: 80,  key: 'antro_forgia',    icon: '🔥', name: 'Forgia del Campione',     desc: 'Forgia equipaggiamento leggendario irripetibile.',           quote: '«Il ferro comune brucia. Solo l\'acciaio del sacrificio sopravvive.»' },
@@ -396,7 +396,158 @@ function _antroComingSoon(c, s) {
   `;
   c.appendChild(wrap);
 }
-function renderAntroContrattiView(c) { _antroComingSoon(c, ANTRO_SECTIONS[0]); }
+function renderAntroContrattiView(c) { renderAntroDragonCardsView(c); }
+
+/* ── Collezione Carte dei Draghi ─────────────────────────────────────── */
+const DC_DRAGON_META = {
+  ignis:   { name: 'Ignis',   color: '#e74c3c', bg: '#fff0ee', icon: '🔥' },
+  aqua:    { name: 'Aqua',    color: '#2980b9', bg: '#eef4ff', icon: '🌊' },
+  silvano: { name: 'Silvano', color: '#27ae60', bg: '#eefff2', icon: '🌿' },
+  terras:  { name: 'Terras',  color: '#8B4513', bg: '#fff5ee', icon: '🪨' },
+  glacio:  { name: 'Glacio',  color: '#5dade2', bg: '#eef8ff', icon: '❄️' },
+  volt:    { name: 'Volt',    color: '#d4ac0d', bg: '#fffbee', icon: '⚡' },
+  umbra:   { name: 'Umbra',   color: '#8e44ad', bg: '#f5eeff', icon: '🌑' },
+  chronos: { name: 'Chronos', color: '#7f8c8d', bg: '#f0f0f0', icon: '⏳' },
+  lux:     { name: 'Lux',     color: '#e67e22', bg: '#fffaee', icon: '☀️' },
+  aero:    { name: 'Aero',    color: '#16a085', bg: '#eefffc', icon: '💨' },
+};
+const DC_RARITY_META = {
+  comune:      { label: 'Comune',      grad: 'linear-gradient(135deg,#8a9ba8,#c5ced6,#8a9ba8)', border: '#b0bec5', dots: 1, textColor: '#37474f' },
+  non_comune:  { label: 'Non Comune',  grad: 'linear-gradient(135deg,#2e7d32,#66bb6a,#2e7d32)', border: '#43a047', dots: 2, textColor: '#1b5e20' },
+  raro:        { label: 'Raro',        grad: 'linear-gradient(135deg,#1565c0,#42a5f5,#1565c0)', border: '#1e88e5', dots: 3, textColor: '#0d47a1' },
+  epico:       { label: 'Epico',       grad: 'linear-gradient(135deg,#6a1b9a,#ba68c8,#6a1b9a)', border: '#8e24aa', dots: 4, textColor: '#4a148c' },
+  leggendario: { label: 'Leggendario', grad: 'linear-gradient(135deg,#b7791f,#f6d365,#fda085,#f6d365,#b7791f)', border: '#f59e0b', dots: 5, textColor: '#92400e' },
+};
+const DC_TYPE_META = {
+  offensiva: { label: 'ATK', icon: '⚔️', color: '#c0392b' },
+  difensiva: { label: 'DEF', icon: '🛡️', color: '#2980b9' },
+  supporto:  { label: 'SUP', icon: '💚', color: '#27ae60' },
+};
+const DC_EFFECT_LABELS = {
+  burn: '🔥 Bruciatura', freeze: '❄️ Gelo', stun: '⚡ Stordimento',
+  slow: '⏳ Rallentamento', double: '✕2 Doppio', chain: '🔗 Catena',
+  draw: '🃏 Pesca', steal: '👁️ Furto', rewind: '🔄 Riavvolgi',
+  extra_turn: '⌚ Turno Extra', time_stop: '⏸️ Stop Tempo', shield: '🔵 Scudo',
+  revive: '✨ Rinascita', cleanse: '🌊 Purifica', blind: '🌑 Acceca',
+  taunt: '🎯 Provocazione', discard: '🗑️ Scarta', 'double+stun': '✕2+⚡',
+  'blind+steal': '🌑+👁️', 'time_stop+rewind': '⏸️+🔄', 'double+chain': '✕2+🔗',
+  'rewind+draw': '🔄+🃏',
+};
+
+function _buildDragonCard(card, owned) {
+  const rm = DC_RARITY_META[card.rarity] || DC_RARITY_META.comune;
+  const dm = DC_DRAGON_META[card.dragon] || { name: card.dragon, color: '#555', bg: '#f5f5f5', icon: '🐉' };
+  const tm = DC_TYPE_META[card.type] || DC_TYPE_META.offensiva;
+
+  const wrap = el('div', `dc-card dc-rar-${card.rarity}${owned ? '' : ' dc-locked'}`);
+  wrap.setAttribute('data-rarity', card.rarity);
+
+  const dots = '◆'.repeat(rm.dots) + '◇'.repeat(5 - rm.dots);
+
+  const imgPath = `assets/dragon-cards/${card.id}.webp`;
+  const artContent = owned
+    ? `<img class="dc-art-img" src="${imgPath}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="${esc(card.name)}"><div class="dc-art-emoji" style="display:none">${dm.icon}</div>`
+    : `<div class="dc-art-emoji">❓</div>`;
+
+  const statsHtml = owned ? `
+    <div class="dc-stats">
+      <div class="dc-stat dc-stat-atk"><span class="dc-stat-icon">⚔️</span><span class="dc-stat-val">${card.atk}</span></div>
+      <div class="dc-stat dc-stat-def"><span class="dc-stat-icon">🛡️</span><span class="dc-stat-val">${card.def}</span></div>
+      <div class="dc-stat dc-stat-heal"><span class="dc-stat-icon">💚</span><span class="dc-stat-val">${card.heal}</span></div>
+    </div>` : '';
+
+  const effectHtml = (owned && card.effect)
+    ? `<div class="dc-effect-badge">${DC_EFFECT_LABELS[card.effect] || card.effect}</div>`
+    : '';
+
+  wrap.innerHTML = `
+    <div class="dc-header" style="background:${rm.grad}">
+      <span class="dc-name">${owned ? esc(card.name) : '???'}</span>
+      <span class="dc-type-badge" style="background:${tm.color}">${tm.icon} ${tm.label}</span>
+    </div>
+    <div class="dc-art-area" style="background:${owned ? dm.bg : '#e8e8e8'}">
+      ${artContent}
+      <div class="dc-dragon-badge" style="color:${dm.color}">${dm.icon} ${dm.name}</div>
+    </div>
+    <div class="dc-body" style="border-color:${rm.border}">
+      ${statsHtml}
+      ${effectHtml}
+      <p class="dc-desc">${owned ? esc(card.desc) : 'Carta non ancora scoperta...'}</p>
+      <div class="dc-footer">
+        <span class="dc-dots" style="color:${rm.textColor}">${dots}</span>
+        <span class="dc-rarity-label" style="color:${rm.textColor}">${rm.label}</span>
+      </div>
+    </div>
+  `;
+
+  return wrap;
+}
+
+function renderAntroDragonCardsView(c) {
+  const ownedIds = new Set((HERO.dragonCards || []).map(dc => dc.id));
+  const allCards = RPG.DRAGON_CARDS;
+  const totalOwned = allCards.filter(card => ownedIds.has(card.id)).length;
+
+  const header = el('div', 'dc-collection-header');
+  header.innerHTML = `
+    <h2 class="section-title">🐲 Carte dei Draghi</h2>
+    <p class="muted small center">${totalOwned} / ${allCards.length} carte raccolte · Si sbloccano con gli allenamenti dal Lv 30</p>
+    <div class="dc-progress-bar-wrap">
+      <div class="dc-progress-bar-fill" style="width:${Math.round(totalOwned/allCards.length*100)}%"></div>
+    </div>
+  `;
+  c.appendChild(header);
+
+  // Duello button (coming soon)
+  const duelBtn = el('button', 'btn btn-primary dc-duel-btn', '⚔️ Duella contro l\'IA');
+  duelBtn.addEventListener('click', () => toast('Il Duello sarà disponibile a breve, Campione!'));
+  c.appendChild(duelBtn);
+
+  // Filtro per rarità
+  const rarities = ['tutte', 'comune', 'non_comune', 'raro', 'epico', 'leggendario'];
+  let activeFilter = 'tutte';
+  const filterBar = el('div', 'dc-filter-bar');
+  rarities.forEach(r => {
+    const btn = el('button', `dc-filter-btn${r === activeFilter ? ' active' : ''}`, r === 'tutte' ? 'Tutte' : (DC_RARITY_META[r]?.label || r));
+    btn.addEventListener('click', () => {
+      activeFilter = r;
+      filterBar.querySelectorAll('.dc-filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      grid.querySelectorAll('.dc-card').forEach(card => {
+        const match = r === 'tutte' || card.getAttribute('data-rarity') === r;
+        card.style.display = match ? '' : 'none';
+      });
+    });
+    filterBar.appendChild(btn);
+  });
+  c.appendChild(filterBar);
+
+  // Griglia carte raggruppate per drago
+  const grid = el('div', 'dc-grid');
+  const DRAGON_ORDER = ['ignis','aqua','silvano','terras','glacio','volt','umbra','chronos','lux','aero'];
+  const RARITY_ORDER = ['comune','non_comune','raro','epico','leggendario'];
+
+  DRAGON_ORDER.forEach(dragon => {
+    const dragonCards = RARITY_ORDER.flatMap(rar =>
+      allCards.filter(c => c.dragon === dragon && c.rarity === rar)
+    );
+    if (!dragonCards.length) return;
+    const dm = DC_DRAGON_META[dragon];
+    const dragonOwned = dragonCards.filter(c => ownedIds.has(c.id)).length;
+    const section = el('div', 'dc-dragon-section');
+    section.innerHTML = `<div class="dc-dragon-section-title" style="color:${dm.color}">${dm.icon} ${dm.name} <span class="muted small">${dragonOwned}/${dragonCards.length}</span></div>`;
+    const row = el('div', 'dc-dragon-row');
+    dragonCards.forEach(card => {
+      const owned = ownedIds.has(card.id);
+      const cardEl = _buildDragonCard(card, owned);
+      row.appendChild(cardEl);
+    });
+    section.appendChild(row);
+    grid.appendChild(section);
+  });
+  c.appendChild(grid);
+}
+
 function renderAntroBestiaView(c)    { _antroComingSoon(c, ANTRO_SECTIONS[1]); }
 function renderAntroTrofeiView(c)    { _antroComingSoon(c, ANTRO_SECTIONS[2]); }
 function renderAntroForgiaView(c)    { _antroComingSoon(c, ANTRO_SECTIONS[3]); }

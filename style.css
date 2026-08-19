@@ -541,6 +541,15 @@ body {
   font-family: 'Cinzel', serif; font-weight: 700; text-align: center;
   color: var(--magic); margin: 10px 0; font-size: 1.05rem;
 }
+.dc-drop-news {
+  background: linear-gradient(135deg,rgba(180,130,0,.12),rgba(245,158,11,.18));
+  border: 1.5px solid #f59e0b; border-radius: 10px; padding: 8px 12px;
+  color: #92400e;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .dc-drop-news { color: #fde68a; }
+}
+:root[data-theme="dark"] .dc-drop-news { color: #fde68a; }
 .loot-list { display: flex; flex-direction: column; gap: 7px; margin: 6px 0; }
 .loot {
   padding: 9px 12px;
@@ -10046,3 +10055,144 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
 .sp-modal-cosmetic-img {
   display: block; max-width: 200px; width: 100%; margin: 8px auto; border-radius: 8px;
 }
+
+/* ── Carte dei Draghi — stile Pokémon ───────────────────────────────── */
+.dc-grid { padding-bottom: 1rem; }
+.dc-collection-header { text-align: center; padding: 0 0 .5rem; }
+.dc-progress-bar-wrap {
+  height: 6px; background: var(--divider); border-radius: 3px;
+  margin: .4rem 1rem .6rem; overflow: hidden;
+}
+.dc-progress-bar-fill { height: 100%; background: linear-gradient(90deg,#ffd700,#f59e0b); border-radius: 3px; transition: width .5s; }
+
+.dc-duel-btn { display: block; margin: .5rem auto 1rem; padding: .6rem 2rem; font-size: 1rem; }
+
+.dc-filter-bar {
+  display: flex; gap: 6px; overflow-x: auto; padding: .2rem 0 .6rem;
+  scrollbar-width: none;
+}
+.dc-filter-bar::-webkit-scrollbar { display: none; }
+.dc-filter-btn {
+  flex-shrink: 0; padding: .28rem .7rem; border-radius: 20px; border: 1.5px solid var(--divider);
+  background: var(--bg, #fff); color: var(--text); font-size: .78rem; cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+.dc-filter-btn.active { background: var(--gold); border-color: var(--gold); color: #1a0e00; font-weight: 700; }
+
+.dc-dragon-section { margin-bottom: 1.4rem; }
+.dc-dragon-section-title { font-weight: 700; font-size: .9rem; margin-bottom: .5rem; padding-left: 2px; }
+
+.dc-dragon-row {
+  display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px;
+  scrollbar-width: thin; scrollbar-color: var(--divider) transparent;
+}
+.dc-dragon-row::-webkit-scrollbar { height: 4px; }
+.dc-dragon-row::-webkit-scrollbar-track { background: transparent; }
+.dc-dragon-row::-webkit-scrollbar-thumb { background: var(--divider); border-radius: 2px; }
+
+/* Card base */
+.dc-card {
+  flex-shrink: 0;
+  width: 138px;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 3px 12px rgba(0,0,0,.22);
+  display: flex; flex-direction: column;
+  transition: transform .18s, box-shadow .18s;
+  position: relative;
+  cursor: pointer;
+}
+.dc-card:hover { transform: translateY(-4px) scale(1.03); box-shadow: 0 8px 24px rgba(0,0,0,.3); }
+.dc-card.dc-locked { filter: grayscale(.85); opacity: .6; cursor: default; }
+.dc-card.dc-locked:hover { transform: none; box-shadow: 0 3px 12px rgba(0,0,0,.22); }
+
+/* Rarity border glow */
+.dc-card.dc-rar-comune      { border: 2.5px solid #b0bec5; }
+.dc-card.dc-rar-non_comune  { border: 2.5px solid #43a047; }
+.dc-card.dc-rar-raro        { border: 2.5px solid #1e88e5; }
+.dc-card.dc-rar-epico       { border: 2.5px solid #8e24aa; box-shadow: 0 3px 16px rgba(142,36,170,.3); }
+.dc-card.dc-rar-leggendario { border: 2.5px solid #f59e0b; box-shadow: 0 4px 20px rgba(245,158,11,.45); }
+.dc-card.dc-rar-leggendario:not(.dc-locked) { animation: dc-holo .8s ease-in-out infinite alternate; }
+@keyframes dc-holo {
+  from { box-shadow: 0 4px 20px rgba(245,158,11,.45); }
+  to   { box-shadow: 0 4px 28px rgba(245,158,11,.75), 0 0 10px rgba(253,210,133,.4); }
+}
+
+/* Header */
+.dc-header {
+  padding: 6px 8px 5px;
+  display: flex; align-items: center; justify-content: space-between; gap: 4px;
+}
+.dc-name {
+  font-size: .62rem; font-weight: 800; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.5);
+  line-height: 1.15; flex: 1; min-width: 0; word-break: break-word;
+}
+.dc-type-badge {
+  font-size: .5rem; font-weight: 700; color: #fff; padding: 2px 5px;
+  border-radius: 8px; white-space: nowrap; flex-shrink: 0;
+  text-shadow: 0 1px 2px rgba(0,0,0,.4);
+}
+
+/* Art area */
+.dc-art-area {
+  position: relative; min-height: 110px;
+  display: flex; align-items: center; justify-content: center; flex-direction: column;
+  overflow: hidden;
+}
+.dc-art-img {
+  width: 100%; height: 110px; object-fit: contain;
+  display: block;
+}
+.dc-art-emoji {
+  font-size: 3.2rem; line-height: 1; user-select: none;
+  display: flex; align-items: center; justify-content: center;
+  height: 110px; width: 100%;
+}
+.dc-dragon-badge {
+  position: absolute; bottom: 4px; left: 0; right: 0; text-align: center;
+  font-size: .52rem; font-weight: 700; text-shadow: 0 0 6px rgba(255,255,255,.8);
+}
+
+/* Body */
+.dc-body {
+  flex: 1; background: var(--surface, #fafaf7);
+  border-top: 2px solid;
+  padding: 6px 7px 5px; display: flex; flex-direction: column; gap: 4px;
+}
+.dc-stats {
+  display: flex; gap: 4px; justify-content: space-around; margin-bottom: 2px;
+}
+.dc-stat {
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  background: rgba(0,0,0,.05); border-radius: 6px; padding: 3px 5px; flex: 1;
+}
+.dc-stat-icon { font-size: .75rem; line-height: 1; }
+.dc-stat-val  { font-size: .8rem; font-weight: 800; line-height: 1; }
+.dc-stat-atk .dc-stat-val  { color: #c0392b; }
+.dc-stat-def .dc-stat-val  { color: #2980b9; }
+.dc-stat-heal .dc-stat-val { color: #27ae60; }
+
+.dc-effect-badge {
+  font-size: .52rem; font-weight: 700; background: rgba(0,0,0,.08);
+  border-radius: 6px; padding: 2px 5px; text-align: center; color: var(--text);
+}
+.dc-desc {
+  font-size: .55rem; color: var(--muted); line-height: 1.35; margin: 0;
+  flex: 1;
+}
+.dc-footer {
+  display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 3px;
+  border-top: 1px solid rgba(0,0,0,.07);
+}
+.dc-dots { font-size: .55rem; letter-spacing: 1px; }
+.dc-rarity-label { font-size: .5rem; font-weight: 700; }
+
+/* Dark theme overrides */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .dc-body { background: #1e1e2e; }
+  :root:not([data-theme="light"]) .dc-stat  { background: rgba(255,255,255,.07); }
+  :root:not([data-theme="light"]) .dc-card.dc-locked { opacity: .4; }
+}
+:root[data-theme="dark"] .dc-body { background: #1e1e2e; }
+:root[data-theme="dark"] .dc-stat  { background: rgba(255,255,255,.07); }
+:root[data-theme="dark"] .dc-card.dc-locked { opacity: .4; }
