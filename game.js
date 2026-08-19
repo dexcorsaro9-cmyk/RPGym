@@ -517,8 +517,8 @@ const RPG = (() => {
     board.claimed.push(questId);
     if (q.reward.gold)  hero.gold += q.reward.gold;
     if (q.reward.xp)    applyXp(hero, q.reward.xp);
-    if (q.reward.wood)  hero.resources.wood  = (hero.resources.wood  || 0) + q.reward.wood;
-    if (q.reward.stone) hero.resources.stone = (hero.resources.stone || 0) + q.reward.stone;
+    if (q.reward.wood)  hero.wood  = (hero.wood  || 0) + q.reward.wood;
+    if (q.reward.stone) hero.stone = (hero.stone || 0) + q.reward.stone;
     if (q.reward.consumable) addConsumable(hero, q.reward.consumable);
     return null;
   }
