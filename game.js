@@ -4382,20 +4382,20 @@ const RPG = (() => {
 
   const PET_ACCESSORIES = {
     // ── Acquistabili ──────────────────────────────────────────────
-    cappello:  { name: 'Cappellino da Pirata',    icon: '🏴‍☠️', price: 80,
+    cappello:  { name: 'Cappellino da Pirata',    icon: '🏴‍☠️', img: 'assets/pet/cappellino-pirata.webp',   price: 80,
                  desc: '+1 Coraggio per ogni sessione di corsa.' },
-    collare:   { name: 'Collare Magico',           icon: '🔮',   price: 60,
+    collare:   { name: 'Collare Magico',           icon: '🔮',   img: 'assets/pet/collare-magico.webp',      price: 60,
                  desc: 'Decadimento umore ridotto del 20%.' },
-    occhiali:  { name: 'Occhiali Steampunk',       icon: '🥽',   price: 100,
+    occhiali:  { name: 'Occhiali Steampunk',       icon: '🥽',   img: 'assets/pet/occhiali-steampunk.webp',  price: 100,
                  desc: '+1 Astuzia per ogni sessione di camminata.' },
     // ── Guadagnati (sbloccabili) ──────────────────────────────────
-    medaglione:{ name: 'Medaglione del Corridore', icon: '🏅',   price: null,
+    medaglione:{ name: 'Medaglione del Corridore', icon: '🏅',   img: 'assets/pet/medaglione-corridore.webp', price: null,
                  desc: '+2 Coraggio per ogni vittoria in Arena.',
                  unlock: { label: '100 km percorsi totali', check: h => (h.totalKm || 0) >= 100 } },
-    fiocco:    { name: 'Fiocco della Vittoria',    icon: '🎀',   price: null,
+    fiocco:    { name: 'Fiocco della Vittoria',    icon: '🎀',   img: 'assets/pet/fiocco-vittoria.webp',     price: null,
                  desc: 'Rischio spedizione ridotto del 10%.',
                  unlock: { label: '20 sessioni di allenamento', check: h => (h.totalSessions || 0) >= 20 } },
-    mantello:  { name: 'Mantello del Viandante',   icon: '🧣',   price: null,
+    mantello:  { name: 'Mantello del Viandante',   icon: '🧣',   img: 'assets/pet/mantello-viandante.webp',  price: null,
                  desc: '+2 Lealtà per ogni azione di cura.',
                  unlock: { label: 'Famiglio al Livello 10', check: h => !!(h.pet && (h.pet.level || 0) >= 10) } },
   };
@@ -4410,13 +4410,13 @@ const RPG = (() => {
   }
 
   const PET_VIRTUE_META = {
-    coraggio: { name: 'Coraggio', icon: '⚔️', color: '#e8604c',
+    coraggio: { name: 'Coraggio', icon: '⚔️', img: 'assets/pet/coraggio.webp', color: '#e8604c',
       desc: 'Cresce con corsa e cyclette, vittorie in Arena e Scalata, spedizioni.',
       synergyDesc: 'Attacca il nemico per danni bonus diretti (solo in Scalata).' },
-    astuzia:  { name: 'Astuzia',  icon: '✨', color: '#9b59b6',
+    astuzia:  { name: 'Astuzia',  icon: '✨', img: 'assets/pet/astuzia.webp',  color: '#9b59b6',
       desc: 'Cresce con le camminate e i consumabili strategici.',
       synergyDesc: 'Forza il nemico a muoversi normalmente questo round (solo in Scalata).' },
-    lealta:   { name: 'Lealtà',   icon: '💚', color: '#27ae60',
+    lealta:   { name: 'Lealtà',   icon: '💚', img: 'assets/pet/lealta.webp',   color: '#27ae60',
       desc: 'Cresce con la cura — nutrimento, gioco, pulizia, accessi giornalieri.',
       synergyDesc: 'Ti cura per il 25% degli HP massimi.' },
   };

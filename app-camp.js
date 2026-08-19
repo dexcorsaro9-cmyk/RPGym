@@ -1036,13 +1036,13 @@ function renderSantuarioView(c) {
   const statsPanel = el('div', 'panel');
   statsPanel.appendChild(el('h3', 'panel-title', '📊 Bisogni'));
   [
-    ['🍖 Sazietà', pet.hunger],
-    ['🎾 Umore', pet.mood],
-    ['🛁 Igiene', pet.hygiene],
-    ['🌙 Energia', pet.energy],
-  ].forEach(([label, val]) => {
+    ['assets/pet/sazieta.webp', 'Sazietà', pet.hunger],
+    ['assets/pet/umore.webp',   'Umore',   pet.mood],
+    ['assets/pet/igiene.webp',  'Igiene',  pet.hygiene],
+    ['assets/pet/energia.webp', 'Energia', pet.energy],
+  ].forEach(([img, label, val]) => {
     const cls = val < 30 ? 'danger' : 'gold';
-    statsPanel.innerHTML += `<div class="stat-row">${label} <b>${Math.round(val)}%</b></div>
+    statsPanel.innerHTML += `<div class="stat-row"><img src="${img}" alt="${label}" class="pet-need-icon"> ${label} <b>${Math.round(val)}%</b></div>
       <div class="membar slim"><div class="membar-fill ${cls}" style="width:${Math.round(val)}%"></div></div>`;
   });
   c.appendChild(statsPanel);
@@ -1109,7 +1109,7 @@ function renderSantuarioView(c) {
     const row = el('div', 'pet-virtue-row' + (isDom ? ' dominant' : ''));
     row.innerHTML = `
       <div class="pet-virtue-head">
-        <span class="pet-virtue-icon">${vm.icon}</span>
+        <span class="pet-virtue-icon">${vm.img ? `<img src="${vm.img}" alt="${vm.name}" class="pet-virtue-img">` : vm.icon}</span>
         <span class="pet-virtue-name">${vm.name}</span>
         <span class="pet-virtue-val">${Math.round(vv)}</span>
         ${isDom ? '<span class="pet-virtue-dom">★</span>' : ''}
@@ -1138,7 +1138,7 @@ function renderSantuarioView(c) {
   // ── Spedizioni ───────────────────────────────────────────────
   const expStatus = RPG.expeditionStatus(HERO);
   const expPanel = el('div', 'panel');
-  expPanel.appendChild(el('h3', 'panel-title', '🎒 Spedizione di Esplorazione'));
+  expPanel.appendChild(el('h3', 'panel-title', `<img src="assets/pet/spedizione.webp" alt="Spedizione" class="pet-section-icon"> Spedizione di Esplorazione`));
   if (!unlocks.expedition) {
     expPanel.appendChild(el('p', 'muted small center', `🔒 Si sblocca al livello 5. Ancora ${5 - pet.level} livello/i mancanti — allena per far crescere il tuo famiglio!`));
   } else if (!pet.expedition) {
@@ -1198,7 +1198,7 @@ function renderSantuarioView(c) {
   // ── Memorie ──────────────────────────────────────────────────
   if (pet.memories && pet.memories.length) {
     const memPanel = el('div', 'panel');
-    memPanel.appendChild(el('h3', 'panel-title', `💭 Ricordi di ${esc(pet.name)}`));
+    memPanel.appendChild(el('h3', 'panel-title', `<img src="assets/pet/ricordi.webp" alt="Ricordi" class="pet-section-icon"> Ricordi di ${esc(pet.name)}`));
     const memList = el('div', 'pet-memories');
     const mems = [...pet.memories].reverse(); // più recente prima
     mems.forEach(m => {
@@ -1228,7 +1228,7 @@ function renderSantuarioView(c) {
       statusLine = `<span class="muted small">🔒 Sblocca con: ${acc.unlock.label}</span>`;
     }
     row.innerHTML = `<div class="loot-body">
-      <div class="loot-head"><b>${acc.icon} ${acc.name}</b></div>
+      <div class="loot-head">${acc.img ? `<img src="${acc.img}" alt="${acc.name}" class="pet-acc-icon">` : acc.icon} <b>${acc.name}</b></div>
       <div class="small acc-effect-desc">${esc(acc.desc)}</div>
       <div style="margin-top:4px">${statusLine}</div>
     </div>`;

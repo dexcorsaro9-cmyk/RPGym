@@ -3674,7 +3674,11 @@ img.fiche-inline {
 .pet-virtue-head {
   display: flex; align-items: center; gap: 6px; margin-bottom: 5px;
 }
-.pet-virtue-icon { font-size: 1.05rem; line-height: 1; }
+.pet-virtue-icon { font-size: 1.05rem; line-height: 1; display: flex; align-items: center; }
+.pet-virtue-img  { width: 28px; height: 28px; object-fit: contain; }
+.pet-acc-icon    { width: 36px; height: 36px; object-fit: contain; vertical-align: middle; margin-right: 6px; }
+.pet-need-icon   { width: 22px; height: 22px; object-fit: contain; vertical-align: middle; margin-right: 4px; }
+.pet-section-icon{ width: 22px; height: 22px; object-fit: contain; vertical-align: middle; margin-right: 6px; }
 .pet-virtue-name { font-weight: 700; font-size: .82rem; flex: 1; }
 .pet-virtue-val { font-size: .78rem; font-variant-numeric: tabular-nums; color: var(--gold); }
 .pet-virtue-dom { color: var(--gold); font-size: .82rem; font-weight: 700; margin-left: 2px; }
