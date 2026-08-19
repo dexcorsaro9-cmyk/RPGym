@@ -1914,6 +1914,58 @@ const RPG = (() => {
       lore: 'Ora conosci il volto del nemico. E lui conosce il tuo.' },
   };
 
+  /* ── Carte dei Draghi (Antro del Campione — drop dal lv30) ── */
+  const DRAGON_CARDS = [
+    // IGNIS — drago del fuoco
+    { id:'dc_ignis_c',   dragon:'ignis',   type:'offensiva', rarity:'comune',      name:'Zanna di Fuoco',          icon:'🔥', atk:3, def:0, heal:0, desc:'Infligge 3 danni.' },
+    { id:'dc_ignis_nc',  dragon:'ignis',   type:'offensiva', rarity:'non_comune',  name:'Artiglio Ardente',        icon:'🔥', atk:4, def:0, heal:0, desc:'Infligge 4 danni.' },
+    { id:'dc_ignis_r',   dragon:'ignis',   type:'offensiva', rarity:'raro',        name:'Ruggito Infuocato',       icon:'🌋', atk:5, def:0, heal:0, desc:'Infligge 5 danni.' },
+    { id:'dc_ignis_e',   dragon:'ignis',   type:'offensiva', rarity:'epico',       name:'Nova Cremante',           icon:'💥', atk:4, def:0, heal:0, effect:'burn',       effectVal:2, desc:'4 danni + 2 bruciatura al prossimo turno.' },
+    { id:'dc_ignis_l',   dragon:'ignis',   type:'offensiva', rarity:'leggendario', name:'Eruzione del Drago Eterno',icon:'🌋', atk:8, def:0, heal:0, effect:'burn',       effectVal:4, desc:'8 danni devastanti + 4 bruciatura per 2 turni.' },
+    // AQUA — drago dell'acqua
+    { id:'dc_aqua_c',    dragon:'aqua',    type:'difensiva', rarity:'comune',      name:'Scudo d\'Acqua',          icon:'🛡️', atk:0, def:4, heal:0, desc:'Assorbe 4 danni.' },
+    { id:'dc_aqua_nc',   dragon:'aqua',    type:'difensiva', rarity:'non_comune',  name:'Bolla Protettiva',        icon:'💧', atk:0, def:0, heal:2, desc:'Recupera 2 HP.' },
+    { id:'dc_aqua_r',    dragon:'aqua',    type:'difensiva', rarity:'raro',        name:'Marea Protettiva',        icon:'🌊', atk:0, def:0, heal:3, desc:'Recupera 3 HP.' },
+    { id:'dc_aqua_e',    dragon:'aqua',    type:'difensiva', rarity:'epico',       name:'Vortice Guaritore',       icon:'💎', atk:0, def:3, heal:3, desc:'Assorbe 3 danni e recupera 3 HP.' },
+    { id:'dc_aqua_l',    dragon:'aqua',    type:'difensiva', rarity:'leggendario', name:'Diluvio Rigenerante',     icon:'🌊', atk:0, def:6, heal:6, effect:'shield', desc:'Assorbe 6 danni, recupera 6 HP e crea uno scudo per il turno successivo.' },
+    // SILVANO — drago della foresta
+    { id:'dc_silvano_c', dragon:'silvano', type:'supporto',  rarity:'comune',      name:'Vento Verde',             icon:'🌿', atk:0, def:0, heal:2, desc:'Recupera 2 HP.' },
+    { id:'dc_silvano_nc',dragon:'silvano', type:'supporto',  rarity:'non_comune',  name:'Spore Curative',          icon:'🍃', atk:0, def:0, heal:3, desc:'Recupera 3 HP.' },
+    { id:'dc_silvano_r', dragon:'silvano', type:'supporto',  rarity:'raro',        name:'Linfa Vitale',            icon:'🌳', atk:1, def:0, heal:4, desc:'1 danno e recupera 4 HP.' },
+    { id:'dc_silvano_e', dragon:'silvano', type:'supporto',  rarity:'epico',       name:'Fioritura Eterna',        icon:'🌸', atk:0, def:0, heal:0, effect:'draw', effectVal:2, desc:'Pesca 2 carte extra.' },
+    { id:'dc_silvano_l', dragon:'silvano', type:'supporto',  rarity:'leggendario', name:'Rinascita del Grande Bosco',icon:'🌲', atk:2, def:0, heal:8, effect:'draw', effectVal:2, desc:'2 danni, recupera 8 HP e pesca 2 carte.' },
+    // TERRAS — drago della terra
+    { id:'dc_terras_c',  dragon:'terras',  type:'difensiva', rarity:'comune',      name:'Muro di Roccia',          icon:'🪨', atk:0, def:5, heal:0, desc:'Assorbe 5 danni.' },
+    { id:'dc_terras_nc', dragon:'terras',  type:'difensiva', rarity:'non_comune',  name:'Scudo di Granito',        icon:'🪨', atk:0, def:3, heal:1, desc:'Assorbe 3 danni e recupera 1 HP.' },
+    { id:'dc_terras_r',  dragon:'terras',  type:'offensiva', rarity:'raro',        name:'Pugno di Terra',          icon:'⛏️', atk:4, def:2, heal:0, desc:'4 danni e assorbe 2.' },
+    { id:'dc_terras_e',  dragon:'terras',  type:'difensiva', rarity:'epico',       name:'Fortezza Ancestrale',     icon:'🏔️', atk:0, def:8, heal:0, desc:'Assorbe 8 danni.' },
+    { id:'dc_terras_l',  dragon:'terras',  type:'difensiva', rarity:'leggendario', name:'Colosso di Pietra Eterna', icon:'🏔️', atk:3, def:10, heal:0, effect:'taunt', desc:'3 danni, assorbe 10 danni e forza il nemico ad attaccare questa carta.' },
+    // GLACIO — drago del ghiaccio
+    { id:'dc_glacio_c',  dragon:'glacio',  type:'offensiva', rarity:'comune',      name:'Lama di Ghiaccio',        icon:'❄️', atk:2, def:0, heal:0, effect:'freeze', effectVal:1, desc:'2 danni. Nemico perde 1 difesa.' },
+    { id:'dc_glacio_nc', dragon:'glacio',  type:'offensiva', rarity:'non_comune',  name:'Freccia Glaciale',        icon:'🧊', atk:3, def:0, heal:0, desc:'Infligge 3 danni.' },
+    { id:'dc_glacio_r',  dragon:'glacio',  type:'offensiva', rarity:'raro',        name:'Tempesta Glaciale',       icon:'🌨️', atk:4, def:0, heal:0, effect:'freeze', effectVal:2, desc:'4 danni. Nemico perde 2 difesa.' },
+    { id:'dc_glacio_e',  dragon:'glacio',  type:'offensiva', rarity:'epico',       name:'Congelamento Totale',     icon:'🧊', atk:3, def:0, heal:0, effect:'stun',              desc:'3 danni. Nemico salta il prossimo turno.' },
+    { id:'dc_glacio_l',  dragon:'glacio',  type:'offensiva', rarity:'leggendario', name:'Era Glaciale',            icon:'❄️', atk:5, def:0, heal:0, effect:'stun',              desc:'5 danni. Stordisce il nemico per 2 turni e azzera la sua difesa.' },
+    // VOLT — drago del fulmine
+    { id:'dc_volt_c',    dragon:'volt',    type:'offensiva', rarity:'comune',      name:'Scintilla',               icon:'⚡', atk:4, def:0, heal:0, desc:'Infligge 4 danni.' },
+    { id:'dc_volt_nc',   dragon:'volt',    type:'offensiva', rarity:'non_comune',  name:'Elettroschoc',            icon:'⚡', atk:3, def:0, heal:0, effect:'stun',              desc:'3 danni. 50% di stordire il nemico.' },
+    { id:'dc_volt_r',    dragon:'volt',    type:'offensiva', rarity:'raro',        name:'Fulmine Diretto',         icon:'🌩️', atk:6, def:0, heal:0, desc:'Infligge 6 danni.' },
+    { id:'dc_volt_e',    dragon:'volt',    type:'offensiva', rarity:'epico',       name:'Scarica Sovraccarica',    icon:'🔋', atk:3, def:0, heal:0, effect:'double',            desc:'Infligge 3 danni due volte.' },
+    { id:'dc_volt_l',    dragon:'volt',    type:'offensiva', rarity:'leggendario', name:'Tempesta Suprema',        icon:'🌩️', atk:7, def:0, heal:0, effect:'chain',             desc:'7 danni che rimbalzano due volte (7+5+3 totale).' },
+    // UMBRA — drago dell'ombra
+    { id:'dc_umbra_c',   dragon:'umbra',   type:'supporto',  rarity:'comune',      name:'Velo Oscuro',             icon:'🌑', atk:0, def:3, heal:0, desc:'Assorbe 3 danni.' },
+    { id:'dc_umbra_nc',  dragon:'umbra',   type:'supporto',  rarity:'non_comune',  name:'Tocco d\'Ombra',          icon:'🌑', atk:2, def:1, heal:0, desc:'2 danni e assorbe 1.' },
+    { id:'dc_umbra_r',   dragon:'umbra',   type:'supporto',  rarity:'raro',        name:'Drenaggio Vitale',        icon:'🕷️', atk:3, def:0, heal:3, desc:'3 danni e recupera 3 HP.' },
+    { id:'dc_umbra_e',   dragon:'umbra',   type:'supporto',  rarity:'epico',       name:'Furto di Potere',         icon:'👁️', atk:2, def:0, heal:0, effect:'steal',             desc:'2 danni e ruba 1 carta dalla mano nemica.' },
+    { id:'dc_umbra_l',   dragon:'umbra',   type:'supporto',  rarity:'leggendario', name:'Sovrano delle Ombre',     icon:'👁️', atk:4, def:0, heal:4, effect:'steal',             desc:'4 danni, recupera 4 HP e ruba 2 carte dalla mano nemica.' },
+    // CHRONOS — drago del tempo
+    { id:'dc_chronos_c', dragon:'chronos', type:'supporto',  rarity:'comune',      name:'Rallentamento',           icon:'⏳', atk:0, def:0, heal:0, effect:'slow',              desc:'Il nemico perde 1 attacco al prossimo turno.' },
+    { id:'dc_chronos_nc',dragon:'chronos', type:'supporto',  rarity:'non_comune',  name:'Distorsione',             icon:'⌛', atk:1, def:0, heal:1, desc:'1 danno e recupera 1 HP.' },
+    { id:'dc_chronos_r', dragon:'chronos', type:'supporto',  rarity:'raro',        name:'Riavvolgimento',          icon:'🔄', atk:0, def:0, heal:0, effect:'rewind',            desc:'Riprendi l\'ultima carta giocata.' },
+    { id:'dc_chronos_e', dragon:'chronos', type:'supporto',  rarity:'epico',       name:'Doppio Turno',            icon:'⌛', atk:0, def:0, heal:0, effect:'extra_turn',        desc:'Gioca un\'altra carta questo turno.' },
+    { id:'dc_chronos_l', dragon:'chronos', type:'supporto',  rarity:'leggendario', name:'Padrone del Tempo',       icon:'⏳', atk:0, def:0, heal:0, effect:'time_stop',         desc:'Congela il tempo: il nemico salta 2 turni e tu peschi 3 carte.' },
+  ];
+
   /* ── Bestiario ────────────────────────────────────────────── */
   const BESTIARY = [
     // ── Rovine di Oakhaven ───────────────────────────────────
@@ -3031,6 +3083,7 @@ const RPG = (() => {
     h.lootBagsOpened = h.lootBagsOpened || 0;
     h.fragmentsFound = h.fragmentsFound || 0;
     h.cards          = h.cards          || [];
+    h.dragonCards    = h.dragonCards    || [];
     h.activeMission  = h.activeMission  || null;
     h.restBonus      = h.restBonus      || null;
     h.companion      = h.companion      || null;
@@ -3399,6 +3452,33 @@ const RPG = (() => {
   }
 
   /* ── Allenamento ──────────────────────────────────────────── */
+  function _dropDragonCard(hero, km) {
+    hero.dragonCards = hero.dragonCards || [];
+    if (Math.random() > 0.30) return null;
+    let rarity;
+    if (km >= 10) {
+      const r = Math.random();
+      if      (r < 0.05) rarity = 'leggendario';
+      else if (r < 0.18) rarity = 'epico';
+      else if (r < 0.45) rarity = 'raro';
+      else if (r < 0.72) rarity = 'non_comune';
+      else               rarity = 'comune';
+    } else {
+      const r = Math.random();
+      if      (r < 0.02) rarity = 'raro';
+      else if (r < 0.25) rarity = 'non_comune';
+      else               rarity = 'comune';
+    }
+    const pool = DRAGON_CARDS.filter(c => c.rarity === rarity);
+    if (!pool.length) return null;
+    const owned = hero.dragonCards.map(c => c.id);
+    const weighted = pool.flatMap(c => owned.includes(c.id) ? [c] : [c, c, c, c, c]);
+    if (!weighted.length) return null;
+    const card = weighted[Math.floor(Math.random() * weighted.length)];
+    hero.dragonCards.push({ id: card.id, obtainedAt: Date.now() });
+    return card;
+  }
+
   function validateSession(type, km) {
     const act = ACTIVITIES[type];
     if (!act) return 'Attività sconosciuta.';
@@ -3581,7 +3661,16 @@ const RPG = (() => {
         hero.weeklyBoss.progressKm = Math.min(bossData.km, hero.weeklyBoss.progressKm + km);
         const wasDefeated = hero.weeklyBoss.progressKm >= bossData.km;
         report.bossProgress = { boss: bossData, done: hero.weeklyBoss.progressKm, total: bossData.km };
-        if (wasDefeated) report.bossDefeatedWeekly = bossData;
+        if (wasDefeated) {
+          report.bossDefeatedWeekly = bossData;
+          if ((hero.level || 0) >= 30) {
+            const bossPool = DRAGON_CARDS.filter(c => c.rarity === 'raro' || c.rarity === 'epico' || c.rarity === 'leggendario');
+            const bossCard = bossPool[Math.floor(Math.random() * bossPool.length)];
+            hero.dragonCards = hero.dragonCards || [];
+            hero.dragonCards.push({ id: bossCard.id, obtainedAt: Date.now() });
+            report.dragonCardBoss = bossCard;
+          }
+        }
       }
     }
 
@@ -3756,6 +3845,12 @@ const RPG = (() => {
 
     // Contatore sessioni totali (per le Tappe della Via)
     hero.totalSessions = (hero.totalSessions || 0) + 1;
+
+    // Carte dei Draghi — drop dal lv30
+    if ((hero.level || 0) >= 30) {
+      const dc = _dropDragonCard(hero, km);
+      if (dc) report.dragonCard = dc;
+    }
 
     // Famiglio: XP e Virtù da attività fisica (fonte primaria di crescita)
     if (hero.pet && hero.pet.hatched) {
@@ -7055,6 +7150,7 @@ const RPG = (() => {
     canStartScalata, startScalata, scalataResolveDice, scalataAdvanceFloor, scalataGiveUp,
     scalataShopBuy, generateEnemyMove,
     SCALATA_ATK, SCALATA_DEF,
+    DRAGON_CARDS,
   };
 })();
 
