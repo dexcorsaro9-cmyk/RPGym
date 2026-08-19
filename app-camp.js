@@ -1034,7 +1034,7 @@ function renderSantuarioView(c) {
   }
 
   const statsPanel = el('div', 'panel');
-  statsPanel.appendChild(el('h3', 'panel-title', '📊 Bisogni'));
+  statsPanel.appendChild(el('h3', 'panel-title', `<img src="assets/pet/bisogni.webp" alt="Bisogni" class="pet-section-icon"> Bisogni`));
   [
     ['assets/pet/sazieta.webp', 'Sazietà', pet.hunger],
     ['assets/pet/umore.webp',   'Umore',   pet.mood],
@@ -1048,7 +1048,7 @@ function renderSantuarioView(c) {
   c.appendChild(statsPanel);
 
   const actionsPanel = el('div', 'panel');
-  actionsPanel.appendChild(el('h3', 'panel-title', '🤲 Prenditi cura di lui'));
+  actionsPanel.appendChild(el('h3', 'panel-title', `<img src="assets/pet/prenditi-cura.webp" alt="Prenditi cura" class="pet-section-icon"> Prenditi cura di lui`));
   actionsPanel.appendChild(el('p', 'muted small', '💡 La cura mantiene bisogni e virtù · l\'XP arriva dagli allenamenti!'));
   const grid = el('div', 'hero-submenu');
 
@@ -1095,7 +1095,7 @@ function renderSantuarioView(c) {
 
   // ── Virtù del Famiglio ───────────────────────────────────────
   const virtuePanel = el('div', 'panel');
-  virtuePanel.appendChild(el('h3', 'panel-title', '🌟 Virtù del Famiglio'));
+  virtuePanel.appendChild(el('h3', 'panel-title', `<img src="assets/pet/virtu-famiglio.webp" alt="Virtù" class="pet-section-icon"> Virtù del Famiglio`));
   const c_ = pet.coraggio || 0, a_ = pet.astuzia || 0, l_ = pet.lealta || 0;
   const virtTotal = c_ + a_ + l_;
   const dominantV = RPG.petDominantVirtue(HERO);
@@ -1213,7 +1213,7 @@ function renderSantuarioView(c) {
   RPG.checkAccessoryUnlocks(HERO);
 
   const shop = el('div', 'panel');
-  shop.appendChild(el('h3', 'panel-title', '🛍️ Bottega degli Accessori'));
+  shop.appendChild(el('h3', 'panel-title', `<img src="assets/pet/bottega-accessori.webp" alt="Bottega" class="pet-section-icon"> Bottega degli Accessori`));
 
   const mkAccRow = (key, acc) => {
     const owned = pet.accessoriesOwned.includes(key);
@@ -1251,7 +1251,7 @@ function renderSantuarioView(c) {
   buyables.forEach(([key, acc]) => buyGrid.appendChild(mkAccRow(key, acc)));
   shop.appendChild(buyGrid);
 
-  shop.appendChild(el('h4', 'section-title', '🏆 Accessori Guadagnati'));
+  shop.appendChild(el('h4', 'section-title', `<img src="assets/pet/accessori-guadagnati.webp" alt="Accessori Guadagnati" class="pet-section-icon"> Accessori Guadagnati`));
   const earnGrid = el('div', 'loot-list');
   earnables.forEach(([key, acc]) => earnGrid.appendChild(mkAccRow(key, acc)));
   shop.appendChild(earnGrid);
