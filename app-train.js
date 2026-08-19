@@ -653,6 +653,14 @@ function showReport(r) {
   if (r.bossDefeatedWeekly) {
     html += `<div class="big-news">⚔️ BOSS SCONFITTO: ${r.bossDefeatedWeekly.icon} ${esc(r.bossDefeatedWeekly.name)}!<br><span class="small">Torna al Rifugio per riscuotere il bottino.</span></div>`;
   }
+  if (r.dragonCard || r.dragonCardBoss) {
+    const dc = r.dragonCardBoss || r.dragonCard;
+    const allCards = RPG.DRAGON_CARDS || [];
+    const full = allCards.find(c => c.id === dc.id) || dc;
+    const rarLabel = { comune:'Comune', non_comune:'Non Comune', raro:'Rara', epico:'Epica', leggendario:'Leggendaria' }[full.rarity] || full.rarity;
+    const isNew = (HERO.dragonCards || []).filter(c => c.id === dc.id).length === 1;
+    html += `<div class="big-news dc-drop-news">🐲 CARTA DEI DRAGHI — ${full.icon || '🐉'} <b>${esc(full.name)}</b><br><span class="small">${rarLabel}${isNew ? ' · ✨ Nuova scoperta!' : ''}</span></div>`;
+  }
   if (r.potionUsed) {
     const pot = RPG.DAILY_POTIONS.find(p => p.id === r.potionUsed);
     if (pot) html += `<p class="report-streak-line">${pot.icon} Pozione usata: <b>${esc(pot.name)}</b></p>`;
