@@ -9974,6 +9974,20 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
   align-items: flex-start;
 }
 .map-help-rows > div > span:first-child { flex-shrink: 0; }
+.map-help-dismiss {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: .8rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  opacity: .55;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.map-help-dismiss:hover { opacity: 1; }
 
 /* Coming soon placeholder */
 .antro-coming-soon {
