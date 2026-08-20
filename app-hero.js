@@ -653,7 +653,7 @@ function renderDiaryView(c) {
   } else {
     const grouped = {};
     HERO.log.slice().reverse().forEach(l => {
-      const dateKey = l.date.slice(0, 10);
+      const dateKey = (typeof l.date === 'string' ? l.date : new Date(l.date).toISOString()).slice(0, 10);
       if (!grouped[dateKey]) grouped[dateKey] = [];
       grouped[dateKey].push(l);
     });
