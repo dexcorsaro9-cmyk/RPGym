@@ -303,7 +303,7 @@ function renderMap(c) {
       const merchant = RPG.getTravelingMerchant(HERO);
       if (merchant) {
         const mp = el('div', 'panel merchant-panel');
-        mp.appendChild(el('h3', 'panel-title', '🛒 Mercante Itinerante'));
+        mp.appendChild(el('h3', 'panel-title', ptIcon('assets/ui/mappa/mercante-itinerante.webp', 'Mercante Itinerante', '🧳')));
         mp.appendChild(el('p', 'muted small center', 'Disponibile solo venerdì–domenica! Sparisce lunedì.'));
         merchant.offers.forEach((o, i) => {
           const boughtKey = merchant.weekStamp + '-' + i;
