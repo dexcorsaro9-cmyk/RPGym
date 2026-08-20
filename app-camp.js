@@ -1042,7 +1042,7 @@ function renderSantuarioView(c) {
     ['assets/pet/energia.webp', 'Energia', pet.energy],
   ].forEach(([img, label, val]) => {
     const cls = val < 30 ? 'danger' : 'gold';
-    statsPanel.innerHTML += `<div class="stat-row"><img src="${img}" alt="${label}" class="pet-need-icon"> ${label} <b>${Math.round(val)}%</b></div>
+    statsPanel.innerHTML += `<div class="stat-row"><div class="pet-need-icon-wrap"><img src="${img}" alt="${label}" class="pet-need-icon"></div> ${label} <b>${Math.round(val)}%</b></div>
       <div class="membar slim"><div class="membar-fill ${cls}" style="width:${Math.round(val)}%"></div></div>`;
   });
   c.appendChild(statsPanel);
