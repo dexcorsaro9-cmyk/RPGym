@@ -5673,6 +5673,7 @@ img.challenge-icon { width: 36px; height: 36px; object-fit: contain; filter: dro
 /* ── Mercante Itinerante ─────────────────────────────────── */
 .merchant-panel { border: 1.5px solid rgba(255,200,50,.3); }
 .merchant-panel .panel-title { color: var(--gold-bright); }
+.merchant-panel .panel-title .panel-title-icon { width: 56px; height: 56px; vertical-align: -18px; margin-right: 6px; }
 .merchant-offers-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
