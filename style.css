@@ -10233,3 +10233,159 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
 :root[data-theme="dark"] .dc-body { background: #1e1e2e; }
 :root[data-theme="dark"] .dc-stat  { background: rgba(255,255,255,.07); }
 :root[data-theme="dark"] .dc-card.dc-locked { opacity: .4; }
+
+/* ══════════════════════════════════════════════════════════════
+   DUELLO CARTE — Deck Builder
+   ══════════════════════════════════════════════════════════════ */
+.dc-builder-header { text-align: center; padding: .25rem 0 .75rem; }
+.dc-builder-counter { font-size: .9rem; color: var(--muted); margin: .3rem 0 .6rem; }
+.dc-builder-confirm { margin: .4rem auto; display: block; }
+.dc-builder-grid { padding-bottom: 1.5rem; }
+.dc-builder-section { margin-bottom: 1rem; }
+.dc-builder-row { display: flex; gap: .5rem; overflow-x: auto; padding: .4rem .25rem .6rem; scrollbar-width: none; }
+.dc-builder-row::-webkit-scrollbar { display: none; }
+
+.dc-mini-card {
+  position: relative; flex-shrink: 0; width: 88px; border-radius: 8px;
+  border: 2px solid transparent; cursor: pointer; overflow: hidden;
+  transition: transform .15s, box-shadow .15s;
+  box-shadow: 0 2px 8px rgba(0,0,0,.18);
+}
+.dc-mini-card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,.25); }
+.dc-mini-card.selected { border-color: #27ae60; box-shadow: 0 0 0 2px #27ae60, 0 4px 14px rgba(39,174,96,.35); }
+.dc-mini-header { padding: 4px 5px; min-height: 26px; display: flex; align-items: center; }
+.dc-mini-name { font-size: .55rem; font-weight: 700; color: #fff; line-height: 1.2; text-shadow: 0 1px 2px rgba(0,0,0,.5); }
+.dc-mini-art { width: 100%; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.dc-mini-img { width: 100%; height: 100%; object-fit: cover; }
+.dc-mini-emoji { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 2rem; }
+.dc-mini-stats { display: flex; justify-content: space-around; padding: 3px 2px; font-size: .6rem; font-weight: 700; background: var(--bg, #fff); }
+.dc-mini-check {
+  position: absolute; top: 4px; right: 4px; width: 18px; height: 18px;
+  background: #27ae60; color: #fff; border-radius: 50%; font-size: .7rem;
+  display: flex; align-items: center; justify-content: center; font-weight: 700;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DUELLO CARTE — Selezione Boss
+   ══════════════════════════════════════════════════════════════ */
+.dc-boss-card {
+  display: flex; align-items: center; gap: .75rem; padding: .85rem 1rem;
+  cursor: pointer; transition: background .15s, transform .1s;
+  margin-bottom: .6rem;
+}
+.dc-boss-card:hover { background: rgba(212,175,55,.08); transform: translateX(3px); }
+.dc-boss-icon { font-size: 2.4rem; flex-shrink: 0; width: 48px; text-align: center; }
+.dc-boss-body { flex: 1; min-width: 0; }
+.dc-boss-name { font-weight: 700; font-size: 1rem; }
+.dc-boss-stars { color: #f59e0b; font-size: .9rem; margin: 2px 0; }
+.dc-boss-quote { font-style: italic; font-size: .78rem; margin: 3px 0 5px; }
+.dc-boss-meta { display: flex; gap: .75rem; flex-wrap: wrap; font-size: .78rem; color: var(--muted); }
+.dc-boss-arrow { font-size: 1.4rem; color: var(--muted); flex-shrink: 0; }
+
+/* ══════════════════════════════════════════════════════════════
+   DUELLO CARTE — Arena di Battaglia
+   ══════════════════════════════════════════════════════════════ */
+.dc-battle-arena {
+  background: linear-gradient(180deg, #0d0a1a 0%, #1a1030 60%, #0f0f2e 100%);
+  min-height: 100%;
+}
+.dc-battle-boss-panel {
+  background: linear-gradient(135deg, #1a1030, #2d1b4e);
+  border-bottom: 2px solid rgba(212,175,55,.3);
+  padding: .85rem 1rem .75rem;
+}
+.dc-battle-boss-row { display: flex; align-items: center; gap: .75rem; }
+.dc-battle-boss-icon { font-size: 2.8rem; flex-shrink: 0; filter: drop-shadow(0 0 8px rgba(255,255,255,.2)); }
+.dc-battle-boss-info { flex: 1; min-width: 0; }
+.dc-battle-boss-name { font-size: 1rem; font-weight: 700; color: #f1e6ff; text-shadow: 0 0 8px rgba(180,100,255,.4); }
+.dc-battle-hp-bar-wrap {
+  height: 10px; background: rgba(255,255,255,.1); border-radius: 5px;
+  overflow: hidden; margin: 5px 0 3px; border: 1px solid rgba(255,255,255,.08);
+}
+.dc-battle-hp-bar { height: 100%; border-radius: 5px; transition: width .4s, background .4s; }
+.dc-battle-hp-label { font-size: .72rem; color: rgba(255,255,255,.7); }
+.dc-battle-shield { background: rgba(100,160,255,.25); color: #7eb8ff; border-radius: 6px;
+  padding: 4px 8px; font-size: .78rem; font-weight: 700; flex-shrink: 0; }
+.dc-battle-status { font-size: .72rem; margin-top: 4px; padding: 3px 8px;
+  border-radius: 4px; background: rgba(255,255,255,.07); color: rgba(255,255,255,.7); display: inline-block; }
+.dc-status-burn { color: #ff9944; background: rgba(255,100,0,.15); }
+
+.dc-battle-log {
+  background: rgba(255,255,255,.04); border-bottom: 1px solid rgba(255,255,255,.07);
+  padding: .65rem 1rem; max-height: 130px; overflow-y: auto;
+}
+.dc-battle-log-title { font-size: .65rem; text-transform: uppercase; letter-spacing: .08em;
+  color: rgba(255,255,255,.35); margin-bottom: .35rem; }
+.dc-log-row { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center;
+  padding: .3rem 0; border-bottom: 1px solid rgba(255,255,255,.05); font-size: .78rem; }
+.dc-log-row:last-child { border-bottom: none; }
+.dc-log-hero .dc-log-card::before { content: '👤 '; }
+.dc-log-boss .dc-log-card::before { content: '🐉 '; }
+.dc-log-card { font-weight: 600; color: rgba(255,255,255,.9); }
+.dc-log-atk  { color: #ff6b6b; font-weight: 700; }
+.dc-log-def  { color: #7eb8ff; font-weight: 700; }
+.dc-log-heal { color: #7dffa0; font-weight: 700; }
+.dc-log-eff  { font-size: .7rem; color: rgba(255,255,255,.6); background: rgba(255,255,255,.07); border-radius: 3px; padding: 1px 5px; }
+.dc-log-msg  { font-size: .75rem; color: rgba(255,255,255,.55); padding: 2px 0; font-style: italic; }
+.dc-battle-quote { padding: .7rem 1rem; color: rgba(255,255,255,.4); font-style: italic; font-size: .82rem; }
+
+.dc-battle-hero-panel { background: rgba(255,255,255,.04); padding: .75rem 1rem .6rem; }
+.dc-battle-hero-row { display: flex; align-items: center; }
+.dc-battle-hero-info { flex: 1; }
+.dc-battle-hero-label { font-size: .78rem; font-weight: 700; color: rgba(255,255,255,.8); margin-bottom: 4px; }
+
+.dc-battle-hand {
+  display: flex; gap: .6rem; overflow-x: auto; padding: .75rem .75rem .5rem;
+  scrollbar-width: none; min-height: 180px; align-items: flex-start;
+}
+.dc-battle-hand::-webkit-scrollbar { display: none; }
+
+.dc-hand-card {
+  flex-shrink: 0; width: 110px; border-radius: 10px; overflow: hidden;
+  display: flex; flex-direction: column;
+  box-shadow: 0 4px 18px rgba(0,0,0,.4);
+  border: 2px solid rgba(255,255,255,.12);
+  transition: transform .15s, box-shadow .15s;
+  cursor: default;
+}
+.dc-hand-card:hover { transform: translateY(-6px); box-shadow: 0 10px 28px rgba(0,0,0,.5); }
+.dc-hand-card.dc-card-disabled { opacity: .4; pointer-events: none; }
+.dc-hand-header { padding: 5px 6px; min-height: 30px; display: flex; align-items: center; justify-content: space-between; }
+.dc-hand-name { font-size: .58rem; font-weight: 700; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.6); flex: 1; line-height: 1.2; }
+.dc-hand-type { border-radius: 3px; padding: 1px 4px; font-size: .55rem; color: #fff; flex-shrink: 0; }
+.dc-hand-art { width: 100%; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.dc-hand-img { width: 100%; height: 100%; object-fit: cover; }
+.dc-hand-emoji { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; }
+.dc-hand-stats { display: flex; justify-content: space-around; padding: 4px 3px; background: rgba(0,0,0,.25); }
+.dc-hand-stat { font-size: .65rem; font-weight: 700; }
+.dc-hand-effect { font-size: .55rem; text-align: center; padding: 2px 4px;
+  background: rgba(255,255,255,.08); color: rgba(255,255,255,.65); }
+.dc-hand-play-btn { width: 100%; border-radius: 0; padding: 5px 0; font-size: .75rem; border: none;
+  background: linear-gradient(135deg, #d4af37, #f59e0b); color: #1a0a00; font-weight: 700;
+  cursor: pointer; transition: filter .15s; }
+.dc-hand-play-btn:hover { filter: brightness(1.15); }
+
+.dc-battle-footer { padding: .5rem 1rem .4rem; text-align: center; color: rgba(255,255,255,.3); font-size: .72rem; }
+.dc-battle-quit { display: block; margin: .4rem auto .8rem; background: transparent;
+  border: 1px solid rgba(255,255,255,.15); color: rgba(255,255,255,.4);
+  font-size: .78rem; padding: .35rem 1.2rem; border-radius: 6px; cursor: pointer; }
+.dc-battle-quit:hover { border-color: rgba(255,100,100,.4); color: rgba(255,100,100,.7); }
+
+/* ── Fine battaglia ─────────────────────────────────────────── */
+.dc-end-screen {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 3rem 1.5rem 2rem; min-height: 70vh; text-align: center;
+  background: linear-gradient(180deg, #0d0a1a 0%, #1a1030 100%);
+}
+.dc-end-win  { background: linear-gradient(180deg, #0a1a0d 0%, #0d2a14 100%); }
+.dc-end-loss { background: linear-gradient(180deg, #1a0a0a 0%, #2a0d0d 100%); }
+.dc-end-icon { font-size: 4rem; margin-bottom: .75rem; }
+.dc-end-title { font-size: 1.8rem; font-weight: 900; color: #f1e6ff; margin: 0 0 .4rem; text-shadow: 0 0 20px rgba(255,215,0,.3); }
+.dc-end-win .dc-end-title { color: #7dffa0; text-shadow: 0 0 20px rgba(0,255,100,.3); }
+.dc-end-loss .dc-end-title { color: #ff6b6b; text-shadow: 0 0 20px rgba(255,0,0,.2); }
+.dc-end-sub { color: rgba(255,255,255,.6); margin-bottom: 1.5rem; }
+.dc-end-rewards { display: flex; flex-direction: column; gap: .5rem; margin-bottom: 1.8rem; }
+.dc-end-reward { background: rgba(255,255,255,.07); border-radius: 8px; padding: .5rem 1.2rem;
+  color: rgba(255,255,255,.85); font-weight: 600; font-size: .95rem; }
+.dc-end-btns { display: flex; flex-direction: column; gap: .55rem; width: 100%; max-width: 260px; }
+.dc-end-btns .btn { width: 100%; }
