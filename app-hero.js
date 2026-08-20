@@ -1855,23 +1855,24 @@ function showWeeklyRecap(recap) {
 }
 
 function showDailySummary() {
+  const gi = p => `<img class="today-row-icon" src="assets/ui/giornata/${p}" alt="">`;
   let rows = '';
   if (HERO.incursion && !HERO.incursion.done) {
-    rows += `<div class="today-row">⚡ <div><b>Incursione:</b> ${esc(HERO.incursion.name)}<br>
+    rows += `<div class="today-row">${gi('incursione.webp')} <div><b>Incursione:</b> ${esc(HERO.incursion.name)}<br>
       <span class="small muted">${(HERO.incursion.km - HERO.incursion.progressKm).toFixed(1)} km per il forziere · <span data-cd="midnight">…</span></span></div></div>`;
   }
   if (HERO.activeMission) {
     const m = RPG.MISSIONS.find(x => x.id === HERO.activeMission.id);
-    if (m) rows += `<div class="today-row">🐎 <div><b>Missione:</b> ${m.name}<br>
+    if (m) rows += `<div class="today-row">${gi('missione.webp')} <div><b>Missione:</b> ${m.name}<br>
       <span class="small muted">mancano ${(m.km - HERO.activeMission.progressKm).toFixed(1)} km</span></div></div>`;
   }
-  rows += `<div class="today-row">🎯 <div><b>Obiettivo del giorno:</b> ${RPG.dailyGoalKm(HERO.level)} km</div></div>`;
+  rows += `<div class="today-row">${gi('obiettivo.webp')} <div><b>Obiettivo del giorno:</b> ${RPG.dailyGoalKm(HERO.level)} km</div></div>`;
   if (HERO.streak.count > 1)
-    rows += `<div class="today-row">🔥 <div><b>Streak:</b> ${HERO.streak.count} giorni di fila — non spezzarla!</div></div>`;
+    rows += `<div class="today-row">${gi('streak.webp')} <div><b>Streak:</b> ${HERO.streak.count} giorni di fila — non spezzarla!</div></div>`;
   const nu = nextUnlock(HERO);
-  if (nu) rows += `<div class="today-row">${nu.icon} <div><b>Prossimo sblocco</b> (liv. ${nu.level}): ${nu.text}</div></div>`;
+  if (nu) rows += `<div class="today-row">${gi('cavalcatura.webp')} <div><b>Prossimo sblocco</b> (liv. ${nu.level}): ${nu.text}</div></div>`;
   modal(`
-    <h3 class="panel-title">🌅 La tua Giornata, ${esc(HERO.name)}</h3>
+    <h3 class="panel-title">${ptIcon('assets/ui/giornata/giornata.webp', 'La tua Giornata', '🌅')} La tua Giornata, ${esc(HERO.name)}</h3>
     ${rows}
     <button class="btn btn-primary wide" onclick="nextOpening(); setTab('train')">⚔️ Vado ad allenarmi!</button>
     <button class="btn wide" onclick="nextOpening()">Dopo</button>
