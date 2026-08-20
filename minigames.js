@@ -1199,6 +1199,41 @@ function openBraccioGame() {
   closeBtn.addEventListener('click', mgClose);
 }
 
+/* ── SVG dagger per il minigioco coltello ── */
+function mgDaggerSVG(extraClass) {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 82" class="mgck-knife-img${extraClass ? ' ' + extraClass : ''}" aria-hidden="true">
+    <defs>
+      <linearGradient id="mgblade" x1="0" x2="1" y1="0" y2="0">
+        <stop offset="0%" stop-color="#8fa8b8"/>
+        <stop offset="45%" stop-color="#ddeef8"/>
+        <stop offset="100%" stop-color="#6a7e8c"/>
+      </linearGradient>
+      <linearGradient id="mghandle" x1="0" x2="1" y1="0" y2="0">
+        <stop offset="0%" stop-color="#3e1e08"/>
+        <stop offset="50%" stop-color="#7a4820"/>
+        <stop offset="100%" stop-color="#3e1e08"/>
+      </linearGradient>
+      <linearGradient id="mgguard" x1="0" x2="1" y1="0" y2="0">
+        <stop offset="0%" stop-color="#8c6d2e"/>
+        <stop offset="50%" stop-color="#e0b84a"/>
+        <stop offset="100%" stop-color="#8c6d2e"/>
+      </linearGradient>
+    </defs>
+    <polygon points="11,2 6,50 16,50" fill="url(#mgblade)"/>
+    <polygon points="11,2 11,50 16,50" fill="#6a7e8c" opacity="0.5"/>
+    <line x1="11" y1="8" x2="11" y2="44" stroke="#eef6fa" stroke-width="1" opacity="0.55"/>
+    <rect x="8" y="48" width="6" height="3" rx="1" fill="#9ab0bc"/>
+    <rect x="2" y="51" width="18" height="5" rx="2" fill="url(#mgguard)" stroke="#6a4d1a" stroke-width="0.5"/>
+    <rect x="7" y="56" width="8" height="19" rx="2" fill="url(#mghandle)" stroke="#2a1000" stroke-width="0.5"/>
+    <line x1="7" y1="60" x2="15" y2="60" stroke="#2a1000" stroke-width="0.6" opacity="0.35"/>
+    <line x1="7" y1="63" x2="15" y2="63" stroke="#2a1000" stroke-width="0.6" opacity="0.35"/>
+    <line x1="7" y1="66" x2="15" y2="66" stroke="#2a1000" stroke-width="0.6" opacity="0.35"/>
+    <line x1="7" y1="69" x2="15" y2="69" stroke="#2a1000" stroke-width="0.6" opacity="0.35"/>
+    <ellipse cx="11" cy="77" rx="5.5" ry="4" fill="url(#mgguard)" stroke="#6a4d1a" stroke-width="0.5"/>
+    <ellipse cx="10.5" cy="76" rx="3" ry="2" fill="#f0d06a" opacity="0.6"/>
+  </svg>`;
+}
+
 /* ── 🗡️ LANCIO DEL COLTELLO ── */
 function openColtelloGame() {
   if (!mgCanPlay('coltello')) return;
@@ -1236,7 +1271,7 @@ function openColtelloGame() {
       <div class="mgck-log-wrap" id="mgck-log-wrap">
         <img src="assets/minigames/lancio-coltello/ceppo.webp" class="mgck-log-img" alt="Ceppo">
       </div>
-      <div class="mgck-knife-active" id="mgck-knife"><img src="assets/minigames/lancio-coltello/coltelli.webp" class="mgck-knife-img" alt=""></div>
+      <div class="mgck-knife-active" id="mgck-knife">${mgDaggerSVG()}</div>
       <div class="mgck-ammo" id="mgck-ammo"></div>
     </div>
     <div class="mg-result-area" id="mgck-res"></div>
@@ -1354,10 +1389,7 @@ function openColtelloGame() {
 
       const stuck = document.createElement('div');
       stuck.className = 'mgck-stuck';
-      const kImg = document.createElement('img');
-      kImg.src = 'assets/minigames/lancio-coltello/coltelli.webp';
-      kImg.className = 'mgck-knife-img mgck-stick-pop';
-      stuck.appendChild(kImg);
+      stuck.innerHTML = mgDaggerSVG('mgck-stick-pop');
       stuck.style.transform = `rotate(${impactAngle}deg) translateY(82px)`;
       logWrap.appendChild(stuck);
       vibrate([35]);
