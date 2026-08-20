@@ -1350,13 +1350,16 @@ function checkPetNotify() {
 }
 
 function openFeedPicker() {
-  let html = `<h3 class="panel-title">🍖 Scegli il pasto</h3><div class="loot-list" id="feed-picker-list"></div>
+  let html = `<h3 class="panel-title">${ptIcon('assets/ciotola.webp', 'Scegli il pasto', '🍖')}</h3><div class="loot-list" id="feed-picker-list"></div>
     <button class="btn wide" onclick="closeModal()">Annulla</button>`;
   modal(html);
   const list = $('#feed-picker-list');
   Object.entries(RPG.PET_FOODS).forEach(([key, food]) => {
-    const row = el('div', 'loot pickable');
-    row.innerHTML = `<div class="loot-body"><div class="loot-head"><b>${food.icon} ${food.name}</b></div>
+    const row = el('div', 'loot loot-with-img pickable');
+    const imgHtml = food.img
+      ? `<img class="item-icon-big" src="${food.img}" onerror="this.style.display='none'" alt="">`
+      : `<span style="font-size:2rem;flex-shrink:0">${food.icon}</span>`;
+    row.innerHTML = `${imgHtml}<div class="loot-body"><div class="loot-head"><b>${food.name}</b></div>
       <div class="small">Sazietà +${food.restoreHunger} · 🪙 ${food.price}</div></div>`;
     row.addEventListener('click', () => {
       const r = RPG.feedPet(HERO, key);
