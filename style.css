@@ -5683,6 +5683,7 @@ img.challenge-icon { width: 36px; height: 36px; object-fit: contain; filter: dro
 }
 .merchant-offer-row:last-child { border-bottom: none; }
 .merchant-offer-info { flex: 1; min-width: 0; }
+.merchant-offer-info .item-icon-big { width: 40px; height: 40px; }
 .merchant-offer-row.bought { opacity: .55; }
 
 /* ── Skill Tree ─────────────────────────────────────────── */
