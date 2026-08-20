@@ -7217,6 +7217,214 @@ const RPG = (() => {
   };
 })();
 
+// DC_BOSSES, dcInitBattle, dcPlayCard, dcClaimVictory — globali, definite sotto
+
+/* ══════════════════════════════════════════════════════════════
+   DUELLO CARTE DEI DRAGHI — Engine
+   ══════════════════════════════════════════════════════════════ */
+/// Nota: dichiarate fuori dall'IIFE ma usate solo da app-market.js
+
+const DC_BOSSES = (() => {
+  return [
+    { id:'dcb_bramble', name:'Bramble il Boscaiolo', dragon:'silvano', icon:'🌿', hp:22, difficulty:1,
+      quote:'«La foresta nutre chi la rispetta. Distrugge chi la sfida.»',
+      reward:{ gold:50, cardChance:.35, cardRarities:['comune','non_comune'] } },
+    { id:'dcb_ferrus',  name:'Ferrus l\'Incudine',   dragon:'terras',  icon:'🪨', hp:27, difficulty:2,
+      quote:'«La pietra dura mille anni. Quanto durarà tu?»',
+      reward:{ gold:90, cardChance:.50, cardRarities:['comune','non_comune','raro'] } },
+    { id:'dcb_glaciar', name:'Glaciar il Gelido',    dragon:'glacio',  icon:'❄️', hp:30, difficulty:3,
+      quote:'«Il freddo sospende il tempo. Il tempo ferma tutto.»',
+      reward:{ gold:140, cardChance:.65, cardRarities:['non_comune','raro','epico'] } },
+    { id:'dcb_ignar',   name:'Ignar il Sempiterno',  dragon:'ignis',   icon:'🔥', hp:36, difficulty:4,
+      quote:'«Brucia tutto. Rinasce solo ciò che è degno.»',
+      reward:{ gold:200, cardChance:.80, cardRarities:['raro','epico'] } },
+    { id:'dcb_voltex',  name:'Voltex il Fulmineo',   dragon:'mixed',   icon:'⚡', hp:42, difficulty:5,
+      quote:'«Sono la tempesta. Tu sei polvere nel vento.»',
+      reward:{ gold:320, cardChance:.95, cardRarities:['epico','leggendario'], guaranteed:true } },
+  ];
+})();
+
+function _dcShuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function _dcBossDeck(dragonType) {
+  const pool = dragonType === 'mixed'
+    ? RPG.DRAGON_CARDS.slice()
+    : RPG.DRAGON_CARDS.filter(c => c.dragon === dragonType);
+  const byRar = ['leggendario','epico','raro','non_comune','comune'];
+  const deck = [];
+  byRar.forEach(rar => {
+    pool.filter(c => c.rarity === rar).forEach(c => { if (deck.length < 10) deck.push(c.id); });
+  });
+  return _dcShuffle(deck);
+}
+
+function _dcDraw(side) {
+  if (!side.deck.length) {
+    if (!side.discard.length) return;
+    side.deck = _dcShuffle(side.discard.slice());
+    side.discard = [];
+  }
+  side.hand.push(side.deck.shift());
+}
+
+function _dcApplyCard(attacker, defender, card) {
+  const entry = { cardId:card.id, cardName:card.name, cardIcon:card.icon,
+                  atk:0, def:0, heal:0, effects:[] };
+
+  // Damage
+  let dmg = card.atk || 0;
+  if (card.effect === 'double') dmg *= 2;
+  if ((defender.shield || 0) > 0) {
+    const blocked = Math.min(defender.shield, dmg);
+    defender.shield -= blocked; dmg -= blocked;
+    if (blocked) entry.effects.push('🔵 Scudo -' + blocked);
+  }
+  if (dmg > 0) {
+    if (defender.hp - dmg <= 0 && defender.effects && defender.effects.revive) {
+      defender.hp = 1; defender.effects.revive = false;
+      entry.effects.push('✨ Rinato con 1 HP!');
+    } else {
+      defender.hp = Math.max(0, defender.hp - dmg);
+    }
+    entry.atk = dmg;
+  }
+
+  // Shield gain
+  if ((card.def || 0) > 0) { attacker.shield = (attacker.shield || 0) + card.def; entry.def = card.def; }
+
+  // Heal
+  if ((card.heal || 0) > 0) {
+    const gained = Math.min(attacker.maxHp - attacker.hp, card.heal);
+    attacker.hp += gained; entry.heal = gained;
+  }
+
+  // Special effects
+  const eff = card.effect, ev = card.effectVal || 2;
+  if (eff === 'burn')    { defender.effects.burn  = (defender.effects.burn  || 0) + ev; entry.effects.push('🔥 Bruciatura +' + ev); }
+  else if (eff === 'stun')   { defender.effects.stun  = (defender.effects.stun  || 0) + 1; entry.effects.push('⚡ Stordimento!'); }
+  else if (eff === 'freeze') { defender.shield = Math.max(0, (defender.shield || 0) - ev); entry.effects.push('❄️ Gelo -' + ev + ' scudo'); }
+  else if (eff === 'cleanse'){ attacker.effects.burn = 0; attacker.effects.stun = 0; entry.effects.push('🌊 Purificato'); }
+  else if (eff === 'shield') { attacker.shield = (attacker.shield || 0) + 3; entry.effects.push('🔵 Scudo +3'); }
+  else if (eff === 'revive') { attacker.effects.revive = true; entry.effects.push('✨ Rinascita pronta'); }
+  else if (eff === 'draw')   { entry._drawExtra = ev; entry.effects.push('🃏 Pesca ' + ev); }
+  else if (eff === 'double') { entry.effects.push('✕2 Doppio colpo'); }
+
+  return entry;
+}
+
+function _dcBossAI(state) {
+  const hand = state.boss.hand;
+  if (!hand.length) return null;
+  const scored = hand.map(id => {
+    const card = RPG.DRAGON_CARDS.find(c => c.id === id);
+    if (!card) return { id, score: 0 };
+    let score = (card.atk || 0) + (card.def || 0) + (card.heal || 0);
+    if (state.boss.hp < state.boss.maxHp * .35) score += (card.heal || 0) * 2 + (card.def || 0);
+    if (state.hero.hp  < state.hero.maxHp  * .35) score += (card.atk  || 0) * 2;
+    return { id, score };
+  });
+  scored.sort((a, b) => b.score - a.score);
+  return scored[Math.floor(Math.random() * Math.min(2, scored.length))].id;
+}
+
+function dcInitBattle(heroDeckIds, bossId) {
+  const boss = DC_BOSSES.find(b => b.id === bossId);
+  if (!boss) return null;
+  const heroDeck = _dcShuffle(heroDeckIds.slice(0, 10));
+  const bossDeck = _dcBossDeck(boss.dragon);
+  const heroHand = heroDeck.splice(0, 3);
+  const bossHand = bossDeck.splice(0, 3);
+  return {
+    hero: { hp:30, maxHp:30, deck:heroDeck, hand:heroHand, discard:[], shield:0, effects:{burn:0,stun:0,revive:false} },
+    boss: { id:boss.id, name:boss.name, icon:boss.icon, quote:boss.quote,
+            hp:boss.hp, maxHp:boss.hp, deck:bossDeck, hand:bossHand, discard:[], shield:0, effects:{burn:0,stun:0} },
+    turn:1, winner:null, reward:boss.reward, lastEntry:null,
+  };
+}
+
+function dcPlayCard(state, cardId) {
+  state = JSON.parse(JSON.stringify(state));
+  const entry = { turn:state.turn, msgs:[], playerEntry:null, bossEntry:null };
+
+  // Burn tick
+  if ((state.hero.effects.burn || 0) > 0) {
+    const d = state.hero.effects.burn; state.hero.hp = Math.max(0, state.hero.hp - d);
+    state.hero.effects.burn = 0; entry.msgs.push({ who:'hero', text:'🔥 Bruciatura: -' + d + ' HP' });
+  }
+  if ((state.boss.effects.burn || 0) > 0) {
+    const d = state.boss.effects.burn; state.boss.hp = Math.max(0, state.boss.hp - d);
+    state.boss.effects.burn = 0; entry.msgs.push({ who:'boss', text:'🔥 Bruciatura: -' + d + ' HP a ' + state.boss.name });
+  }
+
+  // Hero turn
+  if ((state.hero.effects.stun || 0) > 0) {
+    state.hero.effects.stun--;
+    entry.msgs.push({ who:'hero', text:'⚡ Sei stordito — turno saltato!' });
+  } else {
+    const idx = state.hero.hand.indexOf(cardId);
+    if (idx !== -1) {
+      state.hero.hand.splice(idx, 1); state.hero.discard.push(cardId);
+      const card = RPG.DRAGON_CARDS.find(c => c.id === cardId);
+      if (card) {
+        const pe = _dcApplyCard(state.hero, state.boss, card);
+        if (pe._drawExtra) for (let i = 0; i < pe._drawExtra; i++) _dcDraw(state.hero);
+        entry.playerEntry = pe;
+      }
+    }
+  }
+
+  if (state.boss.hp <= 0) { state.winner = 'player'; state.lastEntry = entry; return state; }
+  if (state.hero.hp <= 0) { state.winner = 'boss';   state.lastEntry = entry; return state; }
+
+  // Boss turn
+  if ((state.boss.effects.stun || 0) > 0) {
+    state.boss.effects.stun--;
+    entry.msgs.push({ who:'boss', text:'⚡ ' + state.boss.name + ' è stordito — salta il turno!' });
+  } else {
+    const bId = _dcBossAI(state);
+    if (bId) {
+      const bi = state.boss.hand.indexOf(bId);
+      if (bi !== -1) { state.boss.hand.splice(bi, 1); state.boss.discard.push(bId); }
+      const bc = RPG.DRAGON_CARDS.find(c => c.id === bId);
+      if (bc) { entry.bossEntry = _dcApplyCard(state.boss, state.hero, bc); }
+    }
+  }
+
+  if (state.hero.hp <= 0) { state.winner = 'boss';   state.lastEntry = entry; return state; }
+  if (state.boss.hp <= 0) { state.winner = 'player'; state.lastEntry = entry; return state; }
+
+  _dcDraw(state.hero); _dcDraw(state.boss);
+  state.turn++;
+  state.lastEntry = entry;
+  return state;
+}
+
+function dcClaimVictory(state, hero) {
+  if (state.winner !== 'player') return null;
+  const r = state.reward || {};
+  const earned = { gold: r.gold || 0, card: null };
+  hero.gold += earned.gold;
+  const ownedIds = new Set((hero.dragonCards || []).map(c => c.id));
+  const rarities = r.cardRarities || ['comune','non_comune'];
+  if (r.guaranteed || Math.random() < (r.cardChance || .5)) {
+    const cands = RPG.DRAGON_CARDS.filter(c => rarities.includes(c.rarity) && !ownedIds.has(c.id));
+    if (cands.length) {
+      const pick = cands[Math.floor(Math.random() * cands.length)];
+      hero.dragonCards = hero.dragonCards || [];
+      hero.dragonCards.push({ id: pick.id });
+      earned.card = pick;
+    }
+  }
+  return earned;
+}
+
 /* ── La Bisca Oscura ─────────────────────────────────────────────────────── */
 {
   const _B = (() => {

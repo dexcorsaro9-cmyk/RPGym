@@ -2,6 +2,11 @@
 let MARKET_VIEW = 'hub';
 let NERO_FILTER = 'all';
 
+/* ── Duello Carte — stato locale ── */
+let DC_VIEW = 'collection'; // 'collection' | 'builder' | 'boss_select' | 'battle'
+let DC_DECK = [];           // card IDs selezionate per il mazzo
+let DC_BATTLE_STATE = null; // stato live della battaglia
+
 const ANTRO_SECTIONS = [
   { lv: 50,  key: 'antro_contratti', icon: '🐲', name: 'Carte dei Draghi',        desc: 'Colleziona e gioca con le 100 carte dei draghi leggendari.',  quote: '«Le carte non mentono. Ogni drago rivela il tuo destino.»' },
   { lv: 60,  key: 'antro_bestia',    icon: '🐉', name: 'Bestia Ancestrale',       desc: 'Un boss mensile che può essere abbattuto solo dai degni.',   quote: '«L\'Antica Belva non conosce pietà. Mostrami cosa sei fatto.»' },
@@ -484,6 +489,10 @@ function _buildDragonCard(card, owned) {
 }
 
 function renderAntroDragonCardsView(c) {
+  if (DC_VIEW === 'builder')    { renderDcBuilderView(c);    return; }
+  if (DC_VIEW === 'boss_select') { renderDcBossSelectView(c); return; }
+  if (DC_VIEW === 'battle')     { renderDcBattleView(c);     return; }
+
   const ownedIds = new Set((HERO.dragonCards || []).map(dc => dc.id));
   const allCards = RPG.DRAGON_CARDS;
   const totalOwned = allCards.filter(card => ownedIds.has(card.id)).length;
@@ -498,9 +507,20 @@ function renderAntroDragonCardsView(c) {
   `;
   c.appendChild(header);
 
-  // Duello button (coming soon)
-  const duelBtn = el('button', 'btn btn-primary dc-duel-btn', '⚔️ Duella contro l\'IA');
-  duelBtn.addEventListener('click', () => toast('Il Duello sarà disponibile a breve, Campione!'));
+  // Duello button
+  const ownedCount = (HERO.dragonCards || []).length;
+  const canDuel = ownedCount >= 5;
+  const duelBtn = el('button', 'btn btn-primary dc-duel-btn', '⚔️ Entra nell\'Arena dei Draghi');
+  if (!canDuel) {
+    duelBtn.disabled = true;
+    duelBtn.title = `Serve almeno 5 carte per duellare (hai ${ownedCount})`;
+    duelBtn.textContent = `⚔️ Arena (${ownedCount}/5 carte)`;
+  }
+  duelBtn.addEventListener('click', () => {
+    DC_DECK = [];
+    DC_VIEW = 'builder';
+    setTab('market');
+  });
   c.appendChild(duelBtn);
 
   // Filtro per rarità
@@ -546,6 +566,324 @@ function renderAntroDragonCardsView(c) {
     grid.appendChild(section);
   });
   c.appendChild(grid);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DUELLO CARTE — Deck Builder
+   ══════════════════════════════════════════════════════════════ */
+function renderDcBuilderView(c) {
+  const backBtn = el('button', 'view-back-link', '‹ Collezione');
+  backBtn.addEventListener('click', () => { DC_VIEW = 'collection'; setTab('market'); });
+  c.appendChild(backBtn);
+
+  const ownedIds = (HERO.dragonCards || []).map(dc => dc.id);
+  const ownedCards = RPG.DRAGON_CARDS.filter(card => ownedIds.includes(card.id));
+
+  const hdr = el('div', 'dc-builder-header');
+  const counter = el('p', 'dc-builder-counter', `${DC_DECK.length} / 10 carte selezionate`);
+  hdr.innerHTML = `<h2 class="section-title">🃏 Costruisci il Mazzo</h2>`;
+  hdr.appendChild(counter);
+
+  const confirmBtn = el('button', 'btn btn-primary dc-builder-confirm');
+  confirmBtn.textContent = DC_DECK.length >= 5 ? '⚔️ Scegli il Boss' : `Seleziona almeno 5 carte (${DC_DECK.length}/10)`;
+  confirmBtn.disabled = DC_DECK.length < 5;
+  confirmBtn.addEventListener('click', () => { DC_VIEW = 'boss_select'; setTab('market'); });
+
+  hdr.appendChild(confirmBtn);
+  c.appendChild(hdr);
+
+  const DRAGON_ORDER = ['ignis','aqua','silvano','terras','glacio','volt','umbra','chronos','lux','aero'];
+  const RARITY_ORDER = ['comune','non_comune','raro','epico','leggendario'];
+
+  const grid = el('div', 'dc-builder-grid');
+  DRAGON_ORDER.forEach(dragon => {
+    const dragonCards = RARITY_ORDER.flatMap(rar =>
+      ownedCards.filter(card => card.dragon === dragon && card.rarity === rar)
+    );
+    if (!dragonCards.length) return;
+    const dm = DC_DRAGON_META[dragon];
+    const sec = el('div', 'dc-builder-section');
+    sec.innerHTML = `<div class="dc-dragon-section-title" style="color:${dm.color}">${dm.icon} ${dm.name}</div>`;
+    const row = el('div', 'dc-builder-row');
+    dragonCards.forEach(card => {
+      const rm = DC_RARITY_META[card.rarity];
+      const tm = DC_TYPE_META[card.type] || DC_TYPE_META.offensiva;
+      const selected = DC_DECK.includes(card.id);
+      const mini = el('div', `dc-mini-card dc-rar-${card.rarity}${selected ? ' selected' : ''}`);
+      const imgPath = `assets/dragon-cards/${card.id}.webp`;
+      mini.innerHTML = `
+        <div class="dc-mini-header" style="background:${rm.grad}">
+          <span class="dc-mini-name">${esc(card.name)}</span>
+        </div>
+        <div class="dc-mini-art" style="background:${dm.bg}">
+          <img class="dc-mini-img" src="${imgPath}" onerror="this.style.display='none'" alt="">
+          <div class="dc-mini-emoji" style="display:none">${dm.icon}</div>
+        </div>
+        <div class="dc-mini-stats">
+          <span style="color:#c0392b">⚔️${card.atk}</span>
+          <span style="color:#2980b9">🛡️${card.def}</span>
+          <span style="color:#27ae60">💚${card.heal}</span>
+        </div>
+        ${selected ? '<div class="dc-mini-check">✓</div>' : ''}
+      `;
+      mini.addEventListener('click', () => {
+        const idx = DC_DECK.indexOf(card.id);
+        if (idx !== -1) {
+          DC_DECK.splice(idx, 1);
+        } else {
+          if (DC_DECK.length >= 10) { toast('Mazzo completo! Rimuovi una carta prima.'); return; }
+          DC_DECK.push(card.id);
+        }
+        counter.textContent = `${DC_DECK.length} / 10 carte selezionate`;
+        confirmBtn.disabled = DC_DECK.length < 5;
+        confirmBtn.textContent = DC_DECK.length >= 5 ? '⚔️ Scegli il Boss' : `Seleziona almeno 5 carte (${DC_DECK.length}/10)`;
+        mini.classList.toggle('selected', DC_DECK.includes(card.id));
+        const chk = mini.querySelector('.dc-mini-check');
+        if (DC_DECK.includes(card.id)) {
+          if (!chk) { const d = document.createElement('div'); d.className = 'dc-mini-check'; d.textContent = '✓'; mini.appendChild(d); }
+        } else {
+          if (chk) chk.remove();
+        }
+      });
+      row.appendChild(mini);
+    });
+    sec.appendChild(row);
+    grid.appendChild(sec);
+  });
+  c.appendChild(grid);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DUELLO CARTE — Selezione Boss
+   ══════════════════════════════════════════════════════════════ */
+function renderDcBossSelectView(c) {
+  const backBtn = el('button', 'view-back-link', '‹ Mazzo');
+  backBtn.addEventListener('click', () => { DC_VIEW = 'builder'; setTab('market'); });
+  c.appendChild(backBtn);
+
+  c.appendChild(el('h2', 'section-title', '🐉 Scegli il tuo Avversario'));
+  c.appendChild(el('p', 'muted small center', 'Mazzo pronto: ' + DC_DECK.length + ' carte · Seleziona un boss per iniziare il duello'));
+
+  DC_BOSSES.forEach(boss => {
+    const card = el('div', 'panel dc-boss-card');
+    const stars = '★'.repeat(boss.difficulty) + '☆'.repeat(5 - boss.difficulty);
+    const rm = boss.reward;
+    card.innerHTML = `
+      <div class="dc-boss-icon">${boss.icon}</div>
+      <div class="dc-boss-body">
+        <div class="dc-boss-name">${esc(boss.name)}</div>
+        <div class="dc-boss-stars">${stars}</div>
+        <div class="dc-boss-quote muted small">${esc(boss.quote)}</div>
+        <div class="dc-boss-meta">
+          <span>❤️ ${boss.hp} HP</span>
+          <span>🪙 ${rm.gold} oro</span>
+          <span>🃏 ${Math.round(rm.cardChance * 100)}% carta</span>
+        </div>
+      </div>
+      <div class="dc-boss-arrow">›</div>
+    `;
+    card.addEventListener('click', () => {
+      DC_BATTLE_STATE = dcInitBattle(DC_DECK, boss.id);
+      DC_VIEW = 'battle';
+      setTab('market');
+    });
+    c.appendChild(card);
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DUELLO CARTE — Arena di Battaglia
+   ══════════════════════════════════════════════════════════════ */
+function _dcHpBarColor(hp, max) {
+  const pct = hp / max;
+  if (pct > .6) return '#27ae60';
+  if (pct > .3) return '#e67e22';
+  return '#e74c3c';
+}
+
+function _dcBuildActionLog(entry) {
+  if (!entry) return '';
+  let html = '';
+  const fmtEntry = (e, who) => {
+    if (!e) return '';
+    let s = `<div class="dc-log-row dc-log-${who}">`;
+    s += `<span class="dc-log-card">${e.cardIcon} ${esc(e.cardName)}</span>`;
+    const parts = [];
+    if (e.atk)  parts.push(`<span class="dc-log-atk">⚔️ -${e.atk}</span>`);
+    if (e.def)  parts.push(`<span class="dc-log-def">🛡️ +${e.def}</span>`);
+    if (e.heal) parts.push(`<span class="dc-log-heal">💚 +${e.heal}</span>`);
+    e.effects.forEach(ef => parts.push(`<span class="dc-log-eff">${esc(ef)}</span>`));
+    s += parts.join(' ');
+    s += '</div>';
+    return s;
+  };
+  entry.msgs.forEach(m => {
+    html += `<div class="dc-log-msg dc-log-${m.who}">${esc(m.text)}</div>`;
+  });
+  if (entry.playerEntry) html += fmtEntry(entry.playerEntry, 'hero');
+  if (entry.bossEntry)   html += fmtEntry(entry.bossEntry, 'boss');
+  return html;
+}
+
+function renderDcBattleView(c) {
+  const st = DC_BATTLE_STATE;
+  if (!st) { DC_VIEW = 'collection'; setTab('market'); return; }
+
+  c.classList.add('dc-battle-arena');
+
+  // End screen
+  if (st.winner) {
+    const won = st.winner === 'player';
+    const endWrap = el('div', `dc-end-screen${won ? ' dc-end-win' : ' dc-end-loss'}`);
+    const title = won ? '⚔️ Vittoria!' : '💀 Sconfitta';
+    endWrap.innerHTML = `
+      <div class="dc-end-icon">${won ? '🏆' : '💀'}</div>
+      <h2 class="dc-end-title">${title}</h2>
+      <p class="dc-end-sub">${won ? 'Hai sconfitto ' + esc(st.boss.name) + '!' : esc(st.boss.name) + ' ti ha sopraffatto.'}</p>
+    `;
+    if (won) {
+      const earned = dcClaimVictory(st, HERO);
+      persist();
+      if (earned) {
+        let rewardHtml = `<div class="dc-end-rewards">`;
+        rewardHtml += `<div class="dc-end-reward">🪙 +${earned.gold} oro</div>`;
+        if (earned.card) {
+          const rm = DC_RARITY_META[earned.card.rarity];
+          rewardHtml += `<div class="dc-end-reward" style="color:${rm.textColor}">🃏 ${esc(earned.card.name)} (${rm.label})</div>`;
+        }
+        rewardHtml += '</div>';
+        endWrap.innerHTML += rewardHtml;
+      }
+    }
+    const btns = el('div', 'dc-end-btns');
+    if (won) {
+      const againBtn = el('button', 'btn btn-primary', '⚔️ Rivincita');
+      againBtn.addEventListener('click', () => {
+        DC_BATTLE_STATE = dcInitBattle(DC_DECK, st.boss.id);
+        setTab('market');
+      });
+      btns.appendChild(againBtn);
+    }
+    const bossBtn = el('button', 'btn', '🐉 Scegli Boss');
+    bossBtn.addEventListener('click', () => { DC_VIEW = 'boss_select'; setTab('market'); });
+    btns.appendChild(bossBtn);
+    const exitBtn = el('button', 'btn', '‹ Collezione');
+    exitBtn.addEventListener('click', () => { DC_VIEW = 'collection'; setTab('market'); });
+    btns.appendChild(exitBtn);
+    endWrap.appendChild(btns);
+    c.appendChild(endWrap);
+    return;
+  }
+
+  // ── Boss panel ────────────────────────────────────────────
+  const bossPanel = el('div', 'dc-battle-boss-panel');
+  const bossHpPct  = Math.round(st.boss.hp / st.boss.maxHp * 100);
+  const bossHpColor = _dcHpBarColor(st.boss.hp, st.boss.maxHp);
+  bossPanel.innerHTML = `
+    <div class="dc-battle-boss-row">
+      <span class="dc-battle-boss-icon">${st.boss.icon}</span>
+      <div class="dc-battle-boss-info">
+        <div class="dc-battle-boss-name">${esc(st.boss.name)}</div>
+        <div class="dc-battle-hp-bar-wrap">
+          <div class="dc-battle-hp-bar" style="width:${bossHpPct}%;background:${bossHpColor}"></div>
+        </div>
+        <div class="dc-battle-hp-label">❤️ ${st.boss.hp} / ${st.boss.maxHp}</div>
+      </div>
+      ${st.boss.shield > 0 ? `<div class="dc-battle-shield">🔵 ${st.boss.shield}</div>` : ''}
+    </div>
+    ${(st.boss.effects.stun || 0) > 0 ? '<div class="dc-battle-status">⚡ Stordito</div>' : ''}
+    ${(st.boss.effects.burn || 0) > 0  ? `<div class="dc-battle-status dc-status-burn">🔥 Bruciatura ${st.boss.effects.burn}</div>` : ''}
+  `;
+  c.appendChild(bossPanel);
+
+  // ── Log ultimo turno ──────────────────────────────────────
+  const logHtml = _dcBuildActionLog(st.lastEntry);
+  if (logHtml) {
+    const logWrap = el('div', 'dc-battle-log');
+    logWrap.innerHTML = `<div class="dc-battle-log-title">Turno ${st.lastEntry ? st.lastEntry.turn : 1}</div>${logHtml}`;
+    c.appendChild(logWrap);
+  } else {
+    const quoteEl = el('div', 'dc-battle-quote muted small center');
+    quoteEl.textContent = st.boss.quote || '';
+    c.appendChild(quoteEl);
+  }
+
+  // ── Hero panel ────────────────────────────────────────────
+  const heroPanel = el('div', 'dc-battle-hero-panel');
+  const heroHpPct   = Math.round(st.hero.hp / st.hero.maxHp * 100);
+  const heroHpColor = _dcHpBarColor(st.hero.hp, st.hero.maxHp);
+  heroPanel.innerHTML = `
+    <div class="dc-battle-hero-row">
+      <div class="dc-battle-hero-info">
+        <div class="dc-battle-hero-label">Il tuo turno — Round ${st.turn}</div>
+        <div class="dc-battle-hp-bar-wrap">
+          <div class="dc-battle-hp-bar" style="width:${heroHpPct}%;background:${heroHpColor}"></div>
+        </div>
+        <div class="dc-battle-hp-label">❤️ ${st.hero.hp} / ${st.hero.maxHp}
+          ${st.hero.shield > 0 ? ` &nbsp; 🔵 ${st.hero.shield}` : ''}
+        </div>
+      </div>
+    </div>
+    ${(st.hero.effects.stun || 0) > 0 ? '<div class="dc-battle-status">⚡ Stordito — non puoi giocare</div>' : ''}
+    ${(st.hero.effects.burn || 0) > 0  ? `<div class="dc-battle-status dc-status-burn">🔥 Bruciatura ${st.hero.effects.burn} al prossimo turno</div>` : ''}
+  `;
+  c.appendChild(heroPanel);
+
+  // ── Mano ─────────────────────────────────────────────────
+  const handWrap = el('div', 'dc-battle-hand');
+  if (st.hero.hand.length === 0) {
+    handWrap.appendChild(el('p', 'muted small center', 'Nessuna carta in mano.'));
+  } else {
+    st.hero.hand.forEach(cardId => {
+      const card = RPG.DRAGON_CARDS.find(c => c.id === cardId);
+      if (!card) return;
+      const rm = DC_RARITY_META[card.rarity];
+      const dm = DC_DRAGON_META[card.dragon] || { bg:'#f5f5f5', icon:'🐉', color:'#555' };
+      const tm = DC_TYPE_META[card.type] || DC_TYPE_META.offensiva;
+      const imgPath = `assets/dragon-cards/${card.id}.webp`;
+      const handCard = el('div', `dc-hand-card dc-rar-${card.rarity}`);
+      handCard.innerHTML = `
+        <div class="dc-hand-header" style="background:${rm.grad}">
+          <span class="dc-hand-name">${esc(card.name)}</span>
+          <span class="dc-hand-type" style="background:${tm.color}">${tm.icon}</span>
+        </div>
+        <div class="dc-hand-art" style="background:${dm.bg}">
+          <img class="dc-hand-img" src="${imgPath}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="">
+          <div class="dc-hand-emoji" style="display:none">${dm.icon}</div>
+        </div>
+        <div class="dc-hand-stats">
+          <div class="dc-hand-stat" style="color:#c0392b">⚔️ ${card.atk}</div>
+          <div class="dc-hand-stat" style="color:#2980b9">🛡️ ${card.def}</div>
+          <div class="dc-hand-stat" style="color:#27ae60">💚 ${card.heal}</div>
+        </div>
+        ${card.effect ? `<div class="dc-hand-effect">${DC_EFFECT_LABELS[card.effect] || card.effect}</div>` : ''}
+        <button class="dc-hand-play-btn btn btn-primary">Gioca</button>
+      `;
+      const stunned = (st.hero.effects.stun || 0) > 0;
+      if (stunned) handCard.classList.add('dc-card-disabled');
+      handCard.querySelector('.dc-hand-play-btn').addEventListener('click', () => {
+        if (stunned) { toast('Sei stordito — salti questo turno!'); return; }
+        DC_BATTLE_STATE = dcPlayCard(DC_BATTLE_STATE, cardId);
+        setTab('market');
+      });
+      handWrap.appendChild(handCard);
+    });
+  }
+  c.appendChild(handWrap);
+
+  // ── Footer info ───────────────────────────────────────────
+  const footer = el('div', 'dc-battle-footer muted small');
+  footer.innerHTML = `📚 Mazzo: ${st.hero.deck.length} &nbsp; 🗑️ Scarti: ${st.hero.discard.length} &nbsp; ✋ Mano: ${st.hero.hand.length}`;
+  c.appendChild(footer);
+
+  // Pulsante abbandona
+  const quitBtn = el('button', 'btn dc-battle-quit', '🏳️ Abbandona');
+  quitBtn.addEventListener('click', () => {
+    DC_BATTLE_STATE = null;
+    DC_VIEW = 'boss_select';
+    setTab('market');
+  });
+  c.appendChild(quitBtn);
 }
 
 function renderAntroBestiaView(c)    { _antroComingSoon(c, ANTRO_SECTIONS[1]); }
