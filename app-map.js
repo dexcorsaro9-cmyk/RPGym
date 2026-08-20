@@ -303,23 +303,32 @@ function renderMap(c) {
       const merchant = RPG.getTravelingMerchant(HERO);
       if (merchant) {
         const mp = el('div', 'panel merchant-panel');
-        mp.appendChild(el('h3', 'panel-title', ptIcon('assets/ui/mappa/mercante-itinerante.webp', 'Mercante Itinerante', '🧳')));
+        mp.appendChild(el('h3', 'panel-title', ptIcon('assets/ui/mappa/mercante.webp', 'Mercante Itinerante', '🧳')));
         mp.appendChild(el('p', 'muted small center', 'Disponibile solo venerdì–domenica! Sparisce lunedì.'));
+        const grid = el('div', 'merchant-offers-grid');
         merchant.offers.forEach((o, i) => {
           const boughtKey = merchant.weekStamp + '-' + i;
           const bought = HERO.merchantBought && HERO.merchantBought[boughtKey];
           const effectivePrice = RPG.merchantEffectivePrice(HERO, o.price);
           const hasDiscount = effectivePrice < o.price;
-          const row = el('div', 'merchant-offer-row' + (bought ? ' bought' : ''));
-          row.innerHTML = `<div class="merchant-offer-info">${itemHtml(o.item)}</div>`;
+          const card = el('div', 'merchant-offer-card' + (bought ? ' bought' : ''));
+          const img = RPG.itemImg(o.item);
+          const imgHtml = img
+            ? `<img class="merchant-offer-img" src="${img}" onerror="this.outerHTML='<span class=merchant-offer-icon>${o.item.icon||'⚔️'}</span>'" alt="">`
+            : `<span class="merchant-offer-icon">${o.item.icon || '⚔️'}</span>`;
+          const rar = RPG.RARITIES[o.item.rarity];
+          card.innerHTML = `${imgHtml}
+            <div class="merchant-offer-name">${esc(o.item.name)}</div>
+            <div class="tag" style="color:${rar.color}">${rar.label}</div>`;
           if (bought) {
-            row.innerHTML += `<span class="done-strip">✅</span>`;
+            card.innerHTML += `<span class="done-strip" style="font-size:.85rem">✅ Acquistato</span>`;
           } else {
             const priceLabel = hasDiscount
               ? `🪙 <s style="opacity:.5">${o.price}</s> ${effectivePrice}`
               : `🪙 ${effectivePrice}`;
-            const btn = el('button', 'btn' + (HERO.gold >= effectivePrice ? ' btn-primary' : ''));
+            const btn = el('button', 'btn btn-small' + (HERO.gold >= effectivePrice ? ' btn-primary' : ''));
             btn.innerHTML = priceLabel;
+            btn.style.marginTop = 'auto';
             btn.addEventListener('click', () => {
               const err = RPG.buyFromMerchant(HERO, i);
               if (err) { toast(err); return; }
@@ -327,10 +336,11 @@ function renderMap(c) {
               vibrate([80, 40, 120]);
               setTab('camp');
             });
-            row.appendChild(btn);
+            card.appendChild(btn);
           }
-          mp.appendChild(row);
+          grid.appendChild(card);
         });
+        mp.appendChild(grid);
         c.appendChild(mp);
       }
     }
