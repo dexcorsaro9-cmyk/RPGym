@@ -5673,18 +5673,37 @@ img.challenge-icon { width: 36px; height: 36px; object-fit: contain; filter: dro
 /* ── Mercante Itinerante ─────────────────────────────────── */
 .merchant-panel { border: 1.5px solid rgba(255,200,50,.3); }
 .merchant-panel .panel-title { color: var(--gold-bright); }
-.merchant-offer-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .5rem;
-  padding: .5rem 0;
-  border-bottom: 1px solid rgba(255,255,255,.08);
+.merchant-offers-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: .6rem;
+  margin-top: .4rem;
 }
-.merchant-offer-row:last-child { border-bottom: none; }
-.merchant-offer-info { flex: 1; min-width: 0; }
-.merchant-offer-info .item-icon-big { width: 40px; height: 40px; }
-.merchant-offer-row.bought { opacity: .55; }
+.merchant-offer-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .3rem;
+  padding: .6rem .4rem;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,200,50,.2);
+  border-radius: 10px;
+  text-align: center;
+  min-height: 140px;
+}
+.merchant-offer-card.bought { opacity: .55; }
+.merchant-offer-img {
+  width: 54px; height: 54px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+.merchant-offer-icon { font-size: 2.4rem; line-height: 1; }
+.merchant-offer-name {
+  font-size: .72rem;
+  font-weight: 600;
+  line-height: 1.2;
+  word-break: break-word;
+}
 
 /* ── Skill Tree ─────────────────────────────────────────── */
 .skill-tree-panel { border: 1.5px solid rgba(80,180,255,.25); }
