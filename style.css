@@ -7197,8 +7197,8 @@ img.challenge-icon { width: 36px; height: 36px; object-fit: contain; filter: dro
 }
 .mgck-knife-img {
   width: 22px; height: 64px;
-  object-fit: contain;
   display: block;
+  overflow: visible;
 }
 .mgck-knife-active {
   position: absolute; bottom: 50px; left: 50%;
