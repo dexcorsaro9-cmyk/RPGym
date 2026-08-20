@@ -4533,9 +4533,9 @@ const RPG = (() => {
   };
 
   const PET_FOODS = {
-    mela:    { name: 'Mela', icon: '🍎', price: 5,  restoreHunger: 20 },
-    pesce:   { name: 'Pesce Fresco', icon: '🐟', price: 15, restoreHunger: 45 },
-    bistecca:{ name: 'Bistecca Epica', icon: '🥩', price: 50, restoreHunger: 100 },
+    mela:    { name: 'Mela',          icon: '🍎', img: 'assets/mela.webp',           price: 5,  restoreHunger: 20 },
+    pesce:   { name: 'Pesce Fresco',  icon: '🐟', img: 'assets/pesce fresco.webp',   price: 15, restoreHunger: 45 },
+    bistecca:{ name: 'Bistecca Epica',icon: '🥩', img: 'assets/bistecca epica.webp', price: 50, restoreHunger: 100 },
   };
 
   const PET_ACCESSORIES = {
