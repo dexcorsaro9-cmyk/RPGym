@@ -10351,6 +10351,33 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
   display: flex; align-items: center; justify-content: center; font-weight: 700;
 }
 
+/* ── Onboarding Banner DDD ──────────────────────────────── */
+.dc-ddd-onboarding-banner {
+  position: relative;
+  display: flex; align-items: flex-start; gap: 12px;
+  background: linear-gradient(135deg, rgba(80,0,120,.18), rgba(200,80,0,.12));
+  border: 1px solid rgba(180,80,255,.35);
+  border-radius: 14px;
+  padding: 14px 36px 14px 14px;
+  margin: 0 0 14px;
+}
+.dc-ddd-ob-icon { font-size: 2.2rem; flex-shrink: 0; }
+.dc-ddd-ob-body { flex: 1; }
+.dc-ddd-ob-body b { font-size: .95rem; }
+.dc-ddd-ob-body p { margin: 4px 0 8px; font-size: .82rem; color: var(--muted); line-height: 1.45; }
+.dc-ddd-ob-btn { font-size: .82rem; padding: 6px 14px; }
+.dc-ddd-ob-dismiss {
+  position: absolute; top: 8px; right: 8px;
+  background: none; border: none; cursor: pointer;
+  color: var(--muted); font-size: .9rem; line-height: 1; padding: 2px 4px;
+}
+/* ── Barra progresso DDD nel Diario ─────────────────────── */
+.dc-diary-bar-wrap {
+  height: 8px; background: var(--divider); border-radius: 4px;
+  overflow: hidden; margin: 8px 0 4px;
+}
+.dc-diary-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #7b2ff7, #e040fb); transition: width .4s; }
+
 /* ══════════════════════════════════════════════════════════════
    DUELLO CARTE — Selezione Boss (tier system)
    ══════════════════════════════════════════════════════════════ */
