@@ -1187,7 +1187,7 @@ function renderLiveWorkoutCard(c, Plugin, getActivity) {
       if (isFirst) HERO.onboardingStep = 2;
       persist(); renderHUD(); FB.syncHero(HERO).catch(() => {});
       if (HERO.guild && report.km > 0) FB.contributeToGuild(HERO, report.km).catch(() => {});
-      checkMapNotify(); checkBoardNotify(); maybeSyncChallenge(); updateTabOnboardingPulse();
+      checkMapNotify(); checkBoardNotify(); maybeSyncChallenge(); updateTabOnboardingPulse(); if (typeof checkChampionProvas === 'function') checkChampionProvas();
       if (isFirst) OPEN_QUEUE.push(showFirstWorkoutCelebration);
       showReport(report);
     } else {

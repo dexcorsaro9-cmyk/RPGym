@@ -1154,6 +1154,7 @@ const RPG = (() => {
     leggendario: { label: 'Leggendario', weight: 2,   xp: 12, value: 400,  minLevel: 31 },
     divino:      { label: 'Divino',      weight: 0.5, xp: 20, value: 1000, minLevel: 51 },
     oscuro:      { label: 'Oscuro',      weight: 0.5, xp: 30, value: 2500, minLevel: 76 },
+    eterno:      { label: 'Eterno',      weight: 0,   xp: 50, value: 99999, minLevel: 70 },
   };
 
   const SLOTS = {
@@ -3325,9 +3326,12 @@ const RPG = (() => {
 
     h.guild = h.guild || null; // { guildId, role, joinedAt, name, emblem, tag, level, totalKm }
 
+    h.champion = h.champion || null;
+
     /* Migrazione nomi armi: ricalcola base+nome dall'immagine per item vecchi */
     (h.items || []).forEach(it => {
       if (it.slot !== 'arma') return;
+      if (it.id === 'gladius_aeternus') return; // arma unica, skip migrazione
       const names = ARMA_NAMES_BY_IMG[it.rarity];
       if (!names) return;
       const hh = [...String(it.id)].reduce((s, c) => (s * 33 + c.charCodeAt(0)) % 9973, 7);
@@ -3803,10 +3807,19 @@ const RPG = (() => {
     }
     report.season = season.id;
 
+    // ── Bonus Trofei Prove del Campione ──
+    const champTrophies = (hero.champion && hero.champion.trophies) || [];
+    if (champTrophies.includes(1) && type === 'corsa') xpMult += 0.05;
+
     report.xp = Math.round(effKm * act.xpPerKm * mult * xpMult);
     report.gold = Math.round(effKm * GOLD_PER_KM * mult * goldMult);
     hero.xp += report.xp;
     hero.gold += report.gold;
+    if (champTrophies.includes(3)) {
+      const bonusGold = Math.round(effKm * 3 * mult);
+      report.gold += bonusGold;
+      hero.gold += bonusGold;
+    }
 
     report.wood = Math.round((effKm * (1 + Math.random())) * localWoodMult);
     report.stone = Math.round(effKm * (0.3 + Math.random() * 0.7) * localStoneMult);
@@ -4541,6 +4554,7 @@ const RPG = (() => {
       consumable: null,
     };
     if (isClass(hero, 'principessa_ghiacci')) chest.gold = Math.round(chest.gold * 1.30);
+    if ((hero.champion && hero.champion.trophies || []).includes(6)) chest.gold = Math.round(chest.gold * 1.10);
     hero.gold += chest.gold;
     const dropChance = boss ? 0.65 : 0.40;
     const dropBoostActive = hero.consumableBuffs && hero.consumableBuffs.dropBoost && hero.consumableBuffs.dropBoost.expiresAt > Date.now();
@@ -7697,14 +7711,153 @@ const DC_DAILY_BATTLES = 5;
 function dcBattlesLeft(hero) {
   const today = new Date().toISOString().slice(0, 10);
   const t = hero.dcBattles;
-  if (!t || t.date !== today) return DC_DAILY_BATTLES;
-  return Math.max(0, DC_DAILY_BATTLES - (t.count || 0));
+  const extra = (hero.champion && hero.champion.trophies && hero.champion.trophies.includes(7)) ? 1 : 0;
+  const limit = DC_DAILY_BATTLES + extra;
+  if (!t || t.date !== today) return limit;
+  return Math.max(0, limit - (t.count || 0));
 }
 
 function dcUseBattle(hero) {
   const today = new Date().toISOString().slice(0, 10);
   if (!hero.dcBattles || hero.dcBattles.date !== today) hero.dcBattles = { date: today, count: 0 };
   hero.dcBattles.count = (hero.dcBattles.count || 0) + 1;
+}
+
+/* ── Le 10 Prove del Campione ─────────────────────────────────── */
+const CHAMPION_PROVAS = [
+  { id:1, level:61, windowDays:14,
+    name:'La Prima Chiamata', trophy:'Scudo d\'Avorio', img:'assets/trophies/trophy_1.webp', icon:'🏅',
+    bonusLabel:'+5% XP corsa (permanente)',
+    check(state, hero) { return (hero.totalKm - state.startKm) >= 20; }
+  },
+  { id:2, level:62, windowDays:14,
+    name:'Il Fuoco Interiore', trophy:'Torcia Eterna', img:'assets/trophies/trophy_2.webp', icon:'🔥',
+    bonusLabel:'+1 carica consumabile al giorno',
+    check(state, hero) { return new Set(state.activeDays).size >= 5; }
+  },
+  { id:3, level:63, windowDays:14,
+    name:'La Lunga Marcia', trophy:'Sandali di Ferro', img:'assets/trophies/trophy_3.webp', icon:'👟',
+    bonusLabel:'+3 oro per km (permanente)',
+    check(state, hero) { return (hero.totalKm - state.startKm) >= 40; }
+  },
+  { id:4, level:64, windowDays:14,
+    name:'La Costanza del Guerriero', trophy:'Anello della Perseveranza', img:'assets/trophies/trophy_4.webp', icon:'💍',
+    bonusLabel:'Streak protetta 1×/settimana',
+    check(state, hero) { return (hero.streak && hero.streak.count || 0) >= 7; }
+  },
+  { id:5, level:65, windowDays:14,
+    name:'Il Passo Cadenzato', trophy:'Mantello del Viandante', img:'assets/trophies/trophy_5.webp', icon:'🧭',
+    bonusLabel:'Titolo «Esploratore»',
+    check(state, hero) {
+      const days = [...new Set(state.activeDays)].sort();
+      if (days.length < 5) return false;
+      for (let i = 0; i <= days.length - 5; i++) {
+        if ((new Date(days[i+4]) - new Date(days[i])) / 86400000 <= 6) return true;
+      }
+      return false;
+    }
+  },
+  { id:6, level:66, windowDays:14,
+    name:'La Notte Oscura', trophy:'Lanterna degli Abissi', img:'assets/trophies/trophy_6.webp', icon:'🏮',
+    bonusLabel:'+10% oro da Arena',
+    check(state, hero) {
+      return (hero.totalKm - state.startKm) >= 30 && new Set(state.activeDays).size <= 5;
+    }
+  },
+  { id:7, level:67, windowDays:14,
+    name:'Il Respiro del Drago', trophy:'Squama Draconica', img:'assets/trophies/trophy_7.webp', icon:'🐉',
+    bonusLabel:'+1 sfida DC al giorno',
+    check(state, hero) { return new Set(state.activeDays).size >= 10; }
+  },
+  { id:8, level:68, windowDays:14,
+    name:'Il Confine del Limite', trophy:'Manto delle Stelle', img:'assets/trophies/trophy_8.webp', icon:'🌌',
+    bonusLabel:'Skin Eroe «Leggendario»',
+    check(state, hero) { return (hero.totalKm - state.startKm) >= 50; }
+  },
+  { id:9, level:69, windowDays:14,
+    name:"L'Ultimo Passo", trophy:"Corona dell'Alba", img:'assets/trophies/trophy_9.webp', icon:'👑',
+    bonusLabel:'Scudo streak 2×/mese',
+    check(state, hero) { return (hero.streak && hero.streak.count || 0) >= 10; }
+  },
+  { id:10, level:70, windowDays:14,
+    name:'La Prova del Campione', trophy:'Sigillo del Campione', img:'assets/trophies/trophy_10.webp', icon:'✦',
+    bonusLabel:'Titolo «Campione» · Aura dorata nell\'HUD',
+    check(state, hero) {
+      const p1 = hero.champion && hero.champion.provas && hero.champion.provas[1];
+      const baseKm = p1 ? p1.startKm : state.startKm;
+      return (hero.totalKm - baseKm) >= 100;
+    }
+  },
+];
+
+const GLADIUS_AETERNUS = {
+  id: 'gladius_aeternus',
+  slot: 'arma',
+  rarity: 'eterno',
+  base: 'Gladius Aeternus',
+  name: 'Gladius Aeternus',
+  icon: '⚔️',
+  img: 'assets/weapons/gladius_aeternus.webp',
+  xp: 50,
+  value: 99999,
+  unique: true,
+  affixes: [
+    { type: 'xpGlobal', value: 0.25 },
+    { type: 'goldMult', value: 0.25 },
+    { type: 'arenaDmgMult', value: 0.30 },
+    { type: 'arenaHpMult', value: 0.20 },
+  ],
+  desc: 'L\'arma dei Campioni. Forgiata dalla luce dell\'alba eterna. +25% XP (tutti) · +25% oro · +30% danni Arena · +20% HP Arena.',
+};
+
+function unlockNewProvas(hero, today) {
+  if (!hero.champion) hero.champion = { provas: {}, trophies: [] };
+  if (!hero.champion.provas) hero.champion.provas = {};
+  if (!hero.champion.trophies) hero.champion.trophies = [];
+  for (const prova of CHAMPION_PROVAS) {
+    if ((hero.level || 0) >= prova.level && !hero.champion.provas[prova.id]) {
+      hero.champion.provas[prova.id] = {
+        unlockedAt: today,
+        startKm: hero.totalKm || 0,
+        startSessions: hero.totalSessions || 0,
+        activeDays: [],
+        completedAt: null,
+        failedAt: null,
+      };
+    }
+  }
+}
+
+function checkProveDelCampione(hero, today) {
+  if (!hero.champion) hero.champion = { provas: {}, trophies: [] };
+  unlockNewProvas(hero, today);
+  const newlyCompleted = [];
+  const newlyFailed = [];
+  for (const prova of CHAMPION_PROVAS) {
+    const state = hero.champion.provas[prova.id];
+    if (!state || state.completedAt || state.failedAt) continue;
+    if (!state.activeDays.includes(today)) state.activeDays.push(today);
+    const daysSince = Math.floor((new Date(today) - new Date(state.unlockedAt)) / 86400000);
+    if (prova.check(state, hero)) {
+      state.completedAt = today;
+      if (!hero.champion.trophies.includes(prova.id)) hero.champion.trophies.push(prova.id);
+      newlyCompleted.push(prova);
+      continue;
+    }
+    if (daysSince >= prova.windowDays) {
+      state.failedAt = today;
+      newlyFailed.push(prova);
+    }
+  }
+  if (hero.champion.trophies.length === CHAMPION_PROVAS.length) {
+    const hasGladius = (hero.items || []).some(it => it.id === 'gladius_aeternus');
+    if (!hasGladius) {
+      hero.items = hero.items || [];
+      hero.items.push(Object.assign({}, GLADIUS_AETERNUS));
+      newlyCompleted.push({ gladius: true });
+    }
+  }
+  return { completed: newlyCompleted, failed: newlyFailed };
 }
 
 function dcTierUnlocked(hero, tier) {

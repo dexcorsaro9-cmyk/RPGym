@@ -11,6 +11,7 @@ function renderHero(c) {
   if (HERO_VIEW === 'sacca')    { renderSaccaView(c);    return; }
   if (HERO_VIEW === 'guida')    { renderGuidaView(c);    return; }
   if (HERO_VIEW === 'cronache') { renderCronacheView(c); return; }
+  if (HERO_VIEW === 'campione') { renderCampioneTrophyView(c); return; }
 
   const titleH2 = el('h2', 'section-title on-parchment-title hero-title-row');
   titleH2.innerHTML = ptIcon('assets/ui/eroe/equipaggiamento.webp', 'Equipaggiamento', '🛡️');
@@ -132,6 +133,14 @@ function renderHero(c) {
     b.addEventListener('click', () => { HERO_VIEW = k; setTab('hero'); });
     sub.appendChild(b);
   });
+  // Prove del Campione (sbloccato al Lv 60)
+  if ((HERO.level || 0) >= 60) {
+    const champBtn = el('button', 'btn submenu-btn submenu-btn-campione');
+    const trophies = (HERO.champion && HERO.champion.trophies) || [];
+    champBtn.innerHTML = `<span class="submenu-emoji">⚔️</span><span>Prove del Campione${trophies.length > 0 ? ` <span class="champ-badge">${trophies.length}/10</span>` : ''}</span>`;
+    champBtn.addEventListener('click', () => { HERO_VIEW = 'campione'; setTab('hero'); });
+    sub.appendChild(champBtn);
+  }
   c.appendChild(sub);
 
   // Prestige (Rinascita)
@@ -2298,6 +2307,128 @@ function showScratchCard(ticket) {
       setTimeout(() => { MARKET_VIEW = 'hub'; setTab('market'); }, 3000);
     }
   });
+}
+
+/* ── checkChampionProvas — chiamato dopo ogni allenamento ─────── */
+function checkChampionProvas() {
+  if ((HERO.level || 0) < 61) return;
+  const today = new Date().toISOString().slice(0, 10);
+  const result = checkProveDelCampione(HERO, today);
+  if (!result) return;
+  persist();
+  result.completed.forEach(p => {
+    if (p.gladius) {
+      toast('🗡️ Hai sbloccato il Gladius Aeternus! Controllalo nello Zaino.');
+    } else {
+      toast(`🏆 Prova completata: ${p.name}! Trofeo: ${p.trophy}`);
+    }
+  });
+  result.failed.forEach(p => {
+    toast(`❌ Prova scaduta: ${p.name}. Non si ripete.`);
+  });
+}
+
+/* ── Bacheca Trofei Prove del Campione ────────────────────────── */
+function renderCampioneTrophyView(c) {
+  const today = new Date().toISOString().slice(0, 10);
+  const back = el('button', 'btn back-btn');
+  back.innerHTML = '← Eroe';
+  back.addEventListener('click', () => { HERO_VIEW = 'main'; setTab('hero'); });
+  c.appendChild(back);
+
+  const champ = HERO.champion || { provas: {}, trophies: [] };
+  const trophies = champ.trophies || [];
+  const provas = champ.provas || {};
+  const total = CHAMPION_PROVAS.length;
+  const completed = trophies.length;
+  const hasAll = completed === total;
+
+  // Header
+  const hdr = el('div', 'champ-hdr');
+  hdr.innerHTML = `
+    <div class="champ-hdr-title">⚔️ Prove del Campione</div>
+    <div class="champ-hdr-sub">Dieci sfide reali. Una sola possibilità ciascuna.</div>
+    <div class="champ-progress-wrap">
+      <div class="champ-progress-bar">
+        <div class="champ-progress-fill" style="width:${Math.round(completed/total*100)}%"></div>
+      </div>
+      <div class="champ-progress-label">${completed} / ${total} trofei</div>
+    </div>`;
+  c.appendChild(hdr);
+
+  // Trophy grid
+  const grid = el('div', 'champ-grid');
+  CHAMPION_PROVAS.forEach(prova => {
+    const state = provas[prova.id];
+    const isTrophied = trophies.includes(prova.id);
+    const isCompleted = state && state.completedAt;
+    const isFailed = state && state.failedAt;
+    const isActive = state && !isCompleted && !isFailed;
+    const isLocked = !state;
+
+    const card = el('div', `champ-card ${isCompleted ? 'champ-card-done' : isFailed ? 'champ-card-fail' : isActive ? 'champ-card-active' : 'champ-card-locked'}`);
+
+    // Trophy image
+    const imgWrap = el('div', 'champ-card-img-wrap');
+    if (isCompleted || isActive) {
+      imgWrap.innerHTML = `<img src="${prova.img}" alt="${esc(prova.trophy)}" class="champ-trophy-img ${isActive ? 'champ-trophy-dim' : ''}">`;
+      if (isCompleted) {
+        const check = el('div', 'champ-trophy-check'); check.textContent = '✓'; imgWrap.appendChild(check);
+      }
+    } else if (isFailed) {
+      imgWrap.innerHTML = `<img src="${prova.img}" alt="${esc(prova.trophy)}" class="champ-trophy-img champ-trophy-fail-img"><div class="champ-trophy-fail-x">✕</div>`;
+    } else {
+      imgWrap.innerHTML = `<div class="champ-trophy-lock"><span class="champ-lock-icon">🔒</span><span class="champ-lock-lv">Lv ${prova.level}</span></div>`;
+    }
+    card.appendChild(imgWrap);
+
+    // Info
+    const info = el('div', 'champ-card-info');
+    info.innerHTML = `<div class="champ-card-name">${esc(prova.name)}</div><div class="champ-card-trophy muted">${esc(prova.trophy)}</div>`;
+
+    if (isActive) {
+      const daysSince = Math.floor((new Date(today) - new Date(state.unlockedAt)) / 86400000);
+      const daysLeft = Math.max(0, prova.windowDays - daysSince);
+      const kmSince = Math.round((HERO.totalKm - state.startKm) * 10) / 10;
+      const uniqueDays = new Set(state.activeDays).size;
+      info.innerHTML += `<div class="champ-card-progress">
+        <span class="champ-days-left ${daysLeft <= 3 ? 'champ-urgent' : ''}">⏳ ${daysLeft}g rimasti</span>
+        <span class="champ-km-done">📍 +${kmSince} km · ${uniqueDays} sessioni</span>
+      </div>`;
+    } else if (isCompleted) {
+      info.innerHTML += `<div class="champ-card-bonus">✨ ${esc(prova.bonusLabel)}</div>`;
+      info.innerHTML += `<div class="champ-card-date muted small">Completata ${state.completedAt}</div>`;
+    } else if (isFailed) {
+      info.innerHTML += `<div class="champ-card-fail-label">❌ Scaduta ${state.failedAt}</div>`;
+    } else {
+      info.innerHTML += `<div class="champ-card-locked-label muted small">Sblocca al Lv ${prova.level}</div>`;
+    }
+    card.appendChild(info);
+    grid.appendChild(card);
+  });
+  c.appendChild(grid);
+
+  // Gladius Aeternus — se tutti i trofei completati
+  if (hasAll) {
+    const gladiusBox = el('div', 'champ-gladius-box');
+    const hasInInventory = (HERO.items || []).some(it => it.id === 'gladius_aeternus');
+    gladiusBox.innerHTML = `
+      <div class="champ-gladius-title">⚔️ Gladius Aeternus</div>
+      <div class="champ-gladius-sub">L'arma dei Campioni — Tier: <span class="rarity-eterno">ETERNO</span></div>
+      <img src="assets/weapons/gladius_aeternus.webp" alt="Gladius Aeternus" class="champ-gladius-img">
+      <div class="champ-gladius-stats">+25% XP · +25% oro · +30% danni Arena · +20% HP Arena</div>
+      <div class="champ-gladius-inventory muted small">${hasInInventory ? '✓ Presente nel tuo zaino' : '⚔️ Ottieni l\'arma dal tuo zaino'}</div>`;
+    c.appendChild(gladiusBox);
+  } else {
+    // Teaser bloccato
+    const teaser = el('div', 'champ-gladius-teaser');
+    teaser.innerHTML = `
+      <div class="champ-gladius-lock-icon">🔒</div>
+      <div class="champ-gladius-title">Gladius Aeternus</div>
+      <div class="champ-gladius-sub muted">Completa tutti e 10 i trofei per sbloccare l'arma oltre il leggendario.</div>
+      <div class="champ-gladius-remaining">${total - completed} trofei mancanti</div>`;
+    c.appendChild(teaser);
+  }
 }
 
 function renderZainoView(c) {
