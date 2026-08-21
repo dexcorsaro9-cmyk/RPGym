@@ -120,7 +120,7 @@ function renderHero(c) {
   const sub = el('div', 'hero-submenu');
   [
     ['story',    'storia',          '📜', 'La tua Storia'],
-    ['dragon_cards', 'carte',        '🎴', 'Carte & Imprese'],
+    ['cards',    'carte',           '🎴', 'Carte & Imprese'],
     ['bestiary', 'bestiario',       '🐉', 'Bestiario'],
     ['diary',    'imprese_stivale', '📊', 'Diario'],
   ].forEach(([k, file, emoji, label]) => {
@@ -1140,14 +1140,15 @@ function renderCronacheView(c) {
 
 function renderDragonCardsHeroView(c) {
   const backBtn = el('button', 'view-back-link', '‹ Eroe');
-  backBtn.addEventListener('click', () => { HERO_VIEW = 'main'; setTab('hero'); });
+  backBtn.addEventListener('click', () => { HERO_VIEW = 'cards'; setTab('hero'); });
   c.appendChild(backBtn);
   renderAntroDragonCardsView(c);
 }
 
 function renderCardsView(c) {
   backBar(c);
-  // ── Album Dominio dei Draghi (primo, collassato di default) ──
+  requestAnimationFrame(() => { const tc = document.getElementById('tab-content'); if (tc) tc.scrollTop = 0; });
+  // ── Album Dominio dei Draghi (primo, in cima) ──
   _renderDragonAlbum(c);
   const cardsTitle = el('h2', 'section-title on-parchment-title', '🎴 Il Tomo delle Memorie');
   c.appendChild(cardsTitle);
