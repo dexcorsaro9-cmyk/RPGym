@@ -10133,6 +10133,7 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
   width: 138px;
   border-radius: 14px;
   overflow: hidden;
+  border: 2.5px solid transparent;
   box-shadow: 0 3px 12px rgba(0,0,0,.22);
   display: flex; flex-direction: column;
   transition: transform .18s, box-shadow .18s;
@@ -10143,16 +10144,101 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
 .dc-card.dc-locked { filter: grayscale(.85); opacity: .6; cursor: default; }
 .dc-card.dc-locked:hover { transform: none; box-shadow: 0 3px 12px rgba(0,0,0,.22); }
 
-/* Rarity border glow */
-.dc-card.dc-rar-comune      { border: 2.5px solid #b0bec5; }
-.dc-card.dc-rar-non_comune  { border: 2.5px solid #43a047; }
-.dc-card.dc-rar-raro        { border: 2.5px solid #1e88e5; }
-.dc-card.dc-rar-epico       { border: 2.5px solid #8e24aa; box-shadow: 0 3px 16px rgba(142,36,170,.3); }
-.dc-card.dc-rar-leggendario { border: 2.5px solid #f59e0b; box-shadow: 0 4px 20px rgba(245,158,11,.45); }
-.dc-card.dc-rar-leggendario:not(.dc-locked) { animation: dc-holo .8s ease-in-out infinite alternate; }
+/* ── Rarità draghi: bordi + glow per tutte le 19 categorie ── */
+/* .dc-card (collezione), .dc-mini-card (builder), .dc-hand-card (duello) */
+.dc-card.dc-rar-comune,
+.dc-mini-card.dc-rar-comune,
+.dc-hand-card.dc-rar-comune      { border-color: #90a4ae; }
+
+.dc-card.dc-rar-non_comune,
+.dc-mini-card.dc-rar-non_comune,
+.dc-hand-card.dc-rar-non_comune  { border-color: #43a047; }
+
+.dc-card.dc-rar-raro,
+.dc-mini-card.dc-rar-raro,
+.dc-hand-card.dc-rar-raro        { border-color: #1e88e5; box-shadow: 0 3px 14px rgba(30,136,229,.3); }
+
+.dc-card.dc-rar-epico,
+.dc-mini-card.dc-rar-epico,
+.dc-hand-card.dc-rar-epico       { border-color: #8e24aa; box-shadow: 0 3px 16px rgba(142,36,170,.35); }
+
+.dc-card.dc-rar-leggendario,
+.dc-mini-card.dc-rar-leggendario,
+.dc-hand-card.dc-rar-leggendario { border-color: #f59e0b; box-shadow: 0 4px 20px rgba(245,158,11,.45); }
+.dc-card.dc-rar-leggendario:not(.dc-locked),
+.dc-hand-card.dc-rar-leggendario { animation: dc-holo .8s ease-in-out infinite alternate; }
+
+.dc-card.dc-rar-speciale,
+.dc-mini-card.dc-rar-speciale,
+.dc-hand-card.dc-rar-speciale    { border-color: #ffd700; box-shadow: 0 4px 18px rgba(255,215,0,.4); animation: dc-holo-gold 1s ease-in-out infinite alternate; }
+
+.dc-card.dc-rar-introvabile,
+.dc-mini-card.dc-rar-introvabile,
+.dc-hand-card.dc-rar-introvabile { border-color: #e53935; box-shadow: 0 4px 22px rgba(229,57,53,.55); animation: dc-holo-red 1.2s ease-in-out infinite alternate; }
+
+.dc-card.dc-rar-stagionale,
+.dc-mini-card.dc-rar-stagionale,
+.dc-hand-card.dc-rar-stagionale  { border-color: #00acc1; box-shadow: 0 3px 14px rgba(0,172,193,.35); }
+
+.dc-card.dc-rar-corrotto,
+.dc-mini-card.dc-rar-corrotto,
+.dc-hand-card.dc-rar-corrotto    { border-color: #6a0dad; box-shadow: 0 3px 16px rgba(106,13,173,.4); }
+
+.dc-card.dc-rar-guardiano,
+.dc-mini-card.dc-rar-guardiano,
+.dc-hand-card.dc-rar-guardiano   { border-color: #00897b; box-shadow: 0 3px 14px rgba(0,137,123,.35); }
+
+.dc-card.dc-rar-fossile,
+.dc-mini-card.dc-rar-fossile,
+.dc-hand-card.dc-rar-fossile     { border-color: #8d6e63; box-shadow: 0 3px 12px rgba(141,110,99,.3); }
+
+.dc-card.dc-rar-fusione,
+.dc-mini-card.dc-rar-fusione,
+.dc-hand-card.dc-rar-fusione     { border-color: #f57c00; box-shadow: 0 3px 16px rgba(245,124,0,.35); }
+
+.dc-card.dc-rar-re,
+.dc-mini-card.dc-rar-re,
+.dc-hand-card.dc-rar-re          { border-color: #c62828; box-shadow: 0 4px 20px rgba(198,40,40,.5); animation: dc-holo-crimson 1s ease-in-out infinite alternate; }
+
+.dc-card.dc-rar-bioma,
+.dc-mini-card.dc-rar-bioma,
+.dc-hand-card.dc-rar-bioma       { border-color: #2e7d32; box-shadow: 0 3px 14px rgba(46,125,50,.35); }
+
+.dc-card.dc-rar-zodiacale,
+.dc-mini-card.dc-rar-zodiacale,
+.dc-hand-card.dc-rar-zodiacale   { border-color: #4527a0; box-shadow: 0 3px 16px rgba(69,39,160,.4); }
+
+.dc-card.dc-rar-cucciolo,
+.dc-mini-card.dc-rar-cucciolo,
+.dc-hand-card.dc-rar-cucciolo    { border-color: #f9a825; box-shadow: 0 3px 12px rgba(249,168,37,.3); }
+
+.dc-card.dc-rar-mitologo,
+.dc-mini-card.dc-rar-mitologo,
+.dc-hand-card.dc-rar-mitologo    { border-color: #bf360c; box-shadow: 0 3px 16px rgba(191,54,12,.4); }
+
+.dc-card.dc-rar-festivo,
+.dc-mini-card.dc-rar-festivo,
+.dc-hand-card.dc-rar-festivo     { border-color: #e91e63; box-shadow: 0 3px 14px rgba(233,30,99,.35); }
+
+.dc-card.dc-rar-attivita,
+.dc-mini-card.dc-rar-attivita,
+.dc-hand-card.dc-rar-attivita    { border-color: #558b2f; box-shadow: 0 3px 12px rgba(85,139,47,.3); }
+
 @keyframes dc-holo {
   from { box-shadow: 0 4px 20px rgba(245,158,11,.45); }
   to   { box-shadow: 0 4px 28px rgba(245,158,11,.75), 0 0 10px rgba(253,210,133,.4); }
+}
+@keyframes dc-holo-gold {
+  from { box-shadow: 0 4px 18px rgba(255,215,0,.4); }
+  to   { box-shadow: 0 4px 26px rgba(255,215,0,.7), 0 0 8px rgba(255,240,100,.5); }
+}
+@keyframes dc-holo-red {
+  from { box-shadow: 0 4px 22px rgba(229,57,53,.55); }
+  to   { box-shadow: 0 4px 30px rgba(229,57,53,.85), 0 0 10px rgba(255,100,80,.4); }
+}
+@keyframes dc-holo-crimson {
+  from { box-shadow: 0 4px 20px rgba(198,40,40,.5); }
+  to   { box-shadow: 0 4px 28px rgba(198,40,40,.8), 0 0 10px rgba(255,80,80,.35); }
 }
 
 /* Header */
@@ -10486,12 +10572,3 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
 .dc-mini-kws { display: flex; flex-wrap: wrap; gap: 2px; padding: 2px 3px; }
 .dc-mini-kw  { font-size: .48rem; background: rgba(0,0,0,.2); border-radius: 3px; padding: 1px 3px; }
 
-/* ── New rarity borders ──────────────────────────────────── */
-.dc-card.dc-rar-speciale    { border: 2.5px solid #f59e0b; box-shadow: 0 3px 16px rgba(245,158,11,.4); }
-.dc-card.dc-rar-introvabile { border: 2.5px solid #e74c3c; box-shadow: 0 4px 20px rgba(231,76,60,.5); }
-.dc-card.dc-rar-comune      { border: 2.5px solid #b0bec5; }
-.dc-card.dc-rar-non_comune  { border: 2.5px solid #43a047; }
-.dc-card.dc-rar-raro        { border: 2.5px solid #1e88e5; }
-.dc-card.dc-rar-epico       { border: 2.5px solid #8e24aa; box-shadow: 0 3px 16px rgba(142,36,170,.3); }
-.dc-card.dc-rar-leggendario { border: 2.5px solid #f59e0b; box-shadow: 0 4px 20px rgba(245,158,11,.45); }
-.dc-card.dc-rar-leggendario:not(.dc-locked) { animation: dc-holo .8s ease-in-out infinite alternate; }
