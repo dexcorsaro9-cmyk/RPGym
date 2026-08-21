@@ -1118,6 +1118,9 @@ function renderCardsView(c) {
   });
   c.appendChild(grid);
 
+  // ── Album Dominio dei Draghi ──
+  _renderDragonAlbum(c);
+
   // Le Imprese — 100 traguardi raggruppati per bioma
   const claimed = HERO.achievementsClaimed || [];
   const unlockedCount = RPG.achievementsUnlocked(HERO).length;
@@ -1202,6 +1205,119 @@ function renderCardsView(c) {
     catWrap.appendChild(section);
   });
   c.appendChild(catWrap);
+}
+
+function _renderDragonAlbum(c) {
+  const ownedIds = new Set((HERO.dragonCards || []).map(dc => dc.id));
+  const total = RPG.DRAGON_CARDS.length;
+  const owned = ownedIds.size;
+
+  const hdr = el('h3', 'section-title on-parchment-title small-title', `🐉 Album del Dominio dei Draghi`);
+  c.appendChild(hdr);
+  c.appendChild(el('p', 'muted small center', `${owned} / ${total} draghi scoperti`));
+
+  // Filter bar
+  const cats = [...new Set(RPG.DRAGON_CARDS.map(dc => dc.cat))];
+  const filterWrap = el('div', 'dc-album-filters');
+  let activeCat = 'tutti';
+  filterWrap.innerHTML = `<button class="dc-filter-btn active" data-cat="tutti">Tutti</button>` +
+    cats.map(cat => `<button class="dc-filter-btn" data-cat="${cat}">${cat.replace('_',' ')}</button>`).join('');
+  c.appendChild(filterWrap);
+
+  const albumGrid = el('div', 'dc-album-grid');
+  c.appendChild(albumGrid);
+
+  function buildCards(filterCat) {
+    albumGrid.innerHTML = '';
+    const filtered = filterCat === 'tutti' ? RPG.DRAGON_CARDS : RPG.DRAGON_CARDS.filter(dc => dc.cat === filterCat);
+    filtered.forEach(dc => {
+      const isOwned = ownedIds.has(dc.id);
+      const lore = (RPG.DC_LORE && RPG.DC_LORE[dc.id]) || {};
+      const imgSrc = `images/dragons/${dc.id}.webp`;
+
+      const scene = el('div', 'dc-album-scene');
+      const inner = el('div', `dc-album-inner dc-rar-${dc.rar}${isOwned ? '' : ' dc-album-locked'}`);
+
+      // FRONT
+      const front = el('div', 'dc-album-face dc-album-front');
+      if (isOwned) {
+        front.innerHTML = `
+          <div class="dc-alb-cost">${dc.cost}</div>
+          <div class="dc-alb-art">
+            <img src="${esc(imgSrc)}" alt="${esc(dc.name)}" onerror="this.parentNode.innerHTML='<div class=\\'dc-alb-icon\\'>${esc(dc.icon)}</div>'">
+            <div class="dc-alb-art-grad"></div>
+          </div>
+          <div class="dc-alb-name">${esc(dc.name)}</div>
+          <div class="dc-alb-nick">${esc(dc.nick)}</div>
+          <div class="dc-alb-badges">
+            <span class="dc-alb-badge">${esc(dc.icon)} ${dc.cat.replace('_',' ')}</span>
+          </div>
+          <div class="dc-alb-stats">
+            <span class="dc-alb-atk">⚔ ${dc.atk}</span>
+            <span class="dc-alb-rar">${dc.rar.replace('_',' ')}</span>
+            <span class="dc-alb-hp">❤ ${dc.hp}</span>
+          </div>
+          <div class="dc-alb-hint">tocca per girare</div>`;
+      } else {
+        front.innerHTML = `
+          <div class="dc-alb-locked-inner">
+            <div class="dc-alb-lock-icon">🔒</div>
+            <div class="dc-alb-lock-rar">${dc.rar.replace('_',' ')}</div>
+            <div class="dc-alb-lock-hint">Non ancora scoperto</div>
+          </div>`;
+      }
+
+      // BACK
+      const back = el('div', 'dc-album-face dc-album-back');
+      if (isOwned) {
+        back.innerHTML = `
+          <div class="dc-alb-back-header">
+            <span class="dc-alb-back-icon">${esc(dc.icon)}</span>
+            <div>
+              <div class="dc-alb-back-name">${esc(dc.name)}</div>
+              <div class="dc-alb-back-title">${esc(dc.nick)}</div>
+            </div>
+          </div>
+          <div class="dc-alb-back-body">
+            <div class="dc-alb-back-label">Origini</div>
+            <div class="dc-alb-back-lore">${esc(lore.lore || '—')}</div>
+            <div class="dc-alb-back-quote">${esc(lore.quote || '')}</div>
+            <div class="dc-alb-back-stats">
+              <div class="dc-alb-back-stat"><span class="dc-alb-back-sl">Bioma</span><span>${esc(lore.bioma || '—')}</span></div>
+              <div class="dc-alb-back-stat"><span class="dc-alb-back-sl">Elemento</span><span>${esc(lore.elem || '—')}</span></div>
+              <div class="dc-alb-back-stat"><span class="dc-alb-back-sl">Affinità</span><span>${esc(lore.affinita || '—')}</span></div>
+              <div class="dc-alb-back-stat"><span class="dc-alb-back-sl">Costo</span><span>${dc.cost} mana</span></div>
+            </div>
+          </div>
+          <div class="dc-alb-back-footer">
+            <span class="dc-alb-back-id">DC · ${dc.id.toUpperCase()}</span>
+            <span class="dc-alb-back-rar">${dc.rar.replace('_',' ').toUpperCase()}</span>
+          </div>
+          <div class="dc-alb-hint">tocca per girare</div>`;
+      }
+
+      inner.appendChild(front);
+      inner.appendChild(back);
+      scene.appendChild(inner);
+
+      if (isOwned) {
+        scene.addEventListener('click', () => inner.classList.toggle('dc-album-flipped'));
+      }
+
+      albumGrid.appendChild(scene);
+    });
+  }
+
+  buildCards('tutti');
+
+  filterWrap.addEventListener('click', e => {
+    const btn = e.target.closest('.dc-filter-btn');
+    if (!btn) return;
+    filterWrap.querySelectorAll('.dc-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeCat = btn.dataset.cat;
+    buildCards(activeCat);
+  });
 }
 
 function showBeastDetail(b) {
