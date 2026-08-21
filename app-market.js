@@ -805,6 +805,9 @@ function renderDcBattleView(c) {
   bossArea.appendChild(bossBoard);
   c.appendChild(bossArea);
 
+  // Divisore visivo tra le due zone
+  c.appendChild(el('div', 'dc-battle-divider'));
+
   // ── Action Log ─────────────────────────────────────────────
   const recentLog = (st.log || []).slice(-5);
   if (recentLog.length) {
