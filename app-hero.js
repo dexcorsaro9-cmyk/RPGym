@@ -1329,17 +1329,6 @@ function _renderDragonAlbum(c) {
   btn.addEventListener('click', () => { HERO_VIEW = 'dragon_cards'; setTab('hero'); });
   panel.appendChild(btn);
 
-  // Bottone duello
-  const ownedCount = (HERO.dragonCards || []).length;
-  const canDuel = HERO.level >= 50 && ownedCount >= 5;
-  let duelLabel = '⚔️ Dominio dei Draghi';
-  if (HERO.level < 50) duelLabel = '⚔️ Dominio dei Draghi (Lv 50)';
-  else if (ownedCount < 5) duelLabel = `⚔️ Dominio dei Draghi (${ownedCount}/5 draghi)`;
-  const duelBtn = el('button', 'btn dc-duel-btn wide', duelLabel);
-  duelBtn.disabled = !canDuel;
-  duelBtn.addEventListener('click', () => { DC_DECK = []; DC_VIEW = 'builder'; MARKET_VIEW = 'antro_contratti'; setTab('market'); });
-  panel.appendChild(duelBtn);
-
   c.appendChild(panel);
 }
 
