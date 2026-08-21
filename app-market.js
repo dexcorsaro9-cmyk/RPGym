@@ -281,6 +281,29 @@ function renderMarket(c) {
       `;
       sectionList.appendChild(row);
     });
+
+    // Box Dominio dei Draghi (duello) — sempre visibile, lucchetto se < Lv 50
+    {
+      const ownedCount = (HERO.dragonCards || []).length;
+      const duelUnlocked = heroLv >= 50 && ownedCount >= 5;
+      const duelBox = el('div', `antro-duel-box${duelUnlocked ? ' antro-duel-box-open' : ''}`);
+      duelBox.innerHTML = `
+        <span class="antro-duel-box-icon">${duelUnlocked ? '⚔️' : '🔒'}</span>
+        <div class="antro-duel-box-body">
+          <span class="antro-duel-box-name">Dominio dei Draghi</span>
+          <span class="antro-duel-box-desc">${duelUnlocked ? 'Sfida i villain del Dominio con il tuo mazzo.' : heroLv < 50 ? 'Si sblocca al livello 50 · Colleziona le carte dei draghi.' : `Raccogli ${5 - ownedCount} draghi per sbloccare i duelli.`}</span>
+        </div>
+        <span class="antro-row-badge">Lv 50</span>
+      `;
+      const duelBtn = el('button', 'btn btn-primary dc-duel-btn antro-duel-box-btn', '⚔️ Gioca');
+      duelBtn.disabled = !duelUnlocked;
+      duelBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        DC_DECK = []; DC_VIEW = 'builder'; MARKET_VIEW = 'antro_contratti'; setTab('market');
+      });
+      duelBox.appendChild(duelBtn);
+      sectionList.appendChild(duelBox);
+    }
     antroCard.appendChild(sectionList);
 
     // Frase leggendaria
