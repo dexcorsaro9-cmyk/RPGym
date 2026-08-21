@@ -281,7 +281,7 @@ function renderMarket(c) {
         </div>
         <span class="antro-row-badge">Lv 50</span>
       `;
-      const duelBtn = el('button', 'btn btn-primary dc-duel-btn antro-duel-box-btn', '⚔️ Gioca');
+      const duelBtn = el('button', 'btn btn-primary dc-duel-btn antro-duel-box-btn', duelUnlocked ? '⚔️ Gioca' : '🔒 Gioca (Lv 50)');
       duelBtn.disabled = !duelUnlocked;
       duelBtn.addEventListener('click', (e) => {
         e.stopPropagation();
