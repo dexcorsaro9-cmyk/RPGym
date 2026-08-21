@@ -1300,8 +1300,11 @@ function _renderDragonAlbum(c) {
     </span>`;
   panel.appendChild(innerHdr);
 
-  // Descrizione
-  panel.appendChild(el('p', 'muted small', `${pct}% della collezione scoperta. Ogni creatura leggendaria porta con sé un potere unico.`));
+  // Descrizione epica
+  const epicDesc = el('p', 'dc-entry-epic-desc', owned > 0
+    ? `${owned} draghi risvegli. ${total - owned} ancora nell'ombra. Ogni chilometro percorso chiama una nuova creatura al tuo fianco.`
+    : `Dal Livello 30, ogni allenamento risveglia una creatura leggendaria. Corri, cammina, combatti — e i draghi risponderanno alla tua chiamata.`);
+  panel.appendChild(epicDesc);
 
   // Bottone
   const btn = el('button', 'btn btn-primary wide', '🐲 La Collezione dei Draghi');

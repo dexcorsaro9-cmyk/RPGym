@@ -11010,6 +11010,11 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
   transition: width .4s;
 }
 .dc-entry-inner-count { font-size: .7rem; font-weight: 700; color: #f1c40f; white-space: nowrap; }
+.dc-entry-epic-desc {
+  font-size: .82rem; line-height: 1.55; font-style: italic;
+  color: var(--text); margin: 4px 0 8px;
+  text-shadow: 0 1px 8px rgba(241,196,15,.12);
+}
 
 /* ── Rarity: Eterno ── */
 .rarity-eterno {
