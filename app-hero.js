@@ -1083,6 +1083,8 @@ function renderCronacheView(c) {
 
 function renderCardsView(c) {
   backBar(c);
+  // ── Album Dominio dei Draghi (primo, collassato di default) ──
+  _renderDragonAlbum(c);
   const cardsTitle = el('h2', 'section-title on-parchment-title', '🎴 Il Tomo delle Memorie');
   c.appendChild(cardsTitle);
   const tomeImg = new Image();
@@ -1117,9 +1119,6 @@ function renderCardsView(c) {
     grid.appendChild(cc);
   });
   c.appendChild(grid);
-
-  // ── Album Dominio dei Draghi ──
-  _renderDragonAlbum(c);
 
   // Le Imprese — 100 traguardi raggruppati per bioma
   const claimed = HERO.achievementsClaimed || [];
