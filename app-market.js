@@ -13,6 +13,7 @@ const ANTRO_SECTIONS = [
   { lv: 61,  key: 'antro_prove',     icon: '⚔️', name: 'Le 10 Prove del Campione',      desc: 'Dieci sfide irripetibili (Lv 61–70). Completa tutte e 10 per ottenere trofei unici e forgiare il Gladius Aeternus, l\'arma dei Campioni.', quote: '«Non basta sopravvivere. Devi dimostrare di meritarlo.»' },
   { lv: 70,  key: 'antro_trofei',    icon: '🏆', name: 'Sala dei Trofei',               desc: 'I tuoi record e imprese incisi nella pietra eterna.',        quote: '«La pietra dimentica i nomi vili. Il tuo sarà l\'eccezione.»' },
   { lv: 71,  key: 'antro_eco',       icon: '👻', name: 'L\'Eco dei Leggendari',          desc: 'Dieci fantasmi di guerrieri leggendari ti sfidano (Lv 71–80). Supera le loro prove e ottieni una reliquia unica da ogni eroe.', quote: '«Le loro voci risuonano ancora. Rispondi alla chiamata.»' },
+  { lv: 81,  key: 'antro_mito',      icon: '📖', name: 'Le Origini del Mito',            desc: 'Dieci capitoli generati dalla tua storia reale (Lv 81–90). Il tuo percorso diventa leggenda scritta.', quote: '«Non esistono eroi senza una storia. Scopri la tua.»' },
   { lv: 80,  key: 'antro_forgia',    icon: '🔥', name: 'Forgia del Campione',           desc: 'Forgia equipaggiamento leggendario irripetibile.',           quote: '«Il ferro comune brucia. Solo l\'acciaio del sacrificio sopravvive.»' },
   { lv: 90,  key: 'antro_dungeon',   icon: '🌀', name: 'Dungeon Infinito',              desc: 'Abissi senza fondo che mettono alla prova l\'eterno.',       quote: '«Ogni gradino più in basso rivela una verità che pochissimi reggono.»' },
   { lv: 100, key: 'antro_leggenda',  icon: '👑', name: 'Sala della Leggenda',           desc: 'Il tuo nome inciso tra i Grandi del Reame per sempre.',      quote: '«Cento livelli. Centinaia di chilometri. Un solo nome: il tuo.»' },
@@ -31,7 +32,8 @@ function renderMarket(c) {
   if (MARKET_VIEW === 'pozzo')       { renderPozzoView(c);       return; }
   if (MARKET_VIEW === 'catena')      { renderCatenaView(c);      return; }
   if (MARKET_VIEW === 'casse')       { renderCasseView(c);       return; }
-  if (MARKET_VIEW === 'antro_eco') { renderAntroEcoView(c); return; }
+  if (MARKET_VIEW === 'antro_eco')   { renderAntroEcoView(c);  return; }
+  if (MARKET_VIEW === 'antro_mito')  { renderAntroMitoView(c); return; }
   if (MARKET_VIEW === 'antro' || MARKET_VIEW.startsWith('antro_')) { renderAntroView(c); return; }
 
   /* Step 2: dopo il 1° workout → invita all'Arena */
@@ -340,8 +342,33 @@ function renderMarket(c) {
       sectionList.appendChild(ecoBox);
     }
 
-    // Righe sezioni (salta antro_contratti, antro_prove, antro_eco — gestiti dai box sopra)
-    ANTRO_SECTIONS.filter(s => s.key !== 'antro_contratti' && s.key !== 'antro_prove' && s.key !== 'antro_eco').forEach(s => {
+    // Box Le Origini del Mito
+    {
+      const mitoUnlocked = heroLv >= 81;
+      const mitoChapters = typeof MITO_CHAPTERS !== 'undefined' ? MITO_CHAPTERS : [];
+      const mitoUnlocked_count = mitoChapters.filter(ch => heroLv >= ch.level).length;
+      const mitoBox = el('div', `antro-duel-box${mitoUnlocked ? ' antro-duel-box-open' : ''}`);
+      mitoBox.innerHTML = `
+        <span class="antro-duel-box-icon">${mitoUnlocked ? '📖' : '🔒'}</span>
+        <div class="antro-duel-box-body">
+          <span class="antro-duel-box-name">Le Origini del Mito</span>
+          <span class="antro-duel-box-desc">${mitoUnlocked ? `${mitoUnlocked_count}/10 capitoli sbloccati · La tua storia reale diventa leggenda` : 'Si sblocca al livello 81 · Dieci capitoli generati dal tuo percorso reale'}</span>
+        </div>
+        <span class="antro-row-badge">Lv 81</span>
+      `;
+      const mitoBtn = el('button', 'btn btn-primary dc-duel-btn antro-duel-box-btn',
+        mitoUnlocked ? '📖 Le Origini del Mito' : '🔒 Le Origini del Mito (Lv 81)');
+      mitoBtn.disabled = !mitoUnlocked;
+      mitoBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        MARKET_VIEW = 'antro_mito'; setTab('market');
+      });
+      mitoBox.appendChild(mitoBtn);
+      sectionList.appendChild(mitoBox);
+    }
+
+    // Righe sezioni (salta antro_contratti, antro_prove, antro_eco, antro_mito — gestiti dai box sopra)
+    ANTRO_SECTIONS.filter(s => s.key !== 'antro_contratti' && s.key !== 'antro_prove' && s.key !== 'antro_eco' && s.key !== 'antro_mito').forEach(s => {
       const done = heroLv >= s.lv;
       const isNext = nextSection && s.lv === nextSection.lv;
       const row = el('div', `antro-section-row${done ? ' antro-row-done' : isNext ? ' antro-row-next' : ' antro-row-sealed'}`);
@@ -477,6 +504,59 @@ function renderAntroEcoView(c) {
   });
 }
 
+/* ── Le Origini del Mito — View ── */
+function renderAntroMitoView(c) {
+  const heroLv = HERO.level || 1;
+  backBar(c, () => { MARKET_VIEW = 'antro'; setTab('market'); });
+
+  const hdr = el('div', 'antro-view-header');
+  hdr.innerHTML = `
+    <div class="antro-view-ornament">— 📖 —</div>
+    <h2 class="antro-view-title">Le Origini del Mito</h2>
+    <p class="antro-view-sub">La tua storia reale diventa leggenda · Un capitolo per ogni livello · ${MITO_CHAPTERS.filter(ch => heroLv >= ch.level).length}/10 sbloccati</p>
+  `;
+  c.appendChild(hdr);
+
+  const introEl = el('p', 'mito-intro muted small center');
+  introEl.textContent = 'Ogni capitolo è scritto dal Reame usando i tuoi dati reali. Nessun capitolo è uguale a un altro eroe.';
+  c.appendChild(introEl);
+
+  MITO_CHAPTERS.forEach((ch, idx) => {
+    const unlocked = heroLv >= ch.level;
+    const card = el('div', `panel mito-card${unlocked ? ' mito-card-open' : ' mito-card-locked'}`);
+
+    if (!unlocked) {
+      card.innerHTML = `
+        <div class="mito-card-locked-body">
+          <span class="mito-lock-num">${String(ch.id).padStart(2, '0')}</span>
+          <div class="mito-lock-info">
+            <span class="mito-lock-title">???</span>
+            <span class="mito-lock-lv small muted">Si sblocca al livello ${ch.level}</span>
+          </div>
+          <span class="mito-lock-icon">🔒</span>
+        </div>
+      `;
+    } else {
+      const text = ch.generate(HERO);
+      const img = el('img', 'mito-cover-img');
+      img.src = ch.img;
+      img.alt = ch.title;
+      img.onerror = function() { this.outerHTML = `<div class="mito-cover-fallback">📖</div>`; };
+      card.appendChild(img);
+
+      const body = el('div', 'mito-card-body');
+      body.innerHTML = `
+        <div class="mito-chapter-num">Capitolo ${String(ch.id).padStart(2, '0')}</div>
+        <h3 class="mito-chapter-title">${esc(ch.title)}</h3>
+        <p class="mito-chapter-text">${esc(text)}</p>
+      `;
+      card.appendChild(body);
+    }
+
+    c.appendChild(card);
+  });
+}
+
 /* ── Antro del Campione — Hub ── */
 function renderAntroView(c) {
   const heroLv = HERO.level || 1;
@@ -504,7 +584,7 @@ function renderAntroView(c) {
   hubHeader.innerHTML = `
     <div class="antro-view-ornament">— ✦ —</div>
     <h2 class="antro-view-title">Antro del Campione</h2>
-    <p class="antro-view-sub">Lv ${heroLv} &nbsp;·&nbsp; ${ANTRO_SECTIONS.filter(s => heroLv >= s.lv).length} / 6 sezioni sbloccate</p>
+    <p class="antro-view-sub">Lv ${heroLv} &nbsp;·&nbsp; ${ANTRO_SECTIONS.filter(s => heroLv >= s.lv).length} / ${ANTRO_SECTIONS.length} sezioni sbloccate</p>
   `;
   c.appendChild(hubHeader);
 
