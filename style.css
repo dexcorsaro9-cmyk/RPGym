@@ -461,6 +461,8 @@ body {
 
 .log-date-header { padding: 10px 0 4px; font-weight: 700; font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; color: #c9b48f; opacity: .75; }
 .log-row { padding: 4px 0; border-bottom: 1px dashed rgba(90,61,36,.3); font-size: .92rem; }
+.diary-log-scroll { max-height: 280px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.diary-log-more-btn { display: block; margin: .6rem auto 0; }
 .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px dashed rgba(90,61,36,.3); }
 .stat-row-label { display: flex; align-items: center; gap: 8px; }
 .stat-row-icon { width: 36px; height: 36px; object-fit: contain; flex-shrink: 0; filter: drop-shadow(0 1px 4px rgba(0,0,0,.4)); }

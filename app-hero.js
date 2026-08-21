@@ -714,14 +714,31 @@ function renderDiaryView(c) {
       if (!grouped[dateKey]) grouped[dateKey] = [];
       grouped[dateKey].push(l);
     });
-    Object.entries(grouped).forEach(([dateKey, entries]) => {
+    const allEntries = Object.entries(grouped); // già in ordine reverse (recenti prima)
+    const DAYS_DEFAULT = 7;
+    const visible = allEntries.slice(0, DAYS_DEFAULT);
+    const hidden  = allEntries.slice(DAYS_DEFAULT);
+
+    const scrollBox = el('div', 'diary-log-scroll');
+    const renderGroup = ([dateKey, entries]) => {
       const d = new Date(dateKey);
-      lp.appendChild(el('div', 'log-date-header', d.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })));
+      scrollBox.appendChild(el('div', 'log-date-header', d.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })));
       entries.forEach(l => {
         const a = RPG.ACTIVITIES[l.type];
-        lp.appendChild(el('div', 'log-row', `${a.icon} <b>${l.km} km</b> di ${a.label.toLowerCase()} — +${l.xp} XP`));
+        scrollBox.appendChild(el('div', 'log-row', `${a.icon} <b>${l.km} km</b> di ${a.label.toLowerCase()} — +${l.xp} XP`));
       });
-    });
+    };
+    visible.forEach(renderGroup);
+    lp.appendChild(scrollBox);
+
+    if (hidden.length) {
+      const moreBtn = el('button', 'btn btn-small diary-log-more-btn', `Mostra tutti (${hidden.length + DAYS_DEFAULT} giorni)`);
+      moreBtn.addEventListener('click', () => {
+        hidden.forEach(renderGroup);
+        moreBtn.remove();
+      });
+      lp.appendChild(moreBtn);
+    }
   }
   c.appendChild(lp);
 }
