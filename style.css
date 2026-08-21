@@ -10843,8 +10843,8 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
 }
 .dc-alb-locked-inner { text-align: center; }
 .dc-alb-lock-icon { font-size: 1.8rem; margin-bottom: 4px; filter: grayscale(1); }
-.dc-alb-lock-rar { font-size: .6rem; color: rgba(200,200,200,.5); text-transform: capitalize; margin-bottom: 2px; }
-.dc-alb-lock-hint { font-size: .5rem; color: rgba(200,200,200,.35); }
+.dc-alb-lock-rar { font-size: .6rem; color: rgba(200,200,200,.85); text-transform: capitalize; margin-bottom: 2px; }
+.dc-alb-lock-hint { font-size: .5rem; color: rgba(200,200,200,.7); }
 
 /* ── BACK ── */
 .dc-album-back {
