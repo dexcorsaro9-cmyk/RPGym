@@ -6,6 +6,7 @@ let NERO_FILTER = 'all';
 let DC_VIEW = 'collection'; // 'collection' | 'builder' | 'boss_select' | 'battle'
 let DC_DECK = [];           // card IDs selezionate per il mazzo
 let DC_BATTLE_STATE = null; // stato live della battaglia
+let DC_SELECTED_ATTACKER = null; // iid della creatura attaccante selezionata
 
 const ANTRO_SECTIONS = [
   { lv: 50,  key: 'antro_contratti', icon: '🐲', name: 'Carte dei Draghi',        desc: 'Colleziona e gioca con le 100 carte dei draghi leggendari.',  quote: '«Le carte non mentono. Ogni drago rivela il tuo destino.»' },
@@ -404,82 +405,78 @@ function _antroComingSoon(c, s) {
 function renderAntroContrattiView(c) { renderAntroDragonCardsView(c); }
 
 /* ── Collezione Carte dei Draghi ─────────────────────────────────────── */
-const DC_DRAGON_META = {
-  ignis:   { name: 'Ignis',   color: '#e74c3c', bg: '#fff0ee', icon: '🔥' },
-  aqua:    { name: 'Aqua',    color: '#2980b9', bg: '#eef4ff', icon: '🌊' },
-  silvano: { name: 'Silvano', color: '#27ae60', bg: '#eefff2', icon: '🌿' },
-  terras:  { name: 'Terras',  color: '#8B4513', bg: '#fff5ee', icon: '🪨' },
-  glacio:  { name: 'Glacio',  color: '#5dade2', bg: '#eef8ff', icon: '❄️' },
-  volt:    { name: 'Volt',    color: '#d4ac0d', bg: '#fffbee', icon: '⚡' },
-  umbra:   { name: 'Umbra',   color: '#8e44ad', bg: '#f5eeff', icon: '🌑' },
-  chronos: { name: 'Chronos', color: '#7f8c8d', bg: '#f0f0f0', icon: '⏳' },
-  lux:     { name: 'Lux',     color: '#e67e22', bg: '#fffaee', icon: '☀️' },
-  aero:    { name: 'Aero',    color: '#16a085', bg: '#eefffc', icon: '💨' },
+const DC_CAT_META = {
+  elementale:  { label: 'Elementali',      icon: '✨', color: '#e67e22' },
+  comune:      { label: 'Comuni',          icon: '🐉', color: '#7f8c8d' },
+  non_comune:  { label: 'Non Comuni',      icon: '🐉', color: '#27ae60' },
+  raro:        { label: 'Rari',            icon: '🐉', color: '#2980b9' },
+  epico:       { label: 'Epici',           icon: '🐉', color: '#8e44ad' },
+  leggendario: { label: 'Leggendari',      icon: '🐉', color: '#f39c12' },
+  introvabile: { label: 'Introvabili',     icon: '💫', color: '#e74c3c' },
+  stagionale:  { label: 'Stagionali',      icon: '🌸', color: '#16a085' },
+  corrotto:    { label: 'Corrotti',        icon: '🌑', color: '#6c3483' },
+  guardiano:   { label: 'Guardiani',       icon: '🛡️', color: '#1a5276' },
+  fossile:     { label: 'Fossili',         icon: '🦕', color: '#7d6608' },
+  fusione:     { label: 'Fusioni',         icon: '⚗️', color: '#117a65' },
+  re:          { label: 'Re dei Draghi',   icon: '👑', color: '#b7950b' },
+  bioma:       { label: 'Draghi dei Biomi',icon: '🗺️', color: '#1e8449' },
+  zodiacale:   { label: 'Zodiacali',       icon: '♈', color: '#6e2fa5' },
+  cucciolo:    { label: 'Cuccioli',        icon: '🐣', color: '#e91e8c' },
+  mitologico:  { label: 'Mitologici',      icon: '🏛️', color: '#c0392b' },
+  festivo:     { label: 'Festivi',         icon: '🎉', color: '#e74c3c' },
+  attivita:    { label: 'Attività',        icon: '🏃', color: '#2471a3' },
 };
 const DC_RARITY_META = {
-  comune:      { label: 'Comune',      grad: 'linear-gradient(135deg,#8a9ba8,#c5ced6,#8a9ba8)', border: '#b0bec5', dots: 1, textColor: '#37474f' },
-  non_comune:  { label: 'Non Comune',  grad: 'linear-gradient(135deg,#2e7d32,#66bb6a,#2e7d32)', border: '#43a047', dots: 2, textColor: '#1b5e20' },
-  raro:        { label: 'Raro',        grad: 'linear-gradient(135deg,#1565c0,#42a5f5,#1565c0)', border: '#1e88e5', dots: 3, textColor: '#0d47a1' },
-  epico:       { label: 'Epico',       grad: 'linear-gradient(135deg,#6a1b9a,#ba68c8,#6a1b9a)', border: '#8e24aa', dots: 4, textColor: '#4a148c' },
-  leggendario: { label: 'Leggendario', grad: 'linear-gradient(135deg,#b7791f,#f6d365,#fda085,#f6d365,#b7791f)', border: '#f59e0b', dots: 5, textColor: '#92400e' },
+  speciale:    { label: 'Speciale',    grad: 'linear-gradient(135deg,#b7791f,#f6d365,#b7791f)', border: '#f59e0b', textColor: '#92400e', costBg: '#f59e0b' },
+  comune:      { label: 'Comune',      grad: 'linear-gradient(135deg,#8a9ba8,#c5ced6,#8a9ba8)', border: '#b0bec5', textColor: '#37474f', costBg: '#7f8c8d' },
+  non_comune:  { label: 'Non Comune',  grad: 'linear-gradient(135deg,#2e7d32,#66bb6a,#2e7d32)', border: '#43a047', textColor: '#1b5e20', costBg: '#27ae60' },
+  raro:        { label: 'Raro',        grad: 'linear-gradient(135deg,#1565c0,#42a5f5,#1565c0)', border: '#1e88e5', textColor: '#0d47a1', costBg: '#2980b9' },
+  epico:       { label: 'Epico',       grad: 'linear-gradient(135deg,#6a1b9a,#ba68c8,#6a1b9a)', border: '#8e24aa', textColor: '#4a148c', costBg: '#8e44ad' },
+  leggendario: { label: 'Leggendario', grad: 'linear-gradient(135deg,#b7791f,#f6d365,#fda085,#f6d365,#b7791f)', border: '#f59e0b', textColor: '#92400e', costBg: '#d4ac0d' },
+  introvabile: { label: 'Introvabile', grad: 'linear-gradient(135deg,#e74c3c,#ff8a65,#e74c3c)', border: '#e74c3c', textColor: '#7b241c', costBg: '#c0392b' },
 };
-const DC_TYPE_META = {
-  offensiva: { label: 'ATK', icon: '⚔️', color: '#c0392b' },
-  difensiva: { label: 'DEF', icon: '🛡️', color: '#2980b9' },
-  supporto:  { label: 'SUP', icon: '💚', color: '#27ae60' },
-};
-const DC_EFFECT_LABELS = {
-  burn: '🔥 Bruciatura', freeze: '❄️ Gelo', stun: '⚡ Stordimento',
-  slow: '⏳ Rallentamento', double: '✕2 Doppio', chain: '🔗 Catena',
-  draw: '🃏 Pesca', steal: '👁️ Furto', rewind: '🔄 Riavvolgi',
-  extra_turn: '⌚ Turno Extra', time_stop: '⏸️ Stop Tempo', shield: '🔵 Scudo',
-  revive: '✨ Rinascita', cleanse: '🌊 Purifica', blind: '🌑 Acceca',
-  taunt: '🎯 Provocazione', discard: '🗑️ Scarta', 'double+stun': '✕2+⚡',
-  'blind+steal': '🌑+👁️', 'time_stop+rewind': '⏸️+🔄', 'double+chain': '✕2+🔗',
-  'rewind+draw': '🔄+🃏',
+const DC_KW_LABELS = {
+  provocazione: '🎯 Provocazione',
+  scatto:       '⚡ Scatto',
+  scudo_divino: '✨ Scudo Divino',
+  drenaggio:    '💚 Drenaggio',
+  veleno:       '☠️ Veleno',
 };
 
 function _buildDragonCard(card, owned) {
-  const rm = DC_RARITY_META[card.rarity] || DC_RARITY_META.comune;
-  const dm = DC_DRAGON_META[card.dragon] || { name: card.dragon, color: '#555', bg: '#f5f5f5', icon: '🐉' };
-  const tm = DC_TYPE_META[card.type] || DC_TYPE_META.offensiva;
+  const rm = DC_RARITY_META[card.rar] || DC_RARITY_META.comune;
+  const cm = DC_CAT_META[card.cat] || { icon: '🐉', color: '#555' };
 
-  const wrap = el('div', `dc-card dc-rar-${card.rarity}${owned ? '' : ' dc-locked'}`);
-  wrap.setAttribute('data-rarity', card.rarity);
+  const wrap = el('div', `dc-card dc-rar-${card.rar}${owned ? '' : ' dc-locked'}`);
+  wrap.setAttribute('data-rar', card.rar);
+  wrap.setAttribute('data-cat', card.cat);
 
-  const dots = '◆'.repeat(rm.dots) + '◇'.repeat(5 - rm.dots);
-
-  const imgPath = `assets/dragon-cards/${card.id}.webp`;
+  const imgPath = `images/dragons/${card.id}.webp`;
   const artContent = owned
-    ? `<img class="dc-art-img" src="${imgPath}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="${esc(card.name)}"><div class="dc-art-emoji" style="display:none">${dm.icon}</div>`
+    ? `<img class="dc-art-img" src="${imgPath}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="${esc(card.name)}"><div class="dc-art-emoji" style="display:none">${card.icon}</div>`
     : `<div class="dc-art-emoji">❓</div>`;
 
-  const statsHtml = owned ? `
-    <div class="dc-stats">
-      <div class="dc-stat dc-stat-atk"><span class="dc-stat-icon">⚔️</span><span class="dc-stat-val">${card.atk}</span></div>
-      <div class="dc-stat dc-stat-def"><span class="dc-stat-icon">🛡️</span><span class="dc-stat-val">${card.def}</span></div>
-      <div class="dc-stat dc-stat-heal"><span class="dc-stat-icon">💚</span><span class="dc-stat-val">${card.heal}</span></div>
-    </div>` : '';
-
-  const effectHtml = (owned && card.effect)
-    ? `<div class="dc-effect-badge">${DC_EFFECT_LABELS[card.effect] || card.effect}</div>`
+  const kwHtml = (owned && card.kws && card.kws.length)
+    ? card.kws.map(k => `<span class="dc-kw-badge">${DC_KW_LABELS[k] || k}</span>`).join('')
     : '';
 
   wrap.innerHTML = `
     <div class="dc-header" style="background:${rm.grad}">
+      <div class="dc-cost-gem" style="background:${rm.costBg}">${owned ? card.cost : '?'}</div>
       <span class="dc-name">${owned ? esc(card.name) : '???'}</span>
-      <span class="dc-type-badge" style="background:${tm.color}">${tm.icon} ${tm.label}</span>
     </div>
-    <div class="dc-art-area" style="background:${owned ? dm.bg : '#e8e8e8'}">
+    <div class="dc-art-area">
       ${artContent}
-      <div class="dc-dragon-badge" style="color:${dm.color}">${dm.icon} ${dm.name}</div>
     </div>
     <div class="dc-body" style="border-color:${rm.border}">
-      ${statsHtml}
-      ${effectHtml}
+      ${owned ? `<div class="dc-stats-row">
+        <span class="dc-stat-atk">⚔️ ${card.atk}</span>
+        <span class="dc-stat-hp">❤️ ${card.hp}</span>
+      </div>` : ''}
+      ${kwHtml ? `<div class="dc-kw-row">${kwHtml}</div>` : ''}
       <p class="dc-desc">${owned ? esc(card.desc) : 'Carta non ancora scoperta...'}</p>
       <div class="dc-footer">
-        <span class="dc-dots" style="color:${rm.textColor}">${dots}</span>
+        <span class="dc-cat-icon">${cm.icon}</span>
         <span class="dc-rarity-label" style="color:${rm.textColor}">${rm.label}</span>
       </div>
     </div>
@@ -499,67 +496,64 @@ function renderAntroDragonCardsView(c) {
 
   const header = el('div', 'dc-collection-header');
   header.innerHTML = `
-    <h2 class="section-title">🐲 Carte dei Draghi</h2>
-    <p class="muted small center">${totalOwned} / ${allCards.length} carte raccolte · Si sbloccano con gli allenamenti dal Lv 30</p>
+    <h2 class="section-title">🐲 Collezione dei Draghi</h2>
+    <p class="muted small center">${totalOwned} / ${allCards.length} draghi scoperti · Si sbloccano con gli allenamenti dal Lv 30</p>
     <div class="dc-progress-bar-wrap">
       <div class="dc-progress-bar-fill" style="width:${Math.round(totalOwned/allCards.length*100)}%"></div>
     </div>
   `;
   c.appendChild(header);
 
-  // Duello button
   const ownedCount = (HERO.dragonCards || []).length;
   const canDuel = ownedCount >= 5;
-  const duelBtn = el('button', 'btn btn-primary dc-duel-btn', '⚔️ Entra nell\'Arena dei Draghi');
+  const duelBtn = el('button', 'btn btn-primary dc-duel-btn', '⚔️ Arena dei Draghi');
   if (!canDuel) {
     duelBtn.disabled = true;
-    duelBtn.title = `Serve almeno 5 carte per duellare (hai ${ownedCount})`;
-    duelBtn.textContent = `⚔️ Arena (${ownedCount}/5 carte)`;
+    duelBtn.textContent = `⚔️ Arena (${ownedCount}/5 draghi)`;
   }
-  duelBtn.addEventListener('click', () => {
-    DC_DECK = [];
-    DC_VIEW = 'builder';
-    setTab('market');
-  });
+  duelBtn.addEventListener('click', () => { DC_DECK = []; DC_VIEW = 'builder'; setTab('market'); });
   c.appendChild(duelBtn);
 
-  // Filtro per rarità
-  const rarities = ['tutte', 'comune', 'non_comune', 'raro', 'epico', 'leggendario'];
+  // Filtro per categoria
+  const catKeys = Object.keys(DC_CAT_META);
   let activeFilter = 'tutte';
   const filterBar = el('div', 'dc-filter-bar');
-  rarities.forEach(r => {
-    const btn = el('button', `dc-filter-btn${r === activeFilter ? ' active' : ''}`, r === 'tutte' ? 'Tutte' : (DC_RARITY_META[r]?.label || r));
+  const allBtn = el('button', 'dc-filter-btn active', 'Tutte');
+  allBtn.addEventListener('click', () => {
+    activeFilter = 'tutte';
+    filterBar.querySelectorAll('.dc-filter-btn').forEach(b => b.classList.remove('active'));
+    allBtn.classList.add('active');
+    grid.querySelectorAll('.dc-dragon-section').forEach(s => s.style.display = '');
+  });
+  filterBar.appendChild(allBtn);
+  catKeys.forEach(cat => {
+    const cm = DC_CAT_META[cat];
+    const btn = el('button', 'dc-filter-btn', cm.icon + ' ' + cm.label);
     btn.addEventListener('click', () => {
-      activeFilter = r;
+      activeFilter = cat;
       filterBar.querySelectorAll('.dc-filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      grid.querySelectorAll('.dc-card').forEach(card => {
-        const match = r === 'tutte' || card.getAttribute('data-rarity') === r;
-        card.style.display = match ? '' : 'none';
+      grid.querySelectorAll('.dc-dragon-section').forEach(s => {
+        s.style.display = s.getAttribute('data-cat') === cat ? '' : 'none';
       });
     });
     filterBar.appendChild(btn);
   });
   c.appendChild(filterBar);
 
-  // Griglia carte raggruppate per drago
   const grid = el('div', 'dc-grid');
-  const DRAGON_ORDER = ['ignis','aqua','silvano','terras','glacio','volt','umbra','chronos','lux','aero'];
-  const RARITY_ORDER = ['comune','non_comune','raro','epico','leggendario'];
 
-  DRAGON_ORDER.forEach(dragon => {
-    const dragonCards = RARITY_ORDER.flatMap(rar =>
-      allCards.filter(c => c.dragon === dragon && c.rarity === rar)
-    );
-    if (!dragonCards.length) return;
-    const dm = DC_DRAGON_META[dragon];
-    const dragonOwned = dragonCards.filter(c => ownedIds.has(c.id)).length;
+  catKeys.forEach(cat => {
+    const catCards = allCards.filter(card => card.cat === cat);
+    if (!catCards.length) return;
+    const cm = DC_CAT_META[cat];
+    const catOwned = catCards.filter(card => ownedIds.has(card.id)).length;
     const section = el('div', 'dc-dragon-section');
-    section.innerHTML = `<div class="dc-dragon-section-title" style="color:${dm.color}">${dm.icon} ${dm.name} <span class="muted small">${dragonOwned}/${dragonCards.length}</span></div>`;
+    section.setAttribute('data-cat', cat);
+    section.innerHTML = `<div class="dc-dragon-section-title" style="color:${cm.color}">${cm.icon} ${cm.label} <span class="muted small">${catOwned}/${catCards.length}</span></div>`;
     const row = el('div', 'dc-dragon-row');
-    dragonCards.forEach(card => {
-      const owned = ownedIds.has(card.id);
-      const cardEl = _buildDragonCard(card, owned);
+    catCards.forEach(card => {
+      const cardEl = _buildDragonCard(card, ownedIds.has(card.id));
       row.appendChild(cardEl);
     });
     section.appendChild(row);
@@ -580,50 +574,48 @@ function renderDcBuilderView(c) {
   const ownedCards = RPG.DRAGON_CARDS.filter(card => ownedIds.includes(card.id));
 
   const hdr = el('div', 'dc-builder-header');
-  const counter = el('p', 'dc-builder-counter', `${DC_DECK.length} / 10 carte selezionate`);
-  hdr.innerHTML = `<h2 class="section-title">🃏 Costruisci il Mazzo</h2>`;
+  const counter = el('p', 'dc-builder-counter', `${DC_DECK.length} / 20 draghi selezionati`);
+  hdr.innerHTML = `<h2 class="section-title">🃏 Costruisci il Mazzo</h2>
+    <p class="muted small">Seleziona 5–20 draghi per il tuo mazzo da battaglia.</p>`;
   hdr.appendChild(counter);
 
   const confirmBtn = el('button', 'btn btn-primary dc-builder-confirm');
-  confirmBtn.textContent = DC_DECK.length >= 5 ? '⚔️ Scegli il Boss' : `Seleziona almeno 5 carte (${DC_DECK.length}/10)`;
+  confirmBtn.textContent = DC_DECK.length >= 5 ? '⚔️ Scegli il Boss' : `Seleziona almeno 5 (${DC_DECK.length}/20)`;
   confirmBtn.disabled = DC_DECK.length < 5;
   confirmBtn.addEventListener('click', () => { DC_VIEW = 'boss_select'; setTab('market'); });
-
   hdr.appendChild(confirmBtn);
   c.appendChild(hdr);
 
-  const DRAGON_ORDER = ['ignis','aqua','silvano','terras','glacio','volt','umbra','chronos','lux','aero'];
-  const RARITY_ORDER = ['comune','non_comune','raro','epico','leggendario'];
-
+  const catKeys = Object.keys(DC_CAT_META);
   const grid = el('div', 'dc-builder-grid');
-  DRAGON_ORDER.forEach(dragon => {
-    const dragonCards = RARITY_ORDER.flatMap(rar =>
-      ownedCards.filter(card => card.dragon === dragon && card.rarity === rar)
-    );
-    if (!dragonCards.length) return;
-    const dm = DC_DRAGON_META[dragon];
+
+  catKeys.forEach(cat => {
+    const catCards = ownedCards.filter(card => card.cat === cat);
+    if (!catCards.length) return;
+    const cm = DC_CAT_META[cat];
     const sec = el('div', 'dc-builder-section');
-    sec.innerHTML = `<div class="dc-dragon-section-title" style="color:${dm.color}">${dm.icon} ${dm.name}</div>`;
+    sec.innerHTML = `<div class="dc-dragon-section-title" style="color:${cm.color}">${cm.icon} ${cm.label}</div>`;
     const row = el('div', 'dc-builder-row');
-    dragonCards.forEach(card => {
-      const rm = DC_RARITY_META[card.rarity];
-      const tm = DC_TYPE_META[card.type] || DC_TYPE_META.offensiva;
+    catCards.forEach(card => {
+      const rm = DC_RARITY_META[card.rar] || DC_RARITY_META.comune;
       const selected = DC_DECK.includes(card.id);
-      const mini = el('div', `dc-mini-card dc-rar-${card.rarity}${selected ? ' selected' : ''}`);
-      const imgPath = `assets/dragon-cards/${card.id}.webp`;
+      const mini = el('div', `dc-mini-card dc-rar-${card.rar}${selected ? ' selected' : ''}`);
+      const imgPath = `images/dragons/${card.id}.webp`;
+      const kwHtml = (card.kws || []).slice(0,2).map(k => `<span class="dc-mini-kw">${DC_KW_LABELS[k] || k}</span>`).join('');
       mini.innerHTML = `
         <div class="dc-mini-header" style="background:${rm.grad}">
+          <div class="dc-mini-cost" style="background:${rm.costBg}">${card.cost}</div>
           <span class="dc-mini-name">${esc(card.name)}</span>
         </div>
-        <div class="dc-mini-art" style="background:${dm.bg}">
-          <img class="dc-mini-img" src="${imgPath}" onerror="this.style.display='none'" alt="">
-          <div class="dc-mini-emoji" style="display:none">${dm.icon}</div>
+        <div class="dc-mini-art">
+          <img class="dc-mini-img" src="${imgPath}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="">
+          <div class="dc-mini-emoji" style="display:none">${card.icon}</div>
         </div>
         <div class="dc-mini-stats">
-          <span style="color:#c0392b">⚔️${card.atk}</span>
-          <span style="color:#2980b9">🛡️${card.def}</span>
-          <span style="color:#27ae60">💚${card.heal}</span>
+          <span class="dc-mini-atk">⚔️${card.atk}</span>
+          <span class="dc-mini-hp">❤️${card.hp}</span>
         </div>
+        ${kwHtml ? `<div class="dc-mini-kws">${kwHtml}</div>` : ''}
         ${selected ? '<div class="dc-mini-check">✓</div>' : ''}
       `;
       mini.addEventListener('click', () => {
@@ -631,19 +623,17 @@ function renderDcBuilderView(c) {
         if (idx !== -1) {
           DC_DECK.splice(idx, 1);
         } else {
-          if (DC_DECK.length >= 10) { toast('Mazzo completo! Rimuovi una carta prima.'); return; }
+          if (DC_DECK.length >= 20) { toast('Mazzo completo! Rimuovi un drago prima.'); return; }
           DC_DECK.push(card.id);
         }
-        counter.textContent = `${DC_DECK.length} / 10 carte selezionate`;
+        counter.textContent = `${DC_DECK.length} / 20 draghi selezionati`;
         confirmBtn.disabled = DC_DECK.length < 5;
-        confirmBtn.textContent = DC_DECK.length >= 5 ? '⚔️ Scegli il Boss' : `Seleziona almeno 5 carte (${DC_DECK.length}/10)`;
+        confirmBtn.textContent = DC_DECK.length >= 5 ? '⚔️ Scegli il Boss' : `Seleziona almeno 5 (${DC_DECK.length}/20)`;
         mini.classList.toggle('selected', DC_DECK.includes(card.id));
         const chk = mini.querySelector('.dc-mini-check');
         if (DC_DECK.includes(card.id)) {
           if (!chk) { const d = document.createElement('div'); d.className = 'dc-mini-check'; d.textContent = '✓'; mini.appendChild(d); }
-        } else {
-          if (chk) chk.remove();
-        }
+        } else { if (chk) chk.remove(); }
       });
       row.appendChild(mini);
     });
@@ -701,28 +691,34 @@ function _dcHpBarColor(hp, max) {
   return '#e74c3c';
 }
 
-function _dcBuildActionLog(entry) {
-  if (!entry) return '';
-  let html = '';
-  const fmtEntry = (e, who) => {
-    if (!e) return '';
-    let s = `<div class="dc-log-row dc-log-${who}">`;
-    s += `<span class="dc-log-card">${e.cardIcon} ${esc(e.cardName)}</span>`;
-    const parts = [];
-    if (e.atk)  parts.push(`<span class="dc-log-atk">⚔️ -${e.atk}</span>`);
-    if (e.def)  parts.push(`<span class="dc-log-def">🛡️ +${e.def}</span>`);
-    if (e.heal) parts.push(`<span class="dc-log-heal">💚 +${e.heal}</span>`);
-    e.effects.forEach(ef => parts.push(`<span class="dc-log-eff">${esc(ef)}</span>`));
-    s += parts.join(' ');
-    s += '</div>';
-    return s;
-  };
-  entry.msgs.forEach(m => {
-    html += `<div class="dc-log-msg dc-log-${m.who}">${esc(m.text)}</div>`;
-  });
-  if (entry.playerEntry) html += fmtEntry(entry.playerEntry, 'hero');
-  if (entry.bossEntry)   html += fmtEntry(entry.bossEntry, 'boss');
-  return html;
+function _dcMakeBoardCreatureEl(creature, side, canTarget) {
+  const hp = creature.hp, max = creature.maxHp;
+  const hpColor = _dcHpBarColor(hp, max);
+  const hpPct = Math.round(hp / max * 100);
+  const kwBadges = creature.kws.slice(0, 2).map(k => {
+    const icons = { provocazione:'🎯', scatto:'⚡', scudo_divino:'✨', drenaggio:'💚', veleno:'☠️' };
+    return `<span class="dc-bc-kw">${icons[k] || k}</span>`;
+  }).join('');
+  const isSelected = side === 'hero' && DC_SELECTED_ATTACKER === creature.iid;
+  const canAtk = side === 'hero' && creature.canAttack && !creature.hasAttacked;
+
+  const div = el('div', `dc-board-creature dc-bc-${side}${isSelected ? ' dc-bc-selected' : ''}${canAtk ? ' dc-bc-can-attack' : ''}${canTarget ? ' dc-bc-target' : ''}`);
+  const imgPath = `images/dragons/${creature.cardId}.webp`;
+  div.innerHTML = `
+    <div class="dc-bc-art">
+      <img src="${imgPath}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="">
+      <div class="dc-bc-emoji" style="display:none">${creature.icon}</div>
+      ${creature.divineShield ? '<div class="dc-bc-shield-glow">✨</div>' : ''}
+    </div>
+    <div class="dc-bc-stats">
+      <span class="dc-bc-atk">⚔️${creature.atk}</span>
+      <span class="dc-bc-hp" style="color:${hpColor}">❤️${creature.hp}</span>
+    </div>
+    <div class="dc-bc-hp-bar"><div style="width:${hpPct}%;background:${hpColor};height:100%"></div></div>
+    ${kwBadges ? `<div class="dc-bc-kws">${kwBadges}</div>` : ''}
+    <div class="dc-bc-name">${esc(creature.name)}</div>
+  `;
+  return div;
 }
 
 function renderDcBattleView(c) {
@@ -731,39 +727,32 @@ function renderDcBattleView(c) {
 
   c.classList.add('dc-battle-arena');
 
-  // End screen
+  // ── End screen ──────────────────────────────────────────────
   if (st.winner) {
     const won = st.winner === 'player';
     const endWrap = el('div', `dc-end-screen${won ? ' dc-end-win' : ' dc-end-loss'}`);
-    const title = won ? '⚔️ Vittoria!' : '💀 Sconfitta';
     endWrap.innerHTML = `
       <div class="dc-end-icon">${won ? '🏆' : '💀'}</div>
-      <h2 class="dc-end-title">${title}</h2>
+      <h2 class="dc-end-title">${won ? '⚔️ Vittoria!' : '💀 Sconfitta'}</h2>
       <p class="dc-end-sub">${won ? 'Hai sconfitto ' + esc(st.boss.name) + '!' : esc(st.boss.name) + ' ti ha sopraffatto.'}</p>
     `;
     if (won) {
       const earned = dcClaimVictory(st, HERO);
       persist();
       if (earned) {
-        let rewardHtml = `<div class="dc-end-rewards">`;
-        rewardHtml += `<div class="dc-end-reward">🪙 +${earned.gold} oro</div>`;
+        let rHtml = `<div class="dc-end-rewards"><div class="dc-end-reward">🪙 +${earned.gold} oro</div>`;
         if (earned.card) {
-          const rm = DC_RARITY_META[earned.card.rarity];
-          rewardHtml += `<div class="dc-end-reward" style="color:${rm.textColor}">🃏 ${esc(earned.card.name)} (${rm.label})</div>`;
+          const rm = DC_RARITY_META[earned.card.rar] || DC_RARITY_META.comune;
+          rHtml += `<div class="dc-end-reward" style="color:${rm.textColor}">${earned.card.icon} ${esc(earned.card.name)} (${rm.label})</div>`;
         }
-        rewardHtml += '</div>';
-        endWrap.innerHTML += rewardHtml;
+        rHtml += '</div>';
+        endWrap.innerHTML += rHtml;
       }
     }
     const btns = el('div', 'dc-end-btns');
-    if (won) {
-      const againBtn = el('button', 'btn btn-primary', '⚔️ Rivincita');
-      againBtn.addEventListener('click', () => {
-        DC_BATTLE_STATE = dcInitBattle(DC_DECK, st.boss.id);
-        setTab('market');
-      });
-      btns.appendChild(againBtn);
-    }
+    const againBtn = el('button', 'btn btn-primary', '⚔️ Rivincita');
+    againBtn.addEventListener('click', () => { DC_BATTLE_STATE = dcInitBattle(DC_DECK, st.boss.id); DC_SELECTED_ATTACKER = null; setTab('market'); });
+    btns.appendChild(againBtn);
     const bossBtn = el('button', 'btn', '🐉 Scegli Boss');
     bossBtn.addEventListener('click', () => { DC_VIEW = 'boss_select'; setTab('market'); });
     btns.appendChild(bossBtn);
@@ -775,115 +764,172 @@ function renderDcBattleView(c) {
     return;
   }
 
-  // ── Boss panel ────────────────────────────────────────────
-  const bossPanel = el('div', 'dc-battle-boss-panel');
-  const bossHpPct  = Math.round(st.boss.hp / st.boss.maxHp * 100);
+  // ── Boss area ──────────────────────────────────────────────
+  const bossArea = el('div', 'dc-battle-boss-area');
+  const bossHpPct = Math.round(st.boss.hp / st.boss.maxHp * 100);
   const bossHpColor = _dcHpBarColor(st.boss.hp, st.boss.maxHp);
-  bossPanel.innerHTML = `
-    <div class="dc-battle-boss-row">
-      <span class="dc-battle-boss-icon">${st.boss.icon}</span>
-      <div class="dc-battle-boss-info">
-        <div class="dc-battle-boss-name">${esc(st.boss.name)}</div>
+  const bossHasProv = st.boss.board.some(cr => cr.kws.includes('provocazione'));
+
+  bossArea.innerHTML = `
+    <div class="dc-battle-combatant-header">
+      <span class="dc-bc-face-icon">${st.boss.icon}</span>
+      <div class="dc-bc-face-info">
+        <b>${esc(st.boss.name)}</b>
         <div class="dc-battle-hp-bar-wrap">
           <div class="dc-battle-hp-bar" style="width:${bossHpPct}%;background:${bossHpColor}"></div>
         </div>
-        <div class="dc-battle-hp-label">❤️ ${st.boss.hp} / ${st.boss.maxHp}</div>
+        <span class="small">❤️ ${st.boss.hp}/${st.boss.maxHp}${st.boss.armor ? ' 🛡️' + st.boss.armor : ''}</span>
       </div>
-      ${st.boss.shield > 0 ? `<div class="dc-battle-shield">🔵 ${st.boss.shield}</div>` : ''}
+      <div class="dc-bc-meta muted small">✋${st.boss.hand.length} 📚${st.boss.deck.length}</div>
     </div>
-    ${(st.boss.effects.stun || 0) > 0 ? '<div class="dc-battle-status">⚡ Stordito</div>' : ''}
-    ${(st.boss.effects.burn || 0) > 0  ? `<div class="dc-battle-status dc-status-burn">🔥 Bruciatura ${st.boss.effects.burn}</div>` : ''}
   `;
-  c.appendChild(bossPanel);
 
-  // ── Log ultimo turno ──────────────────────────────────────
-  const logHtml = _dcBuildActionLog(st.lastEntry);
-  if (logHtml) {
-    const logWrap = el('div', 'dc-battle-log');
-    logWrap.innerHTML = `<div class="dc-battle-log-title">Turno ${st.lastEntry ? st.lastEntry.turn : 1}</div>${logHtml}`;
-    c.appendChild(logWrap);
-  } else {
-    const quoteEl = el('div', 'dc-battle-quote muted small center');
-    quoteEl.textContent = st.boss.quote || '';
-    c.appendChild(quoteEl);
-  }
-
-  // ── Hero panel ────────────────────────────────────────────
-  const heroPanel = el('div', 'dc-battle-hero-panel');
-  const heroHpPct   = Math.round(st.hero.hp / st.hero.maxHp * 100);
-  const heroHpColor = _dcHpBarColor(st.hero.hp, st.hero.maxHp);
-  heroPanel.innerHTML = `
-    <div class="dc-battle-hero-row">
-      <div class="dc-battle-hero-info">
-        <div class="dc-battle-hero-label">Il tuo turno — Round ${st.turn}</div>
-        <div class="dc-battle-hp-bar-wrap">
-          <div class="dc-battle-hp-bar" style="width:${heroHpPct}%;background:${heroHpColor}"></div>
-        </div>
-        <div class="dc-battle-hp-label">❤️ ${st.hero.hp} / ${st.hero.maxHp}
-          ${st.hero.shield > 0 ? ` &nbsp; 🔵 ${st.hero.shield}` : ''}
-        </div>
-      </div>
-    </div>
-    ${(st.hero.effects.stun || 0) > 0 ? '<div class="dc-battle-status">⚡ Stordito — non puoi giocare</div>' : ''}
-    ${(st.hero.effects.burn || 0) > 0  ? `<div class="dc-battle-status dc-status-burn">🔥 Bruciatura ${st.hero.effects.burn} al prossimo turno</div>` : ''}
-  `;
-  c.appendChild(heroPanel);
-
-  // ── Mano ─────────────────────────────────────────────────
-  const handWrap = el('div', 'dc-battle-hand');
-  if (st.hero.hand.length === 0) {
-    handWrap.appendChild(el('p', 'muted small center', 'Nessuna carta in mano.'));
-  } else {
-    st.hero.hand.forEach(cardId => {
-      const card = RPG.DRAGON_CARDS.find(c => c.id === cardId);
-      if (!card) return;
-      const rm = DC_RARITY_META[card.rarity];
-      const dm = DC_DRAGON_META[card.dragon] || { bg:'#f5f5f5', icon:'🐉', color:'#555' };
-      const tm = DC_TYPE_META[card.type] || DC_TYPE_META.offensiva;
-      const imgPath = `assets/dragon-cards/${card.id}.webp`;
-      const handCard = el('div', `dc-hand-card dc-rar-${card.rarity}`);
-      handCard.innerHTML = `
-        <div class="dc-hand-header" style="background:${rm.grad}">
-          <span class="dc-hand-name">${esc(card.name)}</span>
-          <span class="dc-hand-type" style="background:${tm.color}">${tm.icon}</span>
-        </div>
-        <div class="dc-hand-art" style="background:${dm.bg}">
-          <img class="dc-hand-img" src="${imgPath}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="">
-          <div class="dc-hand-emoji" style="display:none">${dm.icon}</div>
-        </div>
-        <div class="dc-hand-stats">
-          <div class="dc-hand-stat" style="color:#c0392b">⚔️ ${card.atk}</div>
-          <div class="dc-hand-stat" style="color:#2980b9">🛡️ ${card.def}</div>
-          <div class="dc-hand-stat" style="color:#27ae60">💚 ${card.heal}</div>
-        </div>
-        ${card.effect ? `<div class="dc-hand-effect">${DC_EFFECT_LABELS[card.effect] || card.effect}</div>` : ''}
-        <button class="dc-hand-play-btn btn btn-primary">Gioca</button>
-      `;
-      const stunned = (st.hero.effects.stun || 0) > 0;
-      if (stunned) handCard.classList.add('dc-card-disabled');
-      handCard.querySelector('.dc-hand-play-btn').addEventListener('click', () => {
-        if (stunned) { toast('Sei stordito — salti questo turno!'); return; }
-        DC_BATTLE_STATE = dcPlayCard(DC_BATTLE_STATE, cardId);
+  // Boss board
+  const bossBoard = el('div', 'dc-battle-board dc-battle-board-boss');
+  const hasAttacker = DC_SELECTED_ATTACKER !== null;
+  st.boss.board.forEach(cr => {
+    const isValidTarget = hasAttacker && (!bossHasProv || cr.kws.includes('provocazione'));
+    const creEl = _dcMakeBoardCreatureEl(cr, 'boss', isValidTarget);
+    if (isValidTarget) {
+      creEl.addEventListener('click', () => {
+        DC_BATTLE_STATE = dcAttack(DC_BATTLE_STATE, DC_SELECTED_ATTACKER, cr.iid);
+        DC_SELECTED_ATTACKER = null;
         setTab('market');
       });
+    }
+    bossBoard.appendChild(creEl);
+  });
+  for (let i = st.boss.board.length; i < 4; i++) {
+    bossBoard.appendChild(el('div', 'dc-board-slot-empty'));
+  }
+  bossArea.appendChild(bossBoard);
+  c.appendChild(bossArea);
+
+  // ── Action Log ─────────────────────────────────────────────
+  const recentLog = (st.log || []).slice(-5);
+  if (recentLog.length) {
+    const logWrap = el('div', 'dc-battle-log');
+    logWrap.innerHTML = recentLog.map(m => `<div class="dc-log-line">${esc(m)}</div>`).join('');
+    c.appendChild(logWrap);
+  }
+
+  // ── Hero area ──────────────────────────────────────────────
+  const heroArea = el('div', 'dc-battle-hero-area');
+
+  // Hero board
+  const heroBoard = el('div', 'dc-battle-board dc-battle-board-hero');
+  st.hero.board.forEach(cr => {
+    const canAtk = cr.canAttack && !cr.hasAttacked;
+    const isSelected = DC_SELECTED_ATTACKER === cr.iid;
+    const creEl = _dcMakeBoardCreatureEl(cr, 'hero', false);
+    if (canAtk || isSelected) {
+      creEl.addEventListener('click', () => {
+        DC_SELECTED_ATTACKER = isSelected ? null : cr.iid;
+        setTab('market');
+      });
+    }
+    heroBoard.appendChild(creEl);
+  });
+  for (let i = st.hero.board.length; i < 4; i++) {
+    heroBoard.appendChild(el('div', 'dc-board-slot-empty'));
+  }
+  heroArea.appendChild(heroBoard);
+
+  // Hero info row
+  const heroHpPct = Math.round(st.hero.hp / st.hero.maxHp * 100);
+  const heroHpColor = _dcHpBarColor(st.hero.hp, st.hero.maxHp);
+  const mana = st.mana;
+  const manaHtml = Array.from({length: mana.max}, (_, i) =>
+    `<div class="dc-mana-gem${i < mana.current ? '' : ' dc-mana-empty'}"></div>`
+  ).join('');
+
+  const heroInfo = el('div', 'dc-battle-combatant-header dc-battle-hero-header');
+  heroInfo.innerHTML = `
+    <span class="dc-bc-face-icon">🧙</span>
+    <div class="dc-bc-face-info">
+      <b>Eroe — Turno ${st.turn}</b>
+      <div class="dc-battle-hp-bar-wrap">
+        <div class="dc-battle-hp-bar" style="width:${heroHpPct}%;background:${heroHpColor}"></div>
+      </div>
+      <span class="small">❤️ ${st.hero.hp}/${st.hero.maxHp}${st.hero.armor ? ' 🛡️' + st.hero.armor : ''}</span>
+    </div>
+    <div class="dc-mana-crystals">${manaHtml}</div>
+  `;
+
+  // Attack face button
+  if (DC_SELECTED_ATTACKER !== null && !bossHasProv) {
+    const faceBtn = el('button', 'btn btn-primary dc-face-attack-btn', '⚔️ Attacca ' + st.boss.name);
+    faceBtn.addEventListener('click', () => {
+      DC_BATTLE_STATE = dcAttack(DC_BATTLE_STATE, DC_SELECTED_ATTACKER, 'face');
+      DC_SELECTED_ATTACKER = null;
+      setTab('market');
+    });
+    heroInfo.appendChild(faceBtn);
+  }
+  heroArea.appendChild(heroInfo);
+  c.appendChild(heroArea);
+
+  // ── Mano ──────────────────────────────────────────────────
+  const handLabel = el('div', 'dc-hand-label', `✋ Mano (${st.hero.hand.length}) — 📚 ${st.hero.deck.length} nel mazzo`);
+  c.appendChild(handLabel);
+
+  const handWrap = el('div', 'dc-battle-hand');
+  if (!st.hero.hand.length) {
+    handWrap.appendChild(el('p', 'muted small center', 'Nessun drago in mano.'));
+  } else {
+    st.hero.hand.forEach(cardId => {
+      const card = RPG.DRAGON_CARDS.find(cd => cd.id === cardId);
+      if (!card) return;
+      const rm = DC_RARITY_META[card.rar] || DC_RARITY_META.comune;
+      const canPlay = card.cost <= mana.current && (card.type !== 'creatura' || st.hero.board.length < 4);
+      const imgPath = `images/dragons/${card.id}.webp`;
+      const kwHtml = (card.kws || []).map(k => `<span class="dc-mini-kw">${DC_KW_LABELS[k] || k}</span>`).join('');
+      const handCard = el('div', `dc-hand-card dc-rar-${card.rar}${canPlay ? '' : ' dc-card-disabled'}`);
+      handCard.innerHTML = `
+        <div class="dc-hand-cost-gem" style="background:${rm.costBg}">${card.cost}</div>
+        <div class="dc-hand-art">
+          <img src="${imgPath}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="">
+          <div class="dc-hand-emoji" style="display:none">${card.icon}</div>
+        </div>
+        <div class="dc-hand-name">${esc(card.name)}</div>
+        <div class="dc-hand-stats-row">
+          <span class="dc-mini-atk">⚔️${card.atk}</span>
+          <span class="dc-mini-hp">❤️${card.hp}</span>
+        </div>
+        ${kwHtml ? `<div class="dc-mini-kws">${kwHtml}</div>` : ''}
+      `;
+      if (canPlay) {
+        handCard.addEventListener('click', () => {
+          DC_BATTLE_STATE = dcPlayCard(DC_BATTLE_STATE, cardId);
+          DC_SELECTED_ATTACKER = null;
+          setTab('market');
+        });
+      } else {
+        handCard.title = card.cost > mana.current
+          ? `Mana insufficiente (${card.cost} richiesto)`
+          : 'Campo pieno!';
+      }
       handWrap.appendChild(handCard);
     });
   }
   c.appendChild(handWrap);
 
-  // ── Footer info ───────────────────────────────────────────
-  const footer = el('div', 'dc-battle-footer muted small');
-  footer.innerHTML = `📚 Mazzo: ${st.hero.deck.length} &nbsp; 🗑️ Scarti: ${st.hero.discard.length} &nbsp; ✋ Mano: ${st.hero.hand.length}`;
-  c.appendChild(footer);
-
-  // Pulsante abbandona
-  const quitBtn = el('button', 'btn dc-battle-quit', '🏳️ Abbandona');
-  quitBtn.addEventListener('click', () => {
-    DC_BATTLE_STATE = null;
-    DC_VIEW = 'boss_select';
+  // ── Azioni ────────────────────────────────────────────────
+  const actBar = el('div', 'dc-action-bar');
+  const endBtn = el('button', 'btn btn-primary dc-end-turn-btn', '⏭️ Fine Turno');
+  endBtn.addEventListener('click', () => {
+    DC_BATTLE_STATE = dcEndHeroTurn(DC_BATTLE_STATE);
+    DC_SELECTED_ATTACKER = null;
     setTab('market');
   });
-  c.appendChild(quitBtn);
+  const quitBtn = el('button', 'btn dc-battle-quit', '🏳️ Abbandona');
+  quitBtn.addEventListener('click', () => {
+    DC_BATTLE_STATE = null; DC_SELECTED_ATTACKER = null;
+    DC_VIEW = 'boss_select'; setTab('market');
+  });
+  actBar.appendChild(endBtn);
+  actBar.appendChild(quitBtn);
+  c.appendChild(actBar);
 }
 
 function renderAntroBestiaView(c)    { _antroComingSoon(c, ANTRO_SECTIONS[1]); }
