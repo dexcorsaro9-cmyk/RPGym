@@ -9,7 +9,7 @@ let DC_BATTLE_STATE = null; // stato live della battaglia
 let DC_SELECTED_ATTACKER = null; // iid della creatura attaccante selezionata
 
 const ANTRO_SECTIONS = [
-  { lv: 50,  key: 'antro_contratti', icon: '🐲', name: 'Carte dei Draghi',              desc: 'Colleziona e gioca con le 100 carte dei draghi leggendari.',  quote: '«Le carte non mentono. Ogni drago rivela il tuo destino.»' },
+  { lv: 50,  key: 'antro_contratti', icon: '🐲', name: 'Carte dei Draghi',              desc: 'Colleziona e gioca con le 206 carte dei draghi leggendari.',  quote: '«Le carte non mentono. Ogni drago rivela il tuo destino.»' },
   { lv: 60,  key: 'antro_bestia',    icon: '🐉', name: 'Bestia Ancestrale',             desc: 'Un boss mensile che può essere abbattuto solo dai degni.',   quote: '«L\'Antica Belva non conosce pietà. Mostrami cosa sei fatto.»' },
   { lv: 61,  key: 'antro_prove',     icon: '⚔️', name: 'Le 10 Prove del Campione',      desc: 'Dieci sfide irripetibili (Lv 61–70). Completa tutte e 10 per ottenere trofei unici e forgiare il Gladius Aeternus, l\'arma dei Campioni.', quote: '«Non basta sopravvivere. Devi dimostrare di meritarlo.»' },
   { lv: 70,  key: 'antro_trofei',    icon: '🏆', name: 'Sala dei Trofei',               desc: 'I tuoi record e imprese incisi nella pietra eterna.',        quote: '«La pietra dimentica i nomi vili. Il tuo sarà l\'eccezione.»' },
