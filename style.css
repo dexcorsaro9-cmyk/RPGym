@@ -10169,6 +10169,24 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
 .eco-relic-effect { line-height: 1.35; }
 .eco-relic-status { }
 
+/* ── Le Origini del Mito ── */
+.mito-intro { display: block; margin: 0 0 1rem; font-style: italic; }
+.mito-card { padding: 0; overflow: hidden; border-radius: 14px; margin-bottom: 0; }
+.mito-card-open { border: 1.5px solid rgba(241,196,15,.25); background: var(--surface, rgba(255,255,255,.04)); }
+.mito-card-locked { opacity: .55; border: 1.5px dashed rgba(255,255,255,.12); }
+.mito-cover-img { width: 100%; max-height: 180px; object-fit: cover; display: block; }
+.mito-cover-fallback { width: 100%; height: 80px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; background: rgba(255,255,255,.04); }
+.mito-card-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
+.mito-chapter-num { font-size: .68rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--gold); opacity: .8; }
+.mito-chapter-title { font-size: 1.05rem; font-weight: 800; color: var(--text); margin: 0; }
+.mito-chapter-text { font-size: .85rem; line-height: 1.6; color: var(--text); margin: 0; font-style: italic; opacity: .9; }
+.mito-card-locked-body { display: flex; align-items: center; gap: 14px; padding: 14px 16px; }
+.mito-lock-num { font-size: 1.5rem; font-weight: 900; color: var(--muted); opacity: .4; min-width: 36px; }
+.mito-lock-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.mito-lock-title { font-size: .9rem; font-weight: 700; color: var(--muted); }
+.mito-lock-lv { }
+.mito-lock-icon { font-size: 1.3rem; }
+
 .dc-filter-bar {
   display: flex; flex-wrap: wrap; gap: 6px; padding: .2rem 0 .6rem;
 }

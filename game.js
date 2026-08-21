@@ -8023,6 +8023,103 @@ function checkEcoLeggendari(hero, today) {
   return { completed: newlyCompleted, failed: newlyFailed };
 }
 
+/* ── Le Origini del Mito ──────────────────────────────────────── */
+const MITO_CHAPTERS = [
+  { id: 1, level: 81, title: "L'Origine", img: 'assets/mito/cap1.webp',
+    generate(h) {
+      const cls = { guerriero:'Guerriero', mago:'Mago', ranger:'Ranger', ladro:'Ladro', paladino:'Paladino' }[h.class] || 'Eroe';
+      const km = (h.totalKm || 0).toFixed(1);
+      const sess = h.totalSessions || 0;
+      const gold = h.gold || 0;
+      return `Nel momento in cui ${h.name} scelse la via del ${cls}, il Reame non lo sapeva ancora. Ma qualcosa nell'aria cambiò. Oggi, dopo ${sess} sessioni di allenamento e ${km} chilometri percorsi, il viaggio può finalmente essere raccontato. ${gold} monete d'oro accumulate. Un impero costruito passo dopo passo. Ogni singolo passo fu una scelta fatta liberamente.`;
+    }
+  },
+  { id: 2, level: 82, title: "Il Primo Sangue", img: 'assets/mito/cap2.webp',
+    generate(h) {
+      const wins = h.arena_wins || 0;
+      const streak = (h.streak && h.streak.count) || 0;
+      const bestStreak = h.bestStreak || streak;
+      const losses = h.arena_losses || 0;
+      return `La prima vittoria in Arena non arriva mai quando te l'aspetti. ${h.name} lo scoprì presto. ${wins > 0 ? `${wins} nemici sconfitti, ${losses} sconfitte subite — ogni numero racconta una storia diversa.` : 'Il campo di battaglia attende ancora il suo tributo.'} La serie più lunga raggiunta: ${bestStreak} giorni consecutivi di allenamento. La streak attuale brucia come ferro rovente: ${streak} giorni. Il dolore è reale. La vittoria anche.`;
+    }
+  },
+  { id: 3, level: 83, title: "La Lunga Strada", img: 'assets/mito/cap3.webp',
+    generate(h) {
+      const km = (h.totalKm || 0).toFixed(1);
+      const sess = h.totalSessions || 0;
+      const corsa = ((h.kmByType && h.kmByType.corsa) || 0).toFixed(1);
+      const camminata = ((h.kmByType && h.kmByType.camminata) || 0).toFixed(1);
+      const cyclette = ((h.kmByType && h.kmByType.cyclette) || 0).toFixed(1);
+      const kmPerSess = sess > 0 ? (h.totalKm / sess).toFixed(1) : '0';
+      return `${km} chilometri totali. ${sess} sessioni di allenamento. Media di ${kmPerSess} km per uscita. Nessun altro numero racconta la storia di ${h.name} meglio di questi. ${corsa} km di corsa — il respiro che brucia i polmoni. ${camminata} km di camminata — il silenzio che insegna a pensare. ${parseFloat(cyclette) > 0 ? `${cyclette} km in sella — il ritmo che diventa meditazione.` : ''} Le strade del Reame portano i segni del suo passaggio.`;
+    }
+  },
+  { id: 4, level: 84, title: "L'Oscurità", img: 'assets/mito/cap4.webp',
+    generate(h) {
+      const proveFailed = h.champion ? Object.values(h.champion.provas || {}).filter(p => p.failedAt).length : 0;
+      const ecoFailed = h.eco ? Object.values(h.eco.legends || {}).filter(l => l.failedAt).length : 0;
+      const totalFailed = proveFailed + ecoFailed;
+      const losses = h.arena_losses || 0;
+      return `Ogni leggenda ha il suo momento di buio. ${h.name} ne conosce il peso. ${totalFailed > 0 ? `${proveFailed} prove del Campione perse, ${ecoFailed} sfide dei Leggendari fallite — non per debolezza, ma per umanità.` : 'Nessuna prova perduta nelle Prove o nell\'Eco. Un record che pochi possono vantare.'} ${losses > 0 ? `${losses} sconfitte in Arena, archiviate nella memoria come lezioni.` : ''} È nell\'oscurità che si misura la vera forza: non quanto si cade, ma quanto si impiega ad alzarsi.`;
+    }
+  },
+  { id: 5, level: 85, title: "Il Famiglio", img: 'assets/mito/cap5.webp',
+    generate(h) {
+      const pet = h.pet && h.pet.hatched ? h.pet : null;
+      if (pet) {
+        const mood = { felice:'felice', triste:'un po\' triste', neutro:'tranquillo' }[pet.mood] || 'sereno';
+        return `Non tutti gli eroi camminano soli. ${h.name} lo sa bene — ${pet.name || 'il famiglio'} è stato al suo fianco fin dal primo giorno. Lv ${pet.level || 1}, ${mood} in questo momento. Fame: ${pet.hunger || 0}/100, Umore: ${pet.mood || '—'}, Energia: ${pet.energy || 0}/100. Una creatura che non conosce le parole ma comprende ogni passo. Fedele oltre ogni misura.`;
+      }
+      return `Non tutti gli eroi camminano soli — ma alcuni scelgono di farlo, almeno per un po'. ${h.name} non ha ancora trovato il compagno giusto. Il santuario dei famigli attende, silenzioso. La creatura giusta arriverà quando il momento sarà quello giusto.`;
+    }
+  },
+  { id: 6, level: 86, title: "Il Drago", img: 'assets/mito/cap6.webp',
+    generate(h) {
+      const cards = (h.dragonCards || []).length;
+      const wins = h.dcWins || 0;
+      const defeated = (h.dcDefeated || []).length;
+      return `Le carte non mentono mai. ${h.name} lo ha imparato studiando i ${cards} draghi della sua collezione. Creature antiche, pericolose, incomprensibili. ${wins > 0 ? `${wins} duelli vinti nel Dominio, ${defeated} boss abbattuti — ogni vittoria ha lasciato un segno.` : 'Il Dominio aspetta ancora il suo momento.'} Il drago è lo specchio del guerriero: affrontarlo significa guardarsi dentro e decidere chi si vuole diventare.`;
+    }
+  },
+  { id: 7, level: 87, title: "Le Prove", img: 'assets/mito/cap7.webp',
+    generate(h) {
+      const trophies = (h.champion && h.champion.trophies) ? h.champion.trophies.length : 0;
+      const hasGladius = (h.items || []).some(it => it.id === 'gladius_aeternus');
+      const proveFailed = h.champion ? Object.values(h.champion.provas || {}).filter(p => p.failedAt).length : 0;
+      return `Dieci prove. Una sola possibilità ciascuna. ${h.name} ne ha superate ${trophies} su 10${proveFailed > 0 ? `, con ${proveFailed} tentativi falliti alle spalle` : ''}. ${trophies === 10 ? `Tutte e dieci superate. ${hasGladius ? "Il Gladius Aeternus brilla nello zaino — forgiato dalla luce dell'alba eterna." : 'Il Gladius Aeternus attende di essere reclamato.'}` : trophies > 0 ? `${10 - trophies} prove ancora da affrontare. Ogni trofeo ottenuto è la prova che si può.` : 'Le prove del Campione attendono ancora la prima risposta.'} Nessuna seconda possibilità. Solo la prima conta.`;
+    }
+  },
+  { id: 8, level: 88, title: "I Fantasmi", img: 'assets/mito/cap8.webp',
+    generate(h) {
+      const relics = (h.items || []).filter(it => it.id && it.id.startsWith('reliquia_')).length;
+      const equippedRelic = (h.equipment || {}).reliquia;
+      const ecoCompleted = h.eco ? Object.values(h.eco.legends || {}).filter(l => l.completedAt).length : 0;
+      const ecoFailed = h.eco ? Object.values(h.eco.legends || {}).filter(l => l.failedAt).length : 0;
+      return `Dieci guerrieri che hanno osato sfidare il drago prima di chiunque altro — ognuno è diventato un fantasma. ${h.name} li ha incontrati. ${ecoCompleted > 0 ? `${ecoCompleted} sfide superate, ${relics} reliquie ottenute. Frammenti di vite leggendarie, ora nelle sue mani.` : 'I fantasmi attendono ancora la prima risposta.'}${ecoFailed > 0 ? ` ${ecoFailed} sfide mancate — il tempo aveva i suoi ritmi.` : ''} ${equippedRelic ? `La reliquia equipaggiata sussurra ancora la storia del suo antico padrone.` : ''} I morti non parlano — ma lasciano oggetti che lo fanno per loro.`;
+    }
+  },
+  { id: 9, level: 89, title: "La Leggenda", img: 'assets/mito/cap9.webp',
+    generate(h) {
+      const km = (h.totalKm || 0).toFixed(1);
+      const sess = h.totalSessions || 0;
+      const wins = h.arena_wins || 0;
+      const trophies = (h.champion && h.champion.trophies) ? h.champion.trophies.length : 0;
+      const relics = (h.items || []).filter(it => it.id && it.id.startsWith('reliquia_')).length;
+      const gold = h.gold || 0;
+      return `Livello ${h.level || 1}. ${km} km percorsi. ${sess} sessioni. ${wins} vittorie in Arena. ${trophies}/10 prove del Campione. ${relics} reliquie dei leggendari. ${gold} monete d'oro. I numeri di ${h.name} non sono statistiche — sono la misura di una vita scelta ogni giorno invece di una vita subita. Pochi arrivano fin qui. Quasi nessuno capisce cosa significa davvero, fino a quando non ci arriva.`;
+    }
+  },
+  { id: 10, level: 90, title: "L'Epilogo (Per Ora)", img: 'assets/mito/cap10.webp',
+    generate(h) {
+      const km = (h.totalKm || 0).toFixed(1);
+      const sess = h.totalSessions || 0;
+      const wins = h.arena_wins || 0;
+      const streak = (h.streak && h.streak.count) || 0;
+      return `${h.name}. Livello 90. ${km} km, ${sess} sessioni, ${wins} vittorie, ${streak} giorni di streak. Questo non è un finale — è un punto di pausa. La storia vera non ha ancora un ultimo capitolo perché ${h.name} non ha ancora smesso di scriverla. Dieci livelli separano questo momento dall'ultima pagina. Il Reame trattiene il respiro. L'Armatura Definitiva aspetta ancora il suo artefice. Continua.`;
+    }
+  },
+];
+
 function dcTierUnlocked(hero, tier) {
   const idx = DC_TIERS.indexOf(tier);
   if (idx === 0) return true;
