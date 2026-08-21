@@ -12,6 +12,7 @@ const ANTRO_SECTIONS = [
   { lv: 50,  key: 'antro_contratti', icon: '🐲', name: 'Carte dei Draghi',              desc: 'Colleziona e gioca con le 206 carte dei draghi leggendari.',  quote: '«Le carte non mentono. Ogni drago rivela il tuo destino.»' },
   { lv: 61,  key: 'antro_prove',     icon: '⚔️', name: 'Le 10 Prove del Campione',      desc: 'Dieci sfide irripetibili (Lv 61–70). Completa tutte e 10 per ottenere trofei unici e forgiare il Gladius Aeternus, l\'arma dei Campioni.', quote: '«Non basta sopravvivere. Devi dimostrare di meritarlo.»' },
   { lv: 70,  key: 'antro_trofei',    icon: '🏆', name: 'Sala dei Trofei',               desc: 'I tuoi record e imprese incisi nella pietra eterna.',        quote: '«La pietra dimentica i nomi vili. Il tuo sarà l\'eccezione.»' },
+  { lv: 71,  key: 'antro_eco',       icon: '👻', name: 'L\'Eco dei Leggendari',          desc: 'Dieci fantasmi di guerrieri leggendari ti sfidano (Lv 71–80). Supera le loro prove e ottieni una reliquia unica da ogni eroe.', quote: '«Le loro voci risuonano ancora. Rispondi alla chiamata.»' },
   { lv: 80,  key: 'antro_forgia',    icon: '🔥', name: 'Forgia del Campione',           desc: 'Forgia equipaggiamento leggendario irripetibile.',           quote: '«Il ferro comune brucia. Solo l\'acciaio del sacrificio sopravvive.»' },
   { lv: 90,  key: 'antro_dungeon',   icon: '🌀', name: 'Dungeon Infinito',              desc: 'Abissi senza fondo che mettono alla prova l\'eterno.',       quote: '«Ogni gradino più in basso rivela una verità che pochissimi reggono.»' },
   { lv: 100, key: 'antro_leggenda',  icon: '👑', name: 'Sala della Leggenda',           desc: 'Il tuo nome inciso tra i Grandi del Reame per sempre.',      quote: '«Cento livelli. Centinaia di chilometri. Un solo nome: il tuo.»' },
@@ -30,6 +31,7 @@ function renderMarket(c) {
   if (MARKET_VIEW === 'pozzo')       { renderPozzoView(c);       return; }
   if (MARKET_VIEW === 'catena')      { renderCatenaView(c);      return; }
   if (MARKET_VIEW === 'casse')       { renderCasseView(c);       return; }
+  if (MARKET_VIEW === 'antro_eco') { renderAntroEcoView(c); return; }
   if (MARKET_VIEW === 'antro' || MARKET_VIEW.startsWith('antro_')) { renderAntroView(c); return; }
 
   /* Step 2: dopo il 1° workout → invita all'Arena */
@@ -313,8 +315,33 @@ function renderMarket(c) {
       sectionList.appendChild(proveBox);
     }
 
-    // Righe sezioni (salta antro_contratti e antro_prove — gestiti dai box sopra)
-    ANTRO_SECTIONS.filter(s => s.key !== 'antro_contratti' && s.key !== 'antro_prove').forEach(s => {
+    // Box L'Eco dei Leggendari
+    {
+      const ecoUnlocked = heroLv >= 71;
+      const ecoLegends = (HERO.eco && HERO.eco.legends) || {};
+      const ecoCompleted = ECO_LEGENDS.filter(l => ecoLegends[l.id] && ecoLegends[l.id].completedAt).length;
+      const ecoBox = el('div', `antro-duel-box${ecoUnlocked ? ' antro-duel-box-open' : ''}`);
+      ecoBox.innerHTML = `
+        <span class="antro-duel-box-icon">${ecoUnlocked ? '👻' : '🔒'}</span>
+        <div class="antro-duel-box-body">
+          <span class="antro-duel-box-name">L'Eco dei Leggendari</span>
+          <span class="antro-duel-box-desc">${ecoUnlocked ? `${ecoCompleted}/10 prove superate · Dieci guerrieri leggendari ti attendono` : 'Si sblocca al livello 71 · Dieci prove leggendarie · Dieci reliquie uniche'}</span>
+        </div>
+        <span class="antro-row-badge">Lv 71</span>
+      `;
+      const ecoBtn = el('button', 'btn btn-primary dc-duel-btn antro-duel-box-btn',
+        ecoUnlocked ? '👻 L\'Eco dei Leggendari' : '🔒 L\'Eco dei Leggendari (Lv 71)');
+      ecoBtn.disabled = !ecoUnlocked;
+      ecoBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        MARKET_VIEW = 'antro_eco'; setTab('market');
+      });
+      ecoBox.appendChild(ecoBtn);
+      sectionList.appendChild(ecoBox);
+    }
+
+    // Righe sezioni (salta antro_contratti, antro_prove, antro_eco — gestiti dai box sopra)
+    ANTRO_SECTIONS.filter(s => s.key !== 'antro_contratti' && s.key !== 'antro_prove' && s.key !== 'antro_eco').forEach(s => {
       const done = heroLv >= s.lv;
       const isNext = nextSection && s.lv === nextSection.lv;
       const row = el('div', `antro-section-row${done ? ' antro-row-done' : isNext ? ' antro-row-next' : ' antro-row-sealed'}`);
@@ -369,6 +396,84 @@ function renderMarket(c) {
     errPanel.appendChild(retryBtn);
     c.appendChild(errPanel);
   }
+}
+
+/* ── L'Eco dei Leggendari — View ── */
+function renderAntroEcoView(c) {
+  const heroLv = HERO.level || 1;
+  backBar(c, () => { MARKET_VIEW = 'antro'; setTab('market'); });
+
+  const hdr = el('div', 'antro-view-header');
+  hdr.innerHTML = `
+    <div class="antro-view-ornament">— 👻 —</div>
+    <h2 class="antro-view-title">L'Eco dei Leggendari</h2>
+    <p class="antro-view-sub">Dieci guerrieri leggendari ti attendono · Supera le loro prove · Ottieni le loro reliquie</p>
+  `;
+  c.appendChild(hdr);
+
+  if (!HERO.eco) HERO.eco = { legends: {} };
+  if (!HERO.eco.legends) HERO.eco.legends = {};
+
+  ECO_LEGENDS.forEach(leg => {
+    const state = HERO.eco.legends[leg.id];
+    const available = heroLv >= leg.level;
+    const completed = state && state.completedAt;
+    const failed = state && state.failedAt;
+    const active = state && !completed && !failed;
+
+    const card = el('div', `panel antro-hub-card${completed ? ' antro-hub-open' : available && !failed ? ' antro-hub-sealed' : ' antro-hub-sealed'}`);
+
+    // Immagine fantasma
+    const ghostImg = el('img', 'eco-ghost-img');
+    ghostImg.src = leg.img;
+    ghostImg.alt = leg.name;
+    ghostImg.onerror = function() { this.outerHTML = `<span class="eco-ghost-icon">${leg.icon}</span>`; };
+    card.appendChild(ghostImg);
+
+    const body = el('div', 'eco-card-body');
+
+    // Badge stato
+    const badge = completed ? '✓ Completata' : failed ? '✗ Fallita' : active ? '⏳ In corso' : available ? '🔓 Disponibile' : `🔒 Lv ${leg.level}`;
+    const badgeCls = completed ? 'eco-badge eco-badge-done' : failed ? 'eco-badge eco-badge-fail' : active ? 'eco-badge eco-badge-active' : 'eco-badge eco-badge-locked';
+    body.appendChild(el('span', badgeCls, badge));
+
+    body.appendChild(el('h3', 'eco-legend-name', `${leg.icon} ${leg.name}`));
+    body.appendChild(el('p', 'eco-lore small muted', leg.lore));
+
+    if (available) {
+      const challengeEl = el('div', 'eco-challenge');
+      challengeEl.innerHTML = `<span class="eco-challenge-label">⚔️ Sfida</span> <span class="eco-challenge-desc">${leg.challengeDesc}</span>`;
+      body.appendChild(challengeEl);
+
+      if (active) {
+        const kmDone = Math.max(0, (HERO.totalKm || 0) - (state.startKm || 0)).toFixed(1);
+        const sessDone = Math.max(0, (HERO.totalSessions || 0) - (state.startSessions || 0));
+        const daysSince = Math.floor((Date.now() - new Date(state.unlockedAt).getTime()) / 86400000);
+        const daysLeft = Math.max(0, leg.windowDays - daysSince);
+        const progEl = el('div', 'eco-progress');
+        progEl.innerHTML = `<span class="small muted">Km percorsi: <b>${kmDone}</b> · Sessioni: <b>${sessDone}</b> · Giorni rimasti: <b>${daysLeft}</b></span>`;
+        body.appendChild(progEl);
+      }
+
+      if (completed || failed) {
+        const relic = ECO_RELICS.find(r => r.id === leg.relicId);
+        const relicEl = el('div', `eco-relic${completed ? ' eco-relic-earned' : ' eco-relic-locked'}`);
+        const hasRelic = completed && (HERO.items || []).some(it => it.id === leg.relicId);
+        relicEl.innerHTML = `
+          <img class="eco-relic-img" src="assets/legends/${leg.relicId}.webp" alt="${esc(relic ? relic.name : 'Reliquia')}" onerror="this.style.display='none'">
+          <div class="eco-relic-info">
+            <span class="eco-relic-name">${relic ? esc(relic.name) : 'Reliquia'}</span>
+            <span class="eco-relic-desc small muted">${relic ? esc(relic.desc) : ''}</span>
+            <span class="eco-relic-status small ${hasRelic ? '' : 'muted'}">${completed ? (hasRelic ? '✓ Nel tuo zaino' : '⚠️ Non trovata') : '✗ Prova fallita — reliquia persa'}</span>
+          </div>
+        `;
+        body.appendChild(relicEl);
+      }
+    }
+
+    card.appendChild(body);
+    c.appendChild(card);
+  });
 }
 
 /* ── Antro del Campione — Hub ── */

@@ -7860,6 +7860,149 @@ function checkProveDelCampione(hero, today) {
   return { completed: newlyCompleted, failed: newlyFailed };
 }
 
+/* ── L'Eco dei Leggendari ─────────────────────────────────────── */
+const ECO_LEGENDS = [
+  { id: 'aldric', level: 71, windowDays: 14,
+    name: 'Aldric il Senza Paura', icon: '😄', img: 'assets/legends/aldric.webp',
+    lore: '«Rideva mentre il drago spalancava le fauci. "Almeno muoio felice," disse. Il drago non capì mai la battuta.»',
+    challengeDesc: 'Corri 15 km in 7 giorni',
+    relicId: 'reliquia_aldric',
+    check(state, hero) {
+      const kmDone = (hero.totalKm || 0) - (state.startKm || 0);
+      const days = new Set(state.activeDays || []).size;
+      return kmDone >= 15 && days <= 7;
+    }
+  },
+  { id: 'seraphina', level: 72, windowDays: 14,
+    name: 'Seraphina la Veloce', icon: '🦅', img: 'assets/legends/seraphina.webp',
+    lore: '«Nessuno la vide ferma. Nemmeno da morta. Il suo fantasma è ancora il più veloce dell\'Antro.»',
+    challengeDesc: '3 sessioni in 5 giorni',
+    relicId: 'reliquia_seraphina',
+    check(state, hero) {
+      return (hero.totalSessions || 0) - (state.startSessions || 0) >= 3 &&
+             new Set(state.activeDays || []).size <= 5;
+    }
+  },
+  { id: 'brom', level: 73, windowDays: 14,
+    name: 'Brom il Testardo', icon: '🪨', img: 'assets/legends/brom.webp',
+    lore: '«Cadde sette volte. Sette volte si rialzò. All\'ottava volta non tornò — ma il drago aveva una cicatrice.»',
+    challengeDesc: 'Streak di 5 giorni consecutivi',
+    relicId: 'reliquia_brom',
+    check(state, hero) { return (hero.streak && hero.streak.count || 0) >= 5; }
+  },
+  { id: 'lyra', level: 74, windowDays: 14,
+    name: 'Lyra della Luna', icon: '🌙', img: 'assets/legends/lyra.webp',
+    lore: '«Combatteva solo di notte, guidata dalle stelle. Il drago la temeva più di tutti gli altri.»',
+    challengeDesc: '20 km totali in 10 giorni',
+    relicId: 'reliquia_lyra',
+    check(state, hero) { return (hero.totalKm || 0) - (state.startKm || 0) >= 20; }
+  },
+  { id: 'ragna', level: 75, windowDays: 14,
+    name: 'Ragna la Cieca', icon: '🙈', img: 'assets/legends/ragna.webp',
+    lore: '«Non vedeva il drago. Lo sentiva. E questo bastava. Il silenzio è una forma di coraggio.»',
+    challengeDesc: '4 sessioni in 7 giorni',
+    relicId: 'reliquia_ragna',
+    check(state, hero) {
+      return (hero.totalSessions || 0) - (state.startSessions || 0) >= 4;
+    }
+  },
+  { id: 'isolde', level: 76, windowDays: 14,
+    name: 'Isolde la Spezzata', icon: '⚔️', img: 'assets/legends/isolde.webp',
+    lore: '«Sacrificò la sua spada leggendaria per sigillare il drago cent\'anni. Il drago si liberò il giorno dopo la sua morte.»',
+    challengeDesc: 'Streak di 7 giorni consecutivi',
+    relicId: 'reliquia_isolde',
+    check(state, hero) { return (hero.streak && hero.streak.count || 0) >= 7; }
+  },
+  { id: 'thorn', level: 77, windowDays: 14,
+    name: 'Thorn il Mezzobuio', icon: '🎭', img: 'assets/legends/thorn.webp',
+    lore: '«Era un ladro che divenne cavaliere per scommessa. Pensava che rubando il tesoro del drago, lui si arrendesse. Si sbagliava.»',
+    challengeDesc: '25 km in 12 giorni',
+    relicId: 'reliquia_thorn',
+    check(state, hero) { return (hero.totalKm || 0) - (state.startKm || 0) >= 25; }
+  },
+  { id: 'valdris', level: 78, windowDays: 14,
+    name: 'Valdris il Vecchio', icon: '👴', img: 'assets/legends/valdris.webp',
+    lore: '«Aveva 80 anni. I giovani lo fermarono — lui aspettò, poi andò comunque. Non si ferma ciò che non conosce la resa.»',
+    challengeDesc: '10 sessioni totali in 14 giorni',
+    relicId: 'reliquia_valdris',
+    check(state, hero) {
+      return (hero.totalSessions || 0) - (state.startSessions || 0) >= 10;
+    }
+  },
+  { id: 'mira', level: 79, windowDays: 14,
+    name: 'Mira la Senza Nome', icon: '🛡️', img: 'assets/legends/mira.webp',
+    lore: '«Nessuno sa da dove venisse. Combatté il drago senza armatura, senza spada — solo con uno scudo di legno. Il suo vero nome è inciso sul drago.»',
+    challengeDesc: 'Streak di 10 giorni consecutivi',
+    relicId: 'reliquia_mira',
+    check(state, hero) { return (hero.streak && hero.streak.count || 0) >= 10; }
+  },
+  { id: 'edran', level: 80, windowDays: 14,
+    name: 'Edran il Primo', icon: '🔥', img: 'assets/legends/edran.webp',
+    lore: '«Il leggendario primo cavaliere che osò sfidare il drago, mille anni prima. La sua fiamma non si è mai spenta.»',
+    challengeDesc: '30 km in 14 giorni',
+    relicId: 'reliquia_edran',
+    check(state, hero) { return (hero.totalKm || 0) - (state.startKm || 0) >= 30; }
+  },
+];
+
+const ECO_RELICS = [
+  { id:'reliquia_aldric',    slot:'reliquia', rarity:'leggendario', name:"Occhio di Aldric",       icon:'👁️',  img:'assets/legends/reliquia_aldric.webp',    desc:'+20% oro da tutte le sessioni.' },
+  { id:'reliquia_seraphina', slot:'reliquia', rarity:'leggendario', name:"Piuma del Falco",        icon:'🪶',  img:'assets/legends/reliquia_seraphina.webp', desc:'Il loot di ogni sessione contiene sempre almeno 1 oggetto raro.' },
+  { id:'reliquia_brom',      slot:'reliquia', rarity:'leggendario', name:"Treccia di Brom",        icon:'🧶',  img:'assets/legends/reliquia_brom.webp',      desc:'Gli scudi streak durano 1 giorno in più.' },
+  { id:'reliquia_lyra',      slot:'reliquia', rarity:'leggendario', name:"Mezzaluna di Lyra",      icon:'🌙',  img:'assets/legends/reliquia_lyra.webp',      desc:'+30% XP nelle sessioni registrate dopo le 20:00.' },
+  { id:'reliquia_ragna',     slot:'reliquia', rarity:'leggendario', name:"Benda di Ragna",         icon:'🩹',  img:'assets/legends/reliquia_ragna.webp',     desc:'+25% XP da camminata.' },
+  { id:'reliquia_isolde',    slot:'reliquia', rarity:'leggendario', name:"Frammento della Spada",  icon:'⚔️',  img:'assets/legends/reliquia_isolde.webp',    desc:'Il boss settimanale dà sempre il doppio del loot.' },
+  { id:'reliquia_thorn',     slot:'reliquia', rarity:'leggendario', name:"Mantello di Thorn",      icon:'🌑',  img:'assets/legends/reliquia_thorn.webp',     desc:'Il mercato nero si aggiorna 2 volte al giorno.' },
+  { id:'reliquia_valdris',   slot:'reliquia', rarity:'leggendario', name:"Bastone di Valdris",     icon:'🪵',  img:'assets/legends/reliquia_valdris.webp',   desc:'-20% tempo di crescita delle piante in serra.' },
+  { id:'reliquia_mira',      slot:'reliquia', rarity:'leggendario', name:"Scudo di Legno",         icon:'🛡️',  img:'assets/legends/reliquia_mira.webp',      desc:'-30% danni subiti dai boss settimanali e incursioni.' },
+  { id:'reliquia_edran',     slot:'reliquia', rarity:'leggendario', name:"Fiamma di Edran",        icon:'🔥',  img:'assets/legends/reliquia_edran.webp',     desc:'Una volta a settimana la prima sessione raddoppia XP e oro.' },
+];
+
+function unlockNewLegends(hero, today) {
+  if (!hero.eco) hero.eco = { legends: {} };
+  if (!hero.eco.legends) hero.eco.legends = {};
+  for (const leg of ECO_LEGENDS) {
+    if ((hero.level || 0) >= leg.level && !hero.eco.legends[leg.id]) {
+      hero.eco.legends[leg.id] = {
+        unlockedAt: today,
+        startKm: hero.totalKm || 0,
+        startSessions: hero.totalSessions || 0,
+        activeDays: [],
+        completedAt: null,
+        failedAt: null,
+      };
+    }
+  }
+}
+
+function checkEcoLeggendari(hero, today) {
+  if (!hero.eco) hero.eco = { legends: {} };
+  unlockNewLegends(hero, today);
+  const newlyCompleted = [];
+  const newlyFailed = [];
+  for (const leg of ECO_LEGENDS) {
+    const state = hero.eco.legends[leg.id];
+    if (!state || state.completedAt || state.failedAt) continue;
+    if (!state.activeDays.includes(today)) state.activeDays.push(today);
+    const daysSince = Math.floor((new Date(today) - new Date(state.unlockedAt)) / 86400000);
+    if (leg.check(state, hero)) {
+      state.completedAt = today;
+      const relic = ECO_RELICS.find(r => r.id === leg.relicId);
+      if (relic && !(hero.items || []).some(it => it.id === relic.id)) {
+        hero.items = hero.items || [];
+        hero.items.push(Object.assign({}, relic));
+      }
+      newlyCompleted.push(leg);
+      continue;
+    }
+    if (daysSince >= leg.windowDays) {
+      state.failedAt = today;
+      newlyFailed.push(leg);
+    }
+  }
+  return { completed: newlyCompleted, failed: newlyFailed };
+}
+
 function dcTierUnlocked(hero, tier) {
   const idx = DC_TIERS.indexOf(tier);
   if (idx === 0) return true;
