@@ -10953,8 +10953,8 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
 .dc-album-panel-hdr:hover { background: linear-gradient(135deg, rgba(241,196,15,.16) 0%, rgba(224,64,251,.12) 60%, rgba(52,152,219,.12) 100%); }
 .dc-album-panel-left { display: flex; align-items: center; gap: 14px; }
 .dc-album-panel-icon {
-  font-size: 2.6rem; line-height: 1;
-  filter: drop-shadow(0 0 8px rgba(241,196,15,.5));
+  flex-shrink: 0;
+  line-height: 0;
   animation: dc-album-icon-pulse 3s ease-in-out infinite;
 }
 @keyframes dc-album-icon-pulse {

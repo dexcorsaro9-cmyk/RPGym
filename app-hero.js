@@ -1264,7 +1264,11 @@ function _renderDragonAlbum(c) {
   const pct = Math.round(owned / total * 100);
   panelHdr.innerHTML = `
     <span class="dc-album-panel-left">
-      <span class="dc-album-panel-icon">🐉</span>
+      <span class="dc-album-panel-icon">
+        <img src="assets/icons/icona dominio dei draghi.webp" alt="🐉"
+          onerror="this.outerHTML='🐉'"
+          style="width:52px;height:52px;object-fit:contain;display:block;filter:drop-shadow(0 0 8px rgba(241,196,15,.5))">
+      </span>
       <span class="dc-album-panel-text">
         <span class="dc-album-panel-title">Dominio dei Draghi</span>
         <span class="dc-album-panel-sub">Album delle Creature Leggendarie</span>
