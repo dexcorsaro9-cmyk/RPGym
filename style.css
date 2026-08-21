@@ -10143,6 +10143,31 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
 .antro-prove-gladius-status { font-size: .73rem; }
 .rarity-eterno { color: #e8b64c; text-shadow: 0 0 6px rgba(232,182,76,.5); }
 
+/* ── Eco dei Leggendari — View ── */
+.eco-ghost-img { width: 90px; height: 90px; object-fit: contain; border-radius: 10px; flex-shrink: 0; filter: drop-shadow(0 0 8px rgba(100,160,255,.5)); }
+.eco-ghost-icon { font-size: 3rem; flex-shrink: 0; }
+.antro-hub-card { display: flex; gap: 12px; align-items: flex-start; padding: 14px; }
+.eco-card-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.eco-badge { font-size: .72rem; font-weight: 700; letter-spacing: .04em; padding: 2px 8px; border-radius: 20px; display: inline-block; }
+.eco-badge-done { background: rgba(39,174,96,.25); color: #27ae60; }
+.eco-badge-fail { background: rgba(192,57,43,.2); color: #c0392b; }
+.eco-badge-active { background: rgba(241,196,15,.2); color: var(--gold); }
+.eco-badge-locked { background: rgba(255,255,255,.08); color: var(--muted); }
+.eco-legend-name { font-size: .95rem; font-weight: 700; color: var(--text); margin: 0; }
+.eco-lore { font-style: italic; line-height: 1.45; margin: 0; }
+.eco-challenge { padding: 6px 10px; border-radius: 8px; background: rgba(255,255,255,.06); font-size: .8rem; }
+.eco-challenge-label { font-weight: 700; color: var(--gold); margin-right: 4px; }
+.eco-challenge-desc { color: var(--text); }
+.eco-progress { font-size: .8rem; padding: 4px 0; }
+.eco-relic { display: flex; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 8px; margin-top: 2px; }
+.eco-relic-earned { background: rgba(241,196,15,.08); border: 1px solid rgba(241,196,15,.3); }
+.eco-relic-locked { background: rgba(255,255,255,.04); border: 1px dashed rgba(255,255,255,.12); opacity: .6; }
+.eco-relic-img { width: 44px; height: 44px; object-fit: contain; flex-shrink: 0; }
+.eco-relic-info { display: flex; flex-direction: column; gap: 2px; }
+.eco-relic-name { font-weight: 700; font-size: .82rem; color: var(--text); }
+.eco-relic-desc { line-height: 1.35; }
+.eco-relic-status { }
+
 .dc-filter-bar {
   display: flex; flex-wrap: wrap; gap: 6px; padding: .2rem 0 .6rem;
 }

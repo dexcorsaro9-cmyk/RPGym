@@ -2307,6 +2307,20 @@ function checkChampionProvas() {
   });
 }
 
+function checkEcoLeggendariDaily() {
+  if ((HERO.level || 0) < 71) return;
+  const today = new Date().toISOString().slice(0, 10);
+  const result = checkEcoLeggendari(HERO, today);
+  if (!result) return;
+  persist();
+  result.completed.forEach(leg => {
+    toast(`👻 Prova superata: ${leg.name}! Reliquia ottenuta.`);
+  });
+  result.failed.forEach(leg => {
+    toast(`❌ Prova scaduta: ${leg.name}. Non si ripete.`);
+  });
+}
+
 /* ── Bacheca Trofei Prove del Campione ────────────────────────── */
 function renderCampioneTrophyView(c) {
   const today = new Date().toISOString().slice(0, 10);
