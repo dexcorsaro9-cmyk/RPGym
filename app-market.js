@@ -265,24 +265,8 @@ function renderMarket(c) {
 
     // Lista sezioni
     const sectionList = el('div', 'antro-section-list');
-    ANTRO_SECTIONS.forEach(s => {
-      const done = heroLv >= s.lv;
-      const isNext = nextSection && s.lv === nextSection.lv;
-      const row = el('div', `antro-section-row${done ? ' antro-row-done' : isNext ? ' antro-row-next' : ' antro-row-sealed'}`);
-      const rowDesc = done ? s.desc : isNext ? `Si sblocca al livello ${s.lv} · ${s.quote}` : `Segreto svelato al livello ${s.lv}…`;
-      row.innerHTML = `
-        <span class="antro-row-icon">${done ? s.icon : isNext ? '🔓' : '🔒'}</span>
-        <div class="antro-row-body">
-          <span class="antro-row-name">${done || isNext ? s.name : '???'}</span>
-          <span class="antro-row-desc">${rowDesc}</span>
-          ${done ? `<span class="antro-row-quote">${s.quote}</span>` : ''}
-        </div>
-        <span class="antro-row-badge">${done ? '✓' : `Lv ${s.lv}`}</span>
-      `;
-      sectionList.appendChild(row);
-    });
 
-    // Box Dominio dei Draghi (duello) — sempre visibile, lucchetto se < Lv 50
+    // Box Dominio dei Draghi (duello) — in cima, sempre visibile, lucchetto se < Lv 50
     {
       const ownedCount = (HERO.dragonCards || []).length;
       const duelUnlocked = heroLv >= 50 && ownedCount >= 5;
@@ -304,6 +288,24 @@ function renderMarket(c) {
       duelBox.appendChild(duelBtn);
       sectionList.appendChild(duelBox);
     }
+
+    // Righe sezioni (salta antro_contratti — gestito dal box sopra)
+    ANTRO_SECTIONS.filter(s => s.key !== 'antro_contratti').forEach(s => {
+      const done = heroLv >= s.lv;
+      const isNext = nextSection && s.lv === nextSection.lv;
+      const row = el('div', `antro-section-row${done ? ' antro-row-done' : isNext ? ' antro-row-next' : ' antro-row-sealed'}`);
+      const rowDesc = done ? s.desc : isNext ? `Si sblocca al livello ${s.lv} · ${s.quote}` : `Segreto svelato al livello ${s.lv}…`;
+      row.innerHTML = `
+        <span class="antro-row-icon">${done ? s.icon : isNext ? '🔓' : '🔒'}</span>
+        <div class="antro-row-body">
+          <span class="antro-row-name">${done || isNext ? s.name : '???'}</span>
+          <span class="antro-row-desc">${rowDesc}</span>
+          ${done ? `<span class="antro-row-quote">${s.quote}</span>` : ''}
+        </div>
+        <span class="antro-row-badge">${done ? '✓' : `Lv ${s.lv}`}</span>
+      `;
+      sectionList.appendChild(row);
+    });
     antroCard.appendChild(sectionList);
 
     // Frase leggendaria
