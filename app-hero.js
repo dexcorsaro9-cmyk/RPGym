@@ -3,6 +3,7 @@ let HERO_VIEW = 'main';
 
 function renderHero(c) {
   if (HERO_VIEW === 'cards') { renderCardsView(c); return; }
+  if (HERO_VIEW === 'dragon_cards') { renderDragonCardsHeroView(c); return; }
   if (HERO_VIEW === 'bestiary') { renderBestiaryView(c); return; }
   if (HERO_VIEW === 'story') { renderStoryView(c); return; }
   if (HERO_VIEW === 'settings') { renderSettingsView(c); return; }
@@ -1137,6 +1138,13 @@ function renderCronacheView(c) {
   });
 }
 
+function renderDragonCardsHeroView(c) {
+  const backBtn = el('button', 'view-back-link', '‹ Eroe');
+  backBtn.addEventListener('click', () => { HERO_VIEW = 'cards'; setTab('hero'); });
+  c.appendChild(backBtn);
+  renderAntroDragonCardsView(c);
+}
+
 function renderCardsView(c) {
   backBar(c);
   // ── Album Dominio dei Draghi (primo, collassato di default) ──
@@ -1297,7 +1305,7 @@ function _renderDragonAlbum(c) {
 
   // Bottone
   const btn = el('button', 'btn btn-primary wide', '🐲 La Collezione dei Draghi');
-  btn.addEventListener('click', () => { MARKET_VIEW = 'antro_contratti'; setTab('market'); });
+  btn.addEventListener('click', () => { HERO_VIEW = 'dragon_cards'; setTab('hero'); });
   panel.appendChild(btn);
 
   c.appendChild(panel);
