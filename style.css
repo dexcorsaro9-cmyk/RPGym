@@ -10165,7 +10165,8 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
 .eco-relic-img { width: 44px; height: 44px; object-fit: contain; flex-shrink: 0; }
 .eco-relic-info { display: flex; flex-direction: column; gap: 2px; }
 .eco-relic-name { font-weight: 700; font-size: .82rem; color: var(--text); }
-.eco-relic-desc { line-height: 1.35; }
+.eco-relic-lore { font-style: italic; line-height: 1.35; color: var(--muted); }
+.eco-relic-effect { line-height: 1.35; }
 .eco-relic-status { }
 
 .dc-filter-bar {

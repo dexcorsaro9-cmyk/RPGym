@@ -463,7 +463,8 @@ function renderAntroEcoView(c) {
           <img class="eco-relic-img" src="assets/legends/${leg.relicId}.webp" alt="${esc(relic ? relic.name : 'Reliquia')}" onerror="this.style.display='none'">
           <div class="eco-relic-info">
             <span class="eco-relic-name">${relic ? esc(relic.name) : 'Reliquia'}</span>
-            <span class="eco-relic-desc small muted">${relic ? esc(relic.desc) : ''}</span>
+            ${relic && relic.lore ? `<span class="eco-relic-lore small">${esc(relic.lore)}</span>` : ''}
+            <span class="eco-relic-effect small muted">⚡ ${relic ? esc(relic.desc) : ''}</span>
             <span class="eco-relic-status small ${hasRelic ? '' : 'muted'}">${completed ? (hasRelic ? '✓ Nel tuo zaino' : '⚠️ Non trovata') : '✗ Prova fallita — reliquia persa'}</span>
           </div>
         `;
