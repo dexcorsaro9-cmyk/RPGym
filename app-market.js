@@ -480,7 +480,7 @@ function _buildDragonCard(card, owned) {
 
   const imgPath = `images/dragons/${card.id.replace('dc_','')}.webp`;
   const artContent = owned
-    ? `<img class="dc-art-img" src="${imgPath}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="${esc(card.name)}"><div class="dc-art-emoji" style="display:none">${card.icon}</div>`
+    ? `<img class="dc-art-img" src="${imgPath}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="${esc(card.name)}"><div class="dc-art-emoji" style="display:none">${card.icon}</div>`
     : `<div class="dc-art-emoji">❓</div>`;
 
   const kwHtml = (owned && card.kws && card.kws.length)
@@ -666,7 +666,7 @@ function renderDcBuilderView(c) {
           <span class="dc-mini-name">${esc(card.name)}</span>
         </div>
         <div class="dc-mini-art">
-          <img class="dc-mini-img" src="${imgPath}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="">
+          <img class="dc-mini-img" src="${imgPath}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="">
           <div class="dc-mini-emoji" style="display:none">${card.icon}</div>
         </div>
         <div class="dc-mini-stats">
