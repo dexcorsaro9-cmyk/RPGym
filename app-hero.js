@@ -1307,7 +1307,7 @@ function _renderDragonAlbum(c) {
   panel.appendChild(epicDesc);
 
   // Bottone
-  const btn = el('button', 'btn btn-primary wide', '🐲 La Collezione dei Draghi');
+  const btn = el('button', 'btn btn-primary wide', '<img src="assets/icons/icona box dominio dei draghi.webp" class="dc-btn-icon" alt=""> La Collezione dei Draghi');
   btn.addEventListener('click', () => { HERO_VIEW = 'dragon_cards'; setTab('hero'); });
   panel.appendChild(btn);
 
