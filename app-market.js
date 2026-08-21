@@ -400,6 +400,12 @@ function renderAntroView(c) {
         </div>
         <div class="ahc-lv">Lv 61</div>
       `;
+      const proveBtn = el('button', 'btn btn-primary dc-duel-btn', '⚔️ Le 10 Prove del Campione');
+      proveBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        HERO_VIEW = 'campione'; setTab('hero');
+      });
+      card.appendChild(proveBtn);
     } else {
       card.innerHTML = `
         <div class="ahc-icon">${done ? s.icon : '🔒'}</div>
