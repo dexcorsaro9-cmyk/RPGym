@@ -10990,3 +10990,207 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
 }
 .dc-album-panel-body { padding: 14px; border-top: 1px solid rgba(241,196,15,.12); }
 .dc-album-panel-body.collapsed { display: none; }
+
+/* ── Rarity: Eterno ── */
+.rarity-eterno {
+  background: linear-gradient(135deg, #f1c40f 0%, #9b59b6 50%, #00e5ff 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 900; letter-spacing: .03em;
+}
+
+/* ── Prove del Campione — Antro cards ── */
+.antro-hub-prove-locked {
+  border: 1px solid rgba(241,196,15,.25);
+  background: rgba(241,196,15,.04);
+}
+.antro-hub-prove-open {
+  border: 1px solid rgba(241,196,15,.4);
+  background: linear-gradient(135deg, rgba(241,196,15,.07) 0%, rgba(155,89,182,.07) 60%, rgba(0,229,255,.05) 100%);
+}
+.ahc-name-prove {
+  background: linear-gradient(90deg, #f1c40f, #9b59b6, #00e5ff);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 800;
+}
+.ahc-prove-caption {
+  font-size: .72rem; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .06em; margin: 2px 0 5px;
+}
+.ahc-prove-desc {
+  font-size: .78rem; color: var(--text); line-height: 1.45; margin-bottom: 7px;
+}
+.ahc-prove-trophies { display: flex; gap: 6px; flex-wrap: wrap; }
+.ahc-prove-badge {
+  display: inline-block; font-size: .7rem; font-weight: 700;
+  background: rgba(241,196,15,.15); border: 1px solid rgba(241,196,15,.35);
+  border-radius: 20px; padding: 2px 10px; color: #f1c40f;
+}
+.ahc-prove-badge-locked {
+  display: inline-block; font-size: .7rem; font-weight: 600;
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+  border-radius: 20px; padding: 2px 10px; color: var(--muted);
+}
+.ahc-prove-badge-done {
+  background: linear-gradient(90deg, rgba(241,196,15,.25), rgba(155,89,182,.2));
+  border-color: rgba(155,89,182,.5); color: #f1c40f;
+}
+
+/* ── Prove del Campione — submenu badge ── */
+.champ-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: linear-gradient(90deg, #f1c40f, #9b59b6);
+  color: #fff; font-size: .62rem; font-weight: 800;
+  border-radius: 20px; padding: 1px 7px; margin-left: 5px;
+  vertical-align: middle;
+}
+.submenu-btn-campione {
+  background: linear-gradient(135deg, rgba(241,196,15,.1) 0%, rgba(155,89,182,.08) 100%);
+  border: 1px solid rgba(241,196,15,.25);
+}
+
+/* ── Prove del Campione — trophy board ── */
+.champ-hdr { padding: 18px 16px 14px; text-align: center; }
+.champ-hdr-title {
+  font-size: 1.25rem; font-weight: 900; letter-spacing: .02em;
+  background: linear-gradient(135deg, #f1c40f 0%, #9b59b6 50%, #00e5ff 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.champ-hdr-sub { font-size: .78rem; color: var(--muted); margin-top: 4px; }
+
+.champ-progress-wrap { padding: 0 16px 16px; }
+.champ-progress-bar {
+  width: 100%; height: 10px; background: rgba(255,255,255,.1);
+  border-radius: 6px; overflow: hidden; margin-bottom: 5px;
+}
+.champ-progress-fill {
+  height: 100%; border-radius: 6px;
+  background: linear-gradient(90deg, #f1c40f, #9b59b6, #00e5ff);
+  transition: width .5s ease;
+}
+.champ-progress-label { font-size: .7rem; color: var(--muted); text-align: right; }
+
+.champ-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 10px; padding: 0 12px 16px;
+}
+
+.champ-card {
+  border-radius: 14px; padding: 12px; position: relative;
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.04);
+  display: flex; flex-direction: column; gap: 7px;
+  transition: transform .15s;
+}
+.champ-card:active { transform: scale(.97); }
+.champ-card-done {
+  border-color: rgba(241,196,15,.4);
+  background: linear-gradient(135deg, rgba(241,196,15,.08), rgba(155,89,182,.06));
+}
+.champ-card-active {
+  border-color: rgba(52,152,219,.4);
+  background: rgba(52,152,219,.06);
+}
+.champ-card-fail {
+  border-color: rgba(231,76,60,.25);
+  background: rgba(231,76,60,.04);
+  opacity: .75;
+}
+.champ-card-locked {
+  border-color: rgba(255,255,255,.07);
+  opacity: .55;
+}
+
+.champ-card-img-wrap { position: relative; width: 72px; height: 72px; margin: 0 auto; flex-shrink: 0; }
+.champ-trophy-img { width: 72px; height: 72px; object-fit: contain; display: block; }
+.champ-trophy-check {
+  position: absolute; bottom: -4px; right: -4px;
+  background: #27ae60; border-radius: 50%;
+  font-size: .75rem; width: 20px; height: 20px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 8px rgba(39,174,96,.6);
+}
+.champ-trophy-dim { opacity: .35; filter: grayscale(.7); }
+.champ-trophy-fail-img { opacity: .3; filter: grayscale(1); }
+.champ-trophy-fail-x {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  font-size: 1.8rem; filter: drop-shadow(0 0 4px rgba(231,76,60,.8));
+}
+.champ-trophy-lock {
+  width: 72px; height: 72px; margin: 0 auto;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+}
+.champ-lock-icon { font-size: 1.6rem; opacity: .4; }
+.champ-lock-lv { font-size: .65rem; font-weight: 700; color: var(--muted); }
+
+.champ-card-info { display: flex; flex-direction: column; gap: 3px; }
+.champ-card-name { font-size: .78rem; font-weight: 700; line-height: 1.3; }
+.champ-card-trophy { font-size: .68rem; color: var(--muted); font-style: italic; }
+
+.champ-card-progress { display: flex; flex-direction: column; gap: 3px; }
+.champ-days-left { font-size: .68rem; font-weight: 700; color: #3498db; }
+.champ-urgent { color: #e67e22; }
+.champ-km-done { font-size: .65rem; color: #27ae60; font-weight: 600; }
+
+.champ-card-bonus { font-size: .65rem; color: var(--muted); border-top: 1px solid rgba(255,255,255,.08); padding-top: 5px; line-height: 1.35; }
+.champ-card-date { font-size: .62rem; color: var(--muted); }
+.champ-card-fail-label { font-size: .65rem; color: rgba(231,76,60,.8); font-weight: 700; }
+.champ-card-locked-label { font-size: .65rem; color: var(--muted); }
+
+/* ── Gladius Aeternus showcase ── */
+.champ-gladius-box {
+  margin: 0 12px 20px;
+  border-radius: 16px; padding: 20px;
+  background: linear-gradient(135deg, rgba(241,196,15,.12) 0%, rgba(155,89,182,.1) 50%, rgba(0,229,255,.08) 100%);
+  border: 1px solid rgba(241,196,15,.4);
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  position: relative; overflow: hidden;
+}
+.champ-gladius-box::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(241,196,15,.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+.champ-gladius-title {
+  font-size: 1.1rem; font-weight: 900; letter-spacing: .03em;
+  background: linear-gradient(135deg, #f1c40f 0%, #9b59b6 50%, #00e5ff 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.champ-gladius-sub { font-size: .75rem; color: var(--muted); text-align: center; margin-top: -6px; }
+.champ-gladius-img { width: 100px; height: 100px; object-fit: contain; filter: drop-shadow(0 0 16px rgba(241,196,15,.6)); animation: gladius-glow 3s ease-in-out infinite; }
+@keyframes gladius-glow {
+  0%, 100% { filter: drop-shadow(0 0 12px rgba(241,196,15,.5)) drop-shadow(0 0 24px rgba(155,89,182,.3)); }
+  50%       { filter: drop-shadow(0 0 20px rgba(155,89,182,.7)) drop-shadow(0 0 36px rgba(0,229,255,.4)); }
+}
+.champ-gladius-stats {
+  display: flex; flex-direction: column; gap: 5px; width: 100%;
+}
+.champ-gladius-stats span {
+  font-size: .72rem; color: var(--text);
+  display: flex; align-items: center; gap: 6px;
+}
+.champ-gladius-stats span::before { content: '✦'; color: #f1c40f; flex-shrink: 0; }
+.champ-gladius-remaining {
+  font-size: .75rem; color: var(--muted); text-align: center;
+  background: rgba(255,255,255,.06); border-radius: 20px; padding: 4px 14px;
+}
+.champ-gladius-inventory {
+  font-size: .8rem; font-weight: 700; color: #27ae60; text-align: center;
+}
+.champ-gladius-teaser {
+  margin: 0 12px 20px;
+  border-radius: 14px; padding: 18px;
+  background: rgba(255,255,255,.04); border: 1px dashed rgba(255,255,255,.12);
+  display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;
+}
+.champ-gladius-lock-icon { font-size: 2rem; opacity: .35; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .champ-card { background: rgba(0,0,0,.15); }
+  :root:not([data-theme="light"]) .champ-card-done { background: linear-gradient(135deg, rgba(241,196,15,.1), rgba(155,89,182,.07)); }
+}
+:root[data-theme="dark"] .champ-card { background: rgba(0,0,0,.15); }
+:root[data-theme="dark"] .champ-card-done { background: linear-gradient(135deg, rgba(241,196,15,.1), rgba(155,89,182,.07)); }

@@ -9,12 +9,13 @@ let DC_BATTLE_STATE = null; // stato live della battaglia
 let DC_SELECTED_ATTACKER = null; // iid della creatura attaccante selezionata
 
 const ANTRO_SECTIONS = [
-  { lv: 50,  key: 'antro_contratti', icon: '🐲', name: 'Carte dei Draghi',        desc: 'Colleziona e gioca con le 100 carte dei draghi leggendari.',  quote: '«Le carte non mentono. Ogni drago rivela il tuo destino.»' },
-  { lv: 60,  key: 'antro_bestia',    icon: '🐉', name: 'Bestia Ancestrale',       desc: 'Un boss mensile che può essere abbattuto solo dai degni.',   quote: '«L\'Antica Belva non conosce pietà. Mostrami cosa sei fatto.»' },
-  { lv: 70,  key: 'antro_trofei',    icon: '🏆', name: 'Sala dei Trofei',         desc: 'I tuoi record e imprese incisi nella pietra eterna.',        quote: '«La pietra dimentica i nomi vili. Il tuo sarà l\'eccezione.»' },
-  { lv: 80,  key: 'antro_forgia',    icon: '🔥', name: 'Forgia del Campione',     desc: 'Forgia equipaggiamento leggendario irripetibile.',           quote: '«Il ferro comune brucia. Solo l\'acciaio del sacrificio sopravvive.»' },
-  { lv: 90,  key: 'antro_dungeon',   icon: '🌀', name: 'Dungeon Infinito',        desc: 'Abissi senza fondo che mettono alla prova l\'eterno.',       quote: '«Ogni gradino più in basso rivela una verità che pochissimi reggono.»' },
-  { lv: 100, key: 'antro_leggenda',  icon: '👑', name: 'Sala della Leggenda',     desc: 'Il tuo nome inciso tra i Grandi del Reame per sempre.',      quote: '«Cento livelli. Centinaia di chilometri. Un solo nome: il tuo.»' },
+  { lv: 50,  key: 'antro_contratti', icon: '🐲', name: 'Carte dei Draghi',              desc: 'Colleziona e gioca con le 100 carte dei draghi leggendari.',  quote: '«Le carte non mentono. Ogni drago rivela il tuo destino.»' },
+  { lv: 60,  key: 'antro_bestia',    icon: '🐉', name: 'Bestia Ancestrale',             desc: 'Un boss mensile che può essere abbattuto solo dai degni.',   quote: '«L\'Antica Belva non conosce pietà. Mostrami cosa sei fatto.»' },
+  { lv: 61,  key: 'antro_prove',     icon: '⚔️', name: 'Le 10 Prove del Campione',      desc: 'Dieci sfide irripetibili (Lv 61–70). Completa tutte e 10 per ottenere trofei unici e forgiare il Gladius Aeternus, l\'arma dei Campioni.', quote: '«Non basta sopravvivere. Devi dimostrare di meritarlo.»' },
+  { lv: 70,  key: 'antro_trofei',    icon: '🏆', name: 'Sala dei Trofei',               desc: 'I tuoi record e imprese incisi nella pietra eterna.',        quote: '«La pietra dimentica i nomi vili. Il tuo sarà l\'eccezione.»' },
+  { lv: 80,  key: 'antro_forgia',    icon: '🔥', name: 'Forgia del Campione',           desc: 'Forgia equipaggiamento leggendario irripetibile.',           quote: '«Il ferro comune brucia. Solo l\'acciaio del sacrificio sopravvive.»' },
+  { lv: 90,  key: 'antro_dungeon',   icon: '🌀', name: 'Dungeon Infinito',              desc: 'Abissi senza fondo che mettono alla prova l\'eterno.',       quote: '«Ogni gradino più in basso rivela una verità che pochissimi reggono.»' },
+  { lv: 100, key: 'antro_leggenda',  icon: '👑', name: 'Sala della Leggenda',           desc: 'Il tuo nome inciso tra i Grandi del Reame per sempre.',      quote: '«Cento livelli. Centinaia di chilometri. Un solo nome: il tuo.»' },
 ];
 
 function renderMarket(c) {
@@ -339,6 +340,7 @@ function renderAntroView(c) {
   // Se siamo in una sotto-sezione, deleghiamo
   if (activeKey === 'antro_contratti' && heroLv >= 50) { renderAntroContrattiView(c); return; }
   if (activeKey === 'antro_bestia'    && heroLv >= 60) { renderAntroBestiaView(c);    return; }
+  if (activeKey === 'antro_prove'     && heroLv >= 61) { HERO_VIEW = 'campione'; setTab('hero'); return; }
   if (activeKey === 'antro_trofei'    && heroLv >= 70) { renderAntroTrofeiView(c);    return; }
   if (activeKey === 'antro_forgia'    && heroLv >= 80) { renderAntroForgiaView(c);    return; }
   if (activeKey === 'antro_dungeon'   && heroLv >= 90) { renderAntroDungeonView(c);   return; }
@@ -349,7 +351,7 @@ function renderAntroView(c) {
   hubHeader.innerHTML = `
     <div class="antro-view-ornament">— ✦ —</div>
     <h2 class="antro-view-title">Antro del Campione</h2>
-    <p class="antro-view-sub">Lv ${heroLv} &nbsp;·&nbsp; ${ANTRO_SECTIONS.filter(s => heroLv >= s.lv).length} / 6 sezioni sbloccate</p>
+    <p class="antro-view-sub">Lv ${heroLv} &nbsp;·&nbsp; ${ANTRO_SECTIONS.filter(s => heroLv >= s.lv).length} / 7 sezioni sbloccate</p>
   `;
   c.appendChild(hubHeader);
 
@@ -374,15 +376,42 @@ function renderAntroView(c) {
 
   ANTRO_SECTIONS.forEach(s => {
     const done = heroLv >= s.lv;
-    const card = el('div', `panel antro-hub-card${done ? ' antro-hub-open' : ' antro-hub-sealed'}`);
-    card.innerHTML = `
-      <div class="ahc-icon">${done ? s.icon : '🔒'}</div>
-      <div class="ahc-body">
-        <div class="ahc-name">${s.name}</div>
-        <div class="ahc-desc">${done ? s.desc : `Si sblocca al livello ${s.lv}`}</div>
-      </div>
-      <div class="ahc-lv">Lv ${s.lv}</div>
-    `;
+    const isProve = s.key === 'antro_prove';
+    const card = el('div', `panel antro-hub-card${done ? ' antro-hub-open' : ' antro-hub-sealed'}${isProve && !done ? ' antro-hub-prove-locked' : ''}${isProve && done ? ' antro-hub-prove-open' : ''}`);
+    if (isProve && !done) {
+      const trophiesEarned = (HERO.champion && HERO.champion.trophies && HERO.champion.trophies.length) || 0;
+      card.innerHTML = `
+        <div class="ahc-icon">🔒</div>
+        <div class="ahc-body">
+          <div class="ahc-name ahc-name-prove">Le 10 Prove del Campione</div>
+          <div class="ahc-prove-caption">Si sblocca al livello 61</div>
+          <div class="ahc-prove-desc">Dieci sfide irripetibili con una finestra di 14 giorni ciascuna. Supera tutte e 10 per ottenere trofei unici e forgiare il <b>Gladius Aeternus</b> — l'arma dei Campioni, oltre il leggendario.</div>
+          <div class="ahc-prove-trophies">${trophiesEarned > 0 ? `<span class="ahc-prove-badge">🏆 ${trophiesEarned}/10 trofei</span>` : '<span class="ahc-prove-badge-locked">🏅 Trofei unici · Gladius Aeternus</span>'}</div>
+        </div>
+        <div class="ahc-lv">Lv 61</div>
+      `;
+    } else if (isProve && done) {
+      const trophiesEarned = (HERO.champion && HERO.champion.trophies && HERO.champion.trophies.length) || 0;
+      card.innerHTML = `
+        <div class="ahc-icon">⚔️</div>
+        <div class="ahc-body">
+          <div class="ahc-name ahc-name-prove">Le 10 Prove del Campione</div>
+          <div class="ahc-prove-caption">${trophiesEarned === 10 ? '✦ Completato — Campione del Reame' : `${trophiesEarned}/10 prove superate`}</div>
+          <div class="ahc-prove-desc">${s.desc}</div>
+          <div class="ahc-prove-trophies"><span class="ahc-prove-badge${trophiesEarned === 10 ? ' ahc-prove-badge-done' : ''}">🏆 ${trophiesEarned}/10 trofei</span></div>
+        </div>
+        <div class="ahc-lv">Lv 61</div>
+      `;
+    } else {
+      card.innerHTML = `
+        <div class="ahc-icon">${done ? s.icon : '🔒'}</div>
+        <div class="ahc-body">
+          <div class="ahc-name">${s.name}</div>
+          <div class="ahc-desc">${done ? s.desc : `Si sblocca al livello ${s.lv}`}</div>
+        </div>
+        <div class="ahc-lv">Lv ${s.lv}</div>
+      `;
+    }
     if (done) {
       card.addEventListener('click', () => { MARKET_VIEW = s.key; setTab('market'); });
     }
