@@ -705,6 +705,7 @@ function renderDcBossSelectView(c) {
           </div>
           <div class="dc-boss-info">
             <div class="dc-boss-name">${esc(boss.name)}</div>
+            ${boss.nickname ? `<div class="dc-boss-nickname">${esc(boss.nickname)}</div>` : ''}
             <div class="dc-boss-stars">${stars}</div>
             <div class="dc-boss-rewards">
               <span>❤️ ${boss.hp}</span>
@@ -714,12 +715,36 @@ function renderDcBossSelectView(c) {
             </div>
           </div>`;
         card.addEventListener('click', () => {
-          DC_BATTLE_STATE = dcInitBattle(DC_DECK, boss.id);
-          if (!DC_BATTLE_STATE) { toast('Errore: boss non trovato.'); return; }
-          dcRecordBattle(HERO);
-          persist();
-          DC_VIEW = 'battle';
-          setTab('market');
+          const tierLbl = DC_TIER_LABELS[boss.tier] || boss.tier;
+          const starsInTierM = boss.difficulty - DC_TIERS.indexOf(boss.tier) * 5;
+          const starsM = '★'.repeat(starsInTierM) + '☆'.repeat(5 - starsInTierM);
+          modal(`
+            <div style="text-align:center;margin-bottom:12px">
+              <img src="assets/dc-bosses/${boss.id}.webp" alt="${esc(boss.name)}"
+                style="width:120px;height:120px;object-fit:cover;border-radius:12px;box-shadow:0 4px 16px #0004"
+                onerror="this.style.display='none'">
+            </div>
+            <div style="text-align:center;margin-bottom:4px">
+              <b style="font-size:1.1em">${esc(boss.name)}</b><br>
+              ${boss.nickname ? `<span class="muted small">${esc(boss.nickname)}</span><br>` : ''}
+              <span class="muted small">${tierLbl} · ${starsM}</span>
+            </div>
+            <p class="muted small" style="text-align:center;font-style:italic;margin:10px 0">${esc(boss.quote)}</p>
+            ${boss.bio ? `<p class="small" style="margin:0 0 14px;line-height:1.55">${esc(boss.bio)}</p>` : ''}
+            <div style="display:flex;gap:8px;justify-content:center">
+              <button class="btn" onclick="closeModal()">Annulla</button>
+              <button class="btn btn-primary" id="_dcStartBattle">⚔️ Sfida</button>
+            </div>
+          `);
+          document.getElementById('_dcStartBattle').addEventListener('click', () => {
+            closeModal();
+            DC_BATTLE_STATE = dcInitBattle(DC_DECK, boss.id);
+            if (!DC_BATTLE_STATE) { toast('Errore: boss non trovato.'); return; }
+            dcRecordBattle(HERO);
+            persist();
+            DC_VIEW = 'battle';
+            setTab('market');
+          });
         });
         grid.appendChild(card);
       });
@@ -830,9 +855,15 @@ function renderDcBattleView(c) {
 
   bossArea.innerHTML = `
     <div class="dc-battle-combatant-header">
-      <span class="dc-bc-face-icon"><img src="assets/dc-bosses/${st.boss.id}.webp" alt="${esc(st.boss.icon)}" onerror="this.outerHTML='${st.boss.icon}'" style="width:36px;height:36px;border-radius:4px;object-fit:cover;vertical-align:middle"></span>
+      <span class="dc-bc-face-icon">
+        <img src="assets/dc-bosses/${st.boss.id}.webp" alt="${esc(st.boss.icon)}"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+          style="width:52px;height:52px;border-radius:50%;object-fit:cover;object-position:top;border:2px solid var(--divider);display:block">
+        <span class="dc-bc-face-fallback">${st.boss.icon}</span>
+      </span>
       <div class="dc-bc-face-info">
         <b>${esc(st.boss.name)}</b>
+        ${st.boss.nickname ? `<span class="dc-boss-nickname-battle muted">${esc(st.boss.nickname)}</span>` : ''}
         <div class="dc-battle-hp-bar-wrap">
           <div class="dc-battle-hp-bar" style="width:${bossHpPct}%;background:${bossHpColor}"></div>
         </div>

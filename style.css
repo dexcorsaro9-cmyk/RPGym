@@ -10421,7 +10421,9 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
 }
 
 .dc-boss-info { text-align: center; width: 100%; }
-.dc-boss-name { font-size: .72rem; font-weight: 700; line-height: 1.2; margin-bottom: 2px; }
+.dc-boss-name { font-size: .72rem; font-weight: 700; line-height: 1.2; margin-bottom: 1px; }
+.dc-boss-nickname { font-size: .6rem; color: var(--muted); font-style: italic; margin-bottom: 2px; }
+.dc-boss-nickname-battle { display: block; font-size: .72rem; font-style: italic; margin-top: 1px; }
 .dc-boss-stars { color: #f59e0b; font-size: .65rem; margin-bottom: 3px; }
 .dc-boss-rewards { display: flex; justify-content: center; flex-wrap: wrap; gap: 3px; font-size: .65rem; color: var(--muted); }
 .dc-champ-tag { color: #f1c40f; font-weight: 700; }
@@ -10464,7 +10466,23 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
   flex-wrap: wrap; gap: .4rem;
   backdrop-filter: blur(6px);
 }
-.dc-bc-face-icon { font-size: 2.4rem; flex-shrink: 0; filter: drop-shadow(0 0 6px rgba(255,255,255,.18)); }
+.dc-bc-face-icon {
+  flex-shrink: 0;
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 0 8px rgba(255,255,255,.22), 0 0 0 2px rgba(255,255,255,.12);
+  filter: drop-shadow(0 0 6px rgba(255,255,255,.18));
+  position: relative;
+}
+.dc-bc-face-icon img { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; object-position: top center; display: block; }
+.dc-bc-face-fallback {
+  display: none;
+  position: absolute; inset: 0;
+  align-items: center; justify-content: center;
+  font-size: 2rem;
+  background: rgba(30,0,50,.7);
+}
 .dc-bc-face-info { flex: 1; min-width: 0; }
 .dc-bc-face-info b { font-size: .88rem; color: #f1e6ff; }
 .dc-bc-face-info .small { font-size: .68rem; color: rgba(255,255,255,.65); }
