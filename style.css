@@ -10991,6 +10991,26 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
 .dc-album-panel-body { padding: 14px; border-top: 1px solid rgba(241,196,15,.12); }
 .dc-album-panel-body.collapsed { display: none; }
 
+/* ── DC Entry Panel (stile Avamposto) ── */
+.dc-entry-panel { overflow: hidden; }
+.dc-entry-inner-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin: 4px 0 8px;
+  padding: 8px 12px; border-radius: 8px;
+  background: rgba(241,196,15,.07); border: 1px solid rgba(241,196,15,.2);
+}
+.dc-entry-inner-label { font-size: .75rem; font-weight: 600; color: var(--muted); font-style: italic; }
+.dc-entry-inner-progress { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+.dc-entry-inner-bar-wrap {
+  width: 60px; height: 5px; background: rgba(255,255,255,.12); border-radius: 3px; overflow: hidden;
+}
+.dc-entry-inner-bar-fill {
+  height: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, #f1c40f, #e040fb);
+  transition: width .4s;
+}
+.dc-entry-inner-count { font-size: .7rem; font-weight: 700; color: #f1c40f; white-space: nowrap; }
+
 /* ── Rarity: Eterno ── */
 .rarity-eterno {
   background: linear-gradient(135deg, #f1c40f 0%, #9b59b6 50%, #00e5ff 100%);

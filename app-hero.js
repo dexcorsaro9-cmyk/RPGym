@@ -1266,53 +1266,43 @@ function _renderDragonAlbum(c) {
   const ownedIds = new Set((HERO.dragonCards || []).map(dc => dc.id));
   const total = RPG.DRAGON_CARDS.length;
   const owned = ownedIds.size;
-
-  // Collapsible panel wrapper
-  const panel = el('div', 'dc-album-panel');
-  const panelHdr = el('button', 'dc-album-panel-hdr');
   const pct = Math.round(owned / total * 100);
-  panelHdr.innerHTML = `
-    <span class="dc-album-panel-left">
-      <span class="dc-album-panel-icon">
-        <img src="assets/icons/icona dominio dei draghi.webp" alt="🐉"
-          onerror="this.outerHTML='🐉'"
-          style="width:52px;height:52px;object-fit:contain;display:block;filter:drop-shadow(0 0 8px rgba(241,196,15,.5))">
-      </span>
-      <span class="dc-album-panel-text">
-        <span class="dc-album-panel-title">Dominio dei Draghi</span>
-        <span class="dc-album-panel-sub">Album delle Creature Leggendarie</span>
-        <span class="dc-album-panel-meta">${owned} / ${total} scoperti</span>
-      </span>
-    </span>
-    <span class="dc-album-panel-right">
-      <span class="dc-album-panel-toggle">▼</span>
-      <span class="dc-album-panel-pct">${pct}%</span>
-      <span class="dc-album-hdr-bar-wrap"><span class="dc-album-hdr-bar-fill" style="width:${pct}%"></span></span>
+
+  // Panel stile Avamposto
+  const panel = el('div', 'panel dc-entry-panel');
+
+  // Immagine header
+  const thumb = document.createElement('img');
+  thumb.src = 'assets/ui/dominio-dei-draghi.webp';
+  thumb.alt = '';
+  thumb.className = 'camp-panel-thumb';
+  thumb.onerror = () => { thumb.remove(); };
+  panel.appendChild(thumb);
+
+  // Header esterno
+  panel.appendChild(el('h3', 'panel-title', ptIcon('assets/icons/icona dominio dei draghi.webp', 'Dominio dei Draghi', '🐉')));
+
+  // Header interno (stats strip)
+  const innerHdr = el('div', 'dc-entry-inner-hdr');
+  innerHdr.innerHTML = `
+    <span class="dc-entry-inner-label">Album delle Creature Leggendarie</span>
+    <span class="dc-entry-inner-progress">
+      <span class="dc-entry-inner-bar-wrap"><span class="dc-entry-inner-bar-fill" style="width:${pct}%"></span></span>
+      <span class="dc-entry-inner-count">${owned} / ${total}</span>
     </span>`;
-  panel.appendChild(panelHdr);
+  panel.appendChild(innerHdr);
 
-  const body = el('div', 'dc-album-panel-body collapsed');
+  // Descrizione
+  panel.appendChild(el('p', 'muted small', `${pct}% della collezione scoperta. Ogni creatura leggendaria porta con sé un potere unico.`));
 
-  // Filter bar
-  const cats = [...new Set(RPG.DRAGON_CARDS.map(dc => dc.cat))];
-  const filterWrap = el('div', 'dc-album-filters');
-  let activeCat = 'tutti';
-  filterWrap.innerHTML = `<button class="dc-filter-btn active" data-cat="tutti">Tutti</button>` +
-    cats.map(cat => `<button class="dc-filter-btn" data-cat="${cat}">${cat.replace('_',' ')}</button>`).join('');
-  body.appendChild(filterWrap);
+  // Bottone
+  const btn = el('button', 'btn btn-primary wide', '🐲 La Collezione dei Draghi');
+  btn.addEventListener('click', () => { MARKET_VIEW = 'antro_contratti'; setTab('market'); });
+  panel.appendChild(btn);
 
-  const albumGrid = el('div', 'dc-album-grid');
-  body.appendChild(albumGrid);
-  panel.appendChild(body);
   c.appendChild(panel);
 
-  panelHdr.addEventListener('click', () => {
-    const isOpen = !body.classList.contains('collapsed');
-    body.classList.toggle('collapsed', isOpen);
-    panelHdr.querySelector('.dc-album-panel-toggle').textContent = isOpen ? '▼' : '▲';
-    if (!isOpen && !albumGrid.children.length) buildCards('tutti');
-  });
-
+  // Manteniamo buildCards per eventuali usi futuri (non più inline)
   function buildCards(filterCat) {
     albumGrid.innerHTML = '';
     const filtered = filterCat === 'tutti' ? RPG.DRAGON_CARDS : RPG.DRAGON_CARDS.filter(dc => dc.cat === filterCat);
