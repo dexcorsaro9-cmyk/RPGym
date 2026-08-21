@@ -10352,21 +10352,79 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
 }
 
 /* ══════════════════════════════════════════════════════════════
-   DUELLO CARTE — Selezione Boss
+   DUELLO CARTE — Selezione Boss (tier system)
    ══════════════════════════════════════════════════════════════ */
-.dc-boss-card {
-  display: flex; align-items: center; gap: .75rem; padding: .85rem 1rem;
-  cursor: pointer; transition: background .15s, transform .1s;
-  margin-bottom: .6rem;
+.dc-select-header { text-align: center; margin-bottom: .75rem; }
+.dc-select-meta { display: flex; justify-content: center; gap: 1.5rem; font-size: .88rem; color: var(--muted); margin-top: .25rem; }
+.dc-battles-empty { color: #e74c3c !important; }
+
+/* Tier panels */
+.dc-tier-panel { margin-bottom: 1rem; border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,.08); }
+.dc-tier-panel.dc-tier-comune     { border-color: rgba(58,173,32,.25); }
+.dc-tier-panel.dc-tier-non_comune { border-color: rgba(192,168,112,.25); }
+.dc-tier-panel.dc-tier-raro       { border-color: rgba(80,160,232,.25); }
+.dc-tier-panel.dc-tier-epico      { border-color: rgba(208,48,24,.25); }
+.dc-tier-panel.dc-tier-leggendario{ border-color: rgba(192,112,255,.25); }
+
+.dc-tier-header {
+  display: flex; align-items: center; gap: .6rem; padding: .6rem .9rem;
+  font-weight: 700; font-size: .9rem;
 }
-.dc-boss-card:hover { background: rgba(212,175,55,.08); transform: translateX(3px); }
-.dc-boss-icon { font-size: 2.4rem; flex-shrink: 0; width: 48px; text-align: center; }
-.dc-boss-body { flex: 1; min-width: 0; }
-.dc-boss-name { font-weight: 700; font-size: 1rem; }
-.dc-boss-stars { color: #f59e0b; font-size: .9rem; margin: 2px 0; }
-.dc-boss-quote { font-style: italic; font-size: .78rem; margin: 3px 0 5px; }
-.dc-boss-meta { display: flex; gap: .75rem; flex-wrap: wrap; font-size: .78rem; color: var(--muted); }
-.dc-boss-arrow { font-size: 1.4rem; color: var(--muted); flex-shrink: 0; }
+.dc-tier-panel.dc-tier-comune      .dc-tier-header { background: rgba(58,173,32,.12); }
+.dc-tier-panel.dc-tier-non_comune  .dc-tier-header { background: rgba(192,168,112,.12); }
+.dc-tier-panel.dc-tier-raro        .dc-tier-header { background: rgba(80,160,232,.12); }
+.dc-tier-panel.dc-tier-epico       .dc-tier-header { background: rgba(208,48,24,.12); }
+.dc-tier-panel.dc-tier-leggendario .dc-tier-header { background: rgba(192,112,255,.12); }
+
+.dc-tier-icon { font-size: 1.2rem; }
+.dc-tier-name { flex: 1; }
+.dc-tier-progress { font-size: .75rem; color: var(--muted); font-weight: 400; }
+.dc-tier-locked .dc-tier-progress { color: #e74c3c; }
+
+.dc-tier-locked .dc-tier-header { opacity: .55; }
+
+/* Boss grid within a tier */
+.dc-boss-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: .5rem; padding: .6rem;
+}
+
+.dc-boss-card {
+  display: flex; flex-direction: column; align-items: center;
+  border-radius: 8px; padding: .5rem; cursor: pointer;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.07);
+  transition: background .15s, transform .1s, border-color .15s;
+  position: relative; overflow: hidden;
+}
+.dc-boss-card:hover { background: rgba(212,175,55,.1); transform: translateY(-2px); border-color: rgba(212,175,55,.3); }
+.dc-boss-card.dc-boss-defeated { border-color: rgba(39,174,96,.4); background: rgba(39,174,96,.06); }
+.dc-boss-card.dc-boss-champion { border-color: rgba(241,196,15,.5); }
+
+.dc-boss-avatar {
+  position: relative; width: 80px; height: 90px;
+  border-radius: 6px; overflow: hidden;
+  background: rgba(0,0,0,.3); display: flex; align-items: center; justify-content: center;
+  margin-bottom: .4rem;
+}
+.dc-boss-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.dc-boss-icon-fb { font-size: 2.6rem; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+.dc-boss-defeated-badge {
+  position: absolute; top: 3px; right: 3px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: #27ae60; color: #fff; font-size: .7rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.dc-boss-champion-badge {
+  position: absolute; bottom: 3px; right: 3px;
+  font-size: 1rem;
+}
+
+.dc-boss-info { text-align: center; width: 100%; }
+.dc-boss-name { font-size: .72rem; font-weight: 700; line-height: 1.2; margin-bottom: 2px; }
+.dc-boss-stars { color: #f59e0b; font-size: .65rem; margin-bottom: 3px; }
+.dc-boss-rewards { display: flex; justify-content: center; flex-wrap: wrap; gap: 3px; font-size: .65rem; color: var(--muted); }
+.dc-champ-tag { color: #f1c40f; font-weight: 700; }
 
 /* ══════════════════════════════════════════════════════════════
    DUELLO CARTE — Arena di Battaglia (TCG Board-Based v2)
