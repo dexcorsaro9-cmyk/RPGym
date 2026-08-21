@@ -855,7 +855,12 @@ function renderDcBattleView(c) {
 
   bossArea.innerHTML = `
     <div class="dc-battle-combatant-header">
-      <span class="dc-bc-face-icon"><img src="assets/dc-bosses/${st.boss.id}.webp" alt="${esc(st.boss.icon)}" onerror="this.outerHTML='${st.boss.icon}'" style="width:36px;height:36px;border-radius:4px;object-fit:cover;vertical-align:middle"></span>
+      <span class="dc-bc-face-icon">
+        <img src="assets/dc-bosses/${st.boss.id}.webp" alt="${esc(st.boss.icon)}"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+          style="width:52px;height:52px;border-radius:50%;object-fit:cover;object-position:top;border:2px solid var(--divider);display:block">
+        <span class="dc-bc-face-fallback">${st.boss.icon}</span>
+      </span>
       <div class="dc-bc-face-info">
         <b>${esc(st.boss.name)}</b>
         ${st.boss.nickname ? `<span class="dc-boss-nickname-battle muted">${esc(st.boss.nickname)}</span>` : ''}
