@@ -1490,17 +1490,19 @@ function setTab(tab, dir) {
     (tab !== 'hero'   || HERO_VIEW   === prevHeroView);
 
   /* Ripristina lo scroll corretto in base al contesto */
+  let targetScroll;
   if (sameSubView) {
-    c.scrollTop = prevScroll;
+    targetScroll = prevScroll;
   } else if (tab === 'market' && MARKET_VIEW === 'hub' && prevMarketView !== 'hub') {
-    c.scrollTop = _marketHubScroll;
+    targetScroll = _marketHubScroll;
   } else if (tab === 'map' && MAP_VIEW === 'main' && prevMapView !== 'main') {
-    c.scrollTop = _mapHubScroll;
+    targetScroll = _mapHubScroll;
   } else {
-    c.scrollTop = 0;
+    targetScroll = 0;
   }
 
   requestAnimationFrame(() => {
+    c.scrollTop = targetScroll;
     if (dir === 'left')       animWrap.classList.add('tab-slide-left');
     else if (dir === 'right') animWrap.classList.add('tab-slide-right');
     else                      animWrap.classList.add('tab-in');
