@@ -10421,7 +10421,9 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
 }
 
 .dc-boss-info { text-align: center; width: 100%; }
-.dc-boss-name { font-size: .72rem; font-weight: 700; line-height: 1.2; margin-bottom: 2px; }
+.dc-boss-name { font-size: .72rem; font-weight: 700; line-height: 1.2; margin-bottom: 1px; }
+.dc-boss-nickname { font-size: .6rem; color: var(--muted); font-style: italic; margin-bottom: 2px; }
+.dc-boss-nickname-battle { display: block; font-size: .72rem; font-style: italic; margin-top: 1px; }
 .dc-boss-stars { color: #f59e0b; font-size: .65rem; margin-bottom: 3px; }
 .dc-boss-rewards { display: flex; justify-content: center; flex-wrap: wrap; gap: 3px; font-size: .65rem; color: var(--muted); }
 .dc-champ-tag { color: #f1c40f; font-weight: 700; }
