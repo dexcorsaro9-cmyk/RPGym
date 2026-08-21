@@ -409,6 +409,18 @@ function renderAntroView(c) {
         </div>
         <div class="ahc-lv">Lv ${s.lv}</div>
       `;
+      if (done && s.key === 'antro_contratti') {
+        const ownedCount = (HERO.dragonCards || []).length;
+        const canDuel = ownedCount >= 5;
+        const label = canDuel ? '⚔️ Dominio dei Draghi' : `⚔️ Dominio dei Draghi (${ownedCount}/5 draghi)`;
+        const duelBtn = el('button', 'btn btn-primary dc-duel-btn', label);
+        duelBtn.disabled = !canDuel;
+        duelBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          DC_DECK = []; DC_VIEW = 'builder'; MARKET_VIEW = 'antro_contratti'; setTab('market');
+        });
+        card.appendChild(duelBtn);
+      }
     }
     if (done) {
       card.addEventListener('click', () => { MARKET_VIEW = s.key; setTab('market'); });
@@ -559,18 +571,6 @@ function renderAntroDragonCardsView(c) {
     banner.appendChild(dismissBtn);
     c.appendChild(banner);
   }
-
-  const duelBtn = el('button', 'btn btn-primary dc-duel-btn', '⚔️ Dominio dei Draghi');
-  if (!canDuel) {
-    duelBtn.disabled = true;
-    if (HERO.level < 50) {
-      duelBtn.textContent = `⚔️ Dominio dei Draghi (Lv 50 richiesto)`;
-    } else {
-      duelBtn.textContent = `⚔️ Dominio dei Draghi (${ownedCount}/5 draghi)`;
-    }
-  }
-  duelBtn.addEventListener('click', () => { DC_DECK = []; DC_VIEW = 'builder'; setTab('market'); });
-  c.appendChild(duelBtn);
 
   // Filtro per categoria
   const catKeys = Object.keys(DC_CAT_META);

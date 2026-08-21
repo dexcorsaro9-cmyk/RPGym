@@ -10105,6 +10105,7 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
 .dc-progress-bar-fill { height: 100%; background: linear-gradient(90deg,#ffd700,#f59e0b); border-radius: 3px; transition: width .5s; }
 
 .dc-duel-btn { display: block; margin: .5rem auto 1rem; padding: .6rem 2rem; font-size: 1rem; }
+.antro-hub-card .dc-duel-btn { margin: .7rem 0 0; width: 100%; }
 
 .dc-filter-bar {
   display: flex; flex-wrap: wrap; gap: 6px; padding: .2rem 0 .6rem;
