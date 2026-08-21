@@ -55,6 +55,24 @@ function renderHero(c) {
     slot.addEventListener('click', () => openSlotPicker(key));
     return slot;
   };
+  const makeReliquiaSlot = () => {
+    const heroLv = HERO.level || 1;
+    const unlocked = heroLv >= 71;
+    const equipped = (HERO.equipment || {}).reliquia;
+    const relicItem = equipped ? (HERO.items || []).find(i => i.id === equipped) : null;
+    const slot = el('button', 'equip-slot reliquia-slot' + (relicItem ? ' filled rar-border-leggendario' : '') + (!unlocked ? ' reliquia-locked' : ''));
+    if (!unlocked) {
+      slot.innerHTML = `<span class="equip-icon empty">🔒</span><span class="equip-label">Reliquia<br><span class="reliquia-lv">Lv 71</span></span>`;
+      slot.disabled = true;
+    } else if (relicItem) {
+      slot.innerHTML = `<img class="equip-img" src="${relicItem.img || ''}" onerror="this.outerHTML='<span class=equip-icon>${relicItem.icon||'🏺'}</span>'"><span class="equip-label">${esc(relicItem.name)}</span>`;
+      slot.addEventListener('click', () => openReliquiaPicker());
+    } else {
+      slot.innerHTML = `<span class="equip-icon empty">🏺</span><span class="equip-label">Reliquia</span>`;
+      slot.addEventListener('click', () => openReliquiaPicker());
+    }
+    return slot;
+  };
   leftSlots.forEach(k => leftCol.appendChild(makeSlot(k)));
   rightSlots.forEach(k => rightCol.appendChild(makeSlot(k)));
 
@@ -69,9 +87,10 @@ function renderHero(c) {
   rig.appendChild(rightCol);
   c.appendChild(rig);
 
-  // Slot seme + consumabile sotto i piedi
+  // Slot seme + consumabile + reliquia sotto i piedi
   const bottomSlots = el('div', 'hero-bottom-slots');
   ['seme', 'consumabile'].forEach(k => bottomSlots.appendChild(makeSlot(k)));
+  bottomSlots.appendChild(makeReliquiaSlot());
   c.appendChild(bottomSlots);
 
   c.appendChild(el('h3', 'hero-name-plate center', esc(HERO.name)));
@@ -1095,6 +1114,40 @@ function openSlotPicker(slotKey) {
   const unq = $('#btn-unequip');
   if (unq) unq.addEventListener('click', () => {
     RPG.unequipSlot(HERO, slotKey);
+    persist(); closeModal(); setTab('hero');
+  });
+}
+
+function openReliquiaPicker() {
+  const relics = (HERO.items || []).filter(i => i.slot === 'reliquia');
+  const current = (HERO.equipment || {}).reliquia;
+  let html = `<h3 class="panel-title">🏺 Reliquia del Leggendario</h3>`;
+  if (!relics.length) {
+    html += `<p class="muted center">Non hai ancora nessuna reliquia.<br><span class="small">Completa le Prove dell'Eco dei Leggendari (Lv 71-80).</span></p>`;
+  }
+  html += `<div class="loot-list" id="reliquia-picker-list"></div>`;
+  if (current) html += `<button class="btn wide" id="btn-unequip-reliquia">Rimuovi reliquia</button>`;
+  html += `<button class="btn btn-primary wide" onclick="closeModal()">Chiudi</button>`;
+  modal(html);
+  const list = $('#reliquia-picker-list');
+  relics.forEach(it => {
+    const row = el('div', 'loot rar-leggendario pickable loot-with-img' + (it.id === current ? ' equipped' : ''));
+    row.innerHTML = `<img class="item-icon-big" src="${it.img || ''}" onerror="this.outerHTML='<span class=equip-icon>${it.icon||'🏺'}</span>'">
+      <div class="loot-body">
+        <div class="loot-head"><b>${esc(it.name)}</b> <span class="tag">Reliquia</span>${it.id === current ? ' ✅' : ''}</div>
+        <div class="small muted">${esc(it.desc || '')}</div>
+      </div>`;
+    row.addEventListener('click', () => {
+      if (!HERO.equipment) HERO.equipment = {};
+      HERO.equipment.reliquia = it.id;
+      persist(); renderHUD(); closeModal(); setTab('hero');
+      toast(`${it.icon || '🏺'} ${it.name} equipaggiata!`);
+    });
+    list.appendChild(row);
+  });
+  const unq = $('#btn-unequip-reliquia');
+  if (unq) unq.addEventListener('click', () => {
+    if (HERO.equipment) delete HERO.equipment.reliquia;
     persist(); closeModal(); setTab('hero');
   });
 }
