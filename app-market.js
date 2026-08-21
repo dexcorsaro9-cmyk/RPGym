@@ -506,7 +506,7 @@ function renderAntroDragonCardsView(c) {
 
   const ownedCount = (HERO.dragonCards || []).length;
   const canDuel = ownedCount >= 5;
-  const duelBtn = el('button', 'btn btn-primary dc-duel-btn', '⚔️ Arena dei Draghi');
+  const duelBtn = el('button', 'btn btn-primary dc-duel-btn', '⚔️ Dominio dei Draghi');
   if (!canDuel) {
     duelBtn.disabled = true;
     duelBtn.textContent = `⚔️ Arena (${ownedCount}/5 draghi)`;
