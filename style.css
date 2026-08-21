@@ -10808,3 +10808,25 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
   box-shadow: 0 0 10px rgba(255,215,0,.4), 0 0 20px rgba(139,92,246,.3);
   margin: 0;
 }
+
+/* ── Album Dominio dei Draghi — pannello collassabile ── */
+.dc-album-panel {
+  margin: 12px 0 8px;
+  border: 1px solid rgba(255,215,0,.2);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.dc-album-panel-hdr {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; background: rgba(255,215,0,.06);
+  border: none; cursor: pointer; text-align: left; gap: 8px;
+  transition: background .15s;
+}
+.dc-album-panel-hdr:hover { background: rgba(255,215,0,.1); }
+.dc-album-panel-left { display: flex; align-items: center; gap: 10px; }
+.dc-album-panel-icon { font-size: 1.5rem; line-height: 1; }
+.dc-album-panel-title { display: block; font-weight: 700; font-size: .9rem; color: var(--text); }
+.dc-album-panel-meta { display: block; font-size: .72rem; color: var(--muted); margin-top: 1px; }
+.dc-album-panel-toggle { font-size: .75rem; color: var(--muted); flex-shrink: 0; }
+.dc-album-panel-body { padding: 12px; }
+.dc-album-panel-body.collapsed { display: none; }
