@@ -1261,15 +1261,21 @@ function _renderDragonAlbum(c) {
   // Collapsible panel wrapper
   const panel = el('div', 'dc-album-panel');
   const panelHdr = el('button', 'dc-album-panel-hdr');
+  const pct = Math.round(owned / total * 100);
   panelHdr.innerHTML = `
     <span class="dc-album-panel-left">
       <span class="dc-album-panel-icon">🐉</span>
-      <span>
-        <span class="dc-album-panel-title">Album del Dominio dei Draghi</span>
+      <span class="dc-album-panel-text">
+        <span class="dc-album-panel-title">Dominio dei Draghi</span>
+        <span class="dc-album-panel-sub">Album delle Creature Leggendarie</span>
         <span class="dc-album-panel-meta">${owned} / ${total} scoperti</span>
       </span>
     </span>
-    <span class="dc-album-panel-toggle">▼</span>`;
+    <span class="dc-album-panel-right">
+      <span class="dc-album-panel-toggle">▼</span>
+      <span class="dc-album-panel-pct">${pct}%</span>
+      <span class="dc-album-hdr-bar-wrap"><span class="dc-album-hdr-bar-fill" style="width:${pct}%"></span></span>
+    </span>`;
   panel.appendChild(panelHdr);
 
   const body = el('div', 'dc-album-panel-body collapsed');
