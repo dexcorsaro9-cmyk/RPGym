@@ -353,14 +353,14 @@ function renderMarket(c) {
       }
       proveBox.appendChild(gladiusBox);
 
-      if (proveUnlocked) {
-        const proveBtn = el('button', 'btn btn-primary dc-duel-btn antro-duel-box-btn', '⚔️ Le 10 Prove del Campione');
-        proveBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          HERO_VIEW = 'campione'; setTab('hero');
-        });
-        proveBox.appendChild(proveBtn);
-      }
+      const proveBtn = el('button', 'btn btn-primary dc-duel-btn antro-duel-box-btn',
+        proveUnlocked ? '⚔️ Le 10 Prove del Campione' : '🔒 Le 10 Prove del Campione (Lv 61)');
+      proveBtn.disabled = !proveUnlocked;
+      proveBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        HERO_VIEW = 'campione'; setTab('hero');
+      });
+      proveBox.appendChild(proveBtn);
 
       sectionList.appendChild(proveBox);
     }
