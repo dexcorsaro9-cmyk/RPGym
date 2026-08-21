@@ -1914,11 +1914,239 @@ const RPG = (() => {
       lore: 'Ora conosci il volto del nemico. E lui conosce il tuo.' },
   };
 
-  /* ── Carte dei Draghi (Antro del Campione — drop dal lv30) ── */
-  /* 10 draghi × 2 carte × 5 rarità = 100 carte totali */
+  /* ── Draghi (206 draghi unici — sistema TCG board-based dal lv30) ── */
+  // _mkg = card maker: (id,name,nick,cat,rar,icon,cost,atk,hp,kws,bc,unlock,desc)
+  // bc: {t,tg,v,...} oppure array; tg: face|aec|aen|rec|tec|h|afc|tfc
+  // kws: ['provocazione','scatto','scudo_divino','drenaggio','veleno']
+  const _mkg = (id,name,nick,cat,rar,icon,cost,atk,hp,kws,bc,unlock,desc) =>
+    ({id:'dc_'+id,name,nick,cat,rar,icon,type:'creatura',cost,atk,hp,kws:kws||[],bc:bc||null,unlock,desc:desc||''});
   const DRAGON_CARDS = [
-    // ── IGNIS — drago del fuoco (offensivo) — budget: C=5 NC=7 R=10 E=14 L=20
-    { id:'dc_ignis_c1',    dragon:'ignis',   type:'offensiva', rarity:'comune',      name:'Zanna di Fuoco',            icon:'🔥', atk:3, def:1, heal:1, desc:'Infligge 3 danni, assorbe 1 e recupera 1 HP.' },
+    // ── ELEMENTALI (10) — starter ─────────────────────────────────────────
+    _mkg('ignis','Ignis','Drago del Fuoco','elementale','speciale','🔥',4,5,5,['scatto'],{t:'dmg',tg:'aec',v:2},{t:'starter'},'Scatto. GdB: 2 danni a tutte le creature nemiche.'),
+    _mkg('aqua','Aqua','Drago dell\'Acqua','elementale','speciale','💧',3,2,7,['provocazione'],{t:'heal',tg:'h',v:3},{t:'starter'},'Provocazione. GdB: cura 3 HP all\'eroe.'),
+    _mkg('silvano','Silvano','Drago della Foresta','elementale','speciale','🌿',2,2,3,[],{t:'draw',v:1},{t:'starter'},'GdB: pesca 1 carta.'),
+    _mkg('terras','Terras','Drago della Terra','elementale','speciale','🪨',4,3,8,['provocazione'],{t:'armor',v:2},{t:'starter'},'Provocazione. GdB: +2 armatura.'),
+    _mkg('glacio','Glacio','Drago del Ghiaccio','elementale','speciale','❄️',3,2,4,[],{t:'freeze',tg:'tec',dur:1},{t:'starter'},'GdB: congela una creatura nemica (salta il turno).'),
+    _mkg('volt','Volt','Drago del Fulmine','elementale','speciale','⚡',2,3,2,['scatto'],null,{t:'starter'},'Scatto.'),
+    _mkg('umbra','Umbra','Drago dell\'Ombra','elementale','speciale','🌑',3,3,3,['drenaggio'],null,{t:'starter'},'Drenaggio: cura l\'eroe per i danni inflitti.'),
+    _mkg('chronos','Chronos','Drago del Tempo','elementale','speciale','⏳',5,3,6,[],{t:'mana',v:1},{t:'starter'},'GdB: +1 mana questo turno.'),
+    _mkg('lux','Lux','Drago della Luce','elementale','speciale','☀️',4,3,5,['scudo_divino'],{t:'heal',tg:'h',v:4},{t:'starter'},'Scudo Divino. GdB: cura 4 HP all\'eroe.'),
+    _mkg('aero','Aero','Drago del Vento','elementale','speciale','💨',3,4,2,['scatto'],{t:'bounce',tg:'tec'},{t:'starter'},'Scatto. GdB: rimanda una creatura nemica in mano.'),
+    // ── COMUNI (20) ────────────────────────────────────────────────────────
+    _mkg('melmario','Melmario','Drago della Palude','comune','comune','🐊',2,2,3,[],null,{t:'drop'},'Una creatura robusta delle paludi.'),
+    _mkg('scirocco','Scirocco','Drago del Deserto','comune','comune','🌵',1,2,1,[],null,{t:'drop'},'Veloce come il vento del deserto.'),
+    _mkg('velato','Velato','Drago delle Caverne','comune','comune','🦇',1,1,2,['scatto'],null,{t:'drop'},'Scatto.'),
+    _mkg('bastodon','Bastodon','Drago Tartaruga','comune','comune','🐢',2,1,4,['provocazione'],null,{t:'drop'},'Provocazione.'),
+    _mkg('prisma','Prisma','Drago Camaleonte','comune','comune','🦎',2,2,3,[],null,{t:'drop'},'Si mimetizza tra i nemici.'),
+    _mkg('sporetto','Sporetto','Drago Fungo','comune','comune','🍄',1,1,2,[],{t:'heal',tg:'h',v:2},{t:'drop'},'GdB: cura 2 HP all\'eroe.'),
+    _mkg('brace','Brace','Drago della Cenere','comune','comune','🔥',1,2,1,[],null,{t:'drop'},'Piccolo ma feroce.'),
+    _mkg('corallino','Corallino','Drago della Barriera','comune','comune','🐠',2,2,3,[],null,{t:'drop'},'Protegge le barriere coralline.'),
+    _mkg('ossidio','Ossidio','Drago Osseo','comune','comune','💀',3,2,3,[],{t:'armor',v:2},{t:'drop'},'GdB: +2 armatura all\'eroe.'),
+    _mkg('petalia','Petalia','Drago dei Fiori','comune','comune','🌸',1,1,2,[],{t:'heal',tg:'h',v:1},{t:'drop'},'GdB: cura 1 HP all\'eroe.'),
+    _mkg('lunare','Lunare','Drago della Notte','comune','comune','🌙',2,2,3,[],null,{t:'drop'},'Creatura della notte.'),
+    _mkg('calamita','Calamita','Drago Magnetico','comune','comune','🧲',3,2,4,[],{t:'stat',tg:'tfc',a:1,h:1},{t:'drop'},'GdB: +1/+1 a una tua creatura.'),
+    _mkg('speculo','Speculo','Drago di Vetro','comune','comune','🪟',2,2,2,['scudo_divino'],null,{t:'drop'},'Scudo Divino.'),
+    _mkg('bombice','Bombice','Drago Ape','comune','comune','🐝',2,2,1,['veleno'],null,{t:'drop'},'Veleno.'),
+    _mkg('ruscello','Ruscello','Drago di Fiume','comune','comune','💧',1,1,3,[],null,{t:'drop'},'Scorre placido nelle pianure.'),
+    _mkg('cumulo','Cumulo','Drago Nuvola','comune','comune','☁️',2,3,2,[],null,{t:'drop'},'Leggero come una nuvola.'),
+    _mkg('filace','Filace','Drago Ragno','comune','comune','🕷️',2,2,3,['drenaggio'],null,{t:'drop'},'Drenaggio.'),
+    _mkg('fanale','Fanale','Drago Lanterna','comune','comune','🏮',2,2,2,[],{t:'draw',v:1},{t:'drop'},'GdB: pesca 1 carta.'),
+    _mkg('cactaccio','Cactaccio','Drago Spinoso','comune','comune','🌵',2,2,3,[],null,{t:'drop'},'Le spine difendono chi lo attacca.'),
+    _mkg('ciottolo','Ciottolo','Drago di Pietra','comune','comune','🪨',1,1,3,[],null,{t:'drop'},'Piccolo e resistente.'),
+    // ── NON COMUNI (20) ────────────────────────────────────────────────────
+    _mkg('ossidiana','Ossidiana','Drago Vulcanico','non_comune','non_comune','🌋',3,3,4,[],{t:'dmg',tg:'face',v:2},{t:'drop'},'GdB: 2 danni al boss.'),
+    _mkg('folgora','Folgora','Drago del Temporale','non_comune','non_comune','⛈️',3,4,2,['scatto'],null,{t:'drop'},'Scatto.'),
+    _mkg('mimetis','Mimetis','Drago della Giungla','non_comune','non_comune','🌴',3,3,3,[],{t:'stat',tg:'tfc',a:2,h:0},{t:'drop'},'GdB: +2 ATK a una tua creatura.'),
+    _mkg('maressia','Maressia','Drago della Corrente','non_comune','non_comune','🌊',3,2,5,[],{t:'heal',tg:'h',v:2},{t:'drop'},'GdB: cura 2 HP.'),
+    _mkg('brulotto','Brulotto','Drago del Fuoco Selvaggio','non_comune','non_comune','🔥',2,3,2,['scatto'],{t:'dmg',tg:'face',v:1},{t:'drop'},'Scatto. GdB: 1 danno al boss.'),
+    _mkg('crepaccio','Crepaccio','Drago del Ghiacciaio','non_comune','non_comune','🧊',3,2,4,[],{t:'freeze',tg:'tec',dur:1},{t:'drop'},'GdB: congela una creatura nemica.'),
+    _mkg('aurora','Aurora','Drago delle Luci Boreali','non_comune','non_comune','🌌',4,3,4,[],{t:'draw',v:2},{t:'drop'},'GdB: pesca 2 carte.'),
+    _mkg('caligo','Caligo','Drago del Ciclone','non_comune','non_comune','🌪️',3,4,3,[],null,{t:'drop'},'Vortice di vento e tempesta.'),
+    _mkg('tettonica','Tettonica','Drago delle Faglie','non_comune','non_comune','⛰️',4,3,5,['provocazione'],null,{t:'drop'},'Provocazione.'),
+    _mkg('solare','Solare','Drago Cosmico','non_comune','non_comune','☀️',3,3,4,[],{t:'armor',v:3},{t:'drop'},'GdB: +3 armatura.'),
+    _mkg('arborvio','Arborvio','Drago Millenario','non_comune','non_comune','🌳',4,2,6,[],{t:'draw',v:1},{t:'drop'},'GdB: pesca 1 carta.'),
+    _mkg('inganno','Inganno','Drago dell\'Illusione','non_comune','non_comune','🎭',3,3,3,[],{t:'bounce',tg:'tec'},{t:'drop'},'GdB: rimanda una creatura nemica in mano.'),
+    _mkg('ferraccio','Ferraccio','Drago Magnetico','non_comune','non_comune','🧲',3,3,3,[],{t:'stat',tg:'afc',a:1,h:0},{t:'drop'},'GdB: +1 ATK a tutte le tue creature.'),
+    _mkg('gorgovite','Gorgovite','Drago del Mulinello','non_comune','non_comune','🌀',3,2,4,['drenaggio'],null,{t:'drop'},'Drenaggio.'),
+    _mkg('petrifex','Petrifex','Drago della Pietrificazione','non_comune','non_comune','🪨',4,2,5,[],{t:'freeze',tg:'tec',dur:2},{t:'drop'},'GdB: congela una creatura nemica per 2 turni.'),
+    _mkg('risonante','Risonante','Drago del Suono','non_comune','non_comune','🎵',3,3,3,[],{t:'dmg',tg:'aec',v:1},{t:'drop'},'GdB: 1 danno a tutte le creature nemiche.'),
+    _mkg('gravitas','Gravitas','Drago della Gravità','non_comune','non_comune','🌑',3,2,4,['provocazione'],null,{t:'drop'},'Provocazione.'),
+    _mkg('miasmo','Miasmo','Drago della Pestilenza','non_comune','non_comune','☠️',3,2,3,['veleno'],null,{t:'drop'},'Veleno.'),
+    _mkg('abissale','Abissale','Drago Fosforescente','non_comune','non_comune','🦑',3,3,4,[],null,{t:'drop'},'Brilla nelle acque più profonde.'),
+    _mkg('lapillo','Lapillo','Drago di Lava','non_comune','non_comune','🌋',3,4,2,['scatto'],null,{t:'drop'},'Scatto.'),
+    // ── RARI (20) ──────────────────────────────────────────────────────────
+    _mkg('prismatico','Prismatico','Drago della Luce Rifratta','raro','raro','🌈',4,4,4,[],{t:'dmg',tg:'tec',v:3},{t:'drop'},'GdB: 3 danni a una creatura nemica bersaglio.'),
+    _mkg('nebulosa','Nebulosa','Drago Stellare','raro','raro','🌌',5,3,6,[],{t:'draw',v:2},{t:'drop'},'GdB: pesca 2 carte.'),
+    _mkg('runico','Runico','Drago delle Rune','raro','raro','📜',4,4,5,[],{t:'kw',tg:'tfc',kw:'scudo_divino'},{t:'drop'},'GdB: dai Scudo Divino a una tua creatura.'),
+    _mkg('cascata','Cascata','Drago della Cascata','raro','raro','💧',4,3,5,[],{t:'heal',tg:'h',v:5},{t:'drop'},'GdB: cura 5 HP all\'eroe.'),
+    _mkg('vetrata','Vetrata','Drago di Vetro Dipinto','raro','raro','🪟',4,4,4,['scudo_divino'],null,{t:'drop'},'Scudo Divino.'),
+    _mkg('ecclisso','Ecclisso','Drago della Luna di Sangue','raro','raro','🌑',4,4,4,[],{t:'dmg',tg:'rec',v:3},{t:'drop'},'GdB: 3 danni a una creatura nemica casuale.'),
+    _mkg('miraggio','Miraggio','Drago dell\'Oasi','raro','raro','🏝️',3,3,4,[],{t:'bounce',tg:'rec'},{t:'drop'},'GdB: rimanda una creatura nemica casuale in mano.'),
+    _mkg('ambrato','Ambrato','Drago del Fulmine Fossile','raro','raro','⚡',4,3,5,[],{t:'dmg',tg:'face',v:3},{t:'drop'},'GdB: 3 danni al boss.'),
+    _mkg('cattedrale','Cattedrale','Drago Gotico','raro','raro','🏛️',5,3,7,['provocazione'],{t:'armor',v:3},{t:'drop'},'Provocazione. GdB: +3 armatura.'),
+    _mkg('tesorifico','Tesorifico','Drago degli Abissi','raro','raro','💎',4,4,4,['drenaggio'],null,{t:'drop'},'Drenaggio.'),
+    _mkg('cometario','Cometario','Drago della Cometa','raro','raro','☄️',5,5,4,['scatto'],null,{t:'drop'},'Scatto.'),
+    _mkg('autunnale','Autunnale','Drago Stagionale','raro','raro','🍂',4,3,5,[],{t:'dmg',tg:'aec',v:1},{t:'drop'},'GdB: 1 danno a tutte le creature nemiche.'),
+    _mkg('mareggiata','Mareggiata','Drago delle Maree','raro','raro','🌊',4,3,6,[],{t:'heal',tg:'h',v:3},{t:'drop'},'GdB: cura 3 HP.'),
+    _mkg('luminescia','Luminescia','Drago Bioluminescente','raro','raro','💫',4,3,4,[],{t:'draw',v:2},{t:'drop'},'GdB: pesca 2 carte.'),
+    _mkg('tempraferro','Tempraferro','Drago Forgiato','raro','raro','⚒️',5,5,4,[],{t:'stat',tg:'afc',a:1,h:0},{t:'drop'},'GdB: +1 ATK a tutte le tue creature.'),
+    _mkg('penombra','Penombra','Drago dell\'Eclissi','raro','raro','🌑',4,4,4,[],{t:'silence',tg:'tec'},{t:'drop'},'GdB: silenzia una creatura nemica (rimuove keyword).'),
+    _mkg('deltario','Deltario','Drago del Delta','raro','raro','🌊',3,3,5,[],null,{t:'drop'},'Domina i delta fluviali.'),
+    _mkg('costellato','Costellato','Drago Celeste','raro','raro','✨',5,4,5,[],{t:'dmg',tg:'rec',v:4},{t:'drop'},'GdB: 4 danni a una creatura nemica casuale.'),
+    _mkg('vetrificato','Vetrificato','Drago Sacro','raro','raro','🔮',4,3,5,[],{t:'destroy',tg:'tec'},{t:'drop'},'GdB: distruggi una creatura nemica bersaglio.'),
+    _mkg('etereo','Etereo','Drago delle Nebbie','raro','raro','🌫️',4,3,4,[],{t:'mana',v:1},{t:'drop'},'GdB: +1 mana questo turno.'),
+    // ── EPICI (20) ─────────────────────────────────────────────────────────
+    _mkg('cosmogono','Cosmogono','Drago della Creazione','epico','epico','🌌',6,5,7,[],{t:'dmg',tg:'rec',v:5},{t:'drop'},'GdB: 5 danni a una creatura nemica casuale.'),
+    _mkg('apocalittico','Apocalittico','Drago della Fine dei Mondi','epico','epico','💀',7,7,5,['scatto'],{t:'dmg',tg:'aec',v:3},{t:'drop'},'Scatto. GdB: 3 danni a tutte le creature nemiche.'),
+    _mkg('titanica','Titanica','Drago Continente','epico','epico','🏔️',7,5,10,['provocazione'],null,{t:'drop'},'Provocazione. Massiccio come un continente.'),
+    _mkg('sidereo','Sidereo','Drago della Materia Oscura','epico','epico','🌑',5,4,6,[],{t:'dmg',tg:'face',v:5},{t:'drop'},'GdB: 5 danni al boss.'),
+    _mkg('paradosso','Paradosso','Drago dell\'Impossibile','epico','epico','🌀',5,5,5,[],{t:'draw',v:2},{t:'drop'},'GdB: pesca 2 carte.'),
+    _mkg('eruzione','Eruzione','Drago della Supervolcano','epico','epico','🌋',6,6,5,[],{t:'dmg',tg:'aec',v:3},{t:'drop'},'GdB: 3 danni a tutte le creature nemiche.'),
+    _mkg('maelstrom','Maelström','Drago del Vortice','epico','epico','🌀',6,5,6,[],{t:'dmg',tg:'aen',v:2},{t:'drop'},'GdB: 2 danni a tutte le creature e al boss.'),
+    _mkg('antimatter','Antimatter','Drago dell\'Antimateria','epico','epico','⚡',6,5,6,[],{t:'destroy',tg:'rec'},{t:'drop'},'GdB: distruggi una creatura nemica casuale.'),
+    _mkg('requiem','Requiem','Drago della Morte Cosmica','epico','epico','💀',5,3,6,['drenaggio','veleno'],null,{t:'drop'},'Drenaggio e Veleno.'),
+    _mkg('ascendente','Ascendente','Drago della Trascendenza','epico','epico','✨',6,4,7,['scudo_divino'],{t:'draw',v:2},{t:'drop'},'Scudo Divino. GdB: pesca 2 carte.'),
+    _mkg('flagello','Flagello','Drago delle Piaghe','epico','epico','☠️',6,5,6,[],{t:'kw',tg:'afc',kw:'veleno'},{t:'drop'},'GdB: dai Veleno a tutte le tue creature.'),
+    _mkg('sovrano','Sovrano','Drago Imperatore','epico','epico','👑',7,7,6,[],{t:'stat',tg:'afc',a:1,h:1},{t:'drop'},'GdB: +1/+1 a tutte le tue creature.'),
+    _mkg('dimensionale','Dimensionale','Drago tra i Mondi','epico','epico','🌀',5,4,5,[],{t:'dmg',tg:'face',v:4},{t:'drop'},'GdB: 4 danni al boss.'),
+    _mkg('singolarita','Singolarità','Drago del Punto Omega','epico','epico','💫',7,6,6,[],{t:'destroy',tg:'aec'},{t:'drop'},'GdB: distruggi tutte le creature nemiche.'),
+    _mkg('tempestario','Tempestario','Drago delle Tempeste','epico','epico','⚡',6,6,5,['scatto'],null,{t:'drop'},'Scatto.'),
+    _mkg('alchimista','Alchimista','Drago della Trasmutazione','epico','epico','⚗️',5,4,5,[],{t:'heal',tg:'h',v:5},{t:'drop'},'GdB: cura 5 HP all\'eroe.'),
+    _mkg('profeta','Profeta','Drago dell\'Oracolo','epico','epico','🔮',5,3,6,[],{t:'draw',v:3},{t:'drop'},'GdB: pesca 3 carte.'),
+    _mkg('colosseo','Colosseo','Drago Gladiatore Divino','epico','epico','⚔️',6,6,6,[],{t:'dmg',tg:'face',v:5},{t:'drop'},'GdB: 5 danni al boss.'),
+    _mkg('entropico','Entropico','Drago del Caos','epico','epico','🌀',5,5,5,[],{t:'dmg',tg:'rec',v:3},{t:'drop'},'GdB: 3 danni a una creatura nemica casuale.'),
+    _mkg('simbionte','Simbionte','Drago degli Ecosistemi','epico','epico','🌿',5,4,6,[],{t:'kw',tg:'afc',kw:'drenaggio'},{t:'drop'},'GdB: dai Drenaggio a tutte le tue creature.'),
+    // ── LEGGENDARI (20) ────────────────────────────────────────────────────
+    _mkg('ouroboros','Ouroboros','Drago dell\'Eternità Ciclica','leggendario','leggendario','🐍',8,8,8,[],null,{t:'drop'},'L\'eterno ritorno.'),
+    _mkg('yggdrasil','Yggdrasil','Drago dell\'Albero Cosmico','leggendario','leggendario','🌳',8,5,12,['provocazione'],{t:'draw',v:3},{t:'drop'},'Provocazione. GdB: pesca 3 carte.'),
+    _mkg('leviatano','Leviatano','Drago dell\'Oceano Primordiale','leggendario','leggendario','🌊',8,8,8,[],{t:'dmg',tg:'aec',v:4},{t:'drop'},'GdB: 4 danni a tutte le creature nemiche.'),
+    _mkg('ragnarok','Ragnarök','Drago della Fine e del Nuovo Inizio','leggendario','leggendario','💀',8,8,7,[],{t:'destroy',tg:'aec'},{t:'drop'},'GdB: distruggi tutte le creature nemiche.'),
+    _mkg('kronides','Kronides','Drago Padre del Tempo','leggendario','leggendario','⏳',7,5,8,[],{t:'mana',v:3},{t:'drop'},'GdB: +3 mana questo turno.'),
+    _mkg('empyreo','Empyreo','Drago del Cielo più Alto','leggendario','leggendario','☀️',7,6,8,['scudo_divino'],{t:'heal',tg:'h',v:8},{t:'drop'},'Scudo Divino. GdB: cura 8 HP.'),
+    _mkg('vacuitas','Vacuitas','Drago del Vuoto tra i Mondi','leggendario','leggendario','🌑',7,5,9,['provocazione'],{t:'silence',tg:'aec'},{t:'drop'},'Provocazione. GdB: silenzia tutte le creature nemiche.'),
+    _mkg('fatum','Fatum','Drago del Destino Immutabile','leggendario','leggendario','⚖️',7,6,7,[],{t:'destroy',tg:'rec'},{t:'drop'},'GdB: distruggi una creatura nemica casuale.'),
+    _mkg('primordius','Primordius','Drago della Materia Prima','leggendario','leggendario','🌍',8,7,8,[],{t:'stat',tg:'afc',a:2,h:2},{t:'drop'},'GdB: +2/+2 a tutte le tue creature.'),
+    _mkg('eternax','Eternax','Drago Immortale Assoluto','leggendario','leggendario','✨',8,7,8,['scudo_divino','drenaggio'],null,{t:'drop'},'Scudo Divino e Drenaggio.'),
+    _mkg('pantheon','Pantheon','Drago dei Draghi','leggendario','leggendario','🐉',8,8,8,[],{t:'dmg',tg:'face',v:6},{t:'drop'},'GdB: 6 danni al boss.'),
+    _mkg('genesis','Genesis','Drago della Prima Parola','leggendario','leggendario','🌅',7,5,7,[],{t:'draw',v:4},{t:'drop'},'GdB: pesca 4 carte.'),
+    _mkg('nemesi','Nemesi','Drago della Giustizia Cosmica','leggendario','leggendario','⚔️',7,7,7,[],{t:'dmg',tg:'face',v:6},{t:'drop'},'GdB: 6 danni al boss.'),
+    _mkg('axismundi','Axis Mundi','Drago dell\'Asse del Mondo','leggendario','leggendario','🌍',8,6,9,['provocazione'],null,{t:'drop'},'Provocazione.'),
+    _mkg('oblivione','Oblivione','Drago del Dimenticare Eterno','leggendario','leggendario','🌑',7,5,8,[],{t:'bounce',tg:'aec'},{t:'drop'},'GdB: rimanda tutte le creature nemiche in mano.'),
+    _mkg('metamorfosi','Metamorfosi','Drago della Trasformazione','leggendario','leggendario','🦋',6,5,7,[],{t:'stat',tg:'afc',a:2,h:2},{t:'drop'},'GdB: +2/+2 a tutte le tue creature.'),
+    _mkg('concordia','Concordia','Drago dell\'Armonia Universale','leggendario','leggendario','🕊️',7,5,8,[],{t:'heal',tg:'h',v:8},{t:'drop'},'GdB: cura 8 HP all\'eroe.'),
+    _mkg('eschaton','Eschaton','Drago dell\'Ultimo Giorno','leggendario','leggendario','💀',8,8,7,[],[{t:'destroy',tg:'aec'},{t:'dmg',tg:'face',v:5}],{t:'drop'},'GdB: distruggi tutte le creature nemiche e 5 danni al boss.'),
+    _mkg('pleroma','Pleroma','Drago della Pienezza Assoluta','leggendario','leggendario','✨',7,5,8,[],[{t:'draw',v:3},{t:'armor',v:3}],{t:'drop'},'GdB: pesca 3 carte e +3 armatura.'),
+    _mkg('infinitus','Infinitus','Drago Senza Confini','leggendario','leggendario','♾️',8,7,9,[],[{t:'mana',v:2},{t:'draw',v:2}],{t:'drop'},'GdB: +2 mana e pesca 2 carte.'),
+    // ── INTROVABILI (5) ────────────────────────────────────────────────────
+    _mkg('ananke','Ananke','Drago della Necessità Assoluta','introvabile','introvabile','⚖️',8,9,9,[],[{t:'destroy',tg:'aec'},{t:'heal',tg:'h',v:10}],{t:'train'},'GdB: distruggi tutte le creature nemiche e cura 10 HP.'),
+    _mkg('aletheia','Aletheia','Drago della Verità Primordiale','introvabile','introvabile','💫',8,8,10,[],{t:'silence',tg:'aec'},{t:'train'},'GdB: silenzia tutte le creature nemiche.'),
+    _mkg('kairos','Kairos','Drago del Momento Perfetto','introvabile','introvabile','⏰',7,7,9,['scatto','scudo_divino'],{t:'mana',v:3},{t:'train'},'Scatto. Scudo Divino. GdB: +3 mana.'),
+    _mkg('apeiron','Apeiron','Drago dell\'Infinito Illimitato','introvabile','introvabile','♾️',8,9,9,[],{t:'dmg',tg:'aen',v:5},{t:'train'},'GdB: 5 danni a tutte le creature e al boss.'),
+    _mkg('aether','Æther','Drago della Quintessenza','introvabile','introvabile','✨',8,8,10,['scudo_divino','drenaggio'],{t:'heal',tg:'h',v:8},{t:'train'},'Scudo Divino. Drenaggio. GdB: cura 8 HP.'),
+    // ── STAGIONALI (4) — primo giorno di ogni stagione ─────────────────────
+    _mkg('verdegno','Verdegno','Drago della Primavera','stagionale','stagionale','🌸',5,4,6,[],{t:'draw',v:2},{t:'date',mo:3,dy:20,km:10},'Primavera. GdB: pesca 2 carte. Si sblocca il 20 marzo (km evento).'),
+    _mkg('solstizio','Solstizio','Drago dell\'Estate','stagionale','stagionale','☀️',6,6,5,['scatto'],{t:'dmg',tg:'face',v:4},{t:'date',mo:6,dy:21,km:10},'Estate. Scatto. GdB: 4 danni al boss. Si sblocca il 21 giugno (km evento).'),
+    _mkg('crepuscolo','Crepuscolo','Drago dell\'Autunno','stagionale','stagionale','🍂',5,4,6,[],{t:'dmg',tg:'aec',v:2},{t:'date',mo:9,dy:22,km:10},'Autunno. GdB: 2 danni a tutte le creature nemiche. Si sblocca il 22 settembre.'),
+    _mkg('solenne','Solenne','Drago dell\'Inverno','stagionale','stagionale','❄️',6,4,7,['provocazione'],{t:'freeze',tg:'aec',dur:1},{t:'date',mo:12,dy:21,km:10},'Inverno. Provocazione. GdB: congela tutte le creature nemiche. Si sblocca il 21 dicembre.'),
+    // ── CORROTTI (10) ──────────────────────────────────────────────────────
+    _mkg('igniscuro','Igniscuro','Ignis Corrotto','corrotto','corrotto','🌑',5,7,4,['scatto'],{t:'dmg',tg:'face',v:4},{t:'owns',req:['dc_ignis'],km:10},'Scatto. GdB: 4 danni al boss. Richiede: Ignis.'),
+    _mkg('malevola','Malevola','Aqua Corrotta','corrotto','corrotto','💀',4,3,7,['provocazione'],{t:'stat',tg:'aec',a:-2,h:0},{t:'owns',req:['dc_aqua'],km:10},'Provocazione. GdB: -2 ATK a tutte le creature nemiche. Richiede: Aqua.'),
+    _mkg('radicemorta','Radicemorta','Silvano Corrotto','corrotto','corrotto','🕷️',4,4,5,[],{t:'bounce',tg:'rec'},{t:'owns',req:['dc_silvano'],km:10},'GdB: rimanda una creatura nemica casuale in mano. Richiede: Silvano.'),
+    _mkg('abyssolt','Abyssolt','Volt Corrotto','corrotto','corrotto','⚡',4,6,3,['scatto'],{t:'dmg',tg:'face',v:4},{t:'owns',req:['dc_volt'],km:10},'Scatto. GdB: 4 danni al boss. Richiede: Volt.'),
+    _mkg('terramara','Terramara','Terras Corrotto','corrotto','corrotto','☠️',5,4,6,['veleno','provocazione'],null,{t:'owns',req:['dc_terras'],km:10},'Veleno. Provocazione. Richiede: Terras.'),
+    _mkg('glaciomorte','Glaciomorte','Glacio Corrotto','corrotto','corrotto','💀',5,4,5,[],{t:'freeze',tg:'aec',dur:2},{t:'owns',req:['dc_glacio'],km:10},'GdB: congela tutte le creature nemiche per 2 turni. Richiede: Glacio.'),
+    _mkg('tempusruptus','Tempusruptus','Chronos Corrotto','corrotto','corrotto','🌑',6,5,6,[],{t:'dmg',tg:'face',v:6},{t:'owns',req:['dc_chronos'],km:10},'GdB: 6 danni al boss. Richiede: Chronos.'),
+    _mkg('luxtenebra','Luxtenebra','Lux Corrotto','corrotto','corrotto','🕯️',5,5,5,['drenaggio'],{t:'dmg',tg:'face',v:4},{t:'owns',req:['dc_lux'],km:10},'Drenaggio. GdB: 4 danni al boss. Richiede: Lux.'),
+    _mkg('ventoscuro','Ventoscuro','Aero Corrotto','corrotto','corrotto','💀',4,5,3,['scatto','drenaggio'],null,{t:'owns',req:['dc_aero'],km:10},'Scatto. Drenaggio. Richiede: Aero.'),
+    _mkg('umbrabianca','Umbrabianca','Umbra Corrotto','corrotto','corrotto','👻',4,4,4,['scudo_divino'],{t:'dmg',tg:'face',v:3},{t:'owns',req:['dc_umbra'],km:10},'Scudo Divino. GdB: 3 danni al boss. Richiede: Umbra.'),
+    // ── GUARDIANI (4) ──────────────────────────────────────────────────────
+    _mkg('vetrumonte','Vetrumonte','Guardiano della Montagna','guardiano','guardiano','🏔️',5,4,7,['provocazione'],{t:'armor',v:4},{t:'biome',bid:'montagna',km:15},'Provocazione. GdB: +4 armatura. Sblocca: km evento in bioma montagna.'),
+    _mkg('abissguardo','Abissguardo','Guardiano del Mare','guardiano','guardiano','🌊',5,3,8,['provocazione'],{t:'heal',tg:'h',v:4},{t:'biome',bid:'abisso',km:15},'Provocazione. GdB: cura 4 HP. Sblocca: km evento in bioma abisso.'),
+    _mkg('selvatico','Selvatico','Guardiano della Foresta','guardiano','guardiano','🌲',5,5,5,[],{t:'stat',tg:'afc',a:0,h:2},{t:'biome',bid:'foresta',km:15},'GdB: +2 HP a tutte le tue creature. Sblocca: km evento in bioma foresta.'),
+    _mkg('sogliavoid','Sogliavoid','Guardiano della Soglia','guardiano','guardiano','🌀',6,4,6,['provocazione','scudo_divino'],null,{t:'biome',bid:'dungeon',km:15},'Provocazione. Scudo Divino. Sblocca: km evento in bioma dungeon.'),
+    // ── FOSSILI (3) — 1° aprile, 1° agosto, 1° dicembre ──────────────────
+    _mkg('ossivivo','Ossivivo','Drago Fossile Risvegliato','fossile','fossile','🦕',5,4,6,[],{t:'dmg',tg:'aec',v:2},{t:'date',mo:4,dy:1,km:8},'GdB: 2 danni a tutte le creature nemiche. Sblocca: 1 aprile (km evento).'),
+    _mkg('trilobito','Trilobito','Drago dell\'Era Primaria','fossile','fossile','🦴',4,3,5,['veleno'],{t:'dmg',tg:'face',v:2},{t:'date',mo:8,dy:1,km:8},'Veleno. GdB: 2 danni al boss. Sblocca: 1 agosto (km evento).'),
+    _mkg('cristallofossile','Cristallofossile','Drago Mineralizzato','fossile','fossile','💎',5,4,6,['scudo_divino'],null,{t:'date',mo:12,dy:1,km:8},'Scudo Divino. Sblocca: 1 dicembre (km evento).'),
+    // ── FUSIONI (11) ───────────────────────────────────────────────────────
+    _mkg('tempraonde','Tempraonde','Fusione Fuoco-Acqua','fusione','fusione','🔥',6,5,6,[],{t:'dmg',tg:'aec',v:2},{t:'owns',req:['dc_ignis','dc_aqua'],km:10},'GdB: 2 danni a tutte le creature nemiche. Richiede: Ignis + Aqua.'),
+    _mkg('eclissombra','Eclissombra','Fusione Luce-Ombra','fusione','fusione','🌓',5,5,5,['drenaggio','scudo_divino'],null,{t:'owns',req:['dc_lux','dc_umbra'],km:10},'Drenaggio. Scudo Divino. Richiede: Lux + Umbra.'),
+    _mkg('gelosilvano','Gelosilvano','Fusione Ghiaccio-Foresta','fusione','fusione','🌿',5,3,8,['provocazione'],{t:'freeze',tg:'tec',dur:2},{t:'owns',req:['dc_glacio','dc_silvano'],km:10},'Provocazione. GdB: congela una creatura nemica 2 turni. Richiede: Glacio + Silvano.'),
+    _mkg('voltempus','Voltempus','Fusione Fulmine-Tempo','fusione','fusione','⚡',6,6,5,['scatto'],{t:'mana',v:1},{t:'owns',req:['dc_volt','dc_chronos'],km:10},'Scatto. GdB: +1 mana. Richiede: Volt + Chronos.'),
+    _mkg('lavante','Lavante','Fusione Terra-Fuoco','fusione','fusione','🌋',5,6,4,['scatto'],{t:'dmg',tg:'aec',v:2},{t:'owns',req:['dc_terras','dc_ignis'],km:10},'Scatto. GdB: 2 danni a tutte le creature nemiche. Richiede: Terras + Ignis.'),
+    _mkg('brinosa','Brinosa','Fusione Acqua-Ghiaccio','fusione','fusione','💧',5,3,7,[],{t:'heal',tg:'h',v:4},{t:'owns',req:['dc_aqua','dc_glacio'],km:10},'GdB: cura 4 HP. Richiede: Aqua + Glacio.'),
+    _mkg('eternombra','Eternombra','Fusione Ombra-Tempo','fusione','fusione','🌑',6,4,7,[],{t:'draw',v:2},{t:'owns',req:['dc_umbra','dc_chronos'],km:10},'GdB: pesca 2 carte. Richiede: Umbra + Chronos.'),
+    _mkg('ciclone','Ciclone','Fusione Vento-Fulmine','fusione','fusione','⚡',5,5,5,['scatto'],{t:'dmg',tg:'face',v:4},{t:'owns',req:['dc_aero','dc_volt'],km:10},'Scatto. GdB: 4 danni al boss. Richiede: Aero + Volt.'),
+    _mkg('oraculum','Oraculum','Fusione Luce-Tempo','fusione','fusione','☀️',6,4,6,[],{t:'draw',v:3},{t:'owns',req:['dc_lux','dc_chronos'],km:10},'GdB: pesca 3 carte. Richiede: Lux + Chronos.'),
+    _mkg('gaiaverde','Gaiaverde','Fusione Foresta-Terra','fusione','fusione','🌿',5,4,7,['provocazione'],{t:'stat',tg:'afc',a:1,h:1},{t:'owns',req:['dc_silvano','dc_terras'],km:10},'Provocazione. GdB: +1/+1 a tutte le tue creature. Richiede: Silvano + Terras.'),
+    _mkg('marestrale','Marestrale','Fusione Vento-Acqua','fusione','fusione','💨',5,4,5,[],{t:'bounce',tg:'tec'},{t:'owns',req:['dc_aero','dc_aqua'],km:10},'GdB: rimanda una creatura nemica in mano. Richiede: Aero + Aqua.'),
+    // ── RE DEI DRAGHI (4) ──────────────────────────────────────────────────
+    _mkg('ignaros','Ignaros','Re del Fuoco','re','re','👑',8,8,8,['scatto'],{t:'dmg',tg:'aec',v:5},{t:'win',cd:'collect_legendaries',vl:20,km:20},'Scatto. GdB: 5 danni a tutte le creature nemiche. Richiede: 20 leggendari.'),
+    _mkg('pelagiax','Pelagiax','Re del Mare','re','re','👑',8,6,10,['provocazione'],{t:'heal',tg:'h',v:10},{t:'win',cd:'collect_legendaries',vl:20,km:20},'Provocazione. GdB: cura 10 HP. Richiede: 20 leggendari.'),
+    _mkg('umbraxis','Umbraxis','Re delle Ombre','re','re','👑',8,7,9,['drenaggio'],{t:'silence',tg:'aec'},{t:'win',cd:'collect_legendaries',vl:20,km:20},'Drenaggio. GdB: silenzia tutte le creature nemiche. Richiede: 20 leggendari.'),
+    _mkg('chrondrax','Chrondrax','Re del Tempo','re','re','👑',8,6,8,[],{t:'draw',v:3},{t:'win',cd:'collect_legendaries',vl:20,km:20},'GdB: pesca 3 carte e +3 mana. Richiede: 20 leggendari.'),
+    // ── DRAGHI DEI BIOMI (20) ──────────────────────────────────────────────
+    _mkg('oakspettro','Oakspettro','Drago di Oakhaven','bioma','bioma','🏚️',3,3,4,[],null,{t:'biome',bid:'oakhaven',km:8},'Sblocca: km evento nelle Rovine di Oakhaven.'),
+    _mkg('sussurro','Sussurro','Drago della Foresta Sussurrante','bioma','bioma','🌲',2,2,3,[],{t:'draw',v:1},{t:'biome',bid:'foresta_sussurrante',km:8},'GdB: pesca 1 carta. Sblocca: km evento nella Foresta Sussurrante.'),
+    _mkg('giardinis','Giardinis','Drago del Giardino Lastricato','bioma','bioma','🌺',3,2,4,[],{t:'heal',tg:'h',v:2},{t:'biome',bid:'giardino',km:8},'GdB: cura 2 HP. Sblocca: km evento nel Giardino Lastricato.'),
+    _mkg('ventopiano','Ventopiano','Drago delle Pianure del Vento','bioma','bioma','💨',3,4,2,['scatto'],null,{t:'biome',bid:'pianure',km:8},'Scatto. Sblocca: km evento nelle Pianure del Vento.'),
+    _mkg('archivius','Archivius','Drago dell\'Antico Archivio','bioma','bioma','📚',4,2,5,[],{t:'draw',v:2},{t:'biome',bid:'archivio',km:8},'GdB: pesca 2 carte. Sblocca: km evento nell\'Antico Archivio.'),
+    _mkg('rugginis','Rugginis','Drago delle Fucine di Ruggine','bioma','bioma','⚒️',3,4,3,[],{t:'stat',tg:'tfc',a:1,h:0},{t:'biome',bid:'fucine',km:8},'GdB: +1 ATK a una tua creatura. Sblocca: km evento alle Fucine di Ruggine.'),
+    _mkg('alchimor','Alchimor','Drago della Torre dell\'Alchimista','bioma','bioma','⚗️',4,3,4,[],{t:'stat',tg:'afc',a:0,h:1},{t:'biome',bid:'torre_alchimista',km:8},'GdB: +1 HP a tutte le tue creature. Sblocca: km evento alla Torre dell\'Alchimista.'),
+    _mkg('ticchettus','Ticchettus','Drago della Cripta dell\'Orologiaio','bioma','bioma','⏰',4,3,5,[],{t:'freeze',tg:'tec',dur:2},{t:'biome',bid:'cripta',km:8},'GdB: congela una creatura nemica 2 turni. Sblocca: km evento nella Cripta.'),
+    _mkg('corallux','Corallux','Drago della Baia del Corallo','bioma','bioma','🐠',3,2,5,['provocazione'],null,{t:'biome',bid:'baia_corallo',km:8},'Provocazione. Sblocca: km evento nella Baia del Corallo.'),
+    _mkg('fossamare','Fossamare','Drago del Fossato Profondo','bioma','bioma','🌊',4,4,4,['drenaggio'],null,{t:'biome',bid:'fossato',km:8},'Drenaggio. Sblocca: km evento nel Fossato Profondo.'),
+    _mkg('fognombra','Fognombra','Drago delle Fognature','bioma','bioma','🐍',3,3,3,['veleno'],null,{t:'biome',bid:'fognature',km:8},'Veleno. Sblocca: km evento nelle Fognature del Reame.'),
+    _mkg('relittus','Relittus','Drago della Costa del Relitto','bioma','bioma','🚢',3,2,5,[],{t:'armor',v:2},{t:'biome',bid:'costa_relitto',km:8},'GdB: +2 armatura. Sblocca: km evento nella Costa del Relitto.'),
+    _mkg('nevarcus','Nevarcus','Drago del Picco Innevato','bioma','bioma','❄️',4,3,5,[],{t:'freeze',tg:'tec',dur:1},{t:'biome',bid:'picco_innevato',km:8},'GdB: congela una creatura nemica. Sblocca: km evento al Picco Innevato.'),
+    _mkg('cenerax','Cenerax','Drago del Deserto di Cenere','bioma','bioma','🔥',3,4,3,['scatto'],null,{t:'biome',bid:'deserto_cenere',km:8},'Scatto. Sblocca: km evento nel Deserto di Cenere.'),
+    _mkg('nebbiaverde','Nebbiaverde','Drago della Palude Nebbiosa','bioma','bioma','🌫️',3,2,4,[],null,{t:'biome',bid:'palude',km:8},'Sblocca: km evento nella Palude Nebbiosa.'),
+    _mkg('ossodrak','Ossodrak','Drago del Cimitero dei Draghi','bioma','bioma','💀',4,4,4,['veleno'],null,{t:'biome',bid:'cimitero_draghi',km:8},'Veleno. Sblocca: km evento nel Cimitero dei Draghi.'),
+    _mkg('corruttus','Corruttus','Drago delle Miniere del Corruttore','bioma','bioma','☠️',4,3,5,[],{t:'dmg',tg:'aec',v:2},{t:'biome',bid:'miniere',km:8},'GdB: 2 danni a tutte le creature nemiche. Sblocca: km evento nelle Miniere.'),
+    _mkg('tronodrak','Tronodrak','Drago della Sala del Trono','bioma','bioma','👑',5,5,5,[],{t:'kw',tg:'afc',kw:'provocazione'},{t:'biome',bid:'sala_trono',km:8},'GdB: dai Provocazione a tutte le tue creature. Sblocca: km evento nella Sala del Trono.'),
+    _mkg('abissovoid','Abissovoid','Drago dell\'Abisso del Vuoto','bioma','bioma','🌑',5,4,6,[],{t:'silence',tg:'tec'},{t:'biome',bid:'abisso_vuoto',km:8},'GdB: silenzia una creatura nemica. Sblocca: km evento nell\'Abisso del Vuoto.'),
+    _mkg('cristaloscuro','Cristaloscuro','Drago della Valle dei Cristalli','bioma','bioma','💎',5,4,5,['scudo_divino'],null,{t:'biome',bid:'valle_cristalli',km:8},'Scudo Divino. Sblocca: km evento nella Valle dei Cristalli Oscuri.'),
+    // ── ZODIACALI (12) ─────────────────────────────────────────────────────
+    _mkg('arietis','Arietis','Drago dell\'Ariete','zodiacale','zodiacale','♈',5,6,4,['scatto'],null,{t:'date',mo:3,dy:21,km:10},'Scatto. Sblocca: 21 marzo (km evento).'),
+    _mkg('taurion','Taurion','Drago del Toro','zodiacale','zodiacale','♉',5,4,7,['provocazione'],null,{t:'date',mo:4,dy:21,km:10},'Provocazione. Sblocca: 21 aprile (km evento).'),
+    _mkg('geminax','Geminax','Drago dei Gemelli','zodiacale','zodiacale','♊',5,4,5,[],{t:'draw',v:2},{t:'date',mo:5,dy:21,km:10},'GdB: pesca 2 carte. Sblocca: 21 maggio (km evento).'),
+    _mkg('cancrix','Cancrix','Drago del Cancro','zodiacale','zodiacale','♋',5,3,6,[],{t:'heal',tg:'h',v:5},{t:'date',mo:6,dy:21,km:10},'GdB: cura 5 HP. Sblocca: 21 giugno (km evento).'),
+    _mkg('leonix','Leonix','Drago del Leone','zodiacale','zodiacale','♌',5,5,5,[],{t:'dmg',tg:'face',v:3},{t:'date',mo:7,dy:23,km:10},'GdB: 3 danni al boss. Sblocca: 23 luglio (km evento).'),
+    _mkg('virgia','Virgia','Drago della Vergine','zodiacale','zodiacale','♍',5,3,6,[],{t:'draw',v:3},{t:'date',mo:8,dy:23,km:10},'GdB: pesca 3 carte. Sblocca: 23 agosto (km evento).'),
+    _mkg('librix','Librix','Drago della Bilancia','zodiacale','zodiacale','♎',5,4,5,[],{t:'kw',tg:'afc',kw:'scudo_divino'},{t:'date',mo:9,dy:23,km:10},'GdB: Scudo Divino a tutte le tue creature. Sblocca: 23 settembre (km evento).'),
+    _mkg('scorpius','Scorpius','Drago dello Scorpione','zodiacale','zodiacale','♏',5,5,4,['veleno','scatto'],null,{t:'date',mo:10,dy:23,km:10},'Veleno. Scatto. Sblocca: 23 ottobre (km evento).'),
+    _mkg('sagittar','Sagittar','Drago del Sagittario','zodiacale','zodiacale','♐',5,5,5,[],{t:'dmg',tg:'face',v:5},{t:'date',mo:11,dy:22,km:10},'GdB: 5 danni al boss. Sblocca: 22 novembre (km evento).'),
+    _mkg('capricor','Capricor','Drago del Capricorno','zodiacale','zodiacale','♑',5,4,6,[],{t:'armor',v:5},{t:'date',mo:12,dy:22,km:10},'GdB: +5 armatura. Sblocca: 22 dicembre (km evento).'),
+    _mkg('aquarius','Aquarius','Drago dell\'Acquario','zodiacale','zodiacale','♒',5,3,7,[],{t:'draw',v:2},{t:'date',mo:1,dy:20,km:10},'GdB: pesca 2 carte. Sblocca: 20 gennaio (km evento).'),
+    _mkg('piscidor','Piscidor','Drago dei Pesci','zodiacale','zodiacale','♓',5,3,6,['drenaggio'],{t:'heal',tg:'h',v:3},{t:'date',mo:2,dy:19,km:10},'Drenaggio. GdB: cura 3 HP. Sblocca: 19 febbraio (km evento).'),
+    // ── CUCCIOLI (6) — vittorie arena ──────────────────────────────────────
+    _mkg('ignetto','Ignetto','Cucciolo di Ouroboros','cucciolo','cucciolo','🐣',1,1,1,[],{t:'dmg',tg:'face',v:1},{t:'win',cd:'arena_wins',vl:1,km:5},'GdB: 1 danno al boss. Sblocca: 1 vittoria arena.'),
+    _mkg('aquolino','Aquolino','Cucciolo di Leviatano','cucciolo','cucciolo','🐣',1,1,2,[],null,{t:'win',cd:'arena_wins',vl:5,km:5},'Sblocca: 5 vittorie arena.'),
+    _mkg('umbretto','Umbretto','Cucciolo di Vacuitas','cucciolo','cucciolo','🐣',2,2,2,[],null,{t:'win',cd:'arena_wins',vl:10,km:5},'Sblocca: 10 vittorie arena.'),
+    _mkg('luxino','Luxino','Cucciolo di Empyreo','cucciolo','cucciolo','🐣',2,2,2,[],{t:'heal',tg:'h',v:2},{t:'win',cd:'arena_wins',vl:20,km:5},'GdB: cura 2 HP. Sblocca: 20 vittorie arena.'),
+    _mkg('kronetto','Kronetto','Cucciolo di Kronides','cucciolo','cucciolo','🐣',2,1,3,[],{t:'draw',v:1},{t:'win',cd:'arena_wins',vl:35,km:5},'GdB: pesca 1 carta. Sblocca: 35 vittorie arena.'),
+    _mkg('ventino','Ventino','Cucciolo di Infinitus','cucciolo','cucciolo','🐣',1,2,1,['scatto'],null,{t:'win',cd:'arena_wins',vl:50,km:5},'Scatto. Sblocca: 50 vittorie arena.'),
+    // ── MITOLOGICI (5) — km totali ─────────────────────────────────────────
+    _mkg('hydrakis','Hydrakis','L\'Idra','mitologo','mitologo','🐲',7,5,8,[],{t:'heal',tg:'h',v:7},{t:'km',tot:100,km:15},'GdB: cura 7 HP. Sblocca: 100 km totali (km evento).'),
+    _mkg('wyverna','Wyverna','Il Wyvern','mitologo','mitologo','🦎',6,7,5,['scatto'],{t:'dmg',tg:'face',v:4},{t:'km',tot:250,km:15},'Scatto. GdB: 4 danni al boss. Sblocca: 250 km totali.'),
+    _mkg('basilikos','Basilikos','Il Basilisco','mitologo','mitologo','🐍',6,4,7,['veleno'],{t:'dmg',tg:'aec',v:2},{t:'km',tot:500,km:15},'Veleno. GdB: 2 danni a tutte le creature nemiche. Sblocca: 500 km totali.'),
+    _mkg('quetzalis','Quetzalis','Il Quetzalcoatl','mitologo','mitologo','🦜',7,5,8,[],{t:'heal',tg:'h',v:7},{t:'km',tot:750,km:15},'GdB: cura 7 HP. Sblocca: 750 km totali.'),
+    _mkg('ryukami','Ryukami','Il Ryu Giapponese','mitologo','mitologo','🐉',8,7,8,[],{t:'stat',tg:'afc',a:2,h:2},{t:'km',tot:1000,km:15},'GdB: +2/+2 a tutte le tue creature. Sblocca: 1000 km totali.'),
+    // ── FESTIVI (4) ────────────────────────────────────────────────────────
+    _mkg('lanternax','Lanternax','Drago di Halloween','festivo','festivo','🎃',5,5,5,[],{t:'destroy',tg:'rec'},{t:'date',mo:10,dy:31,km:10},'GdB: distruggi una creatura nemica casuale. Sblocca: 31 ottobre (km evento).'),
+    _mkg('natalis','Natalis','Drago di Natale','festivo','festivo','🎄',5,4,6,[],{t:'draw',v:3},{t:'date',mo:12,dy:25,km:10},'GdB: pesca 3 carte. Sblocca: 25 dicembre (km evento).'),
+    _mkg('amoria','Amoria','Drago di San Valentino','festivo','festivo','💝',5,4,5,['drenaggio'],{t:'heal',tg:'h',v:5},{t:'date',mo:2,dy:14,km:10},'Drenaggio. GdB: cura 5 HP. Sblocca: 14 febbraio (km evento).'),
+    _mkg('novoanno','Novoanno','Drago di Capodanno','festivo','festivo','🎆',6,5,6,[],{t:'dmg',tg:'aec',v:3},{t:'date',mo:1,dy:1,km:10},'GdB: 3 danni a tutte le creature nemiche. Sblocca: 1 gennaio (km evento).'),
+    // ── DRAGHI ATTIVITÀ (8) ────────────────────────────────────────────────
+    _mkg('velocardo','Velocardo','Drago della Corsa','attivita','attivita','🏃',3,4,3,['scatto'],null,{t:'win',cd:'run_km',vl:100,km:8},'Scatto. Sblocca: 100 km di corsa.'),
+    _mkg('pedelento','Pedelento','Drago della Camminata','attivita','attivita','🚶',3,2,5,['provocazione'],null,{t:'win',cd:'walk_km',vl:200,km:8},'Provocazione. Sblocca: 200 km di camminata.'),
+    _mkg('ciclodrak','Ciclodrak','Drago della Cyclette','attivita','attivita','🚴',3,3,4,[],null,{t:'win',cd:'cycle_km',vl:100,km:8},'Sblocca: 100 km di cyclette.'),
+    _mkg('strikeflame','Strikeflame','Drago della Serie Allenamenti','attivita','attivita','🔥',4,5,4,['scatto'],null,{t:'win',cd:'streak',vl:10,km:8},'Scatto. Sblocca: serie allenamenti da 10 giorni.'),
+    _mkg('arenadrax','Arenadrax','Drago dell\'Arena','attivita','attivita','⚔️',5,5,5,[],{t:'dmg',tg:'face',v:3},{t:'win',cd:'arena_battles',vl:30,km:8},'GdB: 3 danni al boss. Sblocca: 30 duelli arena.'),
+    _mkg('bossomber','Bossomber','Drago dei Boss Settimanali','attivita','attivita','💀',5,4,6,[],{t:'destroy',tg:'rec'},{t:'win',cd:'weekly_bosses',vl:10,km:8},'GdB: distruggi una creatura casuale. Sblocca: 10 boss settimanali.'),
+    _mkg('guildmaster','Guildmaster','Drago delle Gilde','attivita','attivita','🏰',5,5,5,[],{t:'stat',tg:'afc',a:1,h:1},{t:'win',cd:'guild_member',vl:1,km:8},'GdB: +1/+1 a tutte le tue creature. Sblocca: unisciti a una gilda.'),
+    _mkg('passante','Passante','Drago del Pass Stagionale','attivita','attivita','⭐',4,4,5,[],{t:'draw',v:2},{t:'win',cd:'season_pass',vl:1,km:8},'GdB: pesca 2 carte. Sblocca: completa 1 pass stagionale.'),
+  ];
     { id:'dc_ignis_c2',    dragon:'ignis',   type:'offensiva', rarity:'comune',      name:'Braci Vive',                icon:'🔥', atk:2, def:2, heal:1, effect:'burn', effectVal:1, desc:'2 danni, assorbe 2 + 1 bruciatura al prossimo turno.' },
     { id:'dc_ignis_nc1',   dragon:'ignis',   type:'offensiva', rarity:'non_comune',  name:'Artiglio Ardente',          icon:'🔥', atk:4, def:2, heal:1, desc:'4 danni, assorbe 2 e recupera 1 HP.' },
     { id:'dc_ignis_nc2',   dragon:'ignis',   type:'offensiva', rarity:'non_comune',  name:'Soffio di Brace',           icon:'🔥', atk:4, def:1, heal:2, effect:'burn', effectVal:2, desc:'4 danni + 2 bruciatura. Recupera 2 HP.' },
@@ -7217,32 +7445,34 @@ const RPG = (() => {
   };
 })();
 
-// DC_BOSSES, dcInitBattle, dcPlayCard, dcClaimVictory — globali, definite sotto
+// DC_BOSSES, dcInitBattle, dcPlayCard, dcAttack, dcEndHeroTurn, dcClaimVictory — globali
 
 /* ══════════════════════════════════════════════════════════════
-   DUELLO CARTE DEI DRAGHI — Engine
+   DUELLO CARTE DEI DRAGHI — Engine v2 (TCG Board-Based)
    ══════════════════════════════════════════════════════════════ */
-/// Nota: dichiarate fuori dall'IIFE ma usate solo da app-market.js
 
-const DC_BOSSES = (() => {
-  return [
-    { id:'dcb_bramble', name:'Bramble il Boscaiolo', dragon:'silvano', icon:'🌿', hp:22, difficulty:1,
-      quote:'«La foresta nutre chi la rispetta. Distrugge chi la sfida.»',
-      reward:{ gold:50, cardChance:.35, cardRarities:['comune','non_comune'] } },
-    { id:'dcb_ferrus',  name:'Ferrus l\'Incudine',   dragon:'terras',  icon:'🪨', hp:27, difficulty:2,
-      quote:'«La pietra dura mille anni. Quanto durarà tu?»',
-      reward:{ gold:90, cardChance:.50, cardRarities:['comune','non_comune','raro'] } },
-    { id:'dcb_glaciar', name:'Glaciar il Gelido',    dragon:'glacio',  icon:'❄️', hp:30, difficulty:3,
-      quote:'«Il freddo sospende il tempo. Il tempo ferma tutto.»',
-      reward:{ gold:140, cardChance:.65, cardRarities:['non_comune','raro','epico'] } },
-    { id:'dcb_ignar',   name:'Ignar il Sempiterno',  dragon:'ignis',   icon:'🔥', hp:36, difficulty:4,
-      quote:'«Brucia tutto. Rinasce solo ciò che è degno.»',
-      reward:{ gold:200, cardChance:.80, cardRarities:['raro','epico'] } },
-    { id:'dcb_voltex',  name:'Voltex il Fulmineo',   dragon:'mixed',   icon:'⚡', hp:42, difficulty:5,
-      quote:'«Sono la tempesta. Tu sei polvere nel vento.»',
-      reward:{ gold:320, cardChance:.95, cardRarities:['epico','leggendario'], guaranteed:true } },
-  ];
-})();
+const DC_BOSSES = [
+  { id:'dcb_bramble', name:'Bramble il Boscaiolo', icon:'🌿', difficulty:1, hp:25,
+    quote:'«La foresta nutre chi la rispetta. Distrugge chi la sfida.»',
+    deckRars:['comune','non_comune'], deckSize:15,
+    reward:{ gold:60, cardChance:.35, rarities:['comune','non_comune'] } },
+  { id:'dcb_ferrus',  name:'Ferrus l\'Incudine',   icon:'🪨', difficulty:2, hp:30,
+    quote:'«La pietra dura mille anni. Quanto durarà tu?»',
+    deckRars:['comune','non_comune','raro'], deckSize:15,
+    reward:{ gold:100, cardChance:.50, rarities:['non_comune','raro'] } },
+  { id:'dcb_glaciar', name:'Glaciar il Gelido',    icon:'❄️', difficulty:3, hp:35,
+    quote:'«Il freddo sospende il tempo. Il tempo ferma tutto.»',
+    deckRars:['non_comune','raro','epico'], deckSize:15,
+    reward:{ gold:160, cardChance:.65, rarities:['raro','epico'] } },
+  { id:'dcb_ignar',   name:'Ignar il Sempiterno',  icon:'🔥', difficulty:4, hp:40,
+    quote:'«Brucia tutto. Rinasce solo ciò che è degno.»',
+    deckRars:['raro','epico','leggendario'], deckSize:15,
+    reward:{ gold:240, cardChance:.80, rarities:['epico','leggendario'] } },
+  { id:'dcb_voltex',  name:'Voltex il Fulmineo',   icon:'⚡', difficulty:5, hp:45,
+    quote:'«Sono la tempesta. Tu sei polvere nel vento.»',
+    deckRars:['epico','leggendario','introvabile'], deckSize:15,
+    reward:{ gold:400, cardChance:.95, rarities:['leggendario','introvabile'], guaranteed:true } },
+];
 
 function _dcShuffle(arr) {
   const a = arr.slice();
@@ -7253,156 +7483,326 @@ function _dcShuffle(arr) {
   return a;
 }
 
-function _dcBossDeck(dragonType) {
-  const pool = dragonType === 'mixed'
-    ? RPG.DRAGON_CARDS.slice()
-    : RPG.DRAGON_CARDS.filter(c => c.dragon === dragonType);
-  const byRar = ['leggendario','epico','raro','non_comune','comune'];
-  const deck = [];
-  byRar.forEach(rar => {
-    pool.filter(c => c.rarity === rar).forEach(c => { if (deck.length < 10) deck.push(c.id); });
-  });
-  return _dcShuffle(deck);
+function _dcMakeCreature(card, iid, canAttack) {
+  return {
+    iid, cardId: card.id, name: card.name, icon: card.icon,
+    atk: card.atk, hp: card.hp, maxHp: card.hp,
+    kws: (card.kws || []).slice(),
+    canAttack: canAttack || false,
+    hasAttacked: false,
+    divineShield: (card.kws || []).includes('scudo_divino'),
+    frozen: 0,
+  };
 }
 
-function _dcDraw(side) {
-  if (!side.deck.length) {
-    if (!side.discard.length) return;
-    side.deck = _dcShuffle(side.discard.slice());
-    side.discard = [];
-  }
-  side.hand.push(side.deck.shift());
+function _dcHasProvocazione(board) {
+  return board.some(c => c.kws.includes('provocazione'));
 }
 
-function _dcApplyCard(attacker, defender, card) {
-  const entry = { cardId:card.id, cardName:card.name, cardIcon:card.icon,
-                  atk:0, def:0, heal:0, effects:[] };
+function _dcResolveCombat(attacker, defender, heroRef, isAttackerHero) {
+  const msgs = [];
+  let defDmg = attacker.atk;
 
-  // Damage
-  let dmg = card.atk || 0;
-  if (card.effect === 'double') dmg *= 2;
-  if ((defender.shield || 0) > 0) {
-    const blocked = Math.min(defender.shield, dmg);
-    defender.shield -= blocked; dmg -= blocked;
-    if (blocked) entry.effects.push('🔵 Scudo -' + blocked);
+  if (defender.divineShield && defDmg > 0) {
+    defender.divineShield = false; defDmg = 0;
+    msgs.push('✨ Scudo Divino di ' + defender.name + ' assorbito!');
   }
-  if (dmg > 0) {
-    if (defender.hp - dmg <= 0 && defender.effects && defender.effects.revive) {
-      defender.hp = 1; defender.effects.revive = false;
-      entry.effects.push('✨ Rinato con 1 HP!');
-    } else {
-      defender.hp = Math.max(0, defender.hp - dmg);
+
+  if (attacker.kws && attacker.kws.includes('veleno') && defDmg > 0) {
+    defender.hp = 0;
+    msgs.push('☠️ Veleno — ' + defender.name + ' è avvelenato!');
+  } else if (defDmg > 0) {
+    defender.hp -= defDmg;
+  }
+
+  if (attacker.kws && attacker.kws.includes('drenaggio') && defDmg > 0 && heroRef) {
+    heroRef.hp = Math.min(heroRef.maxHp, heroRef.hp + defDmg);
+    msgs.push('💚 Drenaggio: +' + defDmg + ' HP');
+  }
+
+  if (!isAttackerHero) {
+    const atkDmg = defender.atk;
+    if (attacker.divineShield && atkDmg > 0) {
+      attacker.divineShield = false;
+    } else if (atkDmg > 0) {
+      if (defender.kws && defender.kws.includes('veleno')) attacker.hp = 0;
+      else attacker.hp -= atkDmg;
     }
-    entry.atk = dmg;
   }
 
-  // Shield gain
-  if ((card.def || 0) > 0) { attacker.shield = (attacker.shield || 0) + card.def; entry.def = card.def; }
+  return msgs;
+}
 
-  // Heal
-  if ((card.heal || 0) > 0) {
-    const gained = Math.min(attacker.maxHp - attacker.hp, card.heal);
-    attacker.hp += gained; entry.heal = gained;
+function _dcBossDeck(boss) {
+  const pool = RPG.DRAGON_CARDS.filter(c => boss.deckRars.includes(c.rar));
+  return _dcShuffle(pool).slice(0, boss.deckSize).map(c => c.id);
+}
+
+function _dcDraw(side, n) {
+  n = n || 1;
+  for (let i = 0; i < n; i++) {
+    if (side.hand.length >= 10) break;
+    if (!side.deck.length) {
+      if (!side.discard.length) break;
+      side.deck = _dcShuffle(side.discard.slice());
+      side.discard = [];
+    }
+    side.hand.push(side.deck.shift());
   }
+}
 
-  // Special effects
-  const eff = card.effect, ev = card.effectVal || 2;
-  if (eff === 'burn')    { defender.effects.burn  = (defender.effects.burn  || 0) + ev; entry.effects.push('🔥 Bruciatura +' + ev); }
-  else if (eff === 'stun')   { defender.effects.stun  = (defender.effects.stun  || 0) + 1; entry.effects.push('⚡ Stordimento!'); }
-  else if (eff === 'freeze') { defender.shield = Math.max(0, (defender.shield || 0) - ev); entry.effects.push('❄️ Gelo -' + ev + ' scudo'); }
-  else if (eff === 'cleanse'){ attacker.effects.burn = 0; attacker.effects.stun = 0; entry.effects.push('🌊 Purificato'); }
-  else if (eff === 'shield') { attacker.shield = (attacker.shield || 0) + 3; entry.effects.push('🔵 Scudo +3'); }
-  else if (eff === 'revive') { attacker.effects.revive = true; entry.effects.push('✨ Rinascita pronta'); }
-  else if (eff === 'draw')   { entry._drawExtra = ev; entry.effects.push('🃏 Pesca ' + ev); }
-  else if (eff === 'double') { entry.effects.push('✕2 Doppio colpo'); }
+function _dcApplyBc(bc, state, playerId) {
+  if (!bc) return;
+  const bcs = Array.isArray(bc) ? bc : [bc];
+  const friendly = state[playerId];
+  const enemy = playerId === 'hero' ? state.boss : state.hero;
+  const heroRef = playerId === 'hero' ? state.hero : state.boss;
 
-  return entry;
+  for (const b of bcs) {
+    if (b.t === 'dmg') {
+      if (b.tg === 'face') {
+        const arm = enemy.armor || 0;
+        const dmg = Math.max(0, b.v - arm);
+        enemy.armor = Math.max(0, arm - b.v);
+        enemy.hp = Math.max(0, enemy.hp - dmg);
+        state.log.push('💥 GdB: ' + dmg + ' danni a ' + (playerId === 'hero' ? state.boss.name : 'Eroe'));
+      } else if (b.tg === 'aec') {
+        enemy.board.forEach(c => { if (c.divineShield) c.divineShield = false; else c.hp -= b.v; });
+        enemy.board = enemy.board.filter(c => c.hp > 0);
+        state.log.push('💥 GdB: ' + b.v + ' danni a tutte le creature nemiche');
+      } else if (b.tg === 'aen') {
+        enemy.board.forEach(c => { if (c.divineShield) c.divineShield = false; else c.hp -= b.v; });
+        enemy.board = enemy.board.filter(c => c.hp > 0);
+        enemy.hp = Math.max(0, enemy.hp - b.v);
+        state.log.push('💥 GdB: ' + b.v + ' danni a tutti i nemici');
+      } else if (b.tg === 'rec') {
+        const tgts = enemy.board.filter(c => !c.divineShield);
+        if (tgts.length) {
+          const t = tgts[Math.floor(Math.random() * tgts.length)];
+          t.hp -= b.v;
+          enemy.board = enemy.board.filter(c => c.hp > 0);
+          state.log.push('💥 GdB: ' + b.v + ' danni a ' + t.icon + ' ' + t.name);
+        }
+      }
+    } else if (b.t === 'heal') {
+      if (b.tg === 'h') {
+        friendly.hp = Math.min(friendly.maxHp, friendly.hp + b.v);
+        state.log.push('💚 GdB: +' + b.v + ' HP');
+      } else if (b.tg === 'afc') {
+        friendly.board.forEach(c => { c.hp = Math.min(c.maxHp, c.hp + b.v); });
+        state.log.push('💚 GdB: +' + b.v + ' HP a tutte le creature alleate');
+      }
+    } else if (b.t === 'buff') {
+      friendly.board.forEach(c => {
+        if (b.atk) c.atk += b.atk;
+        if (b.hp)  { c.hp += b.hp; c.maxHp += b.hp; }
+      });
+      state.log.push('⬆️ GdB: potenzia le creature' + (b.atk ? ' +' + b.atk + '⚔️' : '') + (b.hp ? ' +' + b.hp + '❤️' : ''));
+    } else if (b.t === 'armor') {
+      friendly.armor = (friendly.armor || 0) + b.v;
+      state.log.push('🛡️ GdB: +' + b.v + ' Armatura');
+    } else if (b.t === 'draw') {
+      _dcDraw(friendly, b.v);
+      state.log.push('🃏 GdB: pesca ' + b.v + ' carte');
+    }
+  }
 }
 
 function _dcBossAI(state) {
-  const hand = state.boss.hand;
-  if (!hand.length) return null;
-  const scored = hand.map(id => {
-    const card = RPG.DRAGON_CARDS.find(c => c.id === id);
-    if (!card) return { id, score: 0 };
-    let score = (card.atk || 0) + (card.def || 0) + (card.heal || 0);
-    if (state.boss.hp < state.boss.maxHp * .35) score += (card.heal || 0) * 2 + (card.def || 0);
-    if (state.hero.hp  < state.hero.maxHp  * .35) score += (card.atk  || 0) * 2;
-    return { id, score };
-  });
-  scored.sort((a, b) => b.score - a.score);
-  return scored[Math.floor(Math.random() * Math.min(2, scored.length))].id;
+  const boss = state.boss;
+  let mana = boss.mana.max;
+
+  const handCards = boss.hand
+    .map(id => RPG.DRAGON_CARDS.find(c => c.id === id)).filter(Boolean)
+    .sort((a, b) => b.cost - a.cost);
+
+  for (const card of handCards) {
+    if (boss.board.length >= 4) break;
+    if (card.cost <= mana) {
+      mana -= card.cost;
+      const idx = boss.hand.indexOf(card.id);
+      if (idx !== -1) boss.hand.splice(idx, 1);
+      boss.discard.push(card.id);
+      const iid = ++state._instId;
+      const canAtk = (card.kws || []).includes('scatto');
+      boss.board.push(_dcMakeCreature(card, iid, canAtk));
+      state.log.push('🤖 ' + boss.name + ' gioca ' + card.icon + ' ' + card.name);
+      if (card.bc) _dcApplyBc(card.bc, state, 'boss');
+    }
+  }
+
+  for (const creature of boss.board) {
+    if (!creature.canAttack || creature.hasAttacked) continue;
+    const heroHasProv = _dcHasProvocazione(state.hero.board);
+
+    if (heroHasProv) {
+      const taunts = state.hero.board.filter(c => c.kws.includes('provocazione'));
+      const t = taunts[Math.floor(Math.random() * taunts.length)];
+      const msgs = _dcResolveCombat(creature, t, state.boss, false);
+      msgs.forEach(m => state.log.push(m));
+      state.log.push('⚔️ ' + creature.icon + ' ' + creature.name + ' attacca ' + t.icon + ' ' + t.name);
+    } else if (state.hero.board.length && Math.random() < 0.55) {
+      const t = state.hero.board[Math.floor(Math.random() * state.hero.board.length)];
+      const msgs = _dcResolveCombat(creature, t, state.boss, false);
+      msgs.forEach(m => state.log.push(m));
+      state.log.push('⚔️ ' + creature.icon + ' ' + creature.name + ' attacca ' + t.icon + ' ' + t.name);
+    } else {
+      const arm = state.hero.armor || 0;
+      const dmg = Math.max(0, creature.atk - arm);
+      state.hero.armor = Math.max(0, arm - creature.atk);
+      state.hero.hp = Math.max(0, state.hero.hp - dmg);
+      state.log.push('⚔️ ' + creature.icon + ' ' + creature.name + ' attacca la tua faccia: -' + dmg + ' HP');
+      if ((creature.kws || []).includes('drenaggio') && dmg > 0) {
+        boss.hp = Math.min(boss.maxHp, boss.hp + dmg);
+        state.log.push('💚 Drenaggio boss: +' + dmg + ' HP');
+      }
+    }
+
+    creature.hasAttacked = true;
+    state.hero.board = state.hero.board.filter(c => c.hp > 0);
+    boss.board = boss.board.filter(c => c.hp > 0);
+    if (state.hero.hp <= 0 || state.boss.hp <= 0) break;
+  }
+
+  boss.mana.current = 0;
 }
 
 function dcInitBattle(heroDeckIds, bossId) {
-  const boss = DC_BOSSES.find(b => b.id === bossId);
-  if (!boss) return null;
-  const heroDeck = _dcShuffle(heroDeckIds.slice(0, 10));
-  const bossDeck = _dcBossDeck(boss.dragon);
-  const heroHand = heroDeck.splice(0, 3);
+  const bossData = DC_BOSSES.find(b => b.id === bossId);
+  if (!bossData) return null;
+  const heroDeck = _dcShuffle(heroDeckIds.slice(0, 20));
+  const bossDeck = _dcBossDeck(bossData);
+  const heroHand = heroDeck.splice(0, 4);
   const bossHand = bossDeck.splice(0, 3);
   return {
-    hero: { hp:30, maxHp:30, deck:heroDeck, hand:heroHand, discard:[], shield:0, effects:{burn:0,stun:0,revive:false} },
-    boss: { id:boss.id, name:boss.name, icon:boss.icon, quote:boss.quote,
-            hp:boss.hp, maxHp:boss.hp, deck:bossDeck, hand:bossHand, discard:[], shield:0, effects:{burn:0,stun:0} },
-    turn:1, winner:null, reward:boss.reward, lastEntry:null,
+    phase: 'hero_main',
+    turn: 1,
+    mana: { current: 1, max: 1 },
+    hero: { hp:30, maxHp:30, armor:0, hand:heroHand, deck:heroDeck, discard:[], board:[] },
+    boss: {
+      id:bossData.id, name:bossData.name, icon:bossData.icon,
+      quote:bossData.quote, difficulty:bossData.difficulty,
+      hp:bossData.hp, maxHp:bossData.hp, armor:0,
+      mana:{ current:0, max:0 },
+      hand:bossHand, deck:bossDeck, discard:[], board:[],
+    },
+    log: ['⚔️ La battaglia ha inizio! ' + bossData.icon + ' ' + bossData.name + ' sfida il tuo mazzo!',
+          '── Turno 1 — Mana: 1/1 ──'],
+    winner: null,
+    reward: bossData.reward,
+    _instId: 0,
   };
 }
 
 function dcPlayCard(state, cardId) {
   state = JSON.parse(JSON.stringify(state));
-  const entry = { turn:state.turn, msgs:[], playerEntry:null, bossEntry:null };
-
-  // Burn tick
-  if ((state.hero.effects.burn || 0) > 0) {
-    const d = state.hero.effects.burn; state.hero.hp = Math.max(0, state.hero.hp - d);
-    state.hero.effects.burn = 0; entry.msgs.push({ who:'hero', text:'🔥 Bruciatura: -' + d + ' HP' });
+  if (state.phase !== 'hero_main') return state;
+  const card = RPG.DRAGON_CARDS.find(c => c.id === cardId);
+  if (!card) return state;
+  const idx = state.hero.hand.indexOf(cardId);
+  if (idx === -1) return state;
+  if ((card.cost || 0) > state.mana.current) {
+    state.log.push('❌ Mana insufficiente! (' + card.cost + ' richiesto, ' + state.mana.current + ' disponibile)');
+    return state;
   }
-  if ((state.boss.effects.burn || 0) > 0) {
-    const d = state.boss.effects.burn; state.boss.hp = Math.max(0, state.boss.hp - d);
-    state.boss.effects.burn = 0; entry.msgs.push({ who:'boss', text:'🔥 Bruciatura: -' + d + ' HP a ' + state.boss.name });
+  if (card.type === 'creatura' && state.hero.board.length >= 4) {
+    state.log.push('❌ Campo pieno! Non puoi posizionare altre creature.');
+    return state;
   }
+  state.mana.current -= (card.cost || 0);
+  state.hero.hand.splice(idx, 1);
+  state.hero.discard.push(cardId);
 
-  // Hero turn
-  if ((state.hero.effects.stun || 0) > 0) {
-    state.hero.effects.stun--;
-    entry.msgs.push({ who:'hero', text:'⚡ Sei stordito — turno saltato!' });
+  if (card.type === 'creatura') {
+    const iid = ++state._instId;
+    const canAtk = (card.kws || []).includes('scatto');
+    state.hero.board.push(_dcMakeCreature(card, iid, canAtk));
+    state.log.push('🐉 Giochi ' + card.icon + ' ' + card.name + ' (' + card.cost + ' mana) — ' + card.atk + '⚔️ ' + card.hp + '❤️');
   } else {
-    const idx = state.hero.hand.indexOf(cardId);
-    if (idx !== -1) {
-      state.hero.hand.splice(idx, 1); state.hero.discard.push(cardId);
-      const card = RPG.DRAGON_CARDS.find(c => c.id === cardId);
-      if (card) {
-        const pe = _dcApplyCard(state.hero, state.boss, card);
-        if (pe._drawExtra) for (let i = 0; i < pe._drawExtra; i++) _dcDraw(state.hero);
-        entry.playerEntry = pe;
-      }
-    }
+    state.log.push('✨ Lanci ' + card.icon + ' ' + card.name);
+  }
+  if (card.bc) _dcApplyBc(card.bc, state, 'hero');
+
+  state.hero.board = state.hero.board.filter(c => c.hp > 0);
+  state.boss.board = state.boss.board.filter(c => c.hp > 0);
+  if (state.boss.hp <= 0) { state.winner = 'player'; state.phase = 'ended'; }
+  if (state.hero.hp <= 0) { state.winner = 'boss';   state.phase = 'ended'; }
+  return state;
+}
+
+function dcAttack(state, attackerIid, targetIid) {
+  state = JSON.parse(JSON.stringify(state));
+  if (state.phase !== 'hero_main') return state;
+
+  const attacker = state.hero.board.find(c => c.iid === attackerIid);
+  if (!attacker || attacker.hasAttacked || !attacker.canAttack) {
+    state.log.push('❌ Questa creatura non può attaccare ora.');
+    return state;
   }
 
-  if (state.boss.hp <= 0) { state.winner = 'player'; state.lastEntry = entry; return state; }
-  if (state.hero.hp <= 0) { state.winner = 'boss';   state.lastEntry = entry; return state; }
+  const bossHasProv = _dcHasProvocazione(state.boss.board);
 
-  // Boss turn
-  if ((state.boss.effects.stun || 0) > 0) {
-    state.boss.effects.stun--;
-    entry.msgs.push({ who:'boss', text:'⚡ ' + state.boss.name + ' è stordito — salta il turno!' });
+  if (targetIid === 'face') {
+    if (bossHasProv) { state.log.push('❌ Devi attaccare la creatura con Provocazione!'); return state; }
+    const arm = state.boss.armor || 0;
+    const dmg = Math.max(0, attacker.atk - arm);
+    state.boss.armor = Math.max(0, arm - attacker.atk);
+    state.boss.hp = Math.max(0, state.boss.hp - dmg);
+    state.log.push('⚔️ ' + attacker.icon + ' ' + attacker.name + ' attacca ' + state.boss.name + ': -' + dmg + ' HP');
+    if (attacker.kws.includes('drenaggio') && dmg > 0) {
+      state.hero.hp = Math.min(state.hero.maxHp, state.hero.hp + dmg);
+      state.log.push('💚 Drenaggio: +' + dmg + ' HP');
+    }
   } else {
-    const bId = _dcBossAI(state);
-    if (bId) {
-      const bi = state.boss.hand.indexOf(bId);
-      if (bi !== -1) { state.boss.hand.splice(bi, 1); state.boss.discard.push(bId); }
-      const bc = RPG.DRAGON_CARDS.find(c => c.id === bId);
-      if (bc) { entry.bossEntry = _dcApplyCard(state.boss, state.hero, bc); }
+    const target = state.boss.board.find(c => c.iid === targetIid);
+    if (!target) return state;
+    if (bossHasProv && !target.kws.includes('provocazione')) {
+      state.log.push('❌ Devi attaccare la creatura con Provocazione!'); return state;
     }
+    const msgs = _dcResolveCombat(attacker, target, state.hero, false);
+    msgs.forEach(m => state.log.push(m));
+    state.log.push('⚔️ ' + attacker.icon + ' ' + attacker.name + ' (' + attacker.atk + ') vs ' +
+      target.icon + ' ' + target.name + ' (' + target.atk + ')');
+    state.hero.board = state.hero.board.filter(c => c.hp > 0);
+    state.boss.board = state.boss.board.filter(c => c.hp > 0);
   }
 
-  if (state.hero.hp <= 0) { state.winner = 'boss';   state.lastEntry = entry; return state; }
-  if (state.boss.hp <= 0) { state.winner = 'player'; state.lastEntry = entry; return state; }
+  const atk = state.hero.board.find(c => c.iid === attackerIid);
+  if (atk) atk.hasAttacked = true;
+  if (state.boss.hp <= 0) { state.winner = 'player'; state.phase = 'ended'; }
+  if (state.hero.hp <= 0) { state.winner = 'boss';   state.phase = 'ended'; }
+  return state;
+}
 
-  _dcDraw(state.hero); _dcDraw(state.boss);
+function dcEndHeroTurn(state) {
+  state = JSON.parse(JSON.stringify(state));
+  if (state.phase !== 'hero_main') return state;
+  state.phase = 'boss_turn';
+  state.log.push('── Fine turno ' + state.turn + ' ──');
+
+  _dcDraw(state.hero, 1);
+
+  const bossManaMax = Math.min(8, state.turn);
+  state.boss.mana = { current: bossManaMax, max: bossManaMax };
+  _dcDraw(state.boss, 1);
+  state.boss.board.forEach(c => { c.canAttack = true; c.hasAttacked = false; });
+
+  _dcBossAI(state);
+
+  if (state.hero.hp <= 0) { state.winner = 'boss';   state.phase = 'ended'; return state; }
+  if (state.boss.hp <= 0) { state.winner = 'player'; state.phase = 'ended'; return state; }
+
   state.turn++;
-  state.lastEntry = entry;
+  const newManaMax = Math.min(8, state.turn);
+  state.mana = { current: newManaMax, max: newManaMax };
+  state.hero.board.forEach(c => {
+    c.hasAttacked = false;
+    if (c.frozen > 0) { c.frozen--; c.canAttack = false; }
+    else c.canAttack = true;
+  });
+  state.boss.board.forEach(c => { c.hasAttacked = false; });
+  state.phase = 'hero_main';
+  state.log.push('── Turno ' + state.turn + ' — Mana: ' + state.mana.current + '/' + state.mana.max + ' ──');
   return state;
 }
 
@@ -7410,11 +7810,11 @@ function dcClaimVictory(state, hero) {
   if (state.winner !== 'player') return null;
   const r = state.reward || {};
   const earned = { gold: r.gold || 0, card: null };
-  hero.gold += earned.gold;
+  hero.gold = (hero.gold || 0) + earned.gold;
   const ownedIds = new Set((hero.dragonCards || []).map(c => c.id));
-  const rarities = r.cardRarities || ['comune','non_comune'];
+  const rarities = r.rarities || ['comune','non_comune'];
   if (r.guaranteed || Math.random() < (r.cardChance || .5)) {
-    const cands = RPG.DRAGON_CARDS.filter(c => rarities.includes(c.rarity) && !ownedIds.has(c.id));
+    const cands = RPG.DRAGON_CARDS.filter(c => rarities.includes(c.rar) && !ownedIds.has(c.id));
     if (cands.length) {
       const pick = cands[Math.floor(Math.random() * cands.length)];
       hero.dragonCards = hero.dragonCards || [];
