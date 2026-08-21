@@ -1921,6 +1921,9 @@ img.fiche-inline {
   display: flex; justify-content: center; gap: 16px;
   margin: 0 0 10px;
 }
+.reliquia-slot { border-style: dashed; }
+.reliquia-slot.reliquia-locked { opacity: .55; cursor: not-allowed; }
+.reliquia-lv { font-size: .65rem; color: var(--muted); }
 .equip-slot {
   position: relative; overflow: hidden;
   width: 64px; height: 64px; border-radius: 12px;
