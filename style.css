@@ -10126,6 +10126,8 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
   scrollbar-width: thin; scrollbar-color: var(--divider) transparent;
 }
 .dc-dragon-row::-webkit-scrollbar { height: 4px; }
+.dc-collection-hdr-icon { width: 28px; height: 28px; object-fit: contain; vertical-align: middle; margin-right: 4px; mix-blend-mode: multiply; }
+.dc-collection-sub { font-size: .8rem; color: var(--gold-bright); text-align: center; margin: 4px 0 0; opacity: .9; }
 .dc-row-more-btn {
   flex-shrink: 0; align-self: center;
   width: 48px; height: 80px; border-radius: 10px;

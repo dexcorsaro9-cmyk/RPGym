@@ -523,8 +523,8 @@ function renderAntroDragonCardsView(c) {
 
   const header = el('div', 'dc-collection-header');
   header.innerHTML = `
-    <h2 class="section-title">🐲 Collezione dei Draghi</h2>
-    <p class="muted small center">${totalOwned} / ${allCards.length} draghi scoperti · Si sbloccano con gli allenamenti dal Lv 30</p>
+    <h2 class="section-title"><img src="assets/icons/icona box dominio dei draghi.webp" class="dc-collection-hdr-icon" alt=""> Collezione dei Draghi</h2>
+    <p class="dc-collection-sub">${totalOwned} / ${allCards.length} draghi scoperti · Si sbloccano con gli allenamenti dal Lv 30</p>
     <div class="dc-progress-bar-wrap">
       <div class="dc-progress-bar-fill" style="width:${Math.round(totalOwned/allCards.length*100)}%"></div>
     </div>
