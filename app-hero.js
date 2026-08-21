@@ -1212,9 +1212,21 @@ function _renderDragonAlbum(c) {
   const total = RPG.DRAGON_CARDS.length;
   const owned = ownedIds.size;
 
-  const hdr = el('h3', 'section-title on-parchment-title small-title', `🐉 Album del Dominio dei Draghi`);
-  c.appendChild(hdr);
-  c.appendChild(el('p', 'muted small center', `${owned} / ${total} draghi scoperti`));
+  // Collapsible panel wrapper
+  const panel = el('div', 'dc-album-panel');
+  const panelHdr = el('button', 'dc-album-panel-hdr');
+  panelHdr.innerHTML = `
+    <span class="dc-album-panel-left">
+      <span class="dc-album-panel-icon">🐉</span>
+      <span>
+        <span class="dc-album-panel-title">Album del Dominio dei Draghi</span>
+        <span class="dc-album-panel-meta">${owned} / ${total} scoperti</span>
+      </span>
+    </span>
+    <span class="dc-album-panel-toggle">▼</span>`;
+  panel.appendChild(panelHdr);
+
+  const body = el('div', 'dc-album-panel-body collapsed');
 
   // Filter bar
   const cats = [...new Set(RPG.DRAGON_CARDS.map(dc => dc.cat))];
@@ -1222,10 +1234,19 @@ function _renderDragonAlbum(c) {
   let activeCat = 'tutti';
   filterWrap.innerHTML = `<button class="dc-filter-btn active" data-cat="tutti">Tutti</button>` +
     cats.map(cat => `<button class="dc-filter-btn" data-cat="${cat}">${cat.replace('_',' ')}</button>`).join('');
-  c.appendChild(filterWrap);
+  body.appendChild(filterWrap);
 
   const albumGrid = el('div', 'dc-album-grid');
-  c.appendChild(albumGrid);
+  body.appendChild(albumGrid);
+  panel.appendChild(body);
+  c.appendChild(panel);
+
+  panelHdr.addEventListener('click', () => {
+    const isOpen = !body.classList.contains('collapsed');
+    body.classList.toggle('collapsed', isOpen);
+    panelHdr.querySelector('.dc-album-panel-toggle').textContent = isOpen ? '▼' : '▲';
+    if (!isOpen && !albumGrid.children.length) buildCards('tutti');
+  });
 
   function buildCards(filterCat) {
     albumGrid.innerHTML = '';
