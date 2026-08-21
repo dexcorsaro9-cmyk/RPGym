@@ -10914,22 +10914,79 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
 
 /* ── Album Dominio dei Draghi — pannello collassabile ── */
 .dc-album-panel {
-  margin: 12px 0 8px;
-  border: 1px solid rgba(255,215,0,.2);
-  border-radius: 12px;
+  margin: 4px 0 16px;
+  border-radius: 18px;
   overflow: hidden;
+  border: 2px solid transparent;
+  background:
+    linear-gradient(var(--card-bg, #fff), var(--card-bg, #fff)) padding-box,
+    linear-gradient(135deg, #f1c40f, #e040fb, #3498db, #f1c40f) border-box;
+  box-shadow: 0 4px 24px rgba(241,196,15,.18), 0 1px 6px rgba(0,0,0,.1);
+  position: relative;
 }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .dc-album-panel {
+  background:
+    linear-gradient(#1a1230, #1a1230) padding-box,
+    linear-gradient(135deg, #f1c40f, #e040fb, #3498db, #f1c40f) border-box;
+  box-shadow: 0 4px 32px rgba(224,64,251,.22), 0 2px 8px rgba(0,0,0,.4);
+}}
+:root[data-theme="dark"] .dc-album-panel {
+  background:
+    linear-gradient(#1a1230, #1a1230) padding-box,
+    linear-gradient(135deg, #f1c40f, #e040fb, #3498db, #f1c40f) border-box;
+  box-shadow: 0 4px 32px rgba(224,64,251,.22), 0 2px 8px rgba(0,0,0,.4);
+}
+
 .dc-album-panel-hdr {
   width: 100%; display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 14px; background: rgba(255,215,0,.06);
-  border: none; cursor: pointer; text-align: left; gap: 8px;
-  transition: background .15s;
+  padding: 18px 18px 16px; border: none; cursor: pointer; text-align: left; gap: 12px;
+  background: linear-gradient(135deg, rgba(241,196,15,.10) 0%, rgba(224,64,251,.08) 60%, rgba(52,152,219,.08) 100%);
+  transition: background .2s;
+  position: relative;
 }
-.dc-album-panel-hdr:hover { background: rgba(255,215,0,.1); }
-.dc-album-panel-left { display: flex; align-items: center; gap: 10px; }
-.dc-album-panel-icon { font-size: 1.5rem; line-height: 1; }
-.dc-album-panel-title { display: block; font-weight: 700; font-size: .9rem; color: var(--text); }
-.dc-album-panel-meta { display: block; font-size: .72rem; color: var(--muted); margin-top: 1px; }
-.dc-album-panel-toggle { font-size: .75rem; color: var(--muted); flex-shrink: 0; }
-.dc-album-panel-body { padding: 12px; }
+.dc-album-panel-hdr::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, rgba(241,196,15,.07), transparent 60%);
+  pointer-events: none;
+}
+.dc-album-panel-hdr:hover { background: linear-gradient(135deg, rgba(241,196,15,.16) 0%, rgba(224,64,251,.12) 60%, rgba(52,152,219,.12) 100%); }
+.dc-album-panel-left { display: flex; align-items: center; gap: 14px; }
+.dc-album-panel-icon {
+  font-size: 2.6rem; line-height: 1;
+  filter: drop-shadow(0 0 8px rgba(241,196,15,.5));
+  animation: dc-album-icon-pulse 3s ease-in-out infinite;
+}
+@keyframes dc-album-icon-pulse {
+  0%, 100% { filter: drop-shadow(0 0 8px rgba(241,196,15,.4)); }
+  50%       { filter: drop-shadow(0 0 16px rgba(224,64,251,.7)); }
+}
+.dc-album-panel-text { display: flex; flex-direction: column; gap: 3px; }
+.dc-album-panel-title {
+  display: block; font-weight: 800; font-size: 1.05rem;
+  background: linear-gradient(90deg, #f1c40f, #e040fb);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: .02em;
+}
+.dc-album-panel-sub { font-size: .72rem; color: var(--muted); font-style: italic; }
+.dc-album-panel-meta {
+  display: inline-block; font-size: .72rem; font-weight: 700;
+  background: rgba(241,196,15,.15); border: 1px solid rgba(241,196,15,.3);
+  border-radius: 20px; padding: 2px 10px; color: #f1c40f; margin-top: 2px;
+}
+.dc-album-panel-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+.dc-album-panel-toggle { font-size: .8rem; color: var(--muted); }
+.dc-album-panel-pct {
+  font-size: .65rem; font-weight: 700; color: var(--muted);
+}
+.dc-album-hdr-bar-wrap {
+  width: 60px; height: 5px; background: rgba(255,255,255,.12); border-radius: 3px; overflow: hidden;
+}
+.dc-album-hdr-bar-fill {
+  height: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, #f1c40f, #e040fb);
+  transition: width .4s;
+}
+.dc-album-panel-body { padding: 14px; border-top: 1px solid rgba(241,196,15,.12); }
 .dc-album-panel-body.collapsed { display: none; }
