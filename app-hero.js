@@ -120,7 +120,7 @@ function renderHero(c) {
   const sub = el('div', 'hero-submenu');
   [
     ['story',    'storia',          '📜', 'La tua Storia'],
-    ['cards',    'carte',           '🎴', 'Carte & Imprese'],
+    ['dragon_cards', 'carte',        '🎴', 'Carte & Imprese'],
     ['bestiary', 'bestiario',       '🐉', 'Bestiario'],
     ['diary',    'imprese_stivale', '📊', 'Diario'],
   ].forEach(([k, file, emoji, label]) => {
@@ -1140,7 +1140,7 @@ function renderCronacheView(c) {
 
 function renderDragonCardsHeroView(c) {
   const backBtn = el('button', 'view-back-link', '‹ Eroe');
-  backBtn.addEventListener('click', () => { HERO_VIEW = 'cards'; setTab('hero'); });
+  backBtn.addEventListener('click', () => { HERO_VIEW = 'main'; setTab('hero'); });
   c.appendChild(backBtn);
   renderAntroDragonCardsView(c);
 }
