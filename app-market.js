@@ -601,7 +601,7 @@ function renderAntroDragonCardsView(c) {
 
   const grid = el('div', 'dc-grid');
 
-  const CARDS_PER_ROW = 8;
+  const CARDS_PER_ROW = 12;
   catKeys.forEach(cat => {
     const catCards = allCards.filter(card => card.cat === cat);
     if (!catCards.length) return;
