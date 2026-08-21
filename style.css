@@ -10108,6 +10108,13 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
 
 .dc-duel-btn { display: block; margin: .5rem auto 1rem; padding: .6rem 2rem; font-size: 1rem; }
 .antro-hub-card .dc-duel-btn { margin: .7rem 0 0; width: 100%; }
+.antro-duel-box { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; padding: 10px 12px; border-radius: 10px; border: 1px dashed rgba(255,255,255,.18); background: rgba(0,0,0,.25); }
+.antro-duel-box-open { border-color: rgba(241,196,15,.45); background: rgba(241,196,15,.06); }
+.antro-duel-box-icon { font-size: 1.4rem; flex-shrink: 0; }
+.antro-duel-box-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.antro-duel-box-name { font-weight: 700; font-size: .9rem; color: var(--text); }
+.antro-duel-box-desc { font-size: .78rem; color: var(--muted); }
+.antro-duel-box-btn { margin: 6px 0 0; width: 100%; font-size: .85rem; padding: .4rem 1rem; }
 
 .dc-filter-bar {
   display: flex; flex-wrap: wrap; gap: 6px; padding: .2rem 0 .6rem;
