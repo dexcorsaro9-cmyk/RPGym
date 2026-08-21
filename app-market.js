@@ -451,7 +451,7 @@ function _buildDragonCard(card, owned) {
   wrap.setAttribute('data-rar', card.rar);
   wrap.setAttribute('data-cat', card.cat);
 
-  const imgPath = `images/dragons/${card.id}.webp`;
+  const imgPath = `images/dragons/${card.id.replace('dc_','')}.webp`;
   const artContent = owned
     ? `<img class="dc-art-img" src="${imgPath}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="${esc(card.name)}"><div class="dc-art-emoji" style="display:none">${card.icon}</div>`
     : `<div class="dc-art-emoji">❓</div>`;
@@ -600,7 +600,7 @@ function renderDcBuilderView(c) {
       const rm = DC_RARITY_META[card.rar] || DC_RARITY_META.comune;
       const selected = DC_DECK.includes(card.id);
       const mini = el('div', `dc-mini-card dc-rar-${card.rar}${selected ? ' selected' : ''}`);
-      const imgPath = `images/dragons/${card.id}.webp`;
+      const imgPath = `images/dragons/${card.id.replace('dc_','')}.webp`;
       const kwHtml = (card.kws || []).slice(0,2).map(k => `<span class="dc-mini-kw">${DC_KW_LABELS[k] || k}</span>`).join('');
       mini.innerHTML = `
         <div class="dc-mini-header" style="background:${rm.grad}">
@@ -703,7 +703,7 @@ function _dcMakeBoardCreatureEl(creature, side, canTarget) {
   const canAtk = side === 'hero' && creature.canAttack && !creature.hasAttacked;
 
   const div = el('div', `dc-board-creature dc-bc-${side}${isSelected ? ' dc-bc-selected' : ''}${canAtk ? ' dc-bc-can-attack' : ''}${canTarget ? ' dc-bc-target' : ''}`);
-  const imgPath = `images/dragons/${creature.cardId}.webp`;
+  const imgPath = `images/dragons/${creature.cardId.replace('dc_','')}.webp`;
   div.innerHTML = `
     <div class="dc-bc-art">
       <img src="${imgPath}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="">
@@ -882,7 +882,7 @@ function renderDcBattleView(c) {
       if (!card) return;
       const rm = DC_RARITY_META[card.rar] || DC_RARITY_META.comune;
       const canPlay = card.cost <= mana.current && (card.type !== 'creatura' || st.hero.board.length < 4);
-      const imgPath = `images/dragons/${card.id}.webp`;
+      const imgPath = `images/dragons/${card.id.replace('dc_','')}.webp`;
       const kwHtml = (card.kws || []).map(k => `<span class="dc-mini-kw">${DC_KW_LABELS[k] || k}</span>`).join('');
       const handCard = el('div', `dc-hand-card dc-rar-${card.rar}${canPlay ? '' : ' dc-card-disabled'}`);
       handCard.innerHTML = `

@@ -10177,7 +10177,7 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
   overflow: hidden;
 }
 .dc-art-img {
-  width: 100%; height: 110px; object-fit: contain;
+  width: 100%; height: 110px; object-fit: cover; object-position: center top;
   display: block;
 }
 .dc-art-emoji {
