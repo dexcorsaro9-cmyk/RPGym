@@ -289,8 +289,84 @@ function renderMarket(c) {
       sectionList.appendChild(duelBox);
     }
 
-    // Righe sezioni (salta antro_contratti — gestito dal box sopra)
-    ANTRO_SECTIONS.filter(s => s.key !== 'antro_contratti').forEach(s => {
+    // Box Le 10 Prove del Campione
+    {
+      const proveUnlocked = heroLv >= 61;
+      const trophies = (HERO.champion && HERO.champion.trophies) || [];
+      const allTrophies = trophies.length === 10;
+      const proveBox = el('div', `antro-duel-box antro-prove-box${proveUnlocked ? ' antro-duel-box-open' : ''}`);
+
+      // Header
+      const proveHdr = el('div', 'antro-prove-hdr');
+      proveHdr.innerHTML = `
+        <span class="antro-duel-box-icon">${proveUnlocked ? '⚔️' : '🔒'}</span>
+        <div class="antro-duel-box-body">
+          <span class="antro-duel-box-name">Le 10 Prove del Campione</span>
+          <span class="antro-duel-box-desc">${proveUnlocked ? `${trophies.length}/10 trofei ottenuti` : 'Si sblocca al livello 61 · Dieci sfide irripetibili.'}</span>
+        </div>
+        <span class="antro-row-badge">Lv 61</span>
+      `;
+      proveBox.appendChild(proveHdr);
+
+      // Modalità
+      const modBox = el('div', 'antro-prove-mod');
+      modBox.innerHTML = `<span class="antro-prove-mod-label">📋 Modalità</span>
+        <span class="antro-prove-mod-text">Una prova per livello (61→70) · 14 giorni per completarla · obiettivo km o streak · non ripetibili</span>`;
+      proveBox.appendChild(modBox);
+
+      // Bacheca trofei (10 slot)
+      const bacheca = el('div', 'antro-prove-bacheca');
+      CHAMPION_PROVAS.forEach(prova => {
+        const earned = trophies.includes(prova.id);
+        const active = proveUnlocked && heroLv >= prova.level;
+        const slot = el('div', `antro-prove-slot${earned ? ' antro-prove-slot-earned' : active ? ' antro-prove-slot-active' : ''}`);
+        slot.title = proveUnlocked ? `${prova.name} · ${prova.trophy}` : `Lv ${prova.level}`;
+        slot.innerHTML = earned
+          ? `<img src="${prova.img}" class="antro-prove-slot-img" alt="${esc(prova.trophy)}" onerror="this.outerHTML='<span>${prova.icon}</span>'"><span class="antro-prove-slot-check">✓</span>`
+          : `<span class="antro-prove-slot-icon">${proveUnlocked && heroLv >= prova.level ? prova.icon : '🔒'}</span>`;
+        bacheca.appendChild(slot);
+      });
+      proveBox.appendChild(bacheca);
+
+      // Gladius Aeternus
+      const gladiusBox = el('div', `antro-prove-gladius${allTrophies ? ' antro-prove-gladius-open' : ''}`);
+      if (allTrophies) {
+        const hasGladius = (HERO.items || []).some(it => it.id === 'gladius_aeternus');
+        gladiusBox.innerHTML = `
+          <img src="assets/weapons/gladius_aeternus.webp" class="antro-prove-gladius-img" alt="Gladius Aeternus" onerror="this.style.display='none'">
+          <div class="antro-prove-gladius-info">
+            <span class="antro-prove-gladius-name">⚔️ Gladius Aeternus</span>
+            <span class="antro-prove-gladius-tier rarity-eterno">ETERNO</span>
+            <span class="antro-prove-gladius-stats">+25% XP · +25% oro · +30% danni Arena</span>
+            <span class="antro-prove-gladius-status ${hasGladius ? '' : 'muted'}">${hasGladius ? '✓ Nel tuo zaino' : '⚔️ Ritira dall\'Antro'}</span>
+          </div>`;
+      } else {
+        const remaining = 10 - trophies.length;
+        gladiusBox.innerHTML = `
+          <div class="antro-prove-gladius-lock">🔒</div>
+          <div class="antro-prove-gladius-info">
+            <span class="antro-prove-gladius-name">Gladius Aeternus</span>
+            <span class="antro-prove-gladius-tier muted">Arma Eterna dei Campioni</span>
+            <span class="antro-prove-gladius-stats muted">+25% XP · +25% oro · +30% danni Arena · +20% HP Arena</span>
+            <span class="antro-prove-gladius-status muted">${proveUnlocked ? `${remaining} trofei mancanti` : 'Completa tutte e 10 le prove'}</span>
+          </div>`;
+      }
+      proveBox.appendChild(gladiusBox);
+
+      if (proveUnlocked) {
+        const proveBtn = el('button', 'btn btn-primary dc-duel-btn antro-duel-box-btn', '⚔️ Le 10 Prove del Campione');
+        proveBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          HERO_VIEW = 'campione'; setTab('hero');
+        });
+        proveBox.appendChild(proveBtn);
+      }
+
+      sectionList.appendChild(proveBox);
+    }
+
+    // Righe sezioni (salta antro_contratti e antro_prove — gestiti dai box sopra)
+    ANTRO_SECTIONS.filter(s => s.key !== 'antro_contratti' && s.key !== 'antro_prove').forEach(s => {
       const done = heroLv >= s.lv;
       const isNext = nextSection && s.lv === nextSection.lv;
       const row = el('div', `antro-section-row${done ? ' antro-row-done' : isNext ? ' antro-row-next' : ' antro-row-sealed'}`);
