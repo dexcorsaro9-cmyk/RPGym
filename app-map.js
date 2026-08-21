@@ -630,8 +630,10 @@ function renderBiscaView(c) {
 
     if (res.won) { sfx('coin'); vibrate([80, 40, 160]); }
 
-    document.getElementById('bisca-gold-val').textContent = HERO.gold || 0;
-    document.getElementById('bisca-bets-counter').textContent = `${res.betsLeft} / ${RPG.BISCA_DAILY_BETS} scommesse`;
+    const biscaGoldEl = document.getElementById('bisca-gold-val');
+    const biscaBetsEl = document.getElementById('bisca-bets-counter');
+    if (biscaGoldEl) biscaGoldEl.textContent = HERO.gold || 0;
+    if (biscaBetsEl) biscaBetsEl.textContent = `${res.betsLeft} / ${RPG.BISCA_DAILY_BETS} scommesse`;
 
     if (res.betsLeft > 0) {
       const replayBtn = el('button', 'btn btn-primary wide bisca-replay-btn', '🎲 Nuovo scontro');
