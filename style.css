@@ -11010,7 +11010,7 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
   transition: width .4s;
 }
 .dc-entry-inner-count { font-size: .7rem; font-weight: 700; color: #f1c40f; white-space: nowrap; }
-.dc-btn-icon { width: 22px; height: 22px; object-fit: contain; vertical-align: middle; margin-right: 4px; border-radius: 3px; }
+.dc-btn-icon { width: 22px; height: 22px; object-fit: contain; vertical-align: middle; margin-right: 4px; border-radius: 3px; mix-blend-mode: multiply; }
 .dc-entry-epic-desc {
   font-size: .82rem; line-height: 1.55; font-style: italic;
   color: var(--text); margin: 4px 0 8px;
