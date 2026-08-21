@@ -10572,3 +10572,205 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
 .dc-mini-kws { display: flex; flex-wrap: wrap; gap: 2px; padding: 2px 3px; }
 .dc-mini-kw  { font-size: .48rem; background: rgba(0,0,0,.2); border-radius: 3px; padding: 1px 3px; }
 
+
+/* ══════════════════════════════════════════════════════
+   ALBUM DOMINIO DEI DRAGHI — flip cards
+   ══════════════════════════════════════════════════════ */
+
+/* Filter bar */
+.dc-album-filters {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  padding: 8px 0 4px; margin-bottom: 8px;
+}
+.dc-filter-btn {
+  padding: 4px 10px; border-radius: 999px; font-size: .72rem;
+  border: 1px solid var(--divider); background: transparent;
+  color: var(--text); cursor: pointer; text-transform: capitalize;
+  transition: background .15s, color .15s;
+}
+.dc-filter-btn.active { background: var(--gold); border-color: var(--gold); color: #1a0e00; font-weight: 700; }
+
+/* Grid */
+.dc-album-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px;
+  padding-bottom: 24px;
+}
+
+/* Scene + perspective */
+.dc-album-scene {
+  perspective: 900px;
+  height: 210px;
+  cursor: pointer;
+}
+
+/* Inner flippable */
+.dc-album-inner {
+  width: 100%; height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform .55s cubic-bezier(.4,0,.2,1);
+  border-radius: 12px;
+}
+.dc-album-inner.dc-album-flipped { transform: rotateY(180deg); }
+
+/* Shared face */
+.dc-album-face {
+  position: absolute; inset: 0;
+  border-radius: 12px;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+}
+
+/* ── FRONT ── */
+.dc-album-front {
+  background: #1a1010;
+  border: 2px solid rgba(255,215,0,.35);
+}
+
+/* Rarity border override on inner */
+.dc-album-inner.dc-rar-comune     { border: 2px solid #90a4ae; }
+.dc-album-inner.dc-rar-non_comune { border: 2px solid #43a047; }
+.dc-album-inner.dc-rar-raro       { border: 2px solid #1e88e5; box-shadow: 0 2px 10px rgba(30,136,229,.3); }
+.dc-album-inner.dc-rar-epico      { border: 2px solid #8e24aa; box-shadow: 0 2px 12px rgba(142,36,170,.35); }
+.dc-album-inner.dc-rar-leggendario{ border: 2px solid #f59e0b; box-shadow: 0 2px 14px rgba(245,158,11,.4); }
+.dc-album-inner.dc-rar-speciale   { border: 2px solid #ffd700; box-shadow: 0 2px 16px rgba(255,215,0,.5); }
+.dc-album-inner.dc-rar-introvabile{ border: 2px solid #e53935; box-shadow: 0 2px 14px rgba(229,57,53,.4); }
+.dc-album-inner.dc-rar-re         { border: 2px solid #c62828; box-shadow: 0 2px 18px rgba(198,40,40,.5); }
+.dc-album-inner.dc-rar-corrotto   { border: 2px solid #4a148c; box-shadow: 0 2px 12px rgba(74,20,140,.4); }
+.dc-album-inner.dc-rar-guardiano  { border: 2px solid #00695c; box-shadow: 0 2px 12px rgba(0,105,92,.4); }
+.dc-album-inner.dc-rar-fossile    { border: 2px solid #795548; }
+.dc-album-inner.dc-rar-fusione    { border: 2px solid #00838f; box-shadow: 0 2px 14px rgba(0,131,143,.35); }
+.dc-album-inner.dc-rar-bioma      { border: 2px solid #2e7d32; box-shadow: 0 2px 10px rgba(46,125,50,.3); }
+.dc-album-inner.dc-rar-zodiacale  { border: 2px solid #6a1b9a; box-shadow: 0 2px 16px rgba(106,27,154,.45); }
+.dc-album-inner.dc-rar-cucciolo   { border: 2px solid #f06292; box-shadow: 0 2px 10px rgba(240,98,146,.3); }
+.dc-album-inner.dc-rar-mitologo   { border: 2px solid #bf360c; box-shadow: 0 2px 16px rgba(191,54,12,.45); }
+.dc-album-inner.dc-rar-festivo    { border: 2px solid #ad1457; box-shadow: 0 2px 14px rgba(173,20,87,.4); }
+.dc-album-inner.dc-rar-attivita   { border: 2px solid #ef6c00; box-shadow: 0 2px 14px rgba(239,108,0,.4); }
+.dc-album-inner.dc-rar-stagionale { border: 2px solid #558b2f; box-shadow: 0 2px 12px rgba(85,139,47,.4); }
+
+/* Front elements */
+.dc-alb-cost {
+  position: absolute; top: 6px; left: 6px; z-index: 3;
+  width: 22px; height: 22px;
+  background: radial-gradient(circle at 35% 30%, #6ec6ff, #1565c0 70%);
+  clip-path: polygon(50% 0%,100% 38%,82% 100%,18% 100%,0% 38%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .65rem; font-weight: 900; color: #fff;
+}
+.dc-alb-art {
+  position: absolute; top: 6px; left: 6px; right: 6px; height: 120px;
+  border-radius: 8px; overflow: hidden;
+}
+.dc-alb-art img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+.dc-alb-art-grad {
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, transparent 50%, rgba(15,5,0,.95) 100%);
+}
+.dc-alb-name {
+  position: absolute; top: 100px; left: 0; right: 0; z-index: 2;
+  padding: 4px 6px 0;
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: .7rem; font-weight: 800;
+  color: #ffd700; text-shadow: 0 0 8px rgba(255,180,0,.8);
+  text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dc-alb-nick {
+  position: absolute; top: 116px; left: 0; right: 0; z-index: 2;
+  font-size: .55rem; font-style: italic; color: rgba(255,200,100,.65);
+  text-align: center; padding: 0 4px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dc-alb-badges {
+  position: absolute; top: 132px; left: 0; right: 0; z-index: 2;
+  display: flex; justify-content: center; padding: 2px;
+}
+.dc-alb-badge {
+  font-size: .52rem; background: rgba(0,0,0,.45);
+  border: 1px solid rgba(255,180,0,.25); border-radius: 999px;
+  padding: 2px 6px; color: rgba(255,220,140,.9); text-transform: capitalize;
+}
+.dc-alb-stats {
+  position: absolute; bottom: 22px; left: 0; right: 0; z-index: 2;
+  display: flex; justify-content: space-between; align-items: center; padding: 0 8px;
+}
+.dc-alb-atk { font-size: .65rem; font-weight: 800; color: #e74c3c; }
+.dc-alb-hp  { font-size: .65rem; font-weight: 800; color: #27ae60; }
+.dc-alb-rar { font-size: .5rem; color: rgba(255,215,0,.6); text-transform: capitalize; }
+.dc-alb-hint {
+  position: absolute; bottom: 5px; left: 0; right: 0;
+  text-align: center; font-size: .48rem; color: rgba(255,200,100,.4);
+  letter-spacing: .04em;
+}
+
+/* Locked card */
+.dc-album-inner.dc-album-locked { cursor: default; opacity: .55; }
+.dc-album-inner.dc-album-locked .dc-album-front {
+  background: #111;
+  display: flex; align-items: center; justify-content: center;
+}
+.dc-alb-locked-inner { text-align: center; }
+.dc-alb-lock-icon { font-size: 1.8rem; margin-bottom: 4px; filter: grayscale(1); }
+.dc-alb-lock-rar { font-size: .6rem; color: rgba(200,200,200,.5); text-transform: capitalize; margin-bottom: 2px; }
+.dc-alb-lock-hint { font-size: .5rem; color: rgba(200,200,200,.35); }
+
+/* ── BACK ── */
+.dc-album-back {
+  transform: rotateY(180deg);
+  background: linear-gradient(160deg, #0d0a1a 0%, #1a0d08 60%, #0a0d1a 100%);
+  border: 2px solid rgba(139,92,246,.45);
+  box-shadow: inset 0 0 20px rgba(139,92,246,.08);
+  padding: 0;
+}
+.dc-alb-back-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 8px 6px;
+  border-bottom: 1px solid rgba(139,92,246,.25);
+  background: linear-gradient(to bottom, rgba(139,92,246,.1), transparent);
+  flex-shrink: 0;
+}
+.dc-alb-back-icon { font-size: 1.4rem; line-height: 1; flex-shrink: 0; }
+.dc-alb-back-name {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: .68rem; font-weight: 800;
+  color: #ffd700; line-height: 1.2;
+}
+.dc-alb-back-title { font-size: .48rem; font-style: italic; color: rgba(200,160,255,.7); }
+.dc-alb-back-body { flex: 1; padding: 6px 8px; overflow: hidden; display: flex; flex-direction: column; gap: 5px; }
+.dc-alb-back-label {
+  font-size: .5rem; font-weight: 700; letter-spacing: .12em;
+  color: rgba(139,92,246,.8); text-transform: uppercase;
+  border-bottom: 1px solid rgba(139,92,246,.2); padding-bottom: 2px;
+}
+.dc-alb-back-lore { font-size: .55rem; line-height: 1.5; color: rgba(220,200,255,.8); font-style: italic; }
+.dc-alb-back-quote {
+  font-size: .5rem; color: rgba(255,215,0,.6); font-style: italic;
+  border-left: 2px solid rgba(255,215,0,.3); padding-left: 5px;
+}
+.dc-alb-back-stats {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 3px;
+}
+.dc-alb-back-stat {
+  background: rgba(139,92,246,.07); border: 1px solid rgba(139,92,246,.18);
+  border-radius: 5px; padding: 3px 5px;
+  display: flex; flex-direction: column;
+}
+.dc-alb-back-sl { font-size: .44rem; color: rgba(139,92,246,.7); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.dc-alb-back-stat > span:last-child { font-size: .55rem; color: rgba(240,220,255,.85); }
+.dc-alb-back-footer {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 4px 8px; border-top: 1px solid rgba(139,92,246,.2); flex-shrink: 0;
+}
+.dc-alb-back-id  { font-size: .44rem; color: rgba(139,92,246,.45); letter-spacing: .08em; }
+.dc-alb-back-rar { font-size: .5rem; font-weight: 700; color: #ffd700; letter-spacing: .06em; }
+
+/* Dark theme tweaks */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .dc-album-front { background: #120a0a; }
+  :root:not([data-theme="light"]) .dc-album-inner.dc-album-locked { opacity: .4; }
+}
+:root[data-theme="dark"] .dc-album-front { background: #120a0a; }
+:root[data-theme="dark"] .dc-album-inner.dc-album-locked { opacity: .4; }
