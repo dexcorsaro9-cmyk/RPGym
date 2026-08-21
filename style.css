@@ -10107,10 +10107,8 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
 .dc-duel-btn { display: block; margin: .5rem auto 1rem; padding: .6rem 2rem; font-size: 1rem; }
 
 .dc-filter-bar {
-  display: flex; gap: 6px; overflow-x: auto; padding: .2rem 0 .6rem;
-  scrollbar-width: none;
+  display: flex; flex-wrap: wrap; gap: 6px; padding: .2rem 0 .6rem;
 }
-.dc-filter-bar::-webkit-scrollbar { display: none; }
 .dc-filter-btn {
   flex-shrink: 0; padding: .28rem .7rem; border-radius: 20px; border: 1.5px solid var(--divider);
   background: var(--bg, #fff); color: var(--text); font-size: .78rem; cursor: pointer;
@@ -10124,7 +10122,7 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
 .dc-dragon-row {
   display: flex; flex-wrap: wrap; gap: 10px; padding-bottom: 8px;
 }
-.dc-collection-hdr-icon { width: 28px; height: 28px; object-fit: contain; vertical-align: middle; margin-right: 4px; border-radius: 6px; }
+.dc-collection-hdr-icon { width: 28px; height: 28px; object-fit: contain; vertical-align: middle; margin-right: 6px; border-radius: 6px; box-shadow: 0 0 0 2px rgba(241,196,15,.4), 0 2px 6px rgba(0,0,0,.5); }
 .dc-collection-sub { font-size: .8rem; color: var(--gold-bright); text-align: center; margin: 4px 0 0; opacity: .9; }
 .dc-row-more-btn {
   flex-shrink: 0; align-self: center;
