@@ -5,7 +5,7 @@
 
 
 
-const CACHE = "heropace-v602";
+const CACHE = "heropace-v603";
 const NOTIF_CACHE = 'heropace-notif-v1'; // stato notifiche (non cancellare mai)
 
 /* File locali per fallback offline */
@@ -180,6 +180,15 @@ async function doSmartNotifCheck() {
       '🗺️ Sei vicino a una tappa!',
       `Ti mancano solo ${state.mapKmLeft} km per il prossimo medaglione. Forza!`,
       'map_near_' + Math.round((state.mapKmLeft || 0) * 10)
+    );
+  }
+
+  /* ③b Dominio dei Draghi — dalle 20:00 se sfide rimaste e non ha ancora giocato oggi */
+  if (hour >= 20 && state.dcUnlocked && state.dcBattlesLeft > 0 && !state.dcPlayedToday) {
+    await showNotifSW(
+      '🐉 Il Dominio ti sfida!',
+      `Ti restano ${state.dcBattlesLeft} sfide al Dominio dei Draghi — non sprecarle!`,
+      'dc_battles_' + today
     );
   }
 

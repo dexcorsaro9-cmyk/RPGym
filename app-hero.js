@@ -410,6 +410,53 @@ function renderDiaryView(c) {
     c.appendChild(stats);
   }
 
+  // Dominio dei Draghi — statistiche (solo se sbloccato)
+  if ((HERO.level || 0) >= 50 || (HERO.dcDefeated || []).length > 0) {
+    const dcDefeated = HERO.dcDefeated || [];
+    const dcPanel = el('div', 'panel');
+    dcPanel.appendChild(el('h3', 'panel-title', '🐉 Dominio dei Draghi'));
+
+    // Tier raggiunto
+    const tierUnlocked = (() => {
+      const tiers = ['comune','non_comune','raro','epico','leggendario'];
+      let highest = 'comune';
+      tiers.forEach(t => {
+        const bosses = DC_BOSSES.filter(b => b.tier === t);
+        const defeated = bosses.filter(b => dcDefeated.includes(b.id)).length;
+        if (defeated >= 3) highest = tiers[Math.min(tiers.indexOf(t) + 1, tiers.length - 1)];
+      });
+      return highest;
+    })();
+    const tierLabel = { comune:'Comuni', non_comune:'Non Comuni', raro:'Rari', epico:'Epici', leggendario:'Leggendari' };
+    const tierIcon  = { comune:'🌿', non_comune:'🪨', raro:'❄️', epico:'🔥', leggendario:'⚡' };
+
+    const dcRows = [
+      { label:'Villain sconfitti', val: `${dcDefeated.length} / 25` },
+      { label:'Tier raggiunto',    val: `${tierIcon[tierUnlocked]} ${tierLabel[tierUnlocked]}` },
+      { label:'Comuni',            val: `${DC_BOSSES.filter(b=>b.tier==='comune').filter(b=>dcDefeated.includes(b.id)).length} / 5` },
+      { label:'Non Comuni',        val: `${DC_BOSSES.filter(b=>b.tier==='non_comune').filter(b=>dcDefeated.includes(b.id)).length} / 5` },
+      { label:'Rari',              val: `${DC_BOSSES.filter(b=>b.tier==='raro').filter(b=>dcDefeated.includes(b.id)).length} / 5` },
+      { label:'Epici',             val: `${DC_BOSSES.filter(b=>b.tier==='epico').filter(b=>dcDefeated.includes(b.id)).length} / 5` },
+      { label:'Leggendari',        val: `${DC_BOSSES.filter(b=>b.tier==='leggendario').filter(b=>dcDefeated.includes(b.id)).length} / 5` },
+    ];
+    dcRows.forEach(({ label, val }) => {
+      const row = el('div', 'stat-row');
+      row.innerHTML = `<span class="stat-row-label">${label}</span><b>${val}</b>`;
+      dcPanel.appendChild(row);
+    });
+
+    // Barra avanzamento globale
+    const pct = Math.round(dcDefeated.length / 25 * 100);
+    const barWrap = el('div', 'dc-diary-bar-wrap');
+    barWrap.innerHTML = `<div class="dc-diary-bar-fill" style="width:${pct}%"></div>`;
+    dcPanel.appendChild(barWrap);
+    const prog = el('p', 'center small muted');
+    prog.textContent = dcDefeated.length === 25 ? '🏆 Tutti i villain sconfitti!' : `${pct}% del Dominio conquistato`;
+    dcPanel.appendChild(prog);
+
+    c.appendChild(dcPanel);
+  }
+
   // Reliquie del Viandante
   {
     const relPanel = el('div', 'panel');
@@ -1767,6 +1814,9 @@ async function updateNotifState() {
   const boardClaimable = board
     ? board.quests.filter(q => (board.kmLogged || 0) >= q.km && !board.claimed.includes(q.id)).length
     : 0;
+  const dcBattles = HERO.dcBattles;
+  const dcUsedToday = dcBattles && dcBattles.date === today ? dcBattles.count : 0;
+  const dcLeft = Math.max(0, (typeof DC_DAILY_BATTLES !== 'undefined' ? DC_DAILY_BATTLES : 5) - dcUsedToday);
   const state = {
     date: today,
     potionClaimed: !!(HERO.dailyPotion && HERO.dailyPotion.claimedDate === today),
@@ -1778,6 +1828,9 @@ async function updateNotifState() {
     petMood: pet ? pet.mood : null,
     hasActiveBuff,
     boardClaimable,
+    dcBattlesLeft: dcLeft,
+    dcPlayedToday: dcUsedToday > 0,
+    dcUnlocked: (HERO.level || 0) >= 50 && (HERO.dragonCards || []).length >= 5,
   };
   const cache = await caches.open('heropace-notif-v1');
   await cache.put('/_notif-state', new Response(JSON.stringify(state),

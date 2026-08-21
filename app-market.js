@@ -506,6 +506,33 @@ function renderAntroDragonCardsView(c) {
 
   const ownedCount = (HERO.dragonCards || []).length;
   const canDuel = ownedCount >= 5 && HERO.level >= 50;
+
+  /* Onboarding DDD — mostrato una volta sola quando le condizioni sono soddisfatte */
+  if (canDuel && !HERO.dddOnboardingSeen) {
+    const banner = el('div', 'dc-ddd-onboarding-banner');
+    banner.innerHTML = `
+      <div class="dc-ddd-ob-icon">🐉</div>
+      <div class="dc-ddd-ob-body">
+        <b>Il Dominio dei Draghi ti chiama!</b>
+        <p>Hai raggiunto il Livello 50 e raccolto abbastanza carte. Sfida i villain del Dominio — 5 duelli al giorno, 5 tier di difficoltà crescente, ricompense rare ad ogni vittoria.</p>
+      </div>
+      <button class="btn btn-primary dc-ddd-ob-btn">Inizia a sfidare</button>
+    `;
+    banner.querySelector('.dc-ddd-ob-btn').addEventListener('click', () => {
+      HERO.dddOnboardingSeen = true;
+      persist();
+      DC_DECK = []; DC_VIEW = 'builder'; setTab('market');
+    });
+    const dismissBtn = el('button', 'dc-ddd-ob-dismiss', '✕');
+    dismissBtn.addEventListener('click', () => {
+      HERO.dddOnboardingSeen = true;
+      persist();
+      banner.remove();
+    });
+    banner.appendChild(dismissBtn);
+    c.appendChild(banner);
+  }
+
   const duelBtn = el('button', 'btn btn-primary dc-duel-btn', '⚔️ Dominio dei Draghi');
   if (!canDuel) {
     duelBtn.disabled = true;
