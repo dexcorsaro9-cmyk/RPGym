@@ -276,6 +276,8 @@ body {
   padding: 14px;
   margin-bottom: 14px;
   display: flex; flex-direction: column; gap: 8px;
+  --text: var(--ink);
+  --muted: var(--ink-light);
 }
 .panel-title { font-family: 'Cinzel', serif; font-size: 1.05rem; color: var(--ink); }
 .camp-panel-thumb { width: 100%; height: 90px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; display: block; }
@@ -10124,6 +10126,13 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
   scrollbar-width: thin; scrollbar-color: var(--divider) transparent;
 }
 .dc-dragon-row::-webkit-scrollbar { height: 4px; }
+.dc-row-more-btn {
+  flex-shrink: 0; align-self: center;
+  width: 48px; height: 80px; border-radius: 10px;
+  background: rgba(255,255,255,.08); border: 2px dashed rgba(255,255,255,.25);
+  color: var(--gold-bright); font-size: .8rem; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
 .dc-dragon-row::-webkit-scrollbar-track { background: transparent; }
 .dc-dragon-row::-webkit-scrollbar-thumb { background: var(--divider); border-radius: 2px; }
 

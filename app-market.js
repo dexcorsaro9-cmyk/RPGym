@@ -601,6 +601,7 @@ function renderAntroDragonCardsView(c) {
 
   const grid = el('div', 'dc-grid');
 
+  const CARDS_PER_ROW = 8;
   catKeys.forEach(cat => {
     const catCards = allCards.filter(card => card.cat === cat);
     if (!catCards.length) return;
@@ -610,10 +611,17 @@ function renderAntroDragonCardsView(c) {
     section.setAttribute('data-cat', cat);
     section.innerHTML = `<div class="dc-dragon-section-title" style="color:${cm.color}">${cm.icon} ${cm.label} <span class="muted small">${catOwned}/${catCards.length}</span></div>`;
     const row = el('div', 'dc-dragon-row');
-    catCards.forEach(card => {
-      const cardEl = _buildDragonCard(card, ownedIds.has(card.id));
-      row.appendChild(cardEl);
-    });
+    const visible = catCards.slice(0, CARDS_PER_ROW);
+    const hidden = catCards.slice(CARDS_PER_ROW);
+    visible.forEach(card => row.appendChild(_buildDragonCard(card, ownedIds.has(card.id))));
+    if (hidden.length) {
+      const moreBtn = el('button', 'dc-row-more-btn', `+${hidden.length}`);
+      moreBtn.addEventListener('click', () => {
+        hidden.forEach(card => row.insertBefore(_buildDragonCard(card, ownedIds.has(card.id)), moreBtn));
+        moreBtn.remove();
+      });
+      row.appendChild(moreBtn);
+    }
     section.appendChild(row);
     grid.appendChild(section);
   });
