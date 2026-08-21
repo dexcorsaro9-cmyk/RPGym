@@ -7553,27 +7553,147 @@ RPG.DC_LORE = {
    ══════════════════════════════════════════════════════════════ */
 
 const DC_BOSSES = [
-  { id:'dcb_bramble', name:'Bramble il Boscaiolo', icon:'🌿', difficulty:1, hp:25,
+  /* ── COMUNI ── */
+  { id:'dcb_bramble',   name:'Bramble il Boscaiolo',  icon:'🌿', tier:'comune',     difficulty:1,  hp:20,
     quote:'«La foresta nutre chi la rispetta. Distrugge chi la sfida.»',
-    deckRars:['comune','non_comune'], deckSize:15,
-    reward:{ gold:60, cardChance:.35, rarities:['comune','non_comune'] } },
-  { id:'dcb_ferrus',  name:'Ferrus l\'Incudine',   icon:'🪨', difficulty:2, hp:30,
+    deckRars:['comune'], deckSize:12,
+    reward:{ gold:55,  cardChance:.30, rarities:['comune','non_comune'] } },
+  { id:'dcb_groviglio', name:'Groviglio il Rampicante',icon:'🌾', tier:'comune',    difficulty:2,  hp:23,
+    quote:'«Ogni spina è una cicatrice del mondo che non ti vuole.»',
+    deckRars:['comune'], deckSize:12,
+    reward:{ gold:65,  cardChance:.35, rarities:['comune','non_comune'] } },
+  { id:'dcb_fanghiglia', name:'Fanghiglia la Paludosa',icon:'🍄', tier:'comune',    difficulty:3,  hp:26,
+    quote:'«La palude inghiotte tutto. Anche la speranza.»',
+    deckRars:['comune'], deckSize:13,
+    reward:{ gold:75,  cardChance:.38, rarities:['comune','non_comune'] } },
+  { id:'dcb_brullo',    name:'Brullo il Rinsecchito', icon:'🍂', tier:'comune',     difficulty:4,  hp:29,
+    quote:'«Sono ciò che resta quando tutto muore. E resto.»',
+    deckRars:['comune','non_comune'], deckSize:13,
+    reward:{ gold:85,  cardChance:.42, rarities:['comune','non_comune'] } },
+  { id:'dcb_siepe',     name:'Siepe la Campionessa',  icon:'🌳', tier:'comune',     difficulty:5,  hp:34, champion:true,
+    quote:'«Hai passato i rovi. Ora affronta la quercia.»',
+    deckRars:['comune','non_comune'], deckSize:14,
+    reward:{ gold:120, cardChance:.55, rarities:['non_comune','raro'], guaranteed:false } },
+
+  /* ── NON COMUNI ── */
+  { id:'dcb_crepaccio',  name:"Crepaccio l'Eroso",    icon:'🪨', tier:'non_comune', difficulty:6,  hp:36,
+    quote:'«La crepa non indebolisce la roccia. La rende imprevedibile.»',
+    deckRars:['comune','non_comune'], deckSize:14,
+    reward:{ gold:125, cardChance:.40, rarities:['non_comune','raro'] } },
+  { id:'dcb_ferrus',     name:"Ferrus l'Incudine",    icon:'⚙️', tier:'non_comune', difficulty:7,  hp:40,
     quote:'«La pietra dura mille anni. Quanto durarà tu?»',
-    deckRars:['comune','non_comune','raro'], deckSize:15,
-    reward:{ gold:100, cardChance:.50, rarities:['non_comune','raro'] } },
-  { id:'dcb_glaciar', name:'Glaciar il Gelido',    icon:'❄️', difficulty:3, hp:35,
+    deckRars:['comune','non_comune'], deckSize:14,
+    reward:{ gold:145, cardChance:.45, rarities:['non_comune','raro'] } },
+  { id:'dcb_stalatto',   name:'Stalatto il Pungente', icon:'🗿', tier:'non_comune', difficulty:8,  hp:44,
+    quote:'«Goccia a goccia, ho cresciuto le mie lame per secoli.»',
+    deckRars:['non_comune','raro'], deckSize:14,
+    reward:{ gold:165, cardChance:.48, rarities:['non_comune','raro'] } },
+  { id:'dcb_terracotta', name:'Terracotta la Guardia', icon:'🛡️', tier:'non_comune', difficulty:9,  hp:48,
+    quote:'«Sono stato forgiato per proteggere ciò che conta. Tu non conti.»',
+    deckRars:['non_comune','raro'], deckSize:15,
+    reward:{ gold:185, cardChance:.52, rarities:['non_comune','raro'] } },
+  { id:'dcb_granito',    name:'Granito il Massiccio', icon:'🏔️', tier:'non_comune', difficulty:10, hp:54, champion:true,
+    quote:'«Ho visto montagne nascere e morire. Tu sei un momento.»',
+    deckRars:['non_comune','raro'], deckSize:15,
+    reward:{ gold:240, cardChance:.65, rarities:['raro','epico'], guaranteed:false } },
+
+  /* ── RARI ── */
+  { id:'dcb_glaciar',   name:'Glaciar il Gelido',     icon:'❄️', tier:'raro',       difficulty:11, hp:56,
     quote:'«Il freddo sospende il tempo. Il tempo ferma tutto.»',
-    deckRars:['non_comune','raro','epico'], deckSize:15,
-    reward:{ gold:160, cardChance:.65, rarities:['raro','epico'] } },
-  { id:'dcb_ignar',   name:'Ignar il Sempiterno',  icon:'🔥', difficulty:4, hp:40,
+    deckRars:['non_comune','raro'], deckSize:15,
+    reward:{ gold:250, cardChance:.45, rarities:['raro','epico'] } },
+  { id:'dcb_brina',     name:'Brina la Cristallina',  icon:'💎', tier:'raro',       difficulty:12, hp:62,
+    quote:'«Ogni cristallo è un segreto congelato per sempre.»',
+    deckRars:['non_comune','raro'], deckSize:15,
+    reward:{ gold:275, cardChance:.50, rarities:['raro','epico'] } },
+  { id:'dcb_maelstrom', name:'Maelstrom il Vorticoso',icon:'🌀', tier:'raro',       difficulty:13, hp:68,
+    quote:'«Non puoi combattere il vortice. Puoi solo esserne consumato.»',
+    deckRars:['raro','epico'], deckSize:16,
+    reward:{ gold:300, cardChance:.55, rarities:['raro','epico'] } },
+  { id:'dcb_tempestosa', name:"Tempestosa l'Uragano", icon:'🌩️', tier:'raro',       difficulty:14, hp:75,
+    quote:'«Sono nata dalla rabbia del cielo. E il cielo non perdona.»',
+    deckRars:['raro','epico'], deckSize:16,
+    reward:{ gold:330, cardChance:.60, rarities:['raro','epico'] } },
+  { id:'dcb_pelagos',   name:"Pelagos l'Abissale",    icon:'🌊', tier:'raro',       difficulty:15, hp:84, champion:true,
+    quote:'«L\'abisso non è oscuro. È semplicemente infinito.»',
+    deckRars:['raro','epico'], deckSize:16,
+    reward:{ gold:420, cardChance:.75, rarities:['epico','leggendario'], guaranteed:false } },
+
+  /* ── EPICI ── */
+  { id:'dcb_ignar',      name:'Ignar il Sempiterno',  icon:'🔥', tier:'epico',      difficulty:16, hp:86,
     quote:'«Brucia tutto. Rinasce solo ciò che è degno.»',
-    deckRars:['raro','epico','leggendario'], deckSize:15,
-    reward:{ gold:240, cardChance:.80, rarities:['epico','leggendario'] } },
-  { id:'dcb_voltex',  name:'Voltex il Fulmineo',   icon:'⚡', difficulty:5, hp:45,
+    deckRars:['raro','epico','leggendario'], deckSize:17,
+    reward:{ gold:420, cardChance:.50, rarities:['epico','leggendario'] } },
+  { id:'dcb_pyra',       name:'Pyra la Divoratrice',  icon:'🌋', tier:'epico',      difficulty:17, hp:94,
+    quote:'«Mangio regni a colazione. Tu sei solo un aperitivo.»',
+    deckRars:['raro','epico','leggendario'], deckSize:17,
+    reward:{ gold:460, cardChance:.55, rarities:['epico','leggendario'] } },
+  { id:'dcb_cinere',     name:"Cinere l'Oscuro",      icon:'💀', tier:'epico',      difficulty:18, hp:102,
+    quote:'«Non temo la morte. Sono ciò che resta dopo.»',
+    deckRars:['epico','leggendario'], deckSize:17,
+    reward:{ gold:500, cardChance:.60, rarities:['epico','leggendario'] } },
+  { id:'dcb_infernale',  name:'Infernale il Vuoto',   icon:'👁️', tier:'epico',      difficulty:19, hp:110,
+    quote:'«L\'occhio del vuoto non sbatte mai. Non ha bisogno di farlo.»',
+    deckRars:['epico','leggendario'], deckSize:17,
+    reward:{ gold:545, cardChance:.65, rarities:['epico','leggendario'] } },
+  { id:'dcb_scarlatto',  name:'Scarlatto il Draconico',icon:'🐉', tier:'epico',     difficulty:20, hp:120, champion:true,
+    quote:'«Il drago non combatte per vincere. Combatte per ricordare chi comanda.»',
+    deckRars:['epico','leggendario','introvabile'], deckSize:18,
+    reward:{ gold:680, cardChance:.85, rarities:['leggendario','introvabile'], guaranteed:false } },
+
+  /* ── LEGGENDARI ── */
+  { id:'dcb_voltex',     name:'Voltex il Fulmineo',   icon:'⚡', tier:'leggendario', difficulty:21, hp:126,
     quote:'«Sono la tempesta. Tu sei polvere nel vento.»',
-    deckRars:['epico','leggendario','introvabile'], deckSize:15,
-    reward:{ gold:400, cardChance:.95, rarities:['leggendario','introvabile'], guaranteed:true } },
+    deckRars:['epico','leggendario','introvabile'], deckSize:18,
+    reward:{ gold:720, cardChance:.60, rarities:['leggendario','introvabile'] } },
+  { id:'dcb_folgore',    name:"Folgore l'Eterno",     icon:'🌟', tier:'leggendario', difficulty:22, hp:142,
+    quote:'«Ho scritto il primo tuono. Posso scrivere l\'ultimo.»',
+    deckRars:['epico','leggendario','introvabile'], deckSize:18,
+    reward:{ gold:830, cardChance:.70, rarities:['leggendario','introvabile'] } },
+  { id:'dcb_abisso',     name:'Abisso il Cosmico',    icon:'🌌', tier:'leggendario', difficulty:23, hp:160,
+    quote:'«Prima del cosmo c\'ero io. Dopo il cosmo ci sarò ancora.»',
+    deckRars:['leggendario','introvabile'], deckSize:18,
+    reward:{ gold:950, cardChance:.80, rarities:['leggendario','introvabile'] } },
+  { id:'dcb_primordius', name:"Primordius l'Antico",  icon:'👑', tier:'leggendario', difficulty:24, hp:180,
+    quote:'«Sono la memoria del mondo. E il mondo si dimentica di me a suo rischio.»',
+    deckRars:['leggendario','introvabile'], deckSize:18,
+    reward:{ gold:1150, cardChance:.90, rarities:['leggendario','introvabile'] } },
+  { id:'dcb_aetherius',  name:'Aetherius il Creatore',icon:'✨', tier:'leggendario', difficulty:25, hp:200, champion:true,
+    quote:'«Io ho creato tutto ciò che vedi. Inclusa la tua sconfitta.»',
+    deckRars:['leggendario','introvabile'], deckSize:18,
+    reward:{ gold:1500, cardChance:1.0, rarities:['leggendario','introvabile'], guaranteed:true } },
 ];
+
+const DC_TIERS = ['comune','non_comune','raro','epico','leggendario'];
+const DC_TIER_LABELS = { comune:'Comuni', non_comune:'Non Comuni', raro:'Rari', epico:'Epici', leggendario:'Leggendari' };
+const DC_TIER_ICONS  = { comune:'🌿', non_comune:'🪨', raro:'❄️', epico:'🔥', leggendario:'⚡' };
+const DC_DAILY_BATTLES = 5;
+
+function dcBattlesLeft(hero) {
+  const today = new Date().toISOString().slice(0, 10);
+  const t = hero.dcBattles;
+  if (!t || t.date !== today) return DC_DAILY_BATTLES;
+  return Math.max(0, DC_DAILY_BATTLES - (t.count || 0));
+}
+
+function dcUseBattle(hero) {
+  const today = new Date().toISOString().slice(0, 10);
+  if (!hero.dcBattles || hero.dcBattles.date !== today) hero.dcBattles = { date: today, count: 0 };
+  hero.dcBattles.count = (hero.dcBattles.count || 0) + 1;
+}
+
+function dcTierUnlocked(hero, tier) {
+  const idx = DC_TIERS.indexOf(tier);
+  if (idx === 0) return true;
+  const prevTier = DC_TIERS[idx - 1];
+  const prevBosses = DC_BOSSES.filter(b => b.tier === prevTier);
+  const defeated = hero.dcDefeated || [];
+  return prevBosses.filter(b => defeated.includes(b.id)).length >= 3;
+}
+
+function dcBossDefeated(hero, bossId) {
+  return (hero.dcDefeated || []).includes(bossId);
+}
 
 function _dcShuffle(arr) {
   const a = arr.slice();
@@ -7923,7 +8043,13 @@ function dcClaimVictory(state, hero) {
       earned.card = pick;
     }
   }
+  hero.dcDefeated = hero.dcDefeated || [];
+  if (!hero.dcDefeated.includes(state.boss.id)) hero.dcDefeated.push(state.boss.id);
   return earned;
+}
+
+function dcRecordBattle(hero) {
+  dcUseBattle(hero);
 }
 
 /* ── La Bisca Oscura ─────────────────────────────────────────────────────── */

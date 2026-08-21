@@ -505,11 +505,15 @@ function renderAntroDragonCardsView(c) {
   c.appendChild(header);
 
   const ownedCount = (HERO.dragonCards || []).length;
-  const canDuel = ownedCount >= 5;
+  const canDuel = ownedCount >= 5 && HERO.level >= 50;
   const duelBtn = el('button', 'btn btn-primary dc-duel-btn', '⚔️ Dominio dei Draghi');
   if (!canDuel) {
     duelBtn.disabled = true;
-    duelBtn.textContent = `⚔️ Arena (${ownedCount}/5 draghi)`;
+    if (HERO.level < 50) {
+      duelBtn.textContent = `⚔️ Dominio dei Draghi (Lv 50 richiesto)`;
+    } else {
+      duelBtn.textContent = `⚔️ Dominio dei Draghi (${ownedCount}/5 draghi)`;
+    }
   }
   duelBtn.addEventListener('click', () => { DC_DECK = []; DC_VIEW = 'builder'; setTab('market'); });
   c.appendChild(duelBtn);
@@ -651,34 +655,88 @@ function renderDcBossSelectView(c) {
   backBtn.addEventListener('click', () => { DC_VIEW = 'builder'; setTab('market'); });
   c.appendChild(backBtn);
 
-  c.appendChild(el('h2', 'section-title', '🐉 Scegli il tuo Avversario'));
-  c.appendChild(el('p', 'muted small center', 'Mazzo pronto: ' + DC_DECK.length + ' carte · Seleziona un boss per iniziare il duello'));
+  const battlesLeft = dcBattlesLeft(HERO);
+  const hdr = el('div', 'dc-select-header');
+  hdr.innerHTML = `
+    <h2 class="section-title">🐉 Scegli l'Avversario</h2>
+    <div class="dc-select-meta">
+      <span>🃏 Mazzo: <b>${DC_DECK.length}</b> carte</span>
+      <span class="${battlesLeft === 0 ? 'dc-battles-empty' : ''}">⚔️ Sfide oggi: <b>${battlesLeft}/${DC_DAILY_BATTLES}</b></span>
+    </div>`;
+  c.appendChild(hdr);
 
-  DC_BOSSES.forEach(boss => {
-    const card = el('div', 'panel dc-boss-card');
-    const stars = '★'.repeat(boss.difficulty) + '☆'.repeat(5 - boss.difficulty);
-    const rm = boss.reward;
-    card.innerHTML = `
-      <div class="dc-boss-icon">${boss.icon}</div>
-      <div class="dc-boss-body">
-        <div class="dc-boss-name">${esc(boss.name)}</div>
-        <div class="dc-boss-stars">${stars}</div>
-        <div class="dc-boss-quote muted small">${esc(boss.quote)}</div>
-        <div class="dc-boss-meta">
-          <span>❤️ ${boss.hp} HP</span>
-          <span>🪙 ${rm.gold} oro</span>
-          <span>🃏 ${Math.round(rm.cardChance * 100)}% carta</span>
-        </div>
-      </div>
-      <div class="dc-boss-arrow">›</div>
-    `;
-    card.addEventListener('click', () => {
-      DC_BATTLE_STATE = dcInitBattle(DC_DECK, boss.id);
-      DC_VIEW = 'battle';
-      setTab('market');
-    });
-    c.appendChild(card);
+  if (battlesLeft === 0) {
+    const msg = el('div', 'panel center muted', '⏳ Hai esaurito le sfide per oggi. Torna domani!');
+    c.appendChild(msg);
+    return;
+  }
+
+  DC_TIERS.forEach(tier => {
+    const unlocked = dcTierUnlocked(HERO, tier);
+    const tierbosses = DC_BOSSES.filter(b => b.tier === tier);
+    const defeatedInTier = tierbosses.filter(b => dcBossDefeated(HERO, b.id)).length;
+    const tierLabel = DC_TIER_LABELS[tier];
+    const tierIcon  = DC_TIER_ICONS[tier];
+
+    const wrap = el('div', `dc-tier-panel dc-tier-${tier}${unlocked ? '' : ' dc-tier-locked'}`);
+
+    const tierHdr = el('div', 'dc-tier-header');
+    tierHdr.innerHTML = `
+      <span class="dc-tier-icon">${tierIcon}</span>
+      <span class="dc-tier-name">${tierLabel}</span>
+      <span class="dc-tier-progress">${unlocked ? `${defeatedInTier}/5 sconfitti` : '🔒 ' + _dcUnlockHint(tier)}</span>`;
+    wrap.appendChild(tierHdr);
+
+    if (unlocked) {
+      const grid = el('div', 'dc-boss-grid');
+      tierbosses.forEach(boss => {
+        const defeated = dcBossDefeated(HERO, boss.id);
+        const rm = boss.reward;
+        const starsInTier = boss.difficulty - (DC_TIERS.indexOf(tier) * 5);
+        const stars = '★'.repeat(starsInTier) + '☆'.repeat(5 - starsInTier);
+        const card = el('div', `dc-boss-card${defeated ? ' dc-boss-defeated' : ''}${boss.champion ? ' dc-boss-champion' : ''}`);
+        const avatarSrc = `assets/dc-bosses/${boss.id}.webp`;
+        card.innerHTML = `
+          <div class="dc-boss-avatar">
+            <img src="${avatarSrc}" alt="${esc(boss.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="dc-boss-icon-fb" style="display:none">${boss.icon}</div>
+            ${defeated ? '<div class="dc-boss-defeated-badge">✓</div>' : ''}
+            ${boss.champion ? '<div class="dc-boss-champion-badge">👑</div>' : ''}
+          </div>
+          <div class="dc-boss-info">
+            <div class="dc-boss-name">${esc(boss.name)}</div>
+            <div class="dc-boss-stars">${stars}</div>
+            <div class="dc-boss-rewards">
+              <span>❤️ ${boss.hp}</span>
+              <span>🪙 ${rm.gold}</span>
+              <span>🃏 ${Math.round(rm.cardChance * 100)}%</span>
+              ${boss.champion ? '<span class="dc-champ-tag">Campione</span>' : ''}
+            </div>
+          </div>`;
+        card.addEventListener('click', () => {
+          DC_BATTLE_STATE = dcInitBattle(DC_DECK, boss.id);
+          if (!DC_BATTLE_STATE) { toast('Errore: boss non trovato.'); return; }
+          dcRecordBattle(HERO);
+          persist();
+          DC_VIEW = 'battle';
+          setTab('market');
+        });
+        grid.appendChild(card);
+      });
+      wrap.appendChild(grid);
+    }
+
+    c.appendChild(wrap);
   });
+}
+
+function _dcUnlockHint(tier) {
+  const idx = DC_TIERS.indexOf(tier);
+  const prevTier = DC_TIERS[idx - 1];
+  const prevLabel = DC_TIER_LABELS[prevTier] || prevTier;
+  const prevBosses = DC_BOSSES.filter(b => b.tier === prevTier);
+  const defeatedCount = (HERO.dcDefeated || []).filter(id => prevBosses.some(b => b.id === id)).length;
+  return `Sconfiggi ${defeatedCount}/3 boss ${prevLabel}`;
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -772,7 +830,7 @@ function renderDcBattleView(c) {
 
   bossArea.innerHTML = `
     <div class="dc-battle-combatant-header">
-      <span class="dc-bc-face-icon">${st.boss.icon}</span>
+      <span class="dc-bc-face-icon"><img src="assets/dc-bosses/${st.boss.id}.webp" alt="${esc(st.boss.icon)}" onerror="this.outerHTML='${st.boss.icon}'" style="width:36px;height:36px;border-radius:4px;object-fit:cover;vertical-align:middle"></span>
       <div class="dc-bc-face-info">
         <b>${esc(st.boss.name)}</b>
         <div class="dc-battle-hp-bar-wrap">
