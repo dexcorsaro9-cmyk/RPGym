@@ -403,11 +403,13 @@ function renderAntroView(c) {
         <div class="ahc-lv">Lv 61</div>
       `;
     } else {
+      const isBestia = s.key === 'antro_bestia';
       card.innerHTML = `
         <div class="ahc-icon">${done ? s.icon : '🔒'}</div>
         <div class="ahc-body">
           <div class="ahc-name">${s.name}</div>
           <div class="ahc-desc">${done ? s.desc : `Si sblocca al livello ${s.lv}`}</div>
+          ${!done && isBestia ? `<div class="ahc-prove-teaser">⚔️ Al Lv 61 si sbloccano <b>Le 10 Prove del Campione</b> — sfide irripetibili con trofei unici e il Gladius Aeternus.</div>` : ''}
         </div>
         <div class="ahc-lv">Lv ${s.lv}</div>
       `;

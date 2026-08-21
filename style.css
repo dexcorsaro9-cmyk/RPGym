@@ -11052,6 +11052,11 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
   background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
   border-radius: 20px; padding: 2px 10px; color: var(--muted);
 }
+.ahc-prove-teaser {
+  font-size: .7rem; color: var(--muted); margin-top: 6px; line-height: 1.4;
+  border-top: 1px solid rgba(241,196,15,.15); padding-top: 6px;
+}
+.ahc-prove-teaser b { color: #f1c40f; }
 .ahc-prove-badge-done {
   background: linear-gradient(90deg, rgba(241,196,15,.25), rgba(155,89,182,.2));
   border-color: rgba(155,89,182,.5); color: #f1c40f;
