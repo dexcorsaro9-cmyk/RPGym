@@ -10044,6 +10044,22 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
 .sp-header-bar-fill { height: 100%; background: linear-gradient(90deg, #C8943A, #E8C050); border-radius: 99px; transition: width .5s; }
 .sp-header-bar-label { font-size: .65rem; color: #C0A070; }
 
+/* ── Countdown bar pass stagionale ── */
+.sp-countdown-bar {
+  border-top: 1px solid #2A1206;
+  background: linear-gradient(90deg, #100604, #0A0402);
+  padding: 7px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sp-countdown-icon { font-size: .9rem; flex-shrink: 0; }
+.sp-countdown-text { font-size: .63rem; color: #C0A070; text-transform: uppercase; letter-spacing: .07em; flex-shrink: 0; white-space: nowrap; }
+.sp-countdown-units { display: flex; align-items: baseline; gap: 3px; flex: 1; justify-content: flex-end; }
+.sp-countdown-val { font-family: 'Cinzel', serif; font-size: .88rem; font-weight: 800; color: #C8943A; }
+.sp-countdown-key { font-size: .52rem; color: #C0A070; text-transform: uppercase; letter-spacing: .04em; }
+.sp-countdown-sep { color: #3A1A06; font-size: .75rem; margin: 0 1px; }
+
 .sp-legend { display: flex; gap: 14px; padding: 10px 16px; flex-wrap: wrap; }
 .sp-legend-item { display: flex; align-items: center; gap: 5px; font-size: .68rem; color: #D8C0A0; }
 .sp-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
