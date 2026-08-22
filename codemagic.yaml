@@ -1,60 +1,16 @@
 workflows:
-  android-release:
-    name: Android → AAB firmato (nessuna pubblicazione automatica)
-    max_build_duration: 60
-    environment:
-      vars:
-        PACKAGE_NAME: com.antoniodecino.heroscape
-      node: "22"
-      java: 21
-      groups:
-        - android_keystore   # definisci questo gruppo nei Codemagic Environment Variables:
-                              # CM_KEYSTORE (file, la .jks codificata), CM_KEYSTORE_PASSWORD,
-                              # CM_KEY_ALIAS, CM_KEY_PASSWORD
-    scripts:
-      - name: Install Node dependencies
-        script: npm install
-
-      - name: Build web assets
-        script: node build.js
-
-      - name: Sync Android platform
-        script: npx cap sync android
-
-      - name: Decode keystore e crea keystore.properties
-        script: |
-          mkdir -p $CM_BUILD_DIR/android/keystore
-          echo $CM_KEYSTORE | base64 --decode > $CM_BUILD_DIR/android/keystore/heropace-upload.jks
-          cat > $CM_BUILD_DIR/android/keystore.properties <<EOF
-          storeFile=keystore/heropace-upload.jks
-          storePassword=$CM_KEYSTORE_PASSWORD
-          keyAlias=$CM_KEY_ALIAS
-          keyPassword=$CM_KEY_PASSWORD
-          EOF
-
-      - name: Build AAB firmato
-        script: |
-          cd android
-          ./gradlew bundleRelease
-
-    artifacts:
-      - android/app/build/outputs/**/*.aab
-      - android/app/build/outputs/**/mapping.txt
-
-    # Nessuna sezione "publishing" verso Google Play: l'AAB resta solo come
-    # artifact scaricabile — l'upload sulla track (test interno/chiuso/produzione)
-    # va fatto manualmente da Play Console, quando decidi tu.
-    publishing:
-      email:
-        recipients:
-          - 9corsaro9@gmail.com
-        notify:
-          success: true
-          failure: true
-
   ios-testflight:
     name: iOS → TestFlight
+    instance_type: mac_mini_m1
     max_build_duration: 60
+
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.antoniodecino.heroscape
+      node: "20"
+      xcode: latest
+
     triggering:
       events:
         - push
@@ -62,75 +18,53 @@ workflows:
         - pattern: main
           include: true
           source: true
-    environment:
-      groups:
-        - app_store_connect
-      vars:
-        BUNDLE_ID: com.antoniodecino.heroscape
-        XCODE_WORKSPACE: ios/App/App.xcworkspace
-        XCODE_SCHEME: App
-        APNS_KEY_ID: $APNS_KEY_ID
-        APNS_TEAM_ID: $APNS_TEAM_ID
-      node: "22"
-      xcode: latest
-      cocoapods: default
-    scripts:
-      - name: Install Node dependencies
-        script: npm install
 
-      - name: Build web assets
+    scripts:
+      - name: Install npm dependencies
+        script: npm ci
+
+      - name: Build web assets (dist/)
         script: node build.js
 
-      - name: Add/sync iOS platform
-        script: |
-          if [ ! -d "ios" ]; then
-            npx cap add ios
-          fi
-          npx cap sync ios
+      - name: Capacitor sync iOS
+        script: npx cap sync ios
 
-      - name: Set bundle version
+      - name: Set build number
         script: |
-          echo "Using Codemagic build number: $BUILD_NUMBER"
-          cd ios/App && agvtool new-version -all "$BUILD_NUMBER"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" ios/App/App/Info.plist
+          echo "CFBundleVersion → $BUILD_NUMBER"
 
-      - name: Write APNs key
+      - name: Setup code signing (automatico via App Store Connect API)
         script: |
-          echo "$APNS_PRIVATE_KEY" > /tmp/apns_key.p8
-
-      - name: Setup code signing
-        script: |
-          echo "=== Initialize keychain ==="
           keychain initialize
-          echo "=== Write persistent certificate private key ==="
-          echo "$CM_CERT_PRIVATE_KEY" | base64 --decode > /tmp/cert_key.pem
-          echo "=== Delete stale provisioning profiles for bundle ID ==="
-          app-store-connect list-provisioning-profiles \
-            --bundle-id-identifier "$BUNDLE_ID" \
-            --profile-type IOS_APP_STORE \
-            --identifier-strict 2>/dev/null | \
-          while read -r profile_id; do
-            echo "Deleting profile: $profile_id"
-            app-store-connect delete-provisioning-profile "$profile_id" 2>/dev/null || true
-          done
-          echo "=== Fetch/create certificate + provisioning profile ==="
-          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+          app-store-connect fetch-signing-files com.antoniodecino.heroscape \
             --type IOS_APP_STORE \
-            --certificate-key @file:/tmp/cert_key.pem \
             --create
-          echo "=== Add certificate to keychain ==="
           keychain add-certificates
-          echo "=== Apply profiles to Xcode project ==="
           xcode-project use-profiles
 
-      - name: Build IPA
+      - name: Resolve SPM dependencies
+        script: |
+          xcodebuild \
+            -resolvePackageDependencies \
+            -workspace ios/App/App.xcworkspace \
+            -scheme App
+
+      - name: Build & Archive
+        script: |
+          xcodebuild archive \
+            -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -sdk iphoneos \
+            -configuration Release \
+            -archivePath build/HerosPace.xcarchive \
+            | xcpretty
+
+      - name: Export IPA
         script: |
           xcode-project build-ipa \
-            --workspace "$XCODE_WORKSPACE" \
-            --scheme "$XCODE_SCHEME" || {
-            echo "=== XCODE BUILD FAILED — printing log ==="
-            cat /tmp/xcodebuild_logs/*.log 2>/dev/null || echo "No log file found"
-            exit 1
-          }
+            --workspace ios/App/App.xcworkspace \
+            --scheme App
 
     artifacts:
       - build/ios/ipa/*.ipa
@@ -142,11 +76,4 @@ workflows:
         key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
         issuer_id: $APP_STORE_CONNECT_ISSUER_ID
         submit_to_testflight: true
-        beta_groups:
-          - Beta Esterni
-      email:
-        recipients:
-          - 9corsaro9@gmail.com
-        notify:
-          success: true
-          failure: true
+        cancel_previous_submissions: true
