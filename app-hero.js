@@ -2273,11 +2273,11 @@ function showScratchCard(ticket) {
       resEl.style.display = 'block';
       if (result.isWin) {
         resEl.innerHTML = `
-          <div class="panel" style="background:rgba(180,140,20,0.15);border:1px solid rgba(200,160,30,0.4)">
-            <div style="font-size:1.5rem;margin-bottom:6px">🎉</div>
-            <b style="color:#f0c040">${esc(result.prize.label)}</b>
-            ${result.prize.droppedItem ? `<div class="muted small" style="margin-top:4px">+ ${esc(result.prize.droppedItem.name)}</div>` : ''}
-            ${result.prize.droppedConsumable ? `<div class="muted small" style="margin-top:4px">+ Consumabile</div>` : ''}
+          <div class="panel" style="background:rgba(200,160,20,0.18);border:2px solid rgba(200,160,20,0.55)">
+            <div style="font-size:1.8rem;margin-bottom:6px">🎉</div>
+            <b style="font-size:1.1rem;color:var(--text)">${esc(result.prize.label)}</b>
+            ${result.prize.droppedItem ? `<div class="muted small" style="margin-top:6px">+ ${esc(result.prize.droppedItem.name)}</div>` : ''}
+            ${result.prize.droppedConsumable ? `<div class="muted small" style="margin-top:6px">+ Consumabile</div>` : ''}
           </div>`;
         toast(`🎟️ ${result.prize.label}`);
       } else {
