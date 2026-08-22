@@ -117,7 +117,11 @@ workflows:
         script: |
           xcode-project build-ipa \
             --workspace "$XCODE_WORKSPACE" \
-            --scheme "$XCODE_SCHEME"
+            --scheme "$XCODE_SCHEME" || {
+            echo "=== XCODE BUILD FAILED — printing log ==="
+            cat /tmp/xcodebuild_logs/*.log 2>/dev/null || echo "No log file found"
+            exit 1
+          }
 
     artifacts:
       - build/ios/ipa/*.ipa
