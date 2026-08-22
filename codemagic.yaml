@@ -4,13 +4,10 @@ workflows:
     instance_type: mac_mini_m1
     max_build_duration: 60
 
-    integrations:
-      app_store_connect: codemagic
-
     environment:
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.antoniodecino.heroscape
+      groups:
+        - app_store_connect
+        - ios_signing
       node: "22"
       xcode: latest
 
@@ -37,6 +34,29 @@ workflows:
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" ios/App/App/Info.plist
           echo "CFBundleVersion → $BUILD_NUMBER"
 
+      - name: Install certificate and provisioning profile
+        script: |
+          set -e
+
+          # Install certificate
+          echo "$CM_CERTIFICATE" | base64 --decode > /tmp/cert.p12
+          keychain initialize
+          keychain add-certificates \
+            --certificate /tmp/cert.p12 \
+            --certificate-password "$CM_CERTIFICATE_PASSWORD"
+
+          # Install provisioning profile
+          echo "$CM_PROVISIONING_PROFILE" | base64 --decode > /tmp/profile.mobileprovision
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          UUID=$(security cms -D -i /tmp/profile.mobileprovision 2>/dev/null \
+            | /usr/libexec/PlistBuddy -c "Print :UUID" /dev/stdin 2>/dev/null \
+            || echo "3331413c-6ddf-41a6-bfdf-685d028e11e5")
+          cp /tmp/profile.mobileprovision \
+            ~/Library/MobileDevice/Provisioning\ Profiles/${UUID}.mobileprovision
+          echo "Installed profile UUID: $UUID"
+
+          xcode-project use-profiles
+
       - name: Resolve SPM dependencies
         script: |
           xcodebuild \
@@ -46,15 +66,51 @@ workflows:
 
       - name: Build & export IPA
         script: |
-          xcode-project build-ipa \
-            --workspace ios/App/App.xcworkspace \
-            --scheme App
+          set -e
+          PROFILE_UUID="3331413c-6ddf-41a6-bfdf-685d028e11e5"
+
+          xcodebuild archive \
+            -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -sdk iphoneos \
+            -configuration Release \
+            -archivePath /tmp/App.xcarchive \
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="iPhone Distribution" \
+            PROVISIONING_PROFILE="$PROFILE_UUID" \
+            DEVELOPMENT_TEAM="V9L7F3BVCV"
+
+          cat > /tmp/ExportOptions.plist << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store</string>
+            <key>teamID</key>
+            <string>V9L7F3BVCV</string>
+            <key>uploadSymbols</key>
+            <true/>
+            <key>compileBitcode</key>
+            <false/>
+          </dict>
+          </plist>
+          EOF
+
+          mkdir -p build/ios/ipa
+          xcodebuild -exportArchive \
+            -archivePath /tmp/App.xcarchive \
+            -exportOptionsPlist /tmp/ExportOptions.plist \
+            -exportPath build/ios/ipa
 
     artifacts:
-      - build/ios/ipa/*.ipa
+      - build/ios/ipa/**/*.ipa
       - /tmp/xcodebuild_logs/*.log
 
     publishing:
       app_store_connect:
-        auth: integration
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
         submit_to_testflight: true
