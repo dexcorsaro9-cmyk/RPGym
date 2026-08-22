@@ -35,26 +35,36 @@ workflows:
 
       - name: Setup code signing
         script: |
+          set -e
+          echo "=== keychain initialize ==="
           keychain initialize
+
+          echo "=== create-certificate ==="
           app-store-connect create-certificate \
             --type IOS_DISTRIBUTION \
-            --save
+            --save || echo "Certificate creation skipped (may already exist)"
+
+          echo "=== keychain add-certificates ==="
           keychain add-certificates
+
+          echo "=== fetch-signing-files ==="
           app-store-connect fetch-signing-files com.antoniodecino.heroscape \
             --type IOS_APP_STORE \
             --create \
             --save
+
+          echo "=== profiles downloaded ==="
+          ls ~/Library/MobileDevice/Provisioning\ Profiles/ 2>/dev/null || echo "No profiles directory"
+
+          echo "=== use-profiles ==="
           xcode-project use-profiles
 
-      - name: Resolve SPM dependencies
-        script: |
-          xcodebuild \
-            -resolvePackageDependencies \
-            -workspace ios/App/App.xcworkspace \
-            -scheme App
+          echo "=== PROVISIONING_PROFILE in pbxproj ==="
+          grep PROVISIONING_PROFILE ios/App/App.xcodeproj/project.pbxproj | head -5 || true
 
       - name: Build & Archive
         script: |
+          set -e
           xcodebuild archive \
             -workspace ios/App/App.xcworkspace \
             -scheme App \
@@ -65,6 +75,7 @@ workflows:
 
       - name: Export IPA
         script: |
+          set -e
           xcode-project build-ipa \
             --workspace ios/App/App.xcworkspace \
             --scheme App
