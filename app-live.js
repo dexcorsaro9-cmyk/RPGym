@@ -326,17 +326,18 @@ function lwStartTracking(overlay, mission, allMissions) {
   const mapEl = overlay.querySelector('#lw-map');
 
   if (typeof L === 'undefined') {
-    mapEl.innerHTML = '<div class="lw-map-fallback">📍 GPS attivo — mappa non disponibile offline.<br>I km vengono tracciati correttamente.</div>';
+    mapEl.innerHTML = '<div class="lw-map-fallback">📍 GPS attivo — mappa non disponibile.<br>I km vengono tracciati correttamente.</div>';
   } else {
-    const map = L.map(mapEl, { zoomControl: false, attributionControl: false });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
-
-    // Applica filtro scuro/fantasy alla mappa
-    mapEl.style.filter = 'sepia(40%) brightness(0.85) contrast(1.1)';
-
-    const routeLine = L.polyline([], { color: '#C8943A', weight: 5, opacity: 0.9 }).addTo(map);
-    LIVE_WK.map = map;
-    LIVE_WK.routeLine = routeLine;
+    try {
+      const map = L.map(mapEl, { zoomControl: false, attributionControl: false });
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+      mapEl.style.filter = 'sepia(40%) brightness(0.85) contrast(1.1)';
+      const routeLine = L.polyline([], { color: '#C8943A', weight: 5, opacity: 0.9 }).addTo(map);
+      LIVE_WK.map = map;
+      LIVE_WK.routeLine = routeLine;
+    } catch (_) {
+      mapEl.innerHTML = '<div class="lw-map-fallback">📍 GPS attivo — mappa non disponibile.<br>I km vengono tracciati correttamente.</div>';
+    }
   }
 
   // Timer ogni secondo

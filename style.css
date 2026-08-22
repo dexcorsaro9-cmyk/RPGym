@@ -11485,7 +11485,8 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
 .lw-ms-screen {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
   background: linear-gradient(180deg, #120806 0%, #080402 100%);
 }
@@ -11622,7 +11623,8 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   gap: 32px;
   background: radial-gradient(ellipse at 50% 40%, #1a0e04 0%, #080402 70%);
 }
@@ -11675,7 +11677,8 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
 .lw-track-screen {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   position: relative;
   overflow: hidden;
 }
@@ -11840,7 +11843,8 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
    RIEPILOGO FINALE
    ══════════════════════════════════════════ */
 .lw-sum-screen {
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   background: linear-gradient(180deg, #180c04 0%, #080402 100%);
   display: flex;
