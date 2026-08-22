@@ -39,8 +39,8 @@ workflows:
           echo "=== keychain initialize ==="
           keychain initialize
 
-          echo "=== create-certificate ==="
-          app-store-connect create-certificate \
+          echo "=== certificates create ==="
+          app-store-connect certificates create \
             --type IOS_DISTRIBUTION \
             --save || echo "Certificate creation skipped (may already exist)"
 
