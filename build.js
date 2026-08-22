@@ -19,6 +19,7 @@ const jsFiles = [
   'app-core.js', 'app-camp.js', 'app-map.js', 'app-train.js',
   'app-market.js', 'app-hero.js',
   'minigames.js', 'arena.js',
+  'app-live.js',
 ];
 // target 'es2020' (non 'es2017'!): tutti i file condividono lo stesso scope
 // globale window (nessun modulo ES — vedi CLAUDE.md), e ogni file viene
