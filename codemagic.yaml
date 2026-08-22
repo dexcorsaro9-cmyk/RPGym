@@ -4,9 +4,13 @@ workflows:
     instance_type: mac_mini_m1
     max_build_duration: 60
 
+    integrations:
+      app_store_connect: Codemagic
+
     environment:
-      groups:
-        - app_store_connect
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.antoniodecino.heroscape
       node: "22"
       xcode: latest
 
@@ -33,55 +37,15 @@ workflows:
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" ios/App/App/Info.plist
           echo "CFBundleVersion → $BUILD_NUMBER"
 
-      - name: Setup code signing
+      - name: Resolve SPM dependencies
         script: |
-          set -e
-          echo "=== keychain initialize ==="
-          keychain initialize
-
-          echo "=== generate private key ==="
-          openssl genrsa -out /tmp/dist_cert.key 2048
-
-          echo "=== certificates create ==="
-          mkdir -p ~/Library/MobileDevice/Certificates
-          app-store-connect certificates create \
-            --type IOS_DISTRIBUTION \
-            --certificate-key @file:/tmp/dist_cert.key \
-            --certificates-dir ~/Library/MobileDevice/Certificates \
-            --save || echo "Certificate creation skipped (may already exist)"
-
-          echo "=== keychain add-certificates ==="
-          keychain add-certificates
-
-          echo "=== fetch-signing-files ==="
-          app-store-connect fetch-signing-files com.antoniodecino.heroscape \
-            --type IOS_APP_STORE \
-            --create \
-            --save
-
-          echo "=== profiles downloaded ==="
-          ls ~/Library/MobileDevice/Provisioning\ Profiles/ 2>/dev/null || echo "No profiles directory"
-
-          echo "=== use-profiles ==="
-          xcode-project use-profiles
-
-          echo "=== PROVISIONING_PROFILE in pbxproj ==="
-          grep PROVISIONING_PROFILE ios/App/App.xcodeproj/project.pbxproj | head -5 || true
-
-      - name: Build & Archive
-        script: |
-          set -e
-          xcodebuild archive \
+          xcodebuild \
+            -resolvePackageDependencies \
             -workspace ios/App/App.xcworkspace \
-            -scheme App \
-            -sdk iphoneos \
-            -configuration Release \
-            -archivePath build/HerosPace.xcarchive \
-            | xcpretty
+            -scheme App
 
-      - name: Export IPA
+      - name: Build & export IPA
         script: |
-          set -e
           xcode-project build-ipa \
             --workspace ios/App/App.xcworkspace \
             --scheme App
@@ -92,7 +56,5 @@ workflows:
 
     publishing:
       app_store_connect:
-        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
-        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
-        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        auth: integration
         submit_to_testflight: true
