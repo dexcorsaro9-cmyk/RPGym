@@ -45,14 +45,12 @@ workflows:
             --certificate /tmp/cert.p12 \
             --certificate-password "$CM_CERTIFICATE_PASSWORD"
 
-          # Install provisioning profile
-          echo "$CM_PROVISIONING_PROFILE" | base64 --decode > /tmp/profile.mobileprovision
+          # Install provisioning profile (stored in repo, no env var needed)
           PROFILES_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
           mkdir -p "$PROFILES_DIR"
           UUID="3331413c-6ddf-41a6-bfdf-685d028e11e5"
-          cp /tmp/profile.mobileprovision "$PROFILES_DIR/${UUID}.mobileprovision"
-          echo "Installed profile UUID: $UUID"
-          ls -la "$PROFILES_DIR/"
+          cp ios/signing/HerosPace_AppStore.mobileprovision "$PROFILES_DIR/${UUID}.mobileprovision"
+          echo "Installed profile UUID: $UUID ($(wc -c < "$PROFILES_DIR/${UUID}.mobileprovision") bytes)"
           xcode-project use-profiles
 
       - name: Resolve SPM dependencies
