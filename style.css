@@ -10232,6 +10232,31 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
 .gesta-unlock-progress { margin: 0; }
 .gesta-set-complete-banner { width: 100%; padding: 12px 14px; border-radius: 12px; background: linear-gradient(135deg, rgba(241,196,15,.2), rgba(180,100,0,.12)); border: 1.5px solid rgba(241,196,15,.5); font-size: .9rem; font-weight: 800; color: var(--gold); line-height: 1.5; }
 
+/* ── Il Drago Finale ── */
+.drago-hp-wrap { padding: 8px 16px 4px; }
+.drago-hp-bar { display: flex; gap: 8px; justify-content: center; margin: 4px 0; }
+.drago-hp-seg { flex: 1; max-width: 80px; height: 14px; border-radius: 7px; background: rgba(255,255,255,.1); border: 1px solid rgba(231,76,60,.3); transition: background .4s; }
+.drago-hp-seg-hit { background: rgba(231,76,60,.75); border-color: #e74c3c; }
+.drago-hdr-dead .antro-view-title { color: var(--gold); }
+.drago-dead-banner { background: linear-gradient(135deg, rgba(231,76,60,.15), rgba(180,0,0,.08)); border-color: rgba(231,76,60,.4); }
+.drago-wound-modal { text-align: center; padding: 6px 0; }
+.drago-wound-ornament { font-size: 1.6rem; margin-bottom: 6px; }
+.drago-wound-label { font-size: 1rem; font-weight: 900; letter-spacing: .06em; color: #e74c3c; margin-bottom: 10px; }
+.drago-hp-row { display: flex; gap: 10px; justify-content: center; margin: 6px 0 14px; }
+.drago-hp-row .drago-hp-seg { flex: none; width: 56px; }
+.drago-wound-lore { font-style: italic; color: var(--text); margin: 8px 0; line-height: 1.5; }
+.drago-wound-progress { margin: 4px 0; }
+.drago-killed-modal { text-align: center; padding: 6px 0; }
+.drago-killed-fire { font-size: 2.8rem; margin-bottom: 6px; }
+.drago-killed-title { font-size: 1.3rem; font-weight: 900; letter-spacing: .04em; color: var(--gold); margin-bottom: 4px; }
+.drago-killed-sub { font-size: .82rem; letter-spacing: .05em; color: var(--muted); margin-bottom: 14px; }
+.drago-killed-stats { background: rgba(255,255,255,.05); border-radius: 10px; padding: 10px 14px; margin: 10px 0; display: flex; flex-direction: column; gap: 5px; }
+.drago-stat-row { display: flex; justify-content: space-between; font-size: .85rem; }
+.drago-stat-row span:first-child { font-weight: 700; color: var(--text); }
+.drago-killed-item { background: rgba(241,196,15,.1); border: 1px solid rgba(241,196,15,.3); border-radius: 8px; padding: 8px 12px; margin: 8px 0; font-size: .85rem; color: var(--gold); }
+.drago-killed-the-end { font-size: 2.2rem; font-weight: 900; letter-spacing: .08em; color: var(--text); margin: 18px 0 4px; font-style: italic; }
+.drago-killed-hint { margin: 4px 0 10px; }
+
 .dc-filter-bar {
   display: flex; flex-wrap: wrap; gap: 6px; padding: .2rem 0 .6rem;
 }

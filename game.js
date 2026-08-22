@@ -8287,6 +8287,102 @@ function checkArmaturaPiecesSetBonus(hero) {
   return ARMATURA_PIECES.every(p => (hero.items || []).some(it => it.id === p.id));
 }
 
+/* ── Il Drago Finale (Lv 98-100) ── */
+const DRAGO_COLPI = [
+  {
+    id: 'colpo1', minLevel: 98,
+    label: 'Prima Ferita',
+    icon: '🩸',
+    lore: 'Il drago barcolla. Per la prima volta nella sua esistenza millenaria, sente il dolore.',
+    prova: {
+      desc: 'Percorri 15 km in una singola sessione (corsa o camminata)',
+      initProgress() { return { bestSingleKm: 0 }; },
+      onWorkout(prog, w) {
+        if (w.type !== 'corsa' && w.type !== 'camminata') return prog;
+        return { bestSingleKm: Math.max(prog.bestSingleKm || 0, w.km) };
+      },
+      isComplete(prog) { return (prog.bestSingleKm || 0) >= 15; },
+      progressText(prog) { return `Miglior sessione: ${(prog.bestSingleKm || 0).toFixed(1)} / 15 km`; },
+    },
+  },
+  {
+    id: 'colpo2', minLevel: 99,
+    label: 'Seconda Ferita',
+    icon: '⚡',
+    lore: 'Il drago è in ginocchio. Il fuoco si affievolisce. Il Reame trattiene il respiro.',
+    prova: {
+      desc: 'Percorri 60 km totali (corsa+camminata) mentre sei Lv 99 o superiore',
+      initProgress() { return { totalKm: 0 }; },
+      onWorkout(prog, w) {
+        if (w.type !== 'corsa' && w.type !== 'camminata') return prog;
+        return { totalKm: (prog.totalKm || 0) + w.km };
+      },
+      isComplete(prog) { return (prog.totalKm || 0) >= 60; },
+      progressText(prog) { return `Km percorsi: ${(prog.totalKm || 0).toFixed(1)} / 60 km`; },
+    },
+  },
+  {
+    id: 'colpo3', minLevel: 100,
+    label: 'Colpo Fatale',
+    icon: '💀',
+    lore: 'Un ultimo gesto. Un ultimo respiro. La leggenda non si scrive con le parole — si corre.',
+    prova: {
+      desc: 'Percorri 20 km in una singola sessione (corsa o camminata)',
+      initProgress() { return { bestSingleKm: 0 }; },
+      onWorkout(prog, w) {
+        if (w.type !== 'corsa' && w.type !== 'camminata') return prog;
+        return { bestSingleKm: Math.max(prog.bestSingleKm || 0, w.km) };
+      },
+      isComplete(prog) { return (prog.bestSingleKm || 0) >= 20; },
+      progressText(prog) { return `Miglior sessione: ${(prog.bestSingleKm || 0).toFixed(1)} / 20 km`; },
+    },
+  },
+];
+
+const DRAGO_ITEM = {
+  id: 'dente_del_drago',
+  name: 'Il Dente del Drago',
+  icon: '🐉',
+  img: 'assets/drago/dente.webp',
+  slot: 'reliquia',
+  rarity: 'leggendario',
+  desc: '+200 XP fisso ad ogni allenamento. Estratto dall\'ultimo drago che ha osato sfidarti. Nessuno è mai tornato con uno.',
+};
+
+function checkDragoOnWorkout(hero, workout) {
+  if ((hero.level || 1) < 98) return { newColpi: [], dragonKilled: false };
+  if (!hero.dragoProve) hero.dragoProve = {};
+  if (!hero.items) hero.items = [];
+  const heroLv = hero.level || 1;
+  const newColpi = [];
+
+  for (const colpo of DRAGO_COLPI) {
+    const pv = hero.dragoProve[colpo.id] || {};
+    if (pv.completed) continue;
+    if (heroLv < colpo.minLevel) continue;
+    if (!pv.progress) {
+      hero.dragoProve[colpo.id] = { completed: false, progress: colpo.prova.initProgress() };
+    }
+    const newProg = colpo.prova.onWorkout(hero.dragoProve[colpo.id].progress, workout);
+    hero.dragoProve[colpo.id] = { completed: false, progress: newProg };
+    if (colpo.prova.isComplete(newProg)) {
+      hero.dragoProve[colpo.id].completed = true;
+      newColpi.push(colpo);
+    }
+  }
+
+  let dragonKilled = false;
+  const allDone = DRAGO_COLPI.every(c => (hero.dragoProve[c.id] || {}).completed);
+  if (allDone && !(hero.items || []).some(it => it.id === DRAGO_ITEM.id)) {
+    hero.items.push({ id: DRAGO_ITEM.id, name: DRAGO_ITEM.name, icon: DRAGO_ITEM.icon,
+      img: DRAGO_ITEM.img, slot: DRAGO_ITEM.slot, rarity: DRAGO_ITEM.rarity, desc: DRAGO_ITEM.desc });
+    hero.dragoTitolo = 'Draghicida';
+    dragonKilled = true;
+  }
+
+  return { newColpi, dragonKilled };
+}
+
 function dcTierUnlocked(hero, tier) {
   const idx = DC_TIERS.indexOf(tier);
   if (idx === 0) return true;
