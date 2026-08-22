@@ -3767,6 +3767,13 @@ const RPG = (() => {
     localWoodMult  += equipType.woodMult;
     localStoneMult += equipType.stoneMult;
 
+    // Reliquia: Il Cuore del Drago (+50% XP, +3 oro/km)
+    const reliquiaSlot = (hero.equipment || {}).reliquia;
+    if (reliquiaSlot === 'cuore_del_drago') {
+      xpMult  += 0.50;
+      report._cuoreOroBonus = Math.round(effKm * 3);
+    }
+
     // Bonus gilda (applica se hero.guild ha il livello cached)
     if (hero.guild && hero.guild.totalKm != null) {
       const gb = guildBonus(hero.guild.totalKm);
@@ -3819,6 +3826,10 @@ const RPG = (() => {
       const bonusGold = Math.round(effKm * 3 * mult);
       report.gold += bonusGold;
       hero.gold += bonusGold;
+    }
+    if (report._cuoreOroBonus) {
+      report.gold += report._cuoreOroBonus;
+      hero.gold   += report._cuoreOroBonus;
     }
 
     report.wood = Math.round((effKm * (1 + Math.random())) * localWoodMult);
@@ -8346,7 +8357,7 @@ const DRAGO_ITEM = {
   img: 'assets/drago/cuore.webp',
   slot: 'reliquia',
   rarity: 'leggendario',
-  desc: '+200 XP fisso ad ogni allenamento. Il cuore dell\'ultimo drago batte ancora tra le tue mani. Nessuno è mai tornato con uno.',
+  desc: '+50% XP e +3 oro per km ad ogni allenamento. Il cuore dell\'ultimo drago batte ancora tra le tue mani. Nessuno è mai tornato con uno.',
 };
 
 function checkDragoOnWorkout(hero, workout) {
