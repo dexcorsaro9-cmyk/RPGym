@@ -8340,13 +8340,13 @@ const DRAGO_COLPI = [
 ];
 
 const DRAGO_ITEM = {
-  id: 'dente_del_drago',
-  name: 'Il Dente del Drago',
-  icon: '🐉',
-  img: 'assets/drago/dente.webp',
+  id: 'cuore_del_drago',
+  name: 'Il Cuore del Drago',
+  icon: '❤️‍🔥',
+  img: 'assets/drago/cuore.webp',
   slot: 'reliquia',
   rarity: 'leggendario',
-  desc: '+200 XP fisso ad ogni allenamento. Estratto dall\'ultimo drago che ha osato sfidarti. Nessuno è mai tornato con uno.',
+  desc: '+200 XP fisso ad ogni allenamento. Il cuore dell\'ultimo drago batte ancora tra le tue mani. Nessuno è mai tornato con uno.',
 };
 
 function checkDragoOnWorkout(hero, workout) {
