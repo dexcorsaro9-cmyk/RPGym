@@ -51,7 +51,6 @@ workflows:
           UUID="3331413c-6ddf-41a6-bfdf-685d028e11e5"
           cp ios/signing/HerosPace_AppStore.mobileprovision "$PROFILES_DIR/${UUID}.mobileprovision"
           echo "Installed profile UUID: $UUID ($(wc -c < "$PROFILES_DIR/${UUID}.mobileprovision") bytes)"
-          xcode-project use-profiles
 
       - name: Resolve SPM dependencies
         script: |
@@ -75,7 +74,6 @@ workflows:
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="iPhone Distribution" \
             PROVISIONING_PROFILE="$PROFILE_UUID" \
-            PROVISIONING_PROFILE_SPECIFIER="HerosPace AppStore" \
             DEVELOPMENT_TEAM="V9L7F3BVCV"
 
           cat > /tmp/ExportOptions.plist << 'EOF'
