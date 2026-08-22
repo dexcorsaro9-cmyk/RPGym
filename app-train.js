@@ -166,6 +166,26 @@ function renderTrain(c) {
 
   if (WorkoutPlugin) renderLiveWorkoutCard(c, WorkoutPlugin, () => chosen);
 
+  // ── Spedizione GPS Live ──────────────────────────────────────────────────
+  const lwBtn = document.createElement('button');
+  lwBtn.className = 'lw-allenati-btn';
+  lwBtn.setAttribute('aria-label', 'Spedizione GPS Live');
+  const lwImg = document.createElement('img');
+  lwImg.src = 'assets/ui/train/btn-allenati.webp';
+  lwImg.alt = 'Allenati';
+  lwImg.className = 'lw-allenati-img';
+  const lwLabel = document.createElement('div');
+  lwLabel.className = 'lw-allenati-label';
+  lwLabel.textContent = '⚔️ Spedizione GPS Live';
+  const lwSub = document.createElement('div');
+  lwSub.className = 'lw-allenati-sub';
+  lwSub.textContent = 'Corri dal vivo e completa le missioni';
+  lwBtn.appendChild(lwImg);
+  lwBtn.appendChild(lwLabel);
+  lwBtn.appendChild(lwSub);
+  lwBtn.addEventListener('click', () => openLiveWorkout());
+  c.appendChild(lwBtn);
+
   c.appendChild(el('h2', 'section-title', '⚔️ Registra l\'Impresa'));
 
   // Daily goal progress bar
