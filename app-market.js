@@ -14,6 +14,7 @@ const ANTRO_SECTIONS = [
   { lv: 70,  key: 'antro_trofei',    icon: '🏆', name: 'Sala dei Trofei',               desc: 'I tuoi record e imprese incisi nella pietra eterna.',        quote: '«La pietra dimentica i nomi vili. Il tuo sarà l\'eccezione.»' },
   { lv: 71,  key: 'antro_eco',       icon: '👻', name: 'L\'Eco dei Leggendari',          desc: 'Dieci fantasmi di guerrieri leggendari ti sfidano (Lv 71–80). Supera le loro prove e ottieni una reliquia unica da ogni eroe.', quote: '«Le loro voci risuonano ancora. Rispondi alla chiamata.»' },
   { lv: 81,  key: 'antro_mito',      icon: '📖', name: 'Le Origini del Mito',            desc: 'Dieci capitoli generati dalla tua storia reale (Lv 81–90). Il tuo percorso diventa leggenda scritta.', quote: '«Non esistono eroi senza una storia. Scopri la tua.»' },
+  { lv: 91,  key: 'antro_armatura',  icon: '🏛️', name: 'Le Sette Gesta',               desc: 'Sette pezzi leggendari (Lv 91–97), ognuno sbloccato da un\'impresa reale. Il set completo ti rende inarrestabile.', quote: '«Sette gesta reali. Sette pezzi leggendari. Una sola vita per guadagnarli tutti.»' },
   { lv: 80,  key: 'antro_forgia',    icon: '🔥', name: 'Forgia del Campione',           desc: 'Forgia equipaggiamento leggendario irripetibile.',           quote: '«Il ferro comune brucia. Solo l\'acciaio del sacrificio sopravvive.»' },
   { lv: 90,  key: 'antro_dungeon',   icon: '🌀', name: 'Dungeon Infinito',              desc: 'Abissi senza fondo che mettono alla prova l\'eterno.',       quote: '«Ogni gradino più in basso rivela una verità che pochissimi reggono.»' },
   { lv: 100, key: 'antro_leggenda',  icon: '👑', name: 'Sala della Leggenda',           desc: 'Il tuo nome inciso tra i Grandi del Reame per sempre.',      quote: '«Cento livelli. Centinaia di chilometri. Un solo nome: il tuo.»' },
@@ -33,7 +34,8 @@ function renderMarket(c) {
   if (MARKET_VIEW === 'catena')      { renderCatenaView(c);      return; }
   if (MARKET_VIEW === 'casse')       { renderCasseView(c);       return; }
   if (MARKET_VIEW === 'antro_eco')   { renderAntroEcoView(c);  return; }
-  if (MARKET_VIEW === 'antro_mito')  { renderAntroMitoView(c); return; }
+  if (MARKET_VIEW === 'antro_mito')      { renderAntroMitoView(c);      return; }
+  if (MARKET_VIEW === 'antro_armatura')  { renderAntroArmaturaView(c);  return; }
   if (MARKET_VIEW === 'antro' || MARKET_VIEW.startsWith('antro_')) { renderAntroView(c); return; }
 
   /* Step 2: dopo il 1° workout → invita all'Arena */
@@ -367,8 +369,36 @@ function renderMarket(c) {
       sectionList.appendChild(mitoBox);
     }
 
-    // Righe sezioni (salta antro_contratti, antro_prove, antro_eco, antro_mito — gestiti dai box sopra)
-    ANTRO_SECTIONS.filter(s => s.key !== 'antro_contratti' && s.key !== 'antro_prove' && s.key !== 'antro_eco' && s.key !== 'antro_mito').forEach(s => {
+    // Box Le Sette Gesta
+    {
+      const armUnlocked = heroLv >= 91;
+      const armPieces = typeof ARMATURA_PIECES !== 'undefined' ? ARMATURA_PIECES : [];
+      const armOwned = armPieces.filter(p => (HERO.items || []).some(it => it.id === p.id)).length;
+      const armSetComplete = armPieces.length > 0 && armOwned === armPieces.length;
+      const armBox = el('div', `antro-duel-box${armUnlocked ? ' antro-duel-box-open' : ''}${armSetComplete ? ' antro-duel-box-set-complete' : ''}`);
+      armBox.innerHTML = `
+        <span class="antro-duel-box-icon">${armSetComplete ? '✨' : armUnlocked ? '🏛️' : '🔒'}</span>
+        <div class="antro-duel-box-body">
+          <span class="antro-duel-box-name">Le Sette Gesta</span>
+          <span class="antro-duel-box-desc">${armUnlocked
+            ? (armSetComplete ? `✦ SET COMPLETO — sei diventato leggenda` : `${armOwned}/${armPieces.length} pezzi ottenuti · Imprese leggendarie`)
+            : 'Si sblocca al livello 91 · Sette pezzi · Un\'unica impresa per ognuno'}</span>
+        </div>
+        <span class="antro-row-badge${armSetComplete ? ' antro-badge-gold' : ''}">Lv 91</span>
+      `;
+      const armBtn = el('button', 'btn btn-primary dc-duel-btn antro-duel-box-btn',
+        armSetComplete ? '✨ Le Sette Gesta' : armUnlocked ? '🏛️ Le Sette Gesta' : '🔒 Le Sette Gesta (Lv 91)');
+      armBtn.disabled = !armUnlocked;
+      armBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        MARKET_VIEW = 'antro_armatura'; setTab('market');
+      });
+      armBox.appendChild(armBtn);
+      sectionList.appendChild(armBox);
+    }
+
+    // Righe sezioni (salta antro_contratti, antro_prove, antro_eco, antro_mito, antro_armatura — gestiti dai box sopra)
+    ANTRO_SECTIONS.filter(s => s.key !== 'antro_contratti' && s.key !== 'antro_prove' && s.key !== 'antro_eco' && s.key !== 'antro_mito' && s.key !== 'antro_armatura').forEach(s => {
       const done = heroLv >= s.lv;
       const isNext = nextSection && s.lv === nextSection.lv;
       const row = el('div', `antro-section-row${done ? ' antro-row-done' : isNext ? ' antro-row-next' : ' antro-row-sealed'}`);
@@ -393,6 +423,7 @@ function renderMarket(c) {
       70:   '«La Bestia Ancestrale è caduta per mano tua. Il Reame ricorderà. Ma la Sala dei Trofei chiede ancora di più: mostra al mondo chi sei davvero.»',
       80:   '«Il tuo nome è già inciso. Non basta. Al livello 80 la Forgia arde per te — metalli che nessun mercante vende, poteri che nessun dungeon ordinario può dare.»',
       90:   '«Hai bruciato ogni ostacolo. Eppure il Dungeon Infinito ride nell\'ombra. Nessuno sa cosa si trova in fondo — perché nessuno è mai tornato a raccontarlo.»',
+      91:   '«Il Dungeon è alle spalle. Davanti a te: Le Sette Gesta. Sette imprese reali. Sette pezzi di un\'armatura che non si compra — si guadagna col corpo.»',
       100:  '«Cento livelli. Il confine dell\'impossibile è qui, adesso, nella Sala della Leggenda. Pochi nella storia del Reame hanno osato tanto. Tutti hanno guadagnato l\'eternità.»',
       max:  '«Hai percorso ogni corridoio, sconfitto ogni ombra, inciso il tuo nome nella roccia più antica del Reame. L\'Antro è tuo. Per sempre.»',
     };
@@ -557,6 +588,93 @@ function renderAntroMitoView(c) {
   });
 }
 
+/* ── Le Sette Gesta — View ── */
+function renderAntroArmaturaView(c) {
+  const heroLv = HERO.level || 1;
+  backBar(c, () => { MARKET_VIEW = 'antro'; setTab('market'); });
+
+  const setComplete = typeof checkArmaturaPiecesSetBonus === 'function' && checkArmaturaPiecesSetBonus(HERO);
+  const owned = (typeof ARMATURA_PIECES !== 'undefined' ? ARMATURA_PIECES : []).filter(p => (HERO.items || []).some(it => it.id === p.id)).length;
+  const total = typeof ARMATURA_PIECES !== 'undefined' ? ARMATURA_PIECES.length : 0;
+
+  // Header
+  const hdr = el('div', `antro-view-header${setComplete ? ' armatura-hdr-complete' : ''}`);
+  hdr.innerHTML = `
+    <div class="antro-view-ornament">${setComplete ? '✦ ✦ ✦' : '— 🏛️ —'}</div>
+    <h2 class="antro-view-title">${setComplete ? 'Le Sette Gesta — Set Completo' : 'Le Sette Gesta'}</h2>
+    <p class="antro-view-sub">${owned}/${total} pezzi ottenuti · Ogni pezzo richiede un\'impresa reale</p>
+  `;
+  c.appendChild(hdr);
+
+  // Set complete banner
+  if (setComplete) {
+    const banner = el('div', 'armatura-set-banner');
+    banner.innerHTML = `
+      <div class="armatura-set-title">✦ SET LEGGENDARIO COMPLETO ✦</div>
+      <div class="armatura-set-text">Hai completato Le Sette Gesta. Sette imprese reali, sette pezzi guadagnati. Nessun altro nel Reame può dire lo stesso. Il tuo nome è già nella pietra.</div>
+      <div class="armatura-set-bonus">🌟 Bonus Set Attivo — tutti i pezzi equipaggiati insieme amplificano il loro effetto di 2×</div>
+    `;
+    c.appendChild(banner);
+  }
+
+  // Pieces
+  ARMATURA_PIECES.forEach(piece => {
+    const isOwned = (HERO.items || []).some(it => it.id === piece.id);
+    const levelUnlocked = heroLv >= piece.level;
+    const featDone = typeof piece.check === 'function' && piece.check(HERO);
+    const card = el('div', `panel armatura-card${isOwned ? ' armatura-card-owned' : levelUnlocked ? ' armatura-card-unlocked' : ' armatura-card-locked'}`);
+
+    const img = el('img', 'armatura-piece-img');
+    img.src = piece.img;
+    img.alt = piece.name;
+    img.onerror = function() { this.outerHTML = `<div class="armatura-piece-icon">${piece.icon}</div>`; };
+    card.appendChild(img);
+
+    const body = el('div', 'armatura-card-body');
+
+    const badge = isOwned ? '✓ Ottenuto' : !levelUnlocked ? `🔒 Lv ${piece.level}` : featDone ? '✦ Impresa completata!' : '⏳ Impresa in corso';
+    const badgeCls = `armatura-badge${isOwned ? ' armatura-badge-owned' : !levelUnlocked ? ' armatura-badge-locked' : featDone ? ' armatura-badge-ready' : ''}`;
+    body.appendChild(el('span', badgeCls, badge));
+
+    body.appendChild(el('h3', 'armatura-piece-name', `${piece.icon} ${piece.name}`));
+    body.appendChild(el('p', 'armatura-piece-slot small muted', `Slot: ${piece.slot}`));
+    body.appendChild(el('p', 'armatura-piece-lore small', piece.lore));
+
+    const featEl = el('div', 'armatura-feat');
+    const km = (HERO.totalKm || 0).toFixed(1);
+    const sess = HERO.totalSessions || 0;
+    const wins = HERO.arena_wins || 0;
+    const streak = (HERO.bestStreak || (HERO.streak && HERO.streak.count) || 0);
+    const trophies = (HERO.champion && HERO.champion.trophies && HERO.champion.trophies.length) || 0;
+    const ecoCount = HERO.eco ? Object.values(HERO.eco.legends || {}).filter(l => l.completedAt).length : 0;
+    const petLv = (HERO.pet && HERO.pet.hatched && HERO.pet.level) || 0;
+
+    let progress = '';
+    if (piece.id === 'armatura_elmo')      progress = `${km} / 500 km`;
+    else if (piece.id === 'armatura_corazza') progress = `${sess} / 200 sessioni`;
+    else if (piece.id === 'armatura_scudo')  progress = `${streak} / 21 giorni streak`;
+    else if (piece.id === 'armatura_arma')   progress = `${wins} / 50 vittorie Arena`;
+    else if (piece.id === 'armatura_anello') progress = `${trophies} / 10 prove del Campione`;
+    else if (piece.id === 'armatura_amuleto')progress = `${ecoCount} / 8 prove Eco dei Leggendari`;
+    else if (piece.id === 'armatura_origine')progress = `${km} / 1000 km`;
+
+    featEl.innerHTML = `
+      <span class="armatura-feat-label">⚔️ Impresa</span>
+      <span class="armatura-feat-desc">${esc(piece.featLabel)}</span>
+      ${levelUnlocked ? `<span class="armatura-feat-progress small muted">${progress}</span>` : ''}
+    `;
+    body.appendChild(featEl);
+
+    if (isOwned || levelUnlocked) {
+      const descEl = el('p', 'armatura-piece-desc small', `✦ ${piece.desc}`);
+      body.appendChild(descEl);
+    }
+
+    card.appendChild(body);
+    c.appendChild(card);
+  });
+}
+
 /* ── Antro del Campione — Hub ── */
 function renderAntroView(c) {
   const heroLv = HERO.level || 1;
@@ -577,6 +695,7 @@ function renderAntroView(c) {
   if (activeKey === 'antro_trofei'    && heroLv >= 70) { renderAntroTrofeiView(c);    return; }
   if (activeKey === 'antro_forgia'    && heroLv >= 80) { renderAntroForgiaView(c);    return; }
   if (activeKey === 'antro_dungeon'   && heroLv >= 90) { renderAntroDungeonView(c);   return; }
+  if (activeKey === 'antro_armatura'  && heroLv >= 91) { renderAntroArmaturaView(c);  return; }
   if (activeKey === 'antro_leggenda'  && heroLv >= 100){ renderAntroLeggendaView(c);  return; }
 
   // Hub principale

@@ -8115,10 +8115,95 @@ const MITO_CHAPTERS = [
       const sess = h.totalSessions || 0;
       const wins = h.arena_wins || 0;
       const streak = (h.streak && h.streak.count) || 0;
-      return `${h.name}. Livello 90. ${km} km, ${sess} sessioni, ${wins} vittorie, ${streak} giorni di streak. Questo non è un finale — è un punto di pausa. La storia vera non ha ancora un ultimo capitolo perché ${h.name} non ha ancora smesso di scriverla. Dieci livelli separano questo momento dall'ultima pagina. Il Reame trattiene il respiro. L'Armatura Definitiva aspetta ancora il suo artefice. Continua.`;
+      return `${h.name}. Livello 90. ${km} km, ${sess} sessioni, ${wins} vittorie, ${streak} giorni di streak. Questo non è un finale — è un punto di pausa. La storia vera non ha ancora un ultimo capitolo perché ${h.name} non ha ancora smesso di scriverla. Dieci livelli separano questo momento dall'ultima pagina. Il Reame trattiene il respiro. Le Sette Gesta attendono ancora il loro artefice. Continua.`;
     }
   },
 ];
+
+/* ── Le Sette Gesta (Lv 91-97) ── */
+const ARMATURA_PIECES = [
+  {
+    id: 'armatura_elmo', level: 91, slot: 'helmet', rarity: 'leggendario',
+    name: "L'Elmo dell'Eterno",          icon: '⛑️', img: 'assets/armatura/elmo.webp',
+    desc: '+25 XP per ogni km percorso. Il peso scompare quando la mente è libera.',
+    lore: 'Forgiato dalla prima luce del Reame. Chi lo indossa vede il percorso ancora prima di farlo.',
+    featLabel: 'Percorri 500 km in totale',
+    check(h) { return (h.totalKm || 0) >= 500; }
+  },
+  {
+    id: 'armatura_corazza', level: 92, slot: 'armor', rarity: 'leggendario',
+    name: "La Corazza dell'Alba Immortale", icon: '🛡️', img: 'assets/armatura/corazza.webp',
+    desc: '+15% oro da ogni allenamento. Ogni piastra è una sessione forgiata in metallo vivo.',
+    lore: '200 sessioni, 200 piastre. Non è un\'armatura — è la somma di ogni alba in cui hai scelto di alzarti.',
+    featLabel: 'Completa 200 sessioni di allenamento',
+    check(h) { return (h.totalSessions || 0) >= 200; }
+  },
+  {
+    id: 'armatura_scudo', level: 93, slot: 'shield', rarity: 'leggendario',
+    name: "L'Aegis del Destino",          icon: '🔱', img: 'assets/armatura/scudo.webp',
+    desc: 'La streak non si azzera saltando un giorno. Nessuna assenza lo scalfirà mai.',
+    lore: 'Nessun colpo lo ha mai spezzato in 21 giorni. Non esiste forza nel Reame capace di frantumarlo ora.',
+    featLabel: 'Raggiungi una streak di 21 giorni consecutivi',
+    check(h) { return ((h.bestStreak || (h.streak && h.streak.count) || 0) >= 21); }
+  },
+  {
+    id: 'armatura_arma', level: 94, slot: 'weapon', rarity: 'leggendario',
+    name: "La Spada dell'Assoluto",       icon: '⚔️', img: 'assets/armatura/spada.webp',
+    desc: '+5% danni per ogni 10 vittorie in Arena. La lama cresce con il guerriero.',
+    lore: 'Temperata nel sangue di cinquanta nemici. Chi la impugna non conosce più la sconfitta come la conosceva.',
+    featLabel: 'Vinci 50 duelli in Arena',
+    check(h) { return (h.arena_wins || 0) >= 50; }
+  },
+  {
+    id: 'armatura_anello', level: 95, slot: 'ring', rarity: 'leggendario',
+    name: "L'Anello della Convergenza",   icon: '💍', img: 'assets/armatura/anello.webp',
+    desc: '+50 XP fisso ad ogni allenamento. Il potere di tutte e 10 le prove in un solo gesto.',
+    lore: 'Dieci prove, dieci gemme. L\'anello le converge in un\'unica fonte di potere inesauribile.',
+    featLabel: 'Supera tutte le 10 Prove del Campione',
+    check(h) { return ((h.champion && h.champion.trophies && h.champion.trophies.length) || 0) >= 10; }
+  },
+  {
+    id: 'armatura_amuleto', level: 96, slot: 'amulet', rarity: 'leggendario',
+    name: "L'Amuleto della Volta Eterna", icon: '🌟', img: 'assets/armatura/amuleto.webp',
+    desc: '+10 legno e pietra per sessione. La volta si apre solo per chi ha ascoltato i fantasmi.',
+    lore: 'Otto guerrieri leggendari hanno ceduto la loro essenza. Ora brilla qui, per sempre, per te.',
+    featLabel: 'Supera 8 prove dell\'Eco dei Leggendari',
+    check(h) {
+      if (!h.eco || !h.eco.legends) return false;
+      return Object.values(h.eco.legends).filter(l => l.completedAt).length >= 8;
+    }
+  },
+  {
+    id: 'armatura_origine', level: 97, slot: 'reliquia', rarity: 'leggendario',
+    name: "Il Frammento dell'Origine",    icon: '🔮', img: 'assets/armatura/origine.webp',
+    desc: '+100 XP ad ogni allenamento. Prima che esistessero reliquie, esisteva questo frammento.',
+    lore: 'Tutte le reliquie dell\'Eco discendono da questo frammento. Chi lo porta chiude il cerchio — riporta l\'origine dove tutto è iniziato.',
+    featLabel: 'Percorri 1000 km in totale',
+    check(h) { return (h.totalKm || 0) >= 1000; }
+  },
+];
+
+function checkArmaturaPieces(hero) {
+  if ((hero.level || 1) < 91) return [];
+  if (!hero.items) hero.items = [];
+  const newlyUnlocked = [];
+  for (const piece of ARMATURA_PIECES) {
+    if ((hero.level || 1) < piece.level) continue;
+    const already = hero.items.some(it => it.id === piece.id);
+    if (!already && piece.check(hero)) {
+      hero.items.push({
+        id: piece.id, name: piece.name, icon: piece.icon, img: piece.img,
+        slot: piece.slot, rarity: piece.rarity, desc: piece.desc,
+      });
+      newlyUnlocked.push(piece);
+    }
+  }
+  return newlyUnlocked;
+}
+
+function checkArmaturaPiecesSetBonus(hero) {
+  return ARMATURA_PIECES.every(p => (hero.items || []).some(it => it.id === p.id));
+}
 
 function dcTierUnlocked(hero, tier) {
   const idx = DC_TIERS.indexOf(tier);

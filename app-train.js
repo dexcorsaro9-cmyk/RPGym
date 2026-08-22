@@ -1187,7 +1187,7 @@ function renderLiveWorkoutCard(c, Plugin, getActivity) {
       if (isFirst) HERO.onboardingStep = 2;
       persist(); renderHUD(); FB.syncHero(HERO).catch(() => {});
       if (HERO.guild && report.km > 0) FB.contributeToGuild(HERO, report.km).catch(() => {});
-      checkMapNotify(); checkBoardNotify(); maybeSyncChallenge(); updateTabOnboardingPulse(); if (typeof checkChampionProvas === 'function') checkChampionProvas(); if (typeof checkEcoLeggendariDaily === 'function') checkEcoLeggendariDaily();
+      checkMapNotify(); checkBoardNotify(); maybeSyncChallenge(); updateTabOnboardingPulse(); if (typeof checkChampionProvas === 'function') checkChampionProvas(); if (typeof checkEcoLeggendariDaily === 'function') checkEcoLeggendariDaily(); if (typeof checkArmaturaPieces === 'function' && (HERO.level||1) >= 91) { const newAP = checkArmaturaPieces(HERO); if (newAP.length > 0) { persist(); newAP.forEach(p => toast(`🏛️ Gesta completata! Hai ottenuto: ${p.name}`)); } }
       if (isFirst) OPEN_QUEUE.push(showFirstWorkoutCelebration);
       showReport(report);
     } else {
