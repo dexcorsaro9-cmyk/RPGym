@@ -69,6 +69,8 @@ workflows:
         BUNDLE_ID: com.antoniodecino.heroscape
         XCODE_WORKSPACE: ios/App/App.xcworkspace
         XCODE_SCHEME: App
+        APNS_KEY_ID: $APNS_KEY_ID
+        APNS_TEAM_ID: $APNS_TEAM_ID
       node: "22"
       xcode: latest
       cocoapods: default
@@ -90,6 +92,10 @@ workflows:
         script: |
           echo "Using Codemagic build number: $BUILD_NUMBER"
           cd ios/App && agvtool new-version -all "$BUILD_NUMBER"
+
+      - name: Write APNs key
+        script: |
+          echo "$APNS_PRIVATE_KEY" > /tmp/apns_key.p8
 
       - name: Setup code signing
         script: |
