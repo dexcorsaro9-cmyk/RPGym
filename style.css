@@ -10187,6 +10187,35 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
 .mito-lock-lv { }
 .mito-lock-icon { font-size: 1.3rem; }
 
+/* ── Le Sette Gesta ── */
+.armatura-hdr-complete { background: linear-gradient(135deg, rgba(241,196,15,.15) 0%, rgba(180,120,0,.08) 100%); border-radius: 14px; padding: 4px 0; }
+.armatura-set-banner { margin-bottom: 1rem; padding: 18px 16px; border-radius: 14px; background: linear-gradient(135deg, rgba(241,196,15,.18) 0%, rgba(180,100,0,.12) 100%); border: 1.5px solid rgba(241,196,15,.5); text-align: center; }
+.armatura-set-title { font-size: 1rem; font-weight: 900; color: var(--gold); letter-spacing: .08em; margin-bottom: 8px; }
+.armatura-set-text { font-size: .85rem; line-height: 1.55; color: var(--text); font-style: italic; margin-bottom: 10px; }
+.armatura-set-bonus { font-size: .78rem; font-weight: 700; color: var(--gold); opacity: .85; }
+.antro-badge-gold { background: var(--gold) !important; color: #1a0e00 !important; font-weight: 900; }
+.antro-duel-box-set-complete { border: 2px solid rgba(241,196,15,.5); background: linear-gradient(135deg, rgba(241,196,15,.08) 0%, transparent 100%); }
+
+.armatura-card { padding: 0; overflow: hidden; border-radius: 14px; display: flex; align-items: stretch; gap: 0; }
+.armatura-card-owned { border: 1.5px solid rgba(241,196,15,.4); }
+.armatura-card-unlocked { border: 1.5px solid rgba(255,255,255,.12); }
+.armatura-card-locked { opacity: .5; border: 1.5px dashed rgba(255,255,255,.1); }
+.armatura-piece-img { width: 100px; height: 100px; object-fit: cover; flex-shrink: 0; }
+.armatura-piece-icon { width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; font-size: 3rem; background: rgba(255,255,255,.05); flex-shrink: 0; }
+.armatura-card-body { flex: 1; padding: 12px 14px; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.armatura-badge { font-size: .7rem; font-weight: 700; letter-spacing: .04em; padding: 2px 8px; border-radius: 20px; display: inline-block; width: fit-content; }
+.armatura-badge-owned { background: rgba(241,196,15,.25); color: var(--gold); }
+.armatura-badge-locked { background: rgba(255,255,255,.07); color: var(--muted); }
+.armatura-badge-ready { background: rgba(39,174,96,.25); color: #27ae60; }
+.armatura-piece-name { font-size: .9rem; font-weight: 800; color: var(--text); margin: 0; }
+.armatura-piece-slot { margin: 0; }
+.armatura-piece-lore { font-style: italic; line-height: 1.4; margin: 0; color: var(--muted); }
+.armatura-feat { padding: 6px 10px; border-radius: 8px; background: rgba(255,255,255,.05); font-size: .78rem; display: flex; flex-direction: column; gap: 2px; }
+.armatura-feat-label { font-weight: 700; color: var(--gold); }
+.armatura-feat-desc { color: var(--text); }
+.armatura-feat-progress { display: block; font-variant-numeric: tabular-nums; }
+.armatura-piece-desc { margin: 0; color: var(--gold); font-weight: 600; }
+
 .dc-filter-bar {
   display: flex; flex-wrap: wrap; gap: 6px; padding: .2rem 0 .6rem;
 }
