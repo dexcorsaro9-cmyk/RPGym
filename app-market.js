@@ -15,9 +15,7 @@ const ANTRO_SECTIONS = [
   { lv: 71,  key: 'antro_eco',       icon: '👻', name: 'L\'Eco dei Leggendari',          desc: 'Dieci fantasmi di guerrieri leggendari ti sfidano (Lv 71–80). Supera le loro prove e ottieni una reliquia unica da ogni eroe.', quote: '«Le loro voci risuonano ancora. Rispondi alla chiamata.»' },
   { lv: 81,  key: 'antro_mito',      icon: '📖', name: 'Le Origini del Mito',            desc: 'Dieci capitoli generati dalla tua storia reale (Lv 81–90). Il tuo percorso diventa leggenda scritta.', quote: '«Non esistono eroi senza una storia. Scopri la tua.»' },
   { lv: 91,  key: 'antro_armatura',  icon: '🏛️', name: 'Le Sette Gesta',               desc: 'Sette pezzi leggendari (Lv 91–97), ognuno sbloccato da un\'impresa reale. Il set completo ti rende inarrestabile.', quote: '«Sette gesta reali. Sette pezzi leggendari. Una sola vita per guadagnarli tutti.»' },
-  { lv: 80,  key: 'antro_forgia',    icon: '🔥', name: 'Forgia del Campione',           desc: 'Forgia equipaggiamento leggendario irripetibile.',           quote: '«Il ferro comune brucia. Solo l\'acciaio del sacrificio sopravvive.»' },
-  { lv: 90,  key: 'antro_dungeon',   icon: '🌀', name: 'Dungeon Infinito',              desc: 'Abissi senza fondo che mettono alla prova l\'eterno.',       quote: '«Ogni gradino più in basso rivela una verità che pochissimi reggono.»' },
-  { lv: 100, key: 'antro_leggenda',  icon: '👑', name: 'Sala della Leggenda',           desc: 'Il tuo nome inciso tra i Grandi del Reame per sempre.',      quote: '«Cento livelli. Centinaia di chilometri. Un solo nome: il tuo.»' },
+  { lv: 98,  key: 'antro_drago',    icon: '🐉', name: 'Il Drago Finale',               desc: 'Tre imprese epiche (Lv 98–100). Ogni impresa ferisce il drago. Tutte e tre lo uccidono. La reliquia è tua.', quote: '«Il drago non è un nemico. È la domanda che non hai ancora risposto.»' },
 ];
 
 function renderMarket(c) {
@@ -36,6 +34,7 @@ function renderMarket(c) {
   if (MARKET_VIEW === 'antro_eco')   { renderAntroEcoView(c);  return; }
   if (MARKET_VIEW === 'antro_mito')      { renderAntroMitoView(c);      return; }
   if (MARKET_VIEW === 'antro_armatura')  { renderAntroArmaturaView(c);  return; }
+  if (MARKET_VIEW === 'antro_drago')     { renderAntroDragoView(c);     return; }
   if (MARKET_VIEW === 'antro' || MARKET_VIEW.startsWith('antro_')) { renderAntroView(c); return; }
 
   /* Step 2: dopo il 1° workout → invita all'Arena */
@@ -397,8 +396,36 @@ function renderMarket(c) {
       sectionList.appendChild(armBox);
     }
 
-    // Righe sezioni (salta antro_contratti, antro_prove, antro_eco, antro_mito, antro_armatura — gestiti dai box sopra)
-    ANTRO_SECTIONS.filter(s => s.key !== 'antro_contratti' && s.key !== 'antro_prove' && s.key !== 'antro_eco' && s.key !== 'antro_mito' && s.key !== 'antro_armatura').forEach(s => {
+    // Box Il Drago Finale
+    {
+      const dragoUnlocked = heroLv >= 98;
+      const dragoProve = HERO.dragoProve || {};
+      const dragoWounds = (typeof DRAGO_COLPI !== 'undefined' ? DRAGO_COLPI : []).filter(c => dragoProve[c.id] && dragoProve[c.id].completed).length;
+      const dragoDead = dragoWounds === 3;
+      const dragoBox = el('div', `antro-duel-box${dragoUnlocked ? ' antro-duel-box-open' : ''}${dragoDead ? ' antro-duel-box-set-complete' : ''}`);
+      dragoBox.innerHTML = `
+        <span class="antro-duel-box-icon">${dragoDead ? '💀' : dragoUnlocked ? '🐉' : '🔒'}</span>
+        <div class="antro-duel-box-body">
+          <span class="antro-duel-box-name">Il Drago Finale</span>
+          <span class="antro-duel-box-desc">${dragoUnlocked
+            ? (dragoDead ? '💀 Il drago è caduto — Draghicida' : `${dragoWounds}/3 ferite inflitte · Tre imprese per ucciderlo`)
+            : 'Si sblocca al livello 98 · Tre imprese · Un drago da uccidere'}</span>
+        </div>
+        <span class="antro-row-badge${dragoDead ? ' antro-badge-gold' : ''}">Lv 98</span>
+      `;
+      const dragoBtn = el('button', 'btn btn-primary dc-duel-btn antro-duel-box-btn',
+        dragoDead ? '💀 Il Drago Finale' : dragoUnlocked ? '🐉 Il Drago Finale' : '🔒 Il Drago Finale (Lv 98)');
+      dragoBtn.disabled = !dragoUnlocked;
+      dragoBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        MARKET_VIEW = 'antro_drago'; setTab('market');
+      });
+      dragoBox.appendChild(dragoBtn);
+      sectionList.appendChild(dragoBox);
+    }
+
+    // Righe sezioni (salta box gestiti sopra)
+    ANTRO_SECTIONS.filter(s => s.key !== 'antro_contratti' && s.key !== 'antro_prove' && s.key !== 'antro_eco' && s.key !== 'antro_mito' && s.key !== 'antro_armatura' && s.key !== 'antro_drago').forEach(s => {
       const done = heroLv >= s.lv;
       const isNext = nextSection && s.lv === nextSection.lv;
       const row = el('div', `antro-section-row${done ? ' antro-row-done' : isNext ? ' antro-row-next' : ' antro-row-sealed'}`);
@@ -421,10 +448,9 @@ function renderMarket(c) {
       pre:  '«Dietro questa porta riposano sfide che cambieranno il tuo destino. Ogni passo che fai oggi ti avvicina a ciò che si nasconde nell\'oscurità. Livello 50. Non mollare.»',
       60:   '«Hai varcato la soglia. Ora l\'Antro ti studia, ti misura. Qualcosa di antico si agita nelle profondità — si dice che dorme solo finché non arriva un degno avversario…»',
       70:   '«La Bestia Ancestrale è caduta per mano tua. Il Reame ricorderà. Ma la Sala dei Trofei chiede ancora di più: mostra al mondo chi sei davvero.»',
-      80:   '«Il tuo nome è già inciso. Non basta. Al livello 80 la Forgia arde per te — metalli che nessun mercante vende, poteri che nessun dungeon ordinario può dare.»',
-      90:   '«Hai bruciato ogni ostacolo. Eppure il Dungeon Infinito ride nell\'ombra. Nessuno sa cosa si trova in fondo — perché nessuno è mai tornato a raccontarlo.»',
       91:   '«Il Dungeon è alle spalle. Davanti a te: Le Sette Gesta. Sette imprese reali. Sette pezzi di un\'armatura che non si compra — si guadagna col corpo.»',
-      100:  '«Cento livelli. Il confine dell\'impossibile è qui, adesso, nella Sala della Leggenda. Pochi nella storia del Reame hanno osato tanto. Tutti hanno guadagnato l\'eternità.»',
+      98:   '«Il drago non è un nemico. È la domanda finale che hai rimandato per 97 livelli. Adesso non puoi più farlo.»',
+      100:  '«Tre ferite. Un solo colpo fatale. Corri.»',
       max:  '«Hai percorso ogni corridoio, sconfitto ogni ombra, inciso il tuo nome nella roccia più antica del Reame. L\'Antro è tuo. Per sempre.»',
     };
     const quoteKey = !isUnlocked ? 'pre' : !nextSection ? 'max' : String(nextSection.lv);
@@ -686,6 +712,96 @@ function renderAntroArmaturaView(c) {
   });
 }
 
+/* ── Il Drago Finale — View ── */
+function renderAntroDragoView(c) {
+  const heroLv = HERO.level || 1;
+  backBar(c, () => { MARKET_VIEW = 'antro'; setTab('market'); });
+
+  const prove = HERO.dragoProve || {};
+  const woundsInflicted = (typeof DRAGO_COLPI !== 'undefined' ? DRAGO_COLPI : []).filter(col => prove[col.id] && prove[col.id].completed).length;
+  const dragonDead = woundsInflicted === 3;
+  const hasDente = (HERO.items || []).some(it => it.id === 'dente_del_drago');
+
+  const hdr = el('div', `antro-view-header${dragonDead ? ' drago-hdr-dead' : ''}`);
+  hdr.innerHTML = `
+    <div class="antro-view-ornament">${dragonDead ? '💀' : woundsInflicted > 0 ? '🩸' : '🐉'}</div>
+    <h2 class="antro-view-title">${dragonDead ? 'Il Drago È Caduto' : 'Il Drago Finale'}</h2>
+    <p class="antro-view-sub">${dragonDead
+      ? `Draghicida — ${esc(HERO.name || 'Eroe')} ha spento il fuoco per sempre`
+      : `${woundsInflicted}/3 ferite inflitte · Tre imprese epiche per ucciderlo`}</p>
+  `;
+  c.appendChild(hdr);
+
+  // Barra HP drago
+  const hpWrap = el('div', 'drago-hp-wrap');
+  const hpBar = el('div', 'drago-hp-bar');
+  DRAGO_COLPI.forEach(col => {
+    const done = prove[col.id] && prove[col.id].completed;
+    hpBar.appendChild(el('div', `drago-hp-seg${done ? ' drago-hp-seg-hit' : ''}`));
+  });
+  hpWrap.appendChild(hpBar);
+  const hpLabel = el('p', 'small muted center', dragonDead ? '💀 Il drago non respira più' : `Vita rimanente: ${3 - woundsInflicted}/3`);
+  hpWrap.appendChild(hpLabel);
+  c.appendChild(hpWrap);
+
+  if (dragonDead) {
+    const deadBanner = el('div', 'armatura-set-banner drago-dead-banner');
+    deadBanner.innerHTML = `
+      <div class="armatura-set-title">🐉 IL DRAGO È CADUTO</div>
+      <div class="armatura-set-text">Tre imprese epiche. Tre ferite inferte col corpo e la volontà. Il Reame non dimenticherà mai il nome di ${esc(HERO.name || 'Eroe')}.</div>
+      ${hasDente ? '<div class="armatura-set-bonus">🦷 Il Dente del Drago · nell\'inventario</div>' : ''}
+    `;
+    c.appendChild(deadBanner);
+  }
+
+  // 3 Colpi
+  DRAGO_COLPI.forEach(colpo => {
+    const pv = prove[colpo.id] || {};
+    const isDone = pv.completed;
+    const isActive = heroLv >= colpo.minLevel && !isDone;
+    const isLocked = heroLv < colpo.minLevel;
+
+    const card = el('div', `panel armatura-card${isDone ? ' armatura-card-owned' : isActive ? ' armatura-card-unlocked' : ' armatura-card-locked'}`);
+    const body = el('div', 'armatura-card-body');
+
+    let badgeText, badgeCls;
+    if (isDone) { badgeText = `${colpo.icon} Ferita inflitta`; badgeCls = 'armatura-badge armatura-badge-owned'; }
+    else if (isActive) { badgeText = '⚔️ Prova in corso'; badgeCls = 'armatura-badge armatura-badge-active'; }
+    else { badgeText = `🔒 Si apre al Lv ${colpo.minLevel}`; badgeCls = 'armatura-badge armatura-badge-locked'; }
+
+    body.appendChild(el('span', badgeCls, badgeText));
+    body.appendChild(el('h3', 'armatura-piece-name', `${colpo.icon} ${colpo.label}`));
+
+    if (!isLocked) body.appendChild(el('p', 'armatura-piece-lore small', colpo.lore));
+
+    const provaEl = el('div', 'armatura-feat');
+    const prog = pv.progress || colpo.prova.initProgress();
+    provaEl.innerHTML = `
+      <span class="armatura-feat-label">🏃 Impresa${isLocked ? ` (Lv ${colpo.minLevel})` : ''}</span>
+      <span class="armatura-feat-desc${isLocked ? ' muted' : ''}">${esc(colpo.prova.desc)}</span>
+      ${isActive ? `<span class="armatura-feat-progress small muted">${esc(colpo.prova.progressText(prog))}</span>` : ''}
+    `;
+    body.appendChild(provaEl);
+    card.appendChild(body);
+    c.appendChild(card);
+  });
+
+  // Reward preview
+  if (!dragonDead) {
+    const rwEl = el('div', 'panel armatura-card armatura-card-locked');
+    rwEl.innerHTML = `
+      <div class="armatura-card-body">
+        <span class="armatura-badge armatura-badge-locked">🏆 Ricompensa finale</span>
+        <h3 class="armatura-piece-name">🐉 Il Dente del Drago</h3>
+        <p class="armatura-piece-lore small">La reliquia di chi ha spento il fuoco. Nessuno è mai tornato con uno.</p>
+        <p class="armatura-piece-desc small">✦ +200 XP fisso ad ogni allenamento · Slot Reliquia · Leggendario</p>
+        <p class="small muted" style="margin-top:4px">+ Titolo permanente: <b>Draghicida</b></p>
+      </div>
+    `;
+    c.appendChild(rwEl);
+  }
+}
+
 /* ── Antro del Campione — Hub ── */
 function renderAntroView(c) {
   const heroLv = HERO.level || 1;
@@ -704,10 +820,8 @@ function renderAntroView(c) {
   if (activeKey === 'antro_contratti' && heroLv >= 50) { renderAntroContrattiView(c); return; }
   if (activeKey === 'antro_prove'     && heroLv >= 61) { HERO_VIEW = 'campione'; setTab('hero'); return; }
   if (activeKey === 'antro_trofei'    && heroLv >= 70) { renderAntroTrofeiView(c);    return; }
-  if (activeKey === 'antro_forgia'    && heroLv >= 80) { renderAntroForgiaView(c);    return; }
-  if (activeKey === 'antro_dungeon'   && heroLv >= 90) { renderAntroDungeonView(c);   return; }
   if (activeKey === 'antro_armatura'  && heroLv >= 91) { renderAntroArmaturaView(c);  return; }
-  if (activeKey === 'antro_leggenda'  && heroLv >= 100){ renderAntroLeggendaView(c);  return; }
+  if (activeKey === 'antro_drago'     && heroLv >= 98) { renderAntroDragoView(c);     return; }
 
   // Hub principale
   const hubHeader = el('div', 'antro-view-header');
@@ -1459,9 +1573,6 @@ function renderDcBattleView(c) {
 
 function renderAntroBestiaView(c)    { _antroComingSoon(c, ANTRO_SECTIONS[1]); }
 function renderAntroTrofeiView(c)    { _antroComingSoon(c, ANTRO_SECTIONS[2]); }
-function renderAntroForgiaView(c)    { _antroComingSoon(c, ANTRO_SECTIONS[3]); }
-function renderAntroDungeonView(c)   { _antroComingSoon(c, ANTRO_SECTIONS[4]); }
-function renderAntroLeggendaView(c)  { _antroComingSoon(c, ANTRO_SECTIONS[5]); }
 
 function npcBanner(imgPath, name, quote) {
   const b = el('div', 'npc-banner');

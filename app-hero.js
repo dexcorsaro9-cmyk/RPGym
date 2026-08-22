@@ -3207,6 +3207,53 @@ function showGestaUnlock(piece) {
   `);
 }
 
+/* ── Il Drago Finale — Modali ── */
+function showDragoWound(colpo) {
+  const prove = HERO.dragoProve || {};
+  const wounds = (typeof DRAGO_COLPI !== 'undefined' ? DRAGO_COLPI : []).filter(c => prove[c.id] && prove[c.id].completed).length;
+  const total = typeof DRAGO_COLPI !== 'undefined' ? DRAGO_COLPI.length : 3;
+  const hpSegs = (typeof DRAGO_COLPI !== 'undefined' ? DRAGO_COLPI : []).map(c => {
+    const done = prove[c.id] && prove[c.id].completed;
+    return `<div class="drago-hp-seg${done ? ' drago-hp-seg-hit' : ''}"></div>`;
+  }).join('');
+  modal(`
+    <div class="drago-wound-modal">
+      <div class="drago-wound-ornament">— 🐉 —</div>
+      <div class="drago-wound-label">${colpo.icon} ${esc(colpo.label.toUpperCase())}</div>
+      <div class="drago-hp-row">${hpSegs}</div>
+      <p class="drago-wound-lore">${esc(colpo.lore)}</p>
+      <p class="drago-wound-progress small muted">${wounds}/${total} ferite inflitte al drago</p>
+      <button class="btn btn-primary wide" style="margin-top:14px" onclick="closeModal()">
+        ${wounds >= total ? '🐉 Il drago è caduto' : '⚔️ Continua la battaglia'}
+      </button>
+    </div>
+  `);
+}
+
+function showDragoKilled() {
+  const km = (HERO.totalKm || 0).toFixed(0);
+  const sess = HERO.totalSessions || 0;
+  const streak = HERO.bestStreak || (HERO.streak && HERO.streak.count) || 0;
+  const wins = HERO.arena_wins || 0;
+  modal(`
+    <div class="drago-killed-modal">
+      <div class="drago-killed-fire">🔥</div>
+      <div class="drago-killed-title">🐉 IL DRAGO È CADUTO</div>
+      <div class="drago-killed-sub">— ${esc(HERO.name || 'Eroe')} — Draghicida —</div>
+      <div class="drago-killed-stats">
+        <div class="drago-stat-row"><span>${km} km</span><span class="muted">percorsi nel Reame</span></div>
+        <div class="drago-stat-row"><span>${sess}</span><span class="muted">sessioni di allenamento</span></div>
+        <div class="drago-stat-row"><span>${streak} giorni</span><span class="muted">streak record</span></div>
+        <div class="drago-stat-row"><span>${wins}</span><span class="muted">vittorie in Arena</span></div>
+      </div>
+      <div class="drago-killed-item">🐉 <b>Il Dente del Drago</b> aggiunto all'inventario</div>
+      <div class="drago-killed-the-end">The End?</div>
+      <p class="drago-killed-hint small muted">Il tuo nome è già nella pietra. Ma il Reame sussurra ancora...</p>
+      <button class="btn btn-primary wide" style="margin-top:14px" onclick="closeModal()">👑 Sono il Draghicida</button>
+    </div>
+  `);
+}
+
 function runSplash(done) {
   const fill  = document.getElementById('splash-progress-fill');
   const text  = document.getElementById('splash-progress-text');
