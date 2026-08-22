@@ -842,32 +842,38 @@ function _settingsPvpPanel() {
 function _settingsNotifPanel() {
   const p = el('div', 'panel shortcut-panel');
   p.appendChild(el('h3', 'panel-title', '🔔 Notifiche'));
-  if (!('Notification' in window)) {
-    p.appendChild(el('p', 'guide-text', 'Il tuo browser non supporta le notifiche.'));
-    return p;
-  }
-  const perm = Notification.permission;
-  const desc = perm === 'granted'
-    ? 'Le notifiche sono attive. Riceverai reminder per l\'allenamento serale, streak in pericolo, spedizioni del famiglio e aggiornamenti sulle sfide PvP.'
-    : perm === 'denied'
-    ? 'Le notifiche sono bloccate dal browser. Riabilitale nelle impostazioni del sito.'
-    : 'Abilita le notifiche per ricevere reminder sull\'allenamento, streak, famiglio e sfide PvP — anche con l\'app chiusa.';
-  p.appendChild(el('p', 'guide-text', desc));
-  if (perm === 'default') {
-    const btn = el('button', 'btn btn-primary', '🔔 Abilita notifiche');
-    btn.addEventListener('click', async () => {
-      const r = await Notification.requestPermission();
-      HERO.notifAsked = true; persist();
-      if (r === 'granted') { toast('🔔 Notifiche attivate!'); checkAndNotify(); }
-      else toast('Notifiche non autorizzate.');
-      setTab('hero');
-    });
-    p.appendChild(btn);
-  } else if (perm === 'granted') {
-    const btn = el('button', 'btn', '✅ Notifiche attive');
-    btn.disabled = true;
-    p.appendChild(btn);
-  }
+  // Render async after checking permission
+  _getNotifPermission().then(perm => {
+    if (perm === 'unsupported') {
+      p.appendChild(el('p', 'guide-text', _isNative()
+        ? 'Impossibile caricare il plugin notifiche. Reinstalla l\'app.'
+        : 'Il tuo browser non supporta le notifiche.'));
+      return;
+    }
+    const desc = perm === 'granted'
+      ? 'Le notifiche sono attive. Riceverai reminder per l\'allenamento serale, streak in pericolo e aggiornamenti sulle sfide PvP.'
+      : perm === 'denied'
+      ? (_isNative()
+          ? 'Le notifiche sono bloccate. Riabilitale in Impostazioni → Hero\'s Pace → Notifiche.'
+          : 'Le notifiche sono bloccate dal browser. Riabilitale nelle impostazioni del sito.')
+      : 'Abilita le notifiche per ricevere reminder sull\'allenamento, streak, famiglio e sfide PvP.';
+    p.appendChild(el('p', 'guide-text', desc));
+    if (perm === 'prompt') {
+      const btn = el('button', 'btn btn-primary', '🔔 Abilita notifiche');
+      btn.addEventListener('click', async () => {
+        const r = await _requestNotifPermission();
+        HERO.notifAsked = true; persist();
+        if (r === 'granted') { toast('🔔 Notifiche attivate!'); if (!_isNative()) checkAndNotify(); }
+        else toast('Notifiche non autorizzate.');
+        setTab('hero');
+      });
+      p.appendChild(btn);
+    } else if (perm === 'granted') {
+      const btn = el('button', 'btn', '✅ Notifiche attive');
+      btn.disabled = true;
+      p.appendChild(btn);
+    }
+  });
   return p;
 }
 
@@ -1678,40 +1684,73 @@ function nextOpening() {
   if (fn) fn();
 }
 
+/* ── Helpers notifiche native (Capacitor iOS) ── */
+function _isNative() {
+  return typeof window.Capacitor !== 'undefined' && window.Capacitor.isNativePlatform();
+}
+
+async function _getNotifPermission() {
+  if (_isNative()) {
+    const PN = window.Capacitor.Plugins.PushNotifications;
+    if (!PN) return 'unsupported';
+    try { const { receive } = await PN.checkPermissions(); return receive; } catch { return 'unsupported'; }
+  }
+  if (!('Notification' in window)) return 'unsupported';
+  return Notification.permission === 'default' ? 'prompt' : Notification.permission;
+}
+
+async function _requestNotifPermission() {
+  if (_isNative()) {
+    const PN = window.Capacitor.Plugins.PushNotifications;
+    if (!PN) return 'denied';
+    try {
+      const { receive } = await PN.requestPermissions();
+      if (receive === 'granted') { await PN.register().catch(() => {}); }
+      return receive;
+    } catch { return 'denied'; }
+  }
+  if (!('Notification' in window)) return 'denied';
+  return Notification.requestPermission();
+}
+
 /* ── Notifiche locali ── */
 async function setupNotifications() {
-  if (!('Notification' in window) || !HERO) return;
-  updateNotifState().catch(() => {});
-  checkAndNotify();
-  checkMapNotify();
-  checkBoardNotify();
-  checkPvpNotify();
-  checkPetNotify();
-  scheduleSmartNotifications();
-  registerPeriodicSync();
-  // Il permesso viene chiesto dopo il primo allenamento (non all'avvio)
-  // Eccezione: utenti che hanno già km ma non hanno mai risposto
-  if (Notification.permission === 'default' && !HERO.notifAsked && (HERO.totalKm || 0) > 0) {
+  if (!HERO) return;
+  const perm = await _getNotifPermission();
+  if (perm === 'unsupported') return;
+  if (!_isNative()) {
+    updateNotifState().catch(() => {});
+    checkAndNotify();
+    checkMapNotify();
+    checkBoardNotify();
+    checkPvpNotify();
+    checkPetNotify();
+    scheduleSmartNotifications();
+    registerPeriodicSync();
+  }
+  if (perm === 'prompt' && !HERO.notifAsked && (HERO.totalKm || 0) > 0) {
     setTimeout(async () => {
-      const perm = await Notification.requestPermission();
+      const r = await _requestNotifPermission();
       HERO.notifAsked = true; persist();
-      if (perm === 'granted') { checkAndNotify(); checkMapNotify(); checkBoardNotify(); checkPvpNotify(); scheduleSmartNotifications(); }
+      if (r === 'granted' && !_isNative()) { checkAndNotify(); checkMapNotify(); checkBoardNotify(); checkPvpNotify(); scheduleSmartNotifications(); }
     }, 4000);
   }
 }
 
 function askNotifPermissionAfterWorkout() {
-  if (!('Notification' in window) || Notification.permission !== 'default' || HERO.notifAsked) return;
+  if (HERO.notifAsked) return;
   setTimeout(async () => {
-    const perm = await Notification.requestPermission();
+    const perm = await _getNotifPermission();
+    if (perm !== 'prompt') return;
+    const r = await _requestNotifPermission();
     HERO.notifAsked = true; persist();
-    if (perm === 'granted') { checkAndNotify(); checkMapNotify(); checkPvpNotify(); scheduleSmartNotifications(); }
+    if (r === 'granted' && !_isNative()) { checkAndNotify(); checkMapNotify(); checkPvpNotify(); scheduleSmartNotifications(); }
   }, 3500);
 }
 
 /* ── Notifiche schedulate (Phase 1 — locali via setTimeout) ── */
 function scheduleSmartNotifications() {
-  if (Notification.permission !== 'granted' || !HERO) return;
+  if (_isNative() || !('Notification' in window) || Notification.permission !== 'granted' || !HERO) return;
   const today = todayISO();
   // Evita di riSchedulare se l'app viene riaperta più volte nella stessa giornata
   const schedKey = 'notif_sched_' + today;
@@ -1752,7 +1791,7 @@ function scheduleSmartNotifications() {
 
 /* ③ Mappa del Tesoro — controllo immediato: sei vicino a una tappa? */
 function checkMapNotify() {
-  if (Notification.permission !== 'granted' || !HERO) return;
+  if (_isNative() || !('Notification' in window) || Notification.permission !== 'granted' || !HERO) return;
   const tmStatus = RPG.treasureMapStatus(HERO);
   if (!tmStatus) return;
   const { progressKm, claimed } = tmStatus;
@@ -1768,7 +1807,7 @@ function checkMapNotify() {
 
 /* ④ Bacheca del Viandante — missioni riscattabili in scadenza (dopo 21:00) */
 function checkBoardNotify() {
-  if (Notification.permission !== 'granted' || !HERO) return;
+  if (_isNative() || !('Notification' in window) || Notification.permission !== 'granted' || !HERO) return;
   const hour = new Date().getHours();
   if (hour < 21) return;
   const today = todayISO();
@@ -1850,7 +1889,7 @@ async function registerPeriodicSync() {
 
 /* Mostra una notifica tramite service worker (funziona in background su mobile) */
 async function showNotif(title, body, tag, data) {
-  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  if (_isNative() || !('Notification' in window) || Notification.permission !== 'granted') return;
   if (localStorage.getItem('notif_shown_' + tag)) return;
   localStorage.setItem('notif_shown_' + tag, '1');
   const opts = { body, icon: 'assets/icons/icon.svg', badge: 'assets/icons/icon.svg', tag, data: data || {} };
@@ -1958,7 +1997,7 @@ function showHeroShareCard() {
 }
 
 function checkAndNotify() {
-  if (!('Notification' in window) || Notification.permission !== 'granted' || !HERO) return;
+  if (_isNative() || !('Notification' in window) || Notification.permission !== 'granted' || !HERO) return;
   const today = new Date(); const todayStr = todayISO();
   const hour = today.getHours();
   const trainedToday = HERO.log[0] && localDate(new Date(HERO.log[0].date)) === todayStr;
@@ -1975,7 +2014,7 @@ function checkAndNotify() {
 
 /* Controlla le sfide PvP su Firestore e notifica cambi di stato */
 async function checkPvpNotify() {
-  if (!('Notification' in window) || Notification.permission !== 'granted' || !HERO) return;
+  if (_isNative() || !('Notification' in window) || Notification.permission !== 'granted' || !HERO) return;
   const ac = HERO.cloud && HERO.cloud.activeChallenge;
   if (!ac) return;
   const ch = await FB.getChallenge(ac.id);
