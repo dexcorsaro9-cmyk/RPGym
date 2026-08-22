@@ -918,18 +918,27 @@ function _settingsBackupPanel() {
   }
 
   const exportBtn = el('button', 'btn btn-primary', '📤 Esporta salvataggio');
-  exportBtn.addEventListener('click', () => {
+  exportBtn.addEventListener('click', async () => {
     const data = localStorage.getItem('rpgym_save_v1');
     if (!data) { toast('Nessun salvataggio trovato.'); return; }
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `heropace_backup_${new Date().toISOString().slice(0,10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    localStorage.setItem('rpgym_last_backup', Date.now().toString());
-    toast('📤 Backup esportato!');
+    const filename = `heropace_backup_${new Date().toISOString().slice(0,10)}.json`;
+    const file = new File([data], filename, { type: 'application/json' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: 'Hero\'s Pace — Backup' });
+        localStorage.setItem('rpgym_last_backup', Date.now().toString());
+        toast('📤 Backup condiviso!');
+      } catch (err) {
+        if (err.name !== 'AbortError') toast('❌ Errore durante la condivisione.');
+      }
+    } else {
+      const url = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
+      const a = document.createElement('a');
+      a.href = url; a.download = filename; a.click();
+      URL.revokeObjectURL(url);
+      localStorage.setItem('rpgym_last_backup', Date.now().toString());
+      toast('📤 Backup esportato!');
+    }
   });
 
   // ── Import ───────────────────────────────────────────────────
