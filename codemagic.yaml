@@ -38,12 +38,16 @@ workflows:
 
       - name: Fetch or create signing files
         script: |
+          set -e
           app-store-connect fetch-signing-files \
             com.antoniodecino.heroscape \
             --type IOS_APP_STORE \
-            --create
+            --create \
+            --verbose
           keychain add-certificates
           xcode-project use-profiles
+          echo "=== Installed profiles ==="
+          ls ~/Library/MobileDevice/Provisioning\ Profiles/ 2>/dev/null || echo "NO PROFILES FOUND"
 
       - name: Resolve SPM dependencies
         script: |
@@ -54,12 +58,51 @@ workflows:
 
       - name: Build & export IPA
         script: |
-          xcode-project build-ipa \
-            --workspace ios/App/App.xcworkspace \
-            --scheme App
+          set -e
+          PROFILES_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
+          PROFILE=$(ls "$PROFILES_DIR"/*.mobileprovision 2>/dev/null | head -1)
+          if [ -z "$PROFILE" ]; then
+            echo "ERROR: No provisioning profile found"
+            exit 1
+          fi
+          UUID=$(security cms -D -i "$PROFILE" | /usr/libexec/PlistBuddy -c "Print :UUID" /dev/stdin)
+          echo "Profile: $PROFILE"
+          echo "UUID: $UUID"
+
+          xcodebuild archive \
+            -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -sdk iphoneos \
+            -configuration Release \
+            -archivePath /tmp/App.xcarchive \
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="iPhone Distribution" \
+            PROVISIONING_PROFILE="$UUID"
+
+          cat > /tmp/ExportOptions.plist << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store</string>
+            <key>uploadSymbols</key>
+            <true/>
+            <key>compileBitcode</key>
+            <false/>
+          </dict>
+          </plist>
+          EOF
+
+          mkdir -p build/ios/ipa
+          xcodebuild -exportArchive \
+            -archivePath /tmp/App.xcarchive \
+            -exportOptionsPlist /tmp/ExportOptions.plist \
+            -exportPath build/ios/ipa
 
     artifacts:
-      - build/ios/ipa/*.ipa
+      - build/ios/ipa/**/*.ipa
       - /tmp/xcodebuild_logs/*.log
 
     publishing:
