@@ -52,6 +52,20 @@ workflows:
           cp ios/signing/HerosPace_AppStore.mobileprovision "$PROFILES_DIR/${UUID}.mobileprovision"
           echo "Installed profile UUID: $UUID ($(wc -c < "$PROFILES_DIR/${UUID}.mobileprovision") bytes)"
 
+      - name: Patch Xcode project signing
+        script: |
+          python3 << 'PYEOF'
+          with open('ios/App/App.xcodeproj/project.pbxproj', 'r') as f:
+              content = f.read()
+          content = content.replace(
+              'CODE_SIGN_STYLE = Automatic;',
+              'CODE_SIGN_STYLE = Manual;\n\t\t\t\tCODE_SIGN_IDENTITY = "iPhone Distribution";\n\t\t\t\tDEVELOPMENT_TEAM = V9L7F3BVCV;\n\t\t\t\tPROVISIONING_PROFILE = "3331413c-6ddf-41a6-bfdf-685d028e11e5";'
+          )
+          with open('ios/App/App.xcodeproj/project.pbxproj', 'w') as f:
+              f.write(content)
+          print("Patched project.pbxproj with manual signing")
+          PYEOF
+
       - name: Resolve SPM dependencies
         script: |
           xcodebuild \
@@ -62,7 +76,6 @@ workflows:
       - name: Build & export IPA
         script: |
           set -e
-          PROFILE_UUID="3331413c-6ddf-41a6-bfdf-685d028e11e5"
 
           xcodebuild archive \
             -workspace ios/App/App.xcworkspace \
@@ -70,11 +83,7 @@ workflows:
             -sdk iphoneos \
             -configuration Release \
             -archivePath /tmp/App.xcarchive \
-            COMPILER_INDEX_STORE_ENABLE=NO \
-            CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="iPhone Distribution" \
-            PROVISIONING_PROFILE="$PROFILE_UUID" \
-            DEVELOPMENT_TEAM="V9L7F3BVCV"
+            COMPILER_INDEX_STORE_ENABLE=NO
 
           cat > /tmp/ExportOptions.plist << 'EOF'
           <?xml version="1.0" encoding="UTF-8"?>
