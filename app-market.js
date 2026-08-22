@@ -428,7 +428,8 @@ function renderMarket(c) {
     ANTRO_SECTIONS.filter(s => s.key !== 'antro_contratti' && s.key !== 'antro_prove' && s.key !== 'antro_eco' && s.key !== 'antro_mito' && s.key !== 'antro_armatura' && s.key !== 'antro_drago').forEach(s => {
       const done = heroLv >= s.lv;
       const isNext = nextSection && s.lv === nextSection.lv;
-      const row = el('div', `antro-section-row${done ? ' antro-row-done' : isNext ? ' antro-row-next' : ' antro-row-sealed'}`);
+      if (!done && !isNext) return;
+      const row = el('div', `antro-section-row${done ? ' antro-row-done' : ' antro-row-next'}`);
       const rowDesc = done ? s.desc : isNext ? `Si sblocca al livello ${s.lv} · ${s.quote}` : `Segreto svelato al livello ${s.lv}…`;
       row.innerHTML = `
         <span class="antro-row-icon">${done ? s.icon : isNext ? '🔓' : '🔒'}</span>
