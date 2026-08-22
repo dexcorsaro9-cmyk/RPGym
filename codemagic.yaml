@@ -52,8 +52,7 @@ workflows:
           UUID="3331413c-6ddf-41a6-bfdf-685d028e11e5"
           cp /tmp/profile.mobileprovision "$PROFILES_DIR/${UUID}.mobileprovision"
           echo "Installed profile UUID: $UUID"
-
-          xcode-project use-profiles
+          ls -la "$PROFILES_DIR/"
 
       - name: Resolve SPM dependencies
         script: |
