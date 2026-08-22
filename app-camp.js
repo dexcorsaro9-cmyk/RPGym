@@ -447,6 +447,7 @@ function renderCamp(c) {
           <div style="height:5px;background:#2A1808;border-radius:99px;overflow:hidden;margin-top:5px">
             <div style="height:100%;width:${spPct}%;background:linear-gradient(90deg,#C8943A,#E8C050);border-radius:99px"></div>
           </div>
+          ${spCountdownBannerHtml()}
         </div>
         <div style="font-size:.75rem;color:#C8943A;font-weight:600;flex-shrink:0">Apri ›</div>
       </div>`;
@@ -657,6 +658,52 @@ function renderCamp(c) {
   c.appendChild(rp);
 }
 
+/* Costruisce e avvia (opzionalmente con tick live) la barra countdown fine stagione */
+function buildSpCountdownBar(live) {
+  const end = new Date(RPG.SEASON_PASS.endDate + 'T23:59:59');
+  function parts() {
+    const diff = Math.max(0, end - Date.now());
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    return [d, h, m, s];
+  }
+  function pad(n) { return String(n).padStart(2, '0'); }
+  const bar = el('div', 'sp-countdown-bar');
+  bar.innerHTML = `
+    <span class="sp-countdown-icon">⏳</span>
+    <span class="sp-countdown-text">Fine stagione tra</span>
+    <div class="sp-countdown-units">
+      <span class="sp-countdown-val" data-cd="d"></span><span class="sp-countdown-key">g</span>
+      <span class="sp-countdown-sep">·</span>
+      <span class="sp-countdown-val" data-cd="h"></span><span class="sp-countdown-key">h</span>
+      <span class="sp-countdown-sep">·</span>
+      <span class="sp-countdown-val" data-cd="m"></span><span class="sp-countdown-key">m</span>
+      <span class="sp-countdown-sep">·</span>
+      <span class="sp-countdown-val" data-cd="s"></span><span class="sp-countdown-key">s</span>
+    </div>`;
+  function update() {
+    const [d, h, m, s] = parts();
+    bar.querySelector('[data-cd=d]').textContent = pad(d);
+    bar.querySelector('[data-cd=h]').textContent = pad(h);
+    bar.querySelector('[data-cd=m]').textContent = pad(m);
+    bar.querySelector('[data-cd=s]').textContent = pad(s);
+  }
+  update();
+  if (live) {
+    const iv = setInterval(() => { if (!document.contains(bar)) { clearInterval(iv); return; } update(); }, 1000);
+  }
+  return bar;
+}
+
+/* Versione statica compatta per il banner nel Rifugio (solo giorni) */
+function spCountdownBannerHtml() {
+  const end = new Date(RPG.SEASON_PASS.endDate + 'T23:59:59');
+  const days = Math.max(0, Math.ceil((end - Date.now()) / 86400000));
+  return `<span style="font-size:.62rem;color:#C8943A;margin-top:4px;display:block">⏳ Fine stagione tra <strong style="font-family:Cinzel,serif">${days}</strong> giorn${days === 1 ? 'o' : 'i'}</span>`;
+}
+
 function seasonPassRewardIconHtml(reward) {
   if (reward.type === 'cosmetic') {
     return `<img class="sp-node-img" src="assets/seasonpass/rewards/${reward.cosmetic.img}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'sp-node-emoji',textContent:'${reward.icon}'}))">`;
@@ -747,6 +794,7 @@ function renderSeasonPassView(c) {
       </div>
     </div>`);
   wrap.appendChild(header);
+  wrap.appendChild(buildSpCountdownBar(true));
 
   const legend = el('div', 'sp-legend');
   legend.innerHTML = `

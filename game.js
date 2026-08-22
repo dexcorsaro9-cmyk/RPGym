@@ -4370,6 +4370,7 @@ const RPG = (() => {
     pointsPerLevel: 50,
     pointsPerKm: 10,
     durationDays: 39,
+    endDate: '2026-08-31',
   };
 
   // Ricompense cosmetiche esclusive del pass (track Premium).
