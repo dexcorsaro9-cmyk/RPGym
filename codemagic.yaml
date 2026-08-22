@@ -7,9 +7,6 @@ workflows:
     environment:
       groups:
         - app_store_connect
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.antoniodecino.heroscape
       node: "20"
       xcode: latest
 
@@ -36,13 +33,17 @@ workflows:
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" ios/App/App/Info.plist
           echo "CFBundleVersion → $BUILD_NUMBER"
 
-      - name: Setup code signing (automatico via App Store Connect API)
+      - name: Setup code signing
         script: |
           keychain initialize
+          app-store-connect create-certificate \
+            --type IOS_DISTRIBUTION \
+            --save
+          keychain add-certificates
           app-store-connect fetch-signing-files com.antoniodecino.heroscape \
             --type IOS_APP_STORE \
-            --create
-          keychain add-certificates
+            --create \
+            --save
           xcode-project use-profiles
 
       - name: Resolve SPM dependencies
