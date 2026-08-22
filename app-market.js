@@ -597,77 +597,88 @@ function renderAntroArmaturaView(c) {
   const owned = (typeof ARMATURA_PIECES !== 'undefined' ? ARMATURA_PIECES : []).filter(p => (HERO.items || []).some(it => it.id === p.id)).length;
   const total = typeof ARMATURA_PIECES !== 'undefined' ? ARMATURA_PIECES.length : 0;
 
-  // Header
   const hdr = el('div', `antro-view-header${setComplete ? ' armatura-hdr-complete' : ''}`);
   hdr.innerHTML = `
     <div class="antro-view-ornament">${setComplete ? '✦ ✦ ✦' : '— 🏛️ —'}</div>
     <h2 class="antro-view-title">${setComplete ? 'Le Sette Gesta — Set Completo' : 'Le Sette Gesta'}</h2>
-    <p class="antro-view-sub">${owned}/${total} pezzi ottenuti · Ogni pezzo richiede un\'impresa reale</p>
+    <p class="antro-view-sub">${owned}/${total} pezzi ottenuti · La prova esiste solo al livello corrispondente</p>
   `;
   c.appendChild(hdr);
 
-  // Set complete banner
   if (setComplete) {
     const banner = el('div', 'armatura-set-banner');
     banner.innerHTML = `
       <div class="armatura-set-title">✦ SET LEGGENDARIO COMPLETO ✦</div>
-      <div class="armatura-set-text">Hai completato Le Sette Gesta. Sette imprese reali, sette pezzi guadagnati. Nessun altro nel Reame può dire lo stesso. Il tuo nome è già nella pietra.</div>
+      <div class="armatura-set-text">Hai completato Le Sette Gesta. Sette prove reali, sette finestre di opportunità colte al volo. Nessun altro nel Reame può dire lo stesso.</div>
       <div class="armatura-set-bonus">🌟 Bonus Set Attivo — tutti i pezzi equipaggiati insieme amplificano il loro effetto di 2×</div>
     `;
     c.appendChild(banner);
   }
 
-  // Pieces
   ARMATURA_PIECES.forEach(piece => {
     const isOwned = (HERO.items || []).some(it => it.id === piece.id);
-    const levelUnlocked = heroLv >= piece.level;
-    const featDone = typeof piece.check === 'function' && piece.check(HERO);
-    const card = el('div', `panel armatura-card${isOwned ? ' armatura-card-owned' : levelUnlocked ? ' armatura-card-unlocked' : ' armatura-card-locked'}`);
+    const pv = (HERO.gestaProve && HERO.gestaProve[piece.id]) || {};
+    const isLost = pv.lost && !isOwned;
+    const isActive = heroLv === piece.level && !isOwned && !isLost;
+    const isLocked = heroLv < piece.level;
+
+    let cardCls = 'panel armatura-card';
+    if (isOwned) cardCls += ' armatura-card-owned';
+    else if (isLost) cardCls += ' armatura-card-lost';
+    else if (isActive) cardCls += ' armatura-card-unlocked';
+    else cardCls += ' armatura-card-locked';
+
+    const card = el('div', cardCls);
 
     const img = el('img', 'armatura-piece-img');
     img.src = piece.img;
     img.alt = piece.name;
     img.onerror = function() { this.outerHTML = `<div class="armatura-piece-icon">${piece.icon}</div>`; };
+    if (isLost) img.style.opacity = '0.3';
     card.appendChild(img);
 
     const body = el('div', 'armatura-card-body');
 
-    const badge = isOwned ? '✓ Ottenuto' : !levelUnlocked ? `🔒 Lv ${piece.level}` : featDone ? '✦ Impresa completata!' : '⏳ Impresa in corso';
-    const badgeCls = `armatura-badge${isOwned ? ' armatura-badge-owned' : !levelUnlocked ? ' armatura-badge-locked' : featDone ? ' armatura-badge-ready' : ''}`;
-    body.appendChild(el('span', badgeCls, badge));
+    let badgeText, badgeCls;
+    if (isOwned) { badgeText = '✓ Gesta compiuta'; badgeCls = 'armatura-badge armatura-badge-owned'; }
+    else if (isLost) { badgeText = '✗ Opportunità persa'; badgeCls = 'armatura-badge armatura-badge-lost'; }
+    else if (isActive) { badgeText = '⚔️ Prova in corso'; badgeCls = 'armatura-badge armatura-badge-active'; }
+    else if (isLocked) { badgeText = `🔒 Si apre al Lv ${piece.level}`; badgeCls = 'armatura-badge armatura-badge-locked'; }
+    else { badgeText = '🔒 Finestra chiusa'; badgeCls = 'armatura-badge armatura-badge-locked'; }
 
+    body.appendChild(el('span', badgeCls, badgeText));
     body.appendChild(el('h3', 'armatura-piece-name', `${piece.icon} ${piece.name}`));
-    body.appendChild(el('p', 'armatura-piece-slot small muted', `Slot: ${piece.slot}`));
-    body.appendChild(el('p', 'armatura-piece-lore small', piece.lore));
+    body.appendChild(el('p', 'armatura-piece-slot small muted', `Slot: ${piece.slot} · Leggendario`));
 
-    const featEl = el('div', 'armatura-feat');
-    const km = (HERO.totalKm || 0).toFixed(1);
-    const sess = HERO.totalSessions || 0;
-    const wins = HERO.arena_wins || 0;
-    const streak = (HERO.bestStreak || (HERO.streak && HERO.streak.count) || 0);
-    const trophies = (HERO.champion && HERO.champion.trophies && HERO.champion.trophies.length) || 0;
-    const ecoCount = HERO.eco ? Object.values(HERO.eco.legends || {}).filter(l => l.completedAt).length : 0;
-    const petLv = (HERO.pet && HERO.pet.hatched && HERO.pet.level) || 0;
+    if (!isLocked) {
+      body.appendChild(el('p', 'armatura-piece-lore small', piece.lore));
+    }
 
-    let progress = '';
-    if (piece.id === 'armatura_elmo')      progress = `${km} / 500 km`;
-    else if (piece.id === 'armatura_corazza') progress = `${sess} / 200 sessioni`;
-    else if (piece.id === 'armatura_scudo')  progress = `${streak} / 21 giorni streak`;
-    else if (piece.id === 'armatura_arma')   progress = `${wins} / 50 vittorie Arena`;
-    else if (piece.id === 'armatura_anello') progress = `${trophies} / 10 prove del Campione`;
-    else if (piece.id === 'armatura_amuleto')progress = `${ecoCount} / 8 prove Eco dei Leggendari`;
-    else if (piece.id === 'armatura_origine')progress = `${km} / 1000 km`;
+    const provaEl = el('div', 'armatura-feat');
+    if (isLocked) {
+      provaEl.innerHTML = `
+        <span class="armatura-feat-label">🏃 Prova (Lv ${piece.level})</span>
+        <span class="armatura-feat-desc muted">${esc(piece.prova.desc)}</span>
+      `;
+    } else if (isLost) {
+      provaEl.innerHTML = `
+        <span class="armatura-feat-label">🏃 Prova</span>
+        <span class="armatura-feat-desc">${esc(piece.prova.desc)}</span>
+        <span class="armatura-feat-progress small" style="color:var(--danger,#e74c3c)">Livello ${piece.level} superato senza completare la prova. Questo pezzo non può più essere ottenuto.</span>
+      `;
+    } else {
+      const prog = pv.progress || piece.prova.initProgress();
+      const progText = piece.prova.progressText(prog);
+      provaEl.innerHTML = `
+        <span class="armatura-feat-label">🏃 Prova</span>
+        <span class="armatura-feat-desc">${esc(piece.prova.desc)}</span>
+        ${isActive ? `<span class="armatura-feat-progress small muted">${esc(progText)}</span>` : ''}
+      `;
+    }
+    body.appendChild(provaEl);
 
-    featEl.innerHTML = `
-      <span class="armatura-feat-label">⚔️ Impresa</span>
-      <span class="armatura-feat-desc">${esc(piece.featLabel)}</span>
-      ${levelUnlocked ? `<span class="armatura-feat-progress small muted">${progress}</span>` : ''}
-    `;
-    body.appendChild(featEl);
-
-    if (isOwned || levelUnlocked) {
-      const descEl = el('p', 'armatura-piece-desc small', `✦ ${piece.desc}`);
-      body.appendChild(descEl);
+    if (isOwned) {
+      body.appendChild(el('p', 'armatura-piece-desc small', `✦ ${piece.desc}`));
     }
 
     card.appendChild(body);

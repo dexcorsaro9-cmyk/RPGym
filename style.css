@@ -10207,6 +10207,9 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
 .armatura-badge-owned { background: rgba(241,196,15,.25); color: var(--gold); }
 .armatura-badge-locked { background: rgba(255,255,255,.07); color: var(--muted); }
 .armatura-badge-ready { background: rgba(39,174,96,.25); color: #27ae60; }
+.armatura-badge-active { background: rgba(74,144,217,.25); color: #4a90d9; }
+.armatura-badge-lost { background: rgba(231,76,60,.15); color: #e74c3c; }
+.armatura-card-lost { opacity: .55; }
 .armatura-piece-name { font-size: .9rem; font-weight: 800; color: var(--text); margin: 0; }
 .armatura-piece-slot { margin: 0; }
 .armatura-piece-lore { font-style: italic; line-height: 1.4; margin: 0; color: var(--muted); }
