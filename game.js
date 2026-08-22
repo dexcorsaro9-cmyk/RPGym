@@ -8127,78 +8127,160 @@ const ARMATURA_PIECES = [
     name: "L'Elmo dell'Eterno",          icon: '⛑️', img: 'assets/armatura/elmo.webp',
     desc: '+25 XP per ogni km percorso. Il peso scompare quando la mente è libera.',
     lore: 'Forgiato dalla prima luce del Reame. Chi lo indossa vede il percorso ancora prima di farlo.',
-    featLabel: 'Percorri 500 km in totale',
-    check(h) { return (h.totalKm || 0) >= 500; }
+    prova: {
+      desc: 'Corri 10 km in una singola sessione di corsa mentre sei Lv 91',
+      initProgress() { return { bestSingleRun: 0 }; },
+      onWorkout(prog, w) {
+        if (w.type !== 'corsa') return prog;
+        return { bestSingleRun: Math.max(prog.bestSingleRun || 0, w.km) };
+      },
+      isComplete(prog) { return (prog.bestSingleRun || 0) >= 10; },
+      progressText(prog) { return `Miglior corsa: ${(prog.bestSingleRun || 0).toFixed(1)} / 10 km`; },
+    },
   },
   {
     id: 'armatura_corazza', level: 92, slot: 'armor', rarity: 'leggendario',
     name: "La Corazza dell'Alba Immortale", icon: '🛡️', img: 'assets/armatura/corazza.webp',
     desc: '+15% oro da ogni allenamento. Ogni piastra è una sessione forgiata in metallo vivo.',
-    lore: '200 sessioni, 200 piastre. Non è un\'armatura — è la somma di ogni alba in cui hai scelto di alzarti.',
-    featLabel: 'Completa 200 sessioni di allenamento',
-    check(h) { return (h.totalSessions || 0) >= 200; }
+    lore: 'Cinque albe, cinque piastre. Non è un\'armatura — è la somma di ogni scelta fatta mentre il mondo dormiva.',
+    prova: {
+      desc: 'Completa 5 sessioni di corsa o camminata mentre sei Lv 92',
+      initProgress() { return { sessions: 0 }; },
+      onWorkout(prog, w) {
+        if (w.type !== 'corsa' && w.type !== 'camminata') return prog;
+        return { sessions: (prog.sessions || 0) + 1 };
+      },
+      isComplete(prog) { return (prog.sessions || 0) >= 5; },
+      progressText(prog) { return `Sessioni completate: ${prog.sessions || 0} / 5`; },
+    },
   },
   {
     id: 'armatura_scudo', level: 93, slot: 'shield', rarity: 'leggendario',
     name: "L'Aegis del Destino",          icon: '🔱', img: 'assets/armatura/scudo.webp',
     desc: 'La streak non si azzera saltando un giorno. Nessuna assenza lo scalfirà mai.',
-    lore: 'Nessun colpo lo ha mai spezzato in 21 giorni. Non esiste forza nel Reame capace di frantumarlo ora.',
-    featLabel: 'Raggiungi una streak di 21 giorni consecutivi',
-    check(h) { return ((h.bestStreak || (h.streak && h.streak.count) || 0) >= 21); }
+    lore: 'Forgiato passo dopo passo, km dopo km. Chi ne copre 25 in un solo livello non teme più nessuna distanza.',
+    prova: {
+      desc: 'Percorri 25 km totali (corsa+camminata) mentre sei Lv 93',
+      initProgress() { return { totalKm: 0 }; },
+      onWorkout(prog, w) {
+        if (w.type !== 'corsa' && w.type !== 'camminata') return prog;
+        return { totalKm: (prog.totalKm || 0) + w.km };
+      },
+      isComplete(prog) { return (prog.totalKm || 0) >= 25; },
+      progressText(prog) { return `Km percorsi: ${(prog.totalKm || 0).toFixed(1)} / 25 km`; },
+    },
   },
   {
     id: 'armatura_arma', level: 94, slot: 'weapon', rarity: 'leggendario',
     name: "La Spada dell'Assoluto",       icon: '⚔️', img: 'assets/armatura/spada.webp',
     desc: '+5% danni per ogni 10 vittorie in Arena. La lama cresce con il guerriero.',
-    lore: 'Temperata nel sangue di cinquanta nemici. Chi la impugna non conosce più la sconfitta come la conosceva.',
-    featLabel: 'Vinci 50 duelli in Arena',
-    check(h) { return (h.arena_wins || 0) >= 50; }
+    lore: 'Tre volte l\'hai portata a 5 km. Tre volte hai scelto di non fermarti. Ora la lama lo ricorda per sempre.',
+    prova: {
+      desc: 'Corri almeno 5 km in 3 sessioni separate di corsa mentre sei Lv 94',
+      initProgress() { return { qualSessions: 0 }; },
+      onWorkout(prog, w) {
+        if (w.type !== 'corsa' || w.km < 5) return prog;
+        return { qualSessions: (prog.qualSessions || 0) + 1 };
+      },
+      isComplete(prog) { return (prog.qualSessions || 0) >= 3; },
+      progressText(prog) { return `Sessioni da ≥5 km: ${prog.qualSessions || 0} / 3`; },
+    },
   },
   {
     id: 'armatura_anello', level: 95, slot: 'ring', rarity: 'leggendario',
     name: "L'Anello della Convergenza",   icon: '💍', img: 'assets/armatura/anello.webp',
-    desc: '+50 XP fisso ad ogni allenamento. Il potere di tutte e 10 le prove in un solo gesto.',
-    lore: 'Dieci prove, dieci gemme. L\'anello le converge in un\'unica fonte di potere inesauribile.',
-    featLabel: 'Supera tutte le 10 Prove del Campione',
-    check(h) { return ((h.champion && h.champion.trophies && h.champion.trophies.length) || 0) >= 10; }
+    desc: '+50 XP fisso ad ogni allenamento. Il potere di tre giorni in un solo gesto.',
+    lore: 'Tre giorni. Tre fuochi accesi senza spegnersi mai. L\'anello custodisce quella fiamma per sempre.',
+    prova: {
+      desc: 'Mantieni 3 giorni consecutivi di allenamento (corsa o camminata) mentre sei Lv 95',
+      initProgress() { return { streak: 0, lastDay: null }; },
+      onWorkout(prog, w) {
+        if (w.type !== 'corsa' && w.type !== 'camminata') return prog;
+        const today = new Date().toISOString().slice(0, 10);
+        if (prog.lastDay === today) return prog;
+        const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+        const newStreak = prog.lastDay === yesterday ? (prog.streak || 0) + 1 : 1;
+        return { streak: newStreak, lastDay: today };
+      },
+      isComplete(prog) { return (prog.streak || 0) >= 3; },
+      progressText(prog) { return `Giorni consecutivi: ${prog.streak || 0} / 3`; },
+    },
   },
   {
     id: 'armatura_amuleto', level: 96, slot: 'amulet', rarity: 'leggendario',
     name: "L'Amuleto della Volta Eterna", icon: '🌟', img: 'assets/armatura/amuleto.webp',
-    desc: '+10 legno e pietra per sessione. La volta si apre solo per chi ha ascoltato i fantasmi.',
-    lore: 'Otto guerrieri leggendari hanno ceduto la loro essenza. Ora brilla qui, per sempre, per te.',
-    featLabel: 'Supera 8 prove dell\'Eco dei Leggendari',
-    check(h) {
-      if (!h.eco || !h.eco.legends) return false;
-      return Object.values(h.eco.legends).filter(l => l.completedAt).length >= 8;
-    }
+    desc: '+10 legno e pietra per sessione. La volta si apre solo a chi corre davvero.',
+    lore: 'Quaranta km di corsa pura, senza camminata. Solo chi li supera vede la volta aprirsi.',
+    prova: {
+      desc: 'Percorri 40 km totali di sola corsa mentre sei Lv 96',
+      initProgress() { return { runKm: 0 }; },
+      onWorkout(prog, w) {
+        if (w.type !== 'corsa') return prog;
+        return { runKm: (prog.runKm || 0) + w.km };
+      },
+      isComplete(prog) { return (prog.runKm || 0) >= 40; },
+      progressText(prog) { return `Km di corsa: ${(prog.runKm || 0).toFixed(1)} / 40 km`; },
+    },
   },
   {
     id: 'armatura_origine', level: 97, slot: 'reliquia', rarity: 'leggendario',
     name: "Il Frammento dell'Origine",    icon: '🔮', img: 'assets/armatura/origine.webp',
     desc: '+100 XP ad ogni allenamento. Prima che esistessero reliquie, esisteva questo frammento.',
-    lore: 'Tutte le reliquie dell\'Eco discendono da questo frammento. Chi lo porta chiude il cerchio — riporta l\'origine dove tutto è iniziato.',
-    featLabel: 'Percorri 1000 km in totale',
-    check(h) { return (h.totalKm || 0) >= 1000; }
+    lore: 'Una corsa lunga. Una camminata lunga. Due nature, un solo frammento. Chi le unisce chiude il cerchio.',
+    prova: {
+      desc: 'Completa una corsa ≥10 km e una camminata ≥10 km (sessioni separate) mentre sei Lv 97',
+      initProgress() { return { bigRun: false, bigWalk: false }; },
+      onWorkout(prog, w) {
+        const np = { bigRun: prog.bigRun, bigWalk: prog.bigWalk };
+        if (w.type === 'corsa'     && w.km >= 10) np.bigRun  = true;
+        if (w.type === 'camminata' && w.km >= 10) np.bigWalk = true;
+        return np;
+      },
+      isComplete(prog) { return !!(prog.bigRun && prog.bigWalk); },
+      progressText(prog) { return `Corsa ≥10 km: ${prog.bigRun ? '✓' : '✗'} · Camminata ≥10 km: ${prog.bigWalk ? '✓' : '✗'}`; },
+    },
   },
 ];
 
-function checkArmaturaPieces(hero) {
+/* Chiamata dopo ogni workout. Aggiorna il progresso della prova attiva e premia il pezzo se completata. */
+function checkGestaOnWorkout(hero, workout) {
   if ((hero.level || 1) < 91) return [];
+  if (!hero.gestaProve) hero.gestaProve = {};
   if (!hero.items) hero.items = [];
-  const newlyUnlocked = [];
+  const heroLv = hero.level || 1;
+  const newlyCompleted = [];
+
   for (const piece of ARMATURA_PIECES) {
-    if ((hero.level || 1) < piece.level) continue;
-    const already = hero.items.some(it => it.id === piece.id);
-    if (!already && piece.check(hero)) {
-      hero.items.push({
-        id: piece.id, name: piece.name, icon: piece.icon, img: piece.img,
-        slot: piece.slot, rarity: piece.rarity, desc: piece.desc,
-      });
-      newlyUnlocked.push(piece);
+    const pv = hero.gestaProve[piece.id] || {};
+    if (pv.completed || pv.lost) continue;
+
+    if (heroLv > piece.level) {
+      // Finestra chiusa — pezzo perso per sempre
+      hero.gestaProve[piece.id] = { completed: false, lost: true, progress: pv.progress || piece.prova.initProgress() };
+      continue;
+    }
+    if (heroLv < piece.level) continue;
+
+    // Finestra attiva
+    if (!pv.progress) {
+      hero.gestaProve[piece.id] = { completed: false, lost: false, progress: piece.prova.initProgress() };
+    }
+    const newProg = piece.prova.onWorkout(hero.gestaProve[piece.id].progress, workout);
+    hero.gestaProve[piece.id] = { completed: false, lost: false, progress: newProg };
+
+    if (piece.prova.isComplete(newProg)) {
+      hero.gestaProve[piece.id].completed = true;
+      const already = hero.items.some(it => it.id === piece.id);
+      if (!already) {
+        hero.items.push({
+          id: piece.id, name: piece.name, icon: piece.icon, img: piece.img,
+          slot: piece.slot, rarity: piece.rarity, desc: piece.desc,
+        });
+        newlyCompleted.push(piece);
+      }
     }
   }
-  return newlyUnlocked;
+  return newlyCompleted;
 }
 
 function checkArmaturaPiecesSetBonus(hero) {

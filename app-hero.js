@@ -3182,6 +3182,31 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('controllerchange', () => location.reload());
 }
 
+/* ── Le Sette Gesta — Unlock Modal ── */
+function showGestaUnlock(piece) {
+  const setComplete = typeof checkArmaturaPiecesSetBonus === 'function' && checkArmaturaPiecesSetBonus(HERO);
+  const owned = (typeof ARMATURA_PIECES !== 'undefined' ? ARMATURA_PIECES : []).filter(p => (HERO.items || []).some(it => it.id === p.id)).length;
+  const total = typeof ARMATURA_PIECES !== 'undefined' ? ARMATURA_PIECES.length : 7;
+
+  modal(`
+    <div class="gesta-unlock-modal">
+      <div class="gesta-unlock-ornament">${setComplete ? '✦ ✦ ✦' : '— 🏛️ —'}</div>
+      <div class="gesta-unlock-label">GESTA COMPLETATA</div>
+      <img class="gesta-unlock-img" src="${esc(piece.img)}" alt="${esc(piece.name)}"
+           onerror="this.outerHTML='<div class=\\'gesta-unlock-icon\\'>${piece.icon}</div>'">
+      <h2 class="gesta-unlock-name">${piece.icon} ${esc(piece.name)}</h2>
+      <p class="gesta-unlock-slot small muted">Slot: ${esc(piece.slot)} · Leggendario</p>
+      <p class="gesta-unlock-lore">${esc(piece.lore)}</p>
+      <div class="gesta-unlock-stat">✦ ${esc(piece.desc)}</div>
+      <p class="gesta-unlock-progress small muted">${owned}/${total} pezzi de Le Sette Gesta</p>
+      ${setComplete ? `<div class="gesta-set-complete-banner">✨ SET LEGGENDARIO COMPLETO ✨<br><span class="small">Hai forgiato Le Sette Gesta. Il Reame ti riconosce.</span></div>` : ''}
+      <button class="btn btn-primary wide" style="margin-top:14px" onclick="closeModal()">
+        ${setComplete ? '👑 Sono degno del Reame' : '⚔️ Continua la tua gesta'}
+      </button>
+    </div>
+  `);
+}
+
 function runSplash(done) {
   const fill  = document.getElementById('splash-progress-fill');
   const text  = document.getElementById('splash-progress-text');
