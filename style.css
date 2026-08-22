@@ -10047,19 +10047,16 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
 /* ── Countdown bar pass stagionale ── */
 .sp-countdown-bar {
   border-top: 1px solid #2A1206;
-  background: linear-gradient(90deg, #100604, #0A0402);
+  background: #0A0402;
   padding: 7px 16px;
   display: flex;
-  align-items: center;
-  gap: 8px;
+  align-items: baseline;
+  gap: 3px;
 }
-.sp-countdown-icon { font-size: .9rem; flex-shrink: 0; }
-.sp-countdown-text { font-size: .63rem; color: #C0A070; text-transform: uppercase; letter-spacing: .07em; flex-shrink: 0; white-space: nowrap; }
-.sp-countdown-units { display: flex; align-items: baseline; gap: 5px; flex: 1; justify-content: flex-end; }
-.sp-cd-group { display: inline-flex; align-items: baseline; gap: 1px; }
-.sp-cd-group span { font-family: 'Cinzel', serif; font-size: .9rem; font-weight: 800; color: #C8943A; }
-.sp-cd-group small { font-size: .5rem; color: #C0A070; text-transform: uppercase; letter-spacing: .03em; }
-.sp-cd-sep { color: #7A5030; font-size: .7rem; line-height: 1; }
+.sp-cdb-label { font-size: .6rem; color: #C0A070; text-transform: uppercase; letter-spacing: .07em; flex-shrink: 0; margin-right: 3px; }
+.sp-cdb-val { font-family: 'Cinzel', serif; font-size: .9rem; font-weight: 800; color: #C8943A; }
+.sp-cdb-key { font-size: .5rem; color: #C0A070; text-transform: uppercase; margin-right: 1px; }
+.sp-cdb-sep { font-size: .7rem; color: #7A5030; margin: 0 2px; }
 
 .sp-legend { display: flex; gap: 14px; padding: 10px 16px; flex-wrap: wrap; }
 .sp-legend-item { display: flex; align-items: center; gap: 5px; font-size: .68rem; color: #D8C0A0; }

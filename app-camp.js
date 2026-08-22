@@ -661,36 +661,30 @@ function renderCamp(c) {
 /* Costruisce e avvia (opzionalmente con tick live) la barra countdown fine stagione */
 function buildSpCountdownBar(live) {
   const end = new Date(RPG.SEASON_PASS.endDate + 'T23:59:59');
-  function parts() {
+  function pad(n) { return String(Math.max(0, n)).padStart(2, '0'); }
+  function vals() {
     const diff = Math.max(0, end - Date.now());
     return [
-      Math.floor(diff / 86400000),
-      Math.floor((diff % 86400000) / 3600000),
-      Math.floor((diff % 3600000) / 60000),
-      Math.floor((diff % 60000) / 1000),
+      pad(Math.floor(diff / 86400000)),
+      pad(Math.floor((diff % 86400000) / 3600000)),
+      pad(Math.floor((diff % 3600000) / 60000)),
+      pad(Math.floor((diff % 60000) / 1000)),
     ];
   }
-  function pad(n) { return String(n).padStart(2, '0'); }
   const bar = el('div', 'sp-countdown-bar');
   bar.innerHTML = `
-    <span class="sp-countdown-icon">⏳</span>
-    <span class="sp-countdown-text">Fine stagione tra</span>
-    <div class="sp-countdown-units">
-      <span class="sp-cd-group"><span data-cd="d"></span><small>g</small></span>
-      <span class="sp-cd-sep">·</span>
-      <span class="sp-cd-group"><span data-cd="h"></span><small>h</small></span>
-      <span class="sp-cd-sep">·</span>
-      <span class="sp-cd-group"><span data-cd="m"></span><small>m</small></span>
-      <span class="sp-cd-sep">·</span>
-      <span class="sp-cd-group"><span data-cd="s"></span><small>s</small></span>
-    </div>`;
-  function update() {
-    const [d, h, m, s] = parts();
-    bar.querySelector('[data-cd=d]').textContent = pad(d);
-    bar.querySelector('[data-cd=h]').textContent = pad(h);
-    bar.querySelector('[data-cd=m]').textContent = pad(m);
-    bar.querySelector('[data-cd=s]').textContent = pad(s);
-  }
+    <span style="font-size:.85rem;flex-shrink:0">⏳</span>
+    <span class="sp-cdb-label">Fine stagione tra</span>
+    <span style="flex:1"></span>
+    <b class="sp-cdb-val"></b><small class="sp-cdb-key">g</small>
+    <span class="sp-cdb-sep">·</span>
+    <b class="sp-cdb-val"></b><small class="sp-cdb-key">h</small>
+    <span class="sp-cdb-sep">·</span>
+    <b class="sp-cdb-val"></b><small class="sp-cdb-key">m</small>
+    <span class="sp-cdb-sep">·</span>
+    <b class="sp-cdb-val"></b><small class="sp-cdb-key">s</small>`;
+  const nodes = bar.querySelectorAll('.sp-cdb-val');
+  function update() { vals().forEach((v, i) => { nodes[i].textContent = v; }); }
   update();
   if (live) {
     const iv = setInterval(() => { if (!document.contains(bar)) { clearInterval(iv); return; } update(); }, 1000);
