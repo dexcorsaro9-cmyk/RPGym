@@ -39,9 +39,13 @@ workflows:
           echo "=== keychain initialize ==="
           keychain initialize
 
+          echo "=== generate private key ==="
+          openssl genrsa -out /tmp/dist_cert.key 2048
+
           echo "=== certificates create ==="
           app-store-connect certificates create \
             --type IOS_DISTRIBUTION \
+            --private-key /tmp/dist_cert.key \
             --save || echo "Certificate creation skipped (may already exist)"
 
           echo "=== keychain add-certificates ==="
