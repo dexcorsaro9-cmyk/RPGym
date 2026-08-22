@@ -72,5 +72,11 @@
 	<string>Hero's Pace non scrive dati in Salute.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
+	<key>NSUserNotificationUsageDescription</key>
+	<string>Hero's Pace ti avvisa quando le tue piante sono pronte, il boss settimanale sta per scadere e i tuoi famigli hanno bisogno di te.</string>
 </dict>
 </plist>

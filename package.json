@@ -14,6 +14,7 @@
     "@capacitor/cli": "^8.5.0",
     "@capacitor/core": "^8.5.0",
     "@capacitor/ios": "^8.5.0",
+    "@capacitor/push-notifications": "^8.1.2",
     "@capgo/capacitor-health": "^8.10.2",
     "@capgo/capacitor-updater": "^8.51.3",
     "playwright": "^1.62.1"
