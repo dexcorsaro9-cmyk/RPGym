@@ -15,9 +15,6 @@ const ANTRO_SECTIONS = [
   { lv: 71,  key: 'antro_eco',       icon: '👻', name: 'L\'Eco dei Leggendari',          desc: 'Dieci fantasmi di guerrieri leggendari ti sfidano (Lv 71–80). Supera le loro prove e ottieni una reliquia unica da ogni eroe.', quote: '«Le loro voci risuonano ancora. Rispondi alla chiamata.»' },
   { lv: 81,  key: 'antro_mito',      icon: '📖', name: 'Le Origini del Mito',            desc: 'Dieci capitoli generati dalla tua storia reale (Lv 81–90). Il tuo percorso diventa leggenda scritta.', quote: '«Non esistono eroi senza una storia. Scopri la tua.»' },
   { lv: 91,  key: 'antro_armatura',  icon: '🏛️', name: 'Le Sette Gesta',               desc: 'Sette pezzi leggendari (Lv 91–97), ognuno sbloccato da un\'impresa reale. Il set completo ti rende inarrestabile.', quote: '«Sette gesta reali. Sette pezzi leggendari. Una sola vita per guadagnarli tutti.»' },
-  { lv: 80,  key: 'antro_forgia',    icon: '🔥', name: 'Forgia del Campione',           desc: 'Forgia equipaggiamento leggendario irripetibile.',           quote: '«Il ferro comune brucia. Solo l\'acciaio del sacrificio sopravvive.»' },
-  { lv: 90,  key: 'antro_dungeon',   icon: '🌀', name: 'Dungeon Infinito',              desc: 'Abissi senza fondo che mettono alla prova l\'eterno.',       quote: '«Ogni gradino più in basso rivela una verità che pochissimi reggono.»' },
-  { lv: 100, key: 'antro_leggenda',  icon: '👑', name: 'Sala della Leggenda',           desc: 'Il tuo nome inciso tra i Grandi del Reame per sempre.',      quote: '«Cento livelli. Centinaia di chilometri. Un solo nome: il tuo.»' },
 ];
 
 function renderMarket(c) {
@@ -421,10 +418,7 @@ function renderMarket(c) {
       pre:  '«Dietro questa porta riposano sfide che cambieranno il tuo destino. Ogni passo che fai oggi ti avvicina a ciò che si nasconde nell\'oscurità. Livello 50. Non mollare.»',
       60:   '«Hai varcato la soglia. Ora l\'Antro ti studia, ti misura. Qualcosa di antico si agita nelle profondità — si dice che dorme solo finché non arriva un degno avversario…»',
       70:   '«La Bestia Ancestrale è caduta per mano tua. Il Reame ricorderà. Ma la Sala dei Trofei chiede ancora di più: mostra al mondo chi sei davvero.»',
-      80:   '«Il tuo nome è già inciso. Non basta. Al livello 80 la Forgia arde per te — metalli che nessun mercante vende, poteri che nessun dungeon ordinario può dare.»',
-      90:   '«Hai bruciato ogni ostacolo. Eppure il Dungeon Infinito ride nell\'ombra. Nessuno sa cosa si trova in fondo — perché nessuno è mai tornato a raccontarlo.»',
       91:   '«Il Dungeon è alle spalle. Davanti a te: Le Sette Gesta. Sette imprese reali. Sette pezzi di un\'armatura che non si compra — si guadagna col corpo.»',
-      100:  '«Cento livelli. Il confine dell\'impossibile è qui, adesso, nella Sala della Leggenda. Pochi nella storia del Reame hanno osato tanto. Tutti hanno guadagnato l\'eternità.»',
       max:  '«Hai percorso ogni corridoio, sconfitto ogni ombra, inciso il tuo nome nella roccia più antica del Reame. L\'Antro è tuo. Per sempre.»',
     };
     const quoteKey = !isUnlocked ? 'pre' : !nextSection ? 'max' : String(nextSection.lv);
@@ -704,10 +698,7 @@ function renderAntroView(c) {
   if (activeKey === 'antro_contratti' && heroLv >= 50) { renderAntroContrattiView(c); return; }
   if (activeKey === 'antro_prove'     && heroLv >= 61) { HERO_VIEW = 'campione'; setTab('hero'); return; }
   if (activeKey === 'antro_trofei'    && heroLv >= 70) { renderAntroTrofeiView(c);    return; }
-  if (activeKey === 'antro_forgia'    && heroLv >= 80) { renderAntroForgiaView(c);    return; }
-  if (activeKey === 'antro_dungeon'   && heroLv >= 90) { renderAntroDungeonView(c);   return; }
   if (activeKey === 'antro_armatura'  && heroLv >= 91) { renderAntroArmaturaView(c);  return; }
-  if (activeKey === 'antro_leggenda'  && heroLv >= 100){ renderAntroLeggendaView(c);  return; }
 
   // Hub principale
   const hubHeader = el('div', 'antro-view-header');
@@ -1459,9 +1450,6 @@ function renderDcBattleView(c) {
 
 function renderAntroBestiaView(c)    { _antroComingSoon(c, ANTRO_SECTIONS[1]); }
 function renderAntroTrofeiView(c)    { _antroComingSoon(c, ANTRO_SECTIONS[2]); }
-function renderAntroForgiaView(c)    { _antroComingSoon(c, ANTRO_SECTIONS[3]); }
-function renderAntroDungeonView(c)   { _antroComingSoon(c, ANTRO_SECTIONS[4]); }
-function renderAntroLeggendaView(c)  { _antroComingSoon(c, ANTRO_SECTIONS[5]); }
 
 function npcBanner(imgPath, name, quote) {
   const b = el('div', 'npc-banner');
