@@ -103,6 +103,15 @@ workflows:
           keychain initialize
           echo "=== Write persistent certificate private key ==="
           echo "$CM_CERT_PRIVATE_KEY" | base64 --decode > /tmp/cert_key.pem
+          echo "=== Delete stale provisioning profiles for bundle ID ==="
+          app-store-connect list-provisioning-profiles \
+            --bundle-id-identifier "$BUNDLE_ID" \
+            --profile-type IOS_APP_STORE \
+            --identifier-strict 2>/dev/null | \
+          while read -r profile_id; do
+            echo "Deleting profile: $profile_id"
+            app-store-connect delete-provisioning-profile "$profile_id" 2>/dev/null || true
+          done
           echo "=== Fetch/create certificate + provisioning profile ==="
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
