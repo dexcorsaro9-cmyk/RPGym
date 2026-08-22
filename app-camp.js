@@ -662,32 +662,32 @@ function renderCamp(c) {
 function buildSpCountdownBar(live) {
   const end = new Date(RPG.SEASON_PASS.endDate + 'T23:59:59');
   function pad(n) { return String(Math.max(0, n)).padStart(2, '0'); }
-  function vals() {
+  function countdown() {
     const diff = Math.max(0, end - Date.now());
-    return [
-      pad(Math.floor(diff / 86400000)),
-      pad(Math.floor((diff % 86400000) / 3600000)),
-      pad(Math.floor((diff % 3600000) / 60000)),
-      pad(Math.floor((diff % 60000) / 1000)),
-    ];
+    const d = pad(Math.floor(diff / 86400000));
+    const h = pad(Math.floor((diff % 86400000) / 3600000));
+    const m = pad(Math.floor((diff % 3600000) / 60000));
+    const s = pad(Math.floor((diff % 60000) / 1000));
+    return d + 'g · ' + h + 'h · ' + m + 'm · ' + s + 's';
   }
-  const bar = el('div', 'sp-countdown-bar');
-  bar.innerHTML = `
-    <span style="font-size:.85rem;flex-shrink:0">⏳</span>
-    <span class="sp-cdb-label">Fine stagione tra</span>
-    <span style="flex:1"></span>
-    <b class="sp-cdb-val"></b><small class="sp-cdb-key">g</small>
-    <span class="sp-cdb-sep">·</span>
-    <b class="sp-cdb-val"></b><small class="sp-cdb-key">h</small>
-    <span class="sp-cdb-sep">·</span>
-    <b class="sp-cdb-val"></b><small class="sp-cdb-key">m</small>
-    <span class="sp-cdb-sep">·</span>
-    <b class="sp-cdb-val"></b><small class="sp-cdb-key">s</small>`;
-  const nodes = bar.querySelectorAll('.sp-cdb-val');
-  function update() { vals().forEach((v, i) => { nodes[i].textContent = v; }); }
-  update();
+  const bar = document.createElement('div');
+  bar.className = 'sp-countdown-bar';
+  const lbl = document.createElement('span');
+  lbl.className = 'sp-cdb-label';
+  lbl.textContent = '⏳ Fine stagione tra';
+  const spacer = document.createElement('span');
+  spacer.style.flex = '1';
+  const val = document.createElement('span');
+  val.className = 'sp-cdb-val sp-cdb-val-text';
+  val.textContent = countdown();
+  bar.appendChild(lbl);
+  bar.appendChild(spacer);
+  bar.appendChild(val);
   if (live) {
-    const iv = setInterval(() => { if (!document.contains(bar)) { clearInterval(iv); return; } update(); }, 1000);
+    const iv = setInterval(() => {
+      if (!document.contains(bar)) { clearInterval(iv); return; }
+      val.textContent = countdown();
+    }, 1000);
   }
   return bar;
 }

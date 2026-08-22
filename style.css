@@ -10050,13 +10050,13 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
   background: #0A0402;
   padding: 7px 16px;
   display: flex;
-  align-items: baseline;
-  gap: 3px;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
 }
-.sp-cdb-label { font-size: .6rem; color: #C0A070; text-transform: uppercase; letter-spacing: .07em; flex-shrink: 0; margin-right: 3px; }
-.sp-cdb-val { font-family: 'Cinzel', serif; font-size: .9rem; font-weight: 800; color: #C8943A; }
-.sp-cdb-key { font-size: .5rem; color: #C0A070; text-transform: uppercase; margin-right: 1px; }
-.sp-cdb-sep { font-size: .7rem; color: #7A5030; margin: 0 2px; }
+.sp-cdb-label { font-size: .6rem; color: #C0A070; text-transform: uppercase; letter-spacing: .07em; flex-shrink: 0; }
+.sp-cdb-val-text { font-family: 'Cinzel', serif; font-size: .88rem; font-weight: 800; color: #C8943A; white-space: nowrap; flex-shrink: 0; }
 
 .sp-legend { display: flex; gap: 14px; padding: 10px 16px; flex-wrap: wrap; }
 .sp-legend-item { display: flex; align-items: center; gap: 5px; font-size: .68rem; color: #D8C0A0; }
