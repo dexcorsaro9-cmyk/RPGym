@@ -21,7 +21,7 @@ public class WorkoutPlugin: CAPPlugin, CAPBridgedPlugin {
     // ── Stato ────────────────────────────────────────────────────────────────
     private let healthStore = HKHealthStore()
     private let pedometer   = CMPedometer()
-    // Tipizzati Any? perché HKWorkoutSession su iPhone richiede iOS 26+
+    // Tipizzati Any? per compatibilità con il guard #available(iOS 17.0, *)
     private var workoutSession: Any?
     private var workoutBuilder: Any?
     private var startDate: Date?
@@ -57,9 +57,9 @@ public class WorkoutPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     // ── startWorkout ─────────────────────────────────────────────────────────
-    @objc func startWorkout(_ call: CAPPluginCall) {
-        guard #available(iOS 26.0, *) else {
-            call.reject("Tracciamento workout in tempo reale richiede iOS 26 o superiore")
+    @objc public func startWorkout(_ call: CAPPluginCall) {
+        guard #available(iOS 17.0, *) else {
+            call.reject("Tracciamento workout in tempo reale richiede iOS 17 o superiore")
             return
         }
         guard workoutSession == nil else { call.resolve(["alreadyRunning": true]); return }
@@ -130,9 +130,9 @@ public class WorkoutPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     // ── stopWorkout ──────────────────────────────────────────────────────────
-    @objc func stopWorkout(_ call: CAPPluginCall) {
-        guard #available(iOS 26.0, *) else {
-            call.reject("Tracciamento workout in tempo reale richiede iOS 26 o superiore")
+    @objc public func stopWorkout(_ call: CAPPluginCall) {
+        guard #available(iOS 17.0, *) else {
+            call.reject("Tracciamento workout in tempo reale richiede iOS 17 o superiore")
             return
         }
         guard let session = workoutSession as? HKWorkoutSession,
@@ -173,7 +173,7 @@ public class WorkoutPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     // ── getStatus ────────────────────────────────────────────────────────────
-    @objc func getStatus(_ call: CAPPluginCall) {
+    @objc public func getStatus(_ call: CAPPluginCall) {
         let active = workoutSession != nil
         var res: [String: Any] = ["active": active]
         if let start = startDate {
