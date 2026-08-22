@@ -43,9 +43,11 @@ workflows:
           openssl genrsa -out /tmp/dist_cert.key 2048
 
           echo "=== certificates create ==="
+          mkdir -p ~/Library/MobileDevice/Certificates
           app-store-connect certificates create \
             --type IOS_DISTRIBUTION \
-            --private-key /tmp/dist_cert.key \
+            --certificate-key @file:/tmp/dist_cert.key \
+            --certificates-dir ~/Library/MobileDevice/Certificates \
             --save || echo "Certificate creation skipped (may already exist)"
 
           echo "=== keychain add-certificates ==="
