@@ -663,11 +663,12 @@ function buildSpCountdownBar(live) {
   const end = new Date(RPG.SEASON_PASS.endDate + 'T23:59:59');
   function parts() {
     const diff = Math.max(0, end - Date.now());
-    const d = Math.floor(diff / 86400000);
-    const h = Math.floor((diff % 86400000) / 3600000);
-    const m = Math.floor((diff % 3600000) / 60000);
-    const s = Math.floor((diff % 60000) / 1000);
-    return [d, h, m, s];
+    return [
+      Math.floor(diff / 86400000),
+      Math.floor((diff % 86400000) / 3600000),
+      Math.floor((diff % 3600000) / 60000),
+      Math.floor((diff % 60000) / 1000),
+    ];
   }
   function pad(n) { return String(n).padStart(2, '0'); }
   const bar = el('div', 'sp-countdown-bar');
@@ -675,13 +676,13 @@ function buildSpCountdownBar(live) {
     <span class="sp-countdown-icon">⏳</span>
     <span class="sp-countdown-text">Fine stagione tra</span>
     <div class="sp-countdown-units">
-      <span class="sp-countdown-val" data-cd="d"></span><span class="sp-countdown-key">g</span>
-      <span class="sp-countdown-sep">·</span>
-      <span class="sp-countdown-val" data-cd="h"></span><span class="sp-countdown-key">h</span>
-      <span class="sp-countdown-sep">·</span>
-      <span class="sp-countdown-val" data-cd="m"></span><span class="sp-countdown-key">m</span>
-      <span class="sp-countdown-sep">·</span>
-      <span class="sp-countdown-val" data-cd="s"></span><span class="sp-countdown-key">s</span>
+      <span class="sp-cd-group"><span data-cd="d"></span><small>g</small></span>
+      <span class="sp-cd-sep">·</span>
+      <span class="sp-cd-group"><span data-cd="h"></span><small>h</small></span>
+      <span class="sp-cd-sep">·</span>
+      <span class="sp-cd-group"><span data-cd="m"></span><small>m</small></span>
+      <span class="sp-cd-sep">·</span>
+      <span class="sp-cd-group"><span data-cd="s"></span><small>s</small></span>
     </div>`;
   function update() {
     const [d, h, m, s] = parts();
