@@ -3237,7 +3237,9 @@ function showDragoKilled() {
   const wins = HERO.arena_wins || 0;
   modal(`
     <div class="drago-killed-modal">
-      <div class="drago-killed-fire">🔥</div>
+      <video class="drago-killed-video" autoplay muted playsinline loop
+             src="assets/drago/drago-finale.mp4"
+             onerror="this.style.display='none'"></video>
       <div class="drago-killed-title">🐉 IL DRAGO È CADUTO</div>
       <div class="drago-killed-sub">— ${esc(HERO.name || 'Eroe')} — Draghicida —</div>
       <div class="drago-killed-stats">

@@ -10247,6 +10247,7 @@ details[open] > .map-help-summary::before { transform: rotate(90deg); }
 .drago-wound-lore { font-style: italic; color: var(--text); margin: 8px 0; line-height: 1.5; }
 .drago-wound-progress { margin: 4px 0; }
 .drago-killed-modal { text-align: center; padding: 6px 0; }
+.drago-killed-video { width: 100%; max-height: 220px; border-radius: 12px; object-fit: cover; margin-bottom: 10px; display: block; }
 .drago-killed-fire { font-size: 2.8rem; margin-bottom: 6px; }
 .drago-killed-title { font-size: 1.3rem; font-weight: 900; letter-spacing: .04em; color: var(--gold); margin-bottom: 4px; }
 .drago-killed-sub { font-size: .82rem; letter-spacing: .05em; color: var(--muted); margin-bottom: 14px; }
